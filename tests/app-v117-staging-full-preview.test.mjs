@@ -73,5 +73,25 @@ test('preview is generated from the current APP without production endpoints',()
  assert.ok(fs.existsSync(path.join(out,'js','mmhvault-v11-manage-hierarchy-model.mjs')));
  assert.ok(fs.existsSync(path.join(out,'css')));
  assert.ok(fs.existsSync(path.join(out,'README-STAGING-QA.txt')));
+ // An unauthenticated native APP deliberately redirects to login.html.
+ // This must not 404 into Pages' SPA fallback to index.html -> app.html,
+ // which previously caused the reported blank, flickering boot loop.
+ const login=fs.readFileSync(path.join(out,'login.html'),'utf8');
+ assert.match(login,/MMHVAULT APP V11\.7 — STAGING TEST LOGIN/);
+ assert.match(login,/id="qaLoginForm"/);
+ assert.match(login,/id="qaEmail"/);
+ assert.match(login,/id="qaPassword"/);
+ assert.match(login,/v117qa/);
+ assert.match(login,/signInWithPassword/);
+ assert.match(login,/location\.replace\('\.\/app\.html'\)/);
+ assert.match(login,/sb_publishable_SYNTHETIC_STAGING_QA_ONLY_0123456789/);
+ assert.ok(!login.includes(PROD));
+ assert.ok(!login.includes('sb_publishable_H38v4XbO0ARnSJToD42wGg_27-SZ3Ao'));
+ assert.doesNotMatch(login,/__AUTH_STAGING_PUBLISHABLE_KEY__/);
+ assert.doesNotMatch(login,/\/functions\/v1\/|signUp\s*\(|resetPasswordForEmail\s*\(/);
+ assert.match(login,/connect-src https:\/\/ldivswlhtgmznzwhzsoi\.supabase\.co\/auth\/v1\/token/);
+ assert.doesNotMatch(login,/connect-src[^"]*\/rest\/v1\//);
+ const index=fs.readFileSync(path.join(out,'index.html'),'utf8');
+ assert.match(index,/url=\.\/app\.html/);
  assert.match(result.stdout,/"originReplacements":3/);
 });
