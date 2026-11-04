@@ -26,6 +26,8 @@ test('No client-supplied owner selectors, fresh password and owner recheck',()=>
  has('if(Object.keys(body).some(k=>!permitted.includes(k)))');
  has('await checkPassword(auth.user,body.password)');
  has('const afterPassword=await verifiedOwner(request)');
+ has('const beforeStatus=await verifiedOwner(request)');
+ has('if(!isSameOwner(beforeStatus,auth)');
  has('const beforeResponse=await verifiedOwner(request)');
  has('if(!isSameOwner(beforeResponse,auth)');
  has('mmh_n10_realef_backup_get');
