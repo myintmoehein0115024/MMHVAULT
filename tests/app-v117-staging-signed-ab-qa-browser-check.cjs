@@ -23,7 +23,6 @@ const responseHeaders={
 async function fakeCloud(route){
  const req=route.request(),url=new URL(req.url()),method=req.method();
  const complete=(status,data)=>route.fulfill({status,headers:responseHeaders,body:JSON.stringify(data)});
- if(url.origin+'/ '===BASE){throw Error('Unexpected API route')}
  if(method==='OPTIONS')return route.fulfill({status:204,headers:responseHeaders,body:''});
  if(url.pathname==='/auth/v1/token'){
    const body=req.postDataJSON(),candidate=Object.values(users).find(u=>u.email===String(body?.email||'').toLowerCase());
