@@ -1494,13 +1494,13 @@ async function load(page,route,failures){
        layout.styles.filter(v=>v==='l146').length===2 &&
        layout.styles.filter(v=>v==='l147').length===1 &&
        layout.styles.filter(v=>v==='l141').length===2 &&
-       layout.scripts.includes('l155') && layout.scripts.includes('l157') &&
+       layout.scripts.includes('l155') && layout.scripts.includes('l159') &&
        loaded.length===8 && loaded.every(r=>r.status===200&&
          r.version===(r.path==='/landing-assets/landing.min.css'?'l145':
            ['/landing-assets/cinematic.min.css','/landing-assets/premium-l131.min.css'].includes(r.path)?'l146':
            r.path==='/landing-assets/header-explore-l147.min.css'?'l147':
             r.path==='/landing-assets/landing.js'?'l155':
-              r.path==='/landing-assets/motion-l132.js'?'l157':'l141')) &&
+              r.path==='/landing-assets/motion-l132.js'?'l159':'l141')) &&
        new Set(loaded.map(r=>r.path)).size===8 && failures.length===0,
        'L1.47 '+width+'px eight CSS/JS requests with consistent cache keys '+JSON.stringify({loaded,failures}));
      ensure(layout.brand.left>=-1&&layout.brand.right<=width+1 &&
@@ -2740,6 +2740,94 @@ async function load(page,route,failures){
          route+' '+width+'px keyboard navigation has no missing assets or JS errors');
        await ctx.close();
      }
+   }
+
+   // L1.59 live reduced-motion reveal persistence in real Chromium.
+   {
+     const candidate=fs.readFileSync('landing-assets/motion-l132.js','utf8');
+     const addition="  // L1.59: settle any pending reveals when reduced motion is enabled live.\n  // Already visible content stays visible if normal motion is enabled again.\n  const settleReducedReveals=()=>{\n    if(permitted())return;\n    for(const el of elements)el.classList.add('mm-shown');\n    observer.disconnect();\n  };\n  if(typeof motionPreference.addEventListener==='function')\n    motionPreference.addEventListener('change',settleReducedReveals);\n  else if(typeof motionPreference.addListener==='function')\n    motionPreference.addListener(settleReducedReveals);\n\n";
+     const anchor='  // Clicking a guide or an in-page navigation link must reveal the destination,';
+     assert.equal(candidate.split(addition+anchor).length,2,'L1.59 unique presentation-only patch');
+     const released=candidate.replace(addition+anchor,anchor);
+     for(const [width,lang] of [[393,'my'],[768,'zh'],[1440,'en']]){
+       const results={};
+       for(const [version,script] of [['l158',released],['l159',candidate]]){
+         const ctx=await browser.newContext({viewport:{width,height:852},
+           reducedMotion:'no-preference',serviceWorkers:'block'});
+         const page=await ctx.newPage(),errors=[];
+         page.on('pageerror',e=>errors.push(e.message));
+         await page.addInitScript(code=>{
+           try{localStorage.setItem('mmhvault.landing.language',code)}catch(_){}
+         },lang);
+         await page.addInitScript(()=>{
+           const Native=window.IntersectionObserver;
+           window.__l159Observers=[];
+           if(typeof Native!=='function')return;
+           window.IntersectionObserver=class extends Native{
+             constructor(callback,options){
+               super(callback,options);
+               if(['0px 0px 24% 0px','0px 0px -6% 0px'].includes(options?.rootMargin)){
+                 this.__l159Record={disconnected:false,observed:0};
+                 window.__l159Observers.push(this.__l159Record);
+               }
+             }
+             observe(target){
+               if(this.__l159Record)this.__l159Record.observed++;
+               return super.observe(target);
+             }
+             disconnect(){
+               if(this.__l159Record)this.__l159Record.disconnected=true;
+               return super.disconnect();
+             }
+           };
+         });
+         await page.route('**/landing-assets/motion-l132.js*',r=>r.fulfill({
+           status:200,contentType:'application/javascript',body:script}));
+         await page.goto(origin+'/',{waitUntil:'load',timeout:25000});
+         const sample=()=>page.evaluate(()=>{
+           const all=[...document.querySelectorAll('.mm-reveal')];
+           const pending=all.filter(el=>!el.classList.contains('mm-shown'));
+           return {count:all.length,pending:pending.length,
+             pendingOpacity:pending[0]?getComputedStyle(pending[0]).opacity:null,
+             observers:window.__l159Observers.map(x=>({...x})),
+             hero:[...document.querySelectorAll('[data-hero-fixed]')].map(el=>el.textContent.trim()),
+             language:document.documentElement.lang,
+             feature:document.querySelector('[data-product-tab].is-active')?.dataset.productTab};
+         });
+         const initial=await sample();
+         // CSS transitions can still be entering their first frame at load.
+         // Verify actual pending state and observer registration, not a timed opacity sample.
+         console.log('L1.59 initial reveal snapshot '+JSON.stringify({
+           version,width,lang,pending:initial.pending,opacity:initial.pendingOpacity,
+           observerCount:initial.observers.length,observed:initial.observers[0]?.observed,
+           heroCount:initial.hero.length,language:initial.language}));
+         ensure(initial.count>4 && initial.pending>0 &&
+           initial.observers.length===1 && initial.observers[0].observed>0 &&
+           initial.hero.length===3 && initial.language===(lang==='zh'?'zh-CN':lang),
+           'L1.59 '+version+' '+width+'px '+lang+' initial offscreen reveals observed');
+         await page.emulateMedia({reducedMotion:'reduce'});
+         if(version==='l159')await page.waitForFunction(()=>
+           [...document.querySelectorAll('.mm-reveal')].every(el=>el.classList.contains('mm-shown')),
+           null,{timeout:3000});
+         const reduced=await sample();
+         await page.emulateMedia({reducedMotion:'no-preference'});
+         const resumed=await sample();
+         ensure(errors.length===0 && JSON.stringify(initial.hero)===JSON.stringify(resumed.hero) &&
+           initial.feature===resumed.feature && initial.language===resumed.language &&
+           reduced.count===initial.count && resumed.count===initial.count,
+           'L1.59 '+version+' '+width+'px '+lang+' preserves Hero/features/language');
+         results[version]={initial,reduced,resumed};
+         await ctx.close();
+       }
+       const old=results.l158,next=results.l159;
+       ensure(old.reduced.pending>0 && old.resumed.pending>0 &&
+         !old.reduced.observers[0].disconnected &&
+         next.reduced.pending===0 && next.resumed.pending===0 &&
+         next.reduced.observers[0].disconnected && next.resumed.observers[0].disconnected,
+         'L1.59 '+width+'px '+lang+' OS toggle removes offscreen hiding and observer '+
+           JSON.stringify({baselinePending:old.resumed.pending,newPending:next.resumed.pending}));
+     }
+     console.log('L1.59 live reduced-motion reveal persistence PASS; no loading speed claim.');
    }
 
    // L1.57 rotated viewport reveal observer parity: L1.56 vs L1.57.

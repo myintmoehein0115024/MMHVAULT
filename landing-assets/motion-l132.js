@@ -70,6 +70,18 @@
   else if(typeof mobileRevealQuery.addListener==='function')
     mobileRevealQuery.addListener(bindRevealObserver);
 
+  // L1.59: settle any pending reveals when reduced motion is enabled live.
+  // Already visible content stays visible if normal motion is enabled again.
+  const settleReducedReveals=()=>{
+    if(permitted())return;
+    for(const el of elements)el.classList.add('mm-shown');
+    observer.disconnect();
+  };
+  if(typeof motionPreference.addEventListener==='function')
+    motionPreference.addEventListener('change',settleReducedReveals);
+  else if(typeof motionPreference.addListener==='function')
+    motionPreference.addListener(settleReducedReveals);
+
   // Clicking a guide or an in-page navigation link must reveal the destination,
   // even if the user jumps directly to a hash without a normal scroll.
   const showNearby=()=>{
