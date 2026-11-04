@@ -124,15 +124,23 @@ async function checkPassword(user,password){
  const auth=createClient(BASE,ANON,{
   auth:{persistSession:false,autoRefreshToken:false,detectSessionInUrl:false}
  });
+ let passwordVerified=false;
  try{
   const {data,error}=await auth.auth.signInWithPassword({
    email:user.email,password
   });
-  if(error||data?.user?.id!==user.id||!data.session?.access_token)return false;
-  const check=await auth.auth.getUser(data.session.access_token);
-  return !check.error&&check.data?.user?.id===user.id;
+  if(!error&&data?.user?.id===user.id&&data.session?.access_token){
+   const check=await auth.auth.getUser(data.session.access_token);
+   passwordVerified=!check.error&&check.data?.user?.id===user.id;
+  }
+ }catch(_){passwordVerified=false;}
+ // A password proof creates a separate temporary Auth session. Never release
+ // the original words if local sign-out cannot confirm that session ended.
+ try{
+  const {error:logoutError}=await auth.auth.signOut({scope:'local'});
+  if(logoutError)return false;
  }catch(_){return false;}
- finally{try{await auth.auth.signOut({scope:'local'});}catch(_){}}
+ return passwordVerified;
 }
 function isSameOwner(next,prior){
  return next.state==='ok'&&next.user.id===prior.user.id&&
