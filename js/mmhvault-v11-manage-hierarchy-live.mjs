@@ -52,6 +52,8 @@ const requireSelection=(select,prompt)=>{
 const uid=()=>typeof crypto!=='undefined'&&crypto.randomUUID?
   'hier_'+crypto.randomUUID():'hier_'+Date.now().toString(36)+'_'+Math.random().toString(36).slice(2);
 let loadedOwner='',historyReady=false,overlay=null,modalField='',selection={type:'',transaction:'',category:''};
+// UI direction filter only; never a persisted Type or financial ledger value.
+let directionFilter='';
 let pendingSave=null,rendering=false,queued=false,returnFocus=null;
 let linkSync=null,checkingCloud=false,cloudCheckOwner='',cloudCheckGeneration=0,cloudConflict=false;
 const host={
@@ -100,6 +102,18 @@ function style(){
      in the V11.7 Type → Transaction → Category workflow. Leave the
      underlying V141 field-layout helper intact for ledger compatibility. */
   #txForm #txSmartV141{display:none!important}
+  #txForm #mmhHierarchyDirection{margin:0 0 15px;padding:14px;border:1px solid rgba(215,184,121,.25);border-radius:15px;background:linear-gradient(130deg,rgba(17,40,61,.94),rgba(14,30,47,.88));color:#e6edf7}
+  #txForm #mmhHierarchyDirection .mmh-direction-title{margin:0 0 10px;font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:#d7b879}
+  #txForm #mmhHierarchyDirection .mmh-direction-buttons{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px}
+  #txForm #mmhHierarchyDirection button{min-height:47px;border:1px solid rgba(145,180,209,.25);border-radius:11px;background:rgba(17,47,71,.76);color:#e6eef6;font-size:13px;font-weight:700;cursor:pointer}
+  #txForm #mmhHierarchyDirection button[aria-pressed=true]{border-color:#e2b85e;background:linear-gradient(135deg,rgba(202,153,63,.27),rgba(24,65,86,.55));box-shadow:inset 0 -2px 0 #dfb65a;color:#ffe5aa}
+  #txForm #mmhHierarchyDirection button:focus-visible{outline:2px solid #e6c174;outline-offset:2px}
+  #txForm #mmhHierarchyDirection .mmh-direction-help{margin:10px 0 0;font-size:12px;color:#bac8d8;line-height:1.5}
+  @media(max-width:520px){#txForm #mmhHierarchyDirection{padding:11px}#txForm #mmhHierarchyDirection .mmh-direction-buttons{gap:5px}#txForm #mmhHierarchyDirection button{font-size:11px;min-height:44px}}
+  body.light #txForm #mmhHierarchyDirection{background:#eef5fa;color:#253a51}
+  body.light #txForm #mmhHierarchyDirection button{background:#fff;color:#354960}
+  body.light #txForm #mmhHierarchyDirection button[aria-pressed=true]{background:#fff1d5;color:#6d4b0b}
+  body.light #txForm #mmhHierarchyDirection .mmh-direction-help{color:#526a84}
   #txForm #mmhHierarchyEntryGuide{grid-column:1/-1;margin:0;padding:10px 13px;border:1px solid rgba(215,184,121,.27);border-radius:11px;background:rgba(24,42,61,.75);color:#e9d5ab;font-size:12px;line-height:1.6}
   #txForm #mmhHierarchyEntryGuide[hidden]{display:none!important}
   .mmh-hier-summary{padding:18px;border:1px solid rgba(208,175,117,.25);border-radius:17px;background:linear-gradient(130deg,rgba(18,37,57,.75),rgba(17,27,44,.48));color:#f4eedf;box-shadow:0 16px 38px rgba(0,0,0,.12)}
@@ -479,11 +493,65 @@ function put(el,items,pick,field){
   // index 0 is the disabled placeholder, never an inferred financial choice.
   el.selectedIndex=index>0?index:0;
 }
+// Fixed directions only filter the current owner's active Manage Type list.
+// No seed choices, ledger changes, implicit Type selection or cloud writes.
+const directions=[
+  ['Income','＋',()=>tr('Money in','资金进','ငွေဝင်')],
+  ['Expense','－',()=>tr('Money out','资金出','ငွေထွက်')],
+  ['Transfer','⇄',()=>tr('Transfer','转账','ငွေလွှဲ')]
+];
+function syncDirectionButtons(){
+  const panel=$('mmhHierarchyDirection');if(!panel)return;
+  for(const node of panel.querySelectorAll('button[data-mmh-direction]')){
+    const active=node.dataset.mmhDirection===directionFilter;
+    node.setAttribute('aria-pressed',active?'true':'false');
+    const d=directions.find(x=>x[0]===node.dataset.mmhDirection);
+    if(d)node.textContent=d[1]+' '+d[2]();
+  }
+  const help=panel.querySelector('.mmh-direction-help');
+  if(help)help.textContent=tr(
+    'Choose a direction, then choose your own linked Type, Transaction and Category. No presets are added.',
+    '先选资金方向，再选择您自行设置的 Type、Transaction、Category；不会自动添加预设分类。',
+    'ငွေဝင်၊ ငွေထွက် သို့မဟုတ် ငွေလွှဲ ကို ရွေးပြီး ကိုယ်တိုင်သတ်မှတ်ထားသော Type၊ Transaction၊ Category ကို ရွေးပါ။');
+}
+function ensureDirectionButtons(f,t){
+  let panel=$('mmhHierarchyDirection');
+  if(!panel){
+    panel=elt('section');panel.id='mmhHierarchyDirection';
+    panel.setAttribute('aria-label',tr('Balance direction','资金方向','ငွေလမ်းကြောင်း'));
+    panel.append(elt('p','mmh-direction-title',tr('Balance direction','资金方向','ငွေလမ်းကြောင်း')));
+    const bar=elt('div','mmh-direction-buttons');bar.setAttribute('role','group');
+    bar.setAttribute('aria-label',tr('Choose balance direction','选择资金方向','ငွေလမ်းကြောင်း ရွေးပါ'));
+    for(const [direction,sign,caption] of directions){
+      const button=btn(sign+' '+caption(),()=>{
+        if(!ready())return;
+        // Clicking again clears the filter; it never creates a Type.
+        const next=directionFilter===direction?'':direction;
+        directionFilter=next;
+        if(selection.type){
+          const chosen=controller.list('type').find(x=>x.id===selection.type);
+          if(!chosen||(next&&chosen.ledgerType!==next))
+            selection={type:'',transaction:'',category:''};
+        }
+        form();
+        $('txType')?.focus({preventScroll:true});
+      });
+      button.dataset.mmhDirection=direction;button.setAttribute('aria-pressed','false');
+      bar.append(button);
+    }
+    panel.append(bar,elt('p','mmh-direction-help'));
+    const grid=f.querySelector('.formgrid');
+    if(grid&&grid.contains(t))grid.before(panel);
+    else t.closest('label')?.before(panel);
+  }
+  syncDirectionButtons();
+}
 function form(){
   const t=$('txType'),g=$('txGroup'),c=$('txCategory'),f=$('txForm');
   if(!t||!g||!c||!f||rendering)return;
   rendering=true;
   try{
+    ensureDirectionButtons(f,t);
     const save=f.querySelector('.actions button:not([type="button"])');
     // Show an honest empty-state before any options exist. Do not infer
     // Income from legacy V141 shortcuts or re-seed archived options.
@@ -501,14 +569,17 @@ function form(){
       if(save)save.disabled=true;
       return;
     }
-    const activeTypes=controller.list('type');
+    const activeTypes=controller.list('type').filter(x=>!directionFilter||x.ledgerType===directionFilter);
     // Only a complete, unarchived owner-authored path can become a new
     // entry. Historical archived choices remain in the ledger untouched.
     const hasCompletePath=activeTypes.some(type=>
       controller.list('transaction',type.id).some(tx=>
         controller.list('category',tx.id).length>0));
     guide.hidden=hasCompletePath;
-    guide.textContent=hasCompletePath?'':tr(
+    guide.textContent=hasCompletePath?'':directionFilter?tr(
+      'No active linked Type → Transaction → Category for this direction. Set up or restore your own choices in Manage.',
+      '这个资金方向没有可用的 Type → Transaction → Category 关联，请到 Manage 新增或恢复。',
+      'ဤငွေလမ်းကြောင်းအတွက် Type → Transaction → Category မရှိသေးပါ။ Manage တွင် သတ်မှတ်ပါ။'):tr(
       'No active Type → Transaction → Category setup. Open Manage to add or restore your own choices; no preset transaction types will be added.',
       '目前没有可用的 Type → Transaction → Category 关联。请在 Manage 新增或恢复您自己的分类；系统不会自动添加预设类型。',
       'အသုံးပြုနိုင်သော Type → Transaction → Category မရှိသေးပါ။ Manage တွင် ကိုယ်ပိုင်အမျိုးအစားများ ထည့်ပါ သို့မဟုတ် ပြန်ဖွင့်ပါ။');
@@ -725,7 +796,11 @@ function boot(){
     f.addEventListener('change',e=>{
       if(rendering||![ $('txType'),$('txGroup'),$('txCategory') ].includes(e.target))return;
       e.stopImmediatePropagation();
-      if(e.target===$('txType')){selection.type=selected(e.target);selection.transaction='';selection.category='';}
+      if(e.target===$('txType')){
+        selection.type=selected(e.target);selection.transaction='';selection.category='';
+        const picked=controller.list('type').find(x=>x.id===selection.type);
+        if(picked)directionFilter=picked.ledgerType;
+      }
       else if(e.target===$('txGroup')){selection.transaction=selected(e.target);selection.category='';}
       else selection.category=selected(e.target);
       form();
@@ -767,12 +842,12 @@ function boot(){
         (window.transactions||[]).every(row=>row?.user_id===current);
       loadedOwner=historyReady?current:'';
     }else if(e?.type==='mmhvault:config-owner-changed'){
-      historyReady=false;loadedOwner='';selection={type:'',transaction:'',category:''};
+      historyReady=false;loadedOwner='';selection={type:'',transaction:'',category:''};directionFilter='';
       pendingSave=null;linkSync=null;cloudConflict=false;
       checkingCloud=false;cloudCheckOwner='';cloudCheckGeneration++;
       ledgerRefreshOwner='';ledgerRefreshQueue=Promise.resolve();close();
     }else if(current!==loadedOwner){
-      historyReady=false;loadedOwner='';selection={type:'',transaction:'',category:''};
+      historyReady=false;loadedOwner='';selection={type:'',transaction:'',category:''};directionFilter='';
       pendingSave=null;linkSync=null;cloudConflict=false;
       checkingCloud=false;cloudCheckOwner='';cloudCheckGeneration++;
       ledgerRefreshOwner='';ledgerRefreshQueue=Promise.resolve();close();
