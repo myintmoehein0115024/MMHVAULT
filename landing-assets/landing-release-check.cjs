@@ -81,6 +81,7 @@ const l147OldHeaderTags='  <link rel="stylesheet" href="./landing-assets/explore
  '  <link rel="stylesheet" href="./landing-assets/shared-header-l116.css?v=l141">';
 const l147NewHeaderTags='  <!-- L1.47: preserve Explore -> shared header cascade, one smaller critical request. -->\n'+
  '  <link rel="stylesheet" href="./landing-assets/header-explore-l147.min.css?v=l147">';
+const l162NewHeaderTags=l147NewHeaderTags.replace('?v=l147','?v=l162');
 // L1.48 starts from an already merged L1.47, not from its pre-merge branch.
 const l148OldScriptTag='<script defer src="./landing-assets/landing.js?v=l141"></script>';
 const l148NewScriptTag='<script defer src="./landing-assets/landing.js?v=l148"></script>';
@@ -97,10 +98,12 @@ const l157NewMotionTag='<script defer src="./landing-assets/motion-l132.js?v=l15
 const l159NewMotionTag='<script defer src="./landing-assets/motion-l132.js?v=l159"></script>';
 const l161LandingTag='<script defer src="./landing-assets/landing.js?v=l161"></script>';
 const l148IndexOnlyEdited=()=>prev.includes(l159NewMotionTag) &&
-  prev.split(l155NewScriptTag).length===2 &&
-  current===prev.replace(l155NewScriptTag,l161LandingTag);
+  prev.includes(l161LandingTag) &&
+  prev.split(l147NewHeaderTags).length===2 &&
+  current===prev.replace(l147NewHeaderTags,l162NewHeaderTags);
 const l147IndexOnlyEdited=baseline=>baseline===prev && l148IndexOnlyEdited() &&
-  baseline.includes(l147NewHeaderTags) && !current.includes(l147OldHeaderTags);
+  baseline.includes(l147NewHeaderTags) && current.includes(l162NewHeaderTags) &&
+  !current.includes(l147OldHeaderTags);
 // The runtime JS may change only these four targeted DOM write sites.
 const l148JsReplacements=[
   [
@@ -218,11 +221,26 @@ const l134ResponsiveCssSuffix="\n/* L1.34 — Keep the six public feature choice
 const l135HeaderCssSuffix="\n/* L1.35: Public mobile header shows the selected language. */\n@media(max-width: 700px){\n body.mmh-nav-unified .site-header .locale-trigger .locale-globe{display:none!important}\n body.mmh-nav-unified .site-header .locale-trigger .locale-active-flag{\n  display: inline-flex !important;align-items:center;justify-content:center;\n  flex:0 0 24px;width:24px;font-size:19px;line-height:1;white-space:nowrap\n }\n}\n";
 const l136TouchTargetReplacements=[["flex:0 0 42px;width:42px;min-width:42px;min-height:42px;height:42px","flex:0 0 44px;width:44px;min-width:44px;min-height:44px;height:44px"],["width:42px;min-width:42px;min-height:42px;height:42px","width:44px;min-width:44px;min-height:44px;height:44px"],["min-width:39px;width:39px;min-height:39px;height:39px;flex-basis:39px","min-width:44px;width:44px;min-height:44px;height:44px;flex-basis:44px"]];
 const l138MotionReplacements=[["-webkit-backdrop-filter:blur(32px);backdrop-filter:blur(32px);","-webkit-backdrop-filter:blur(24px);backdrop-filter:blur(24px);"],["from{opacity:0;transform:translate3d(0,-7px,0)}","from{opacity:.28;transform:translate3d(0,-4px,0)}"],["animation:mmh-public-panel-in .19s cubic-bezier(.2,.65,.3,1) both","animation:mmh-public-panel-in .22s cubic-bezier(.2,.65,.3,1) both"],["animation:mmh-public-panel-in .17s cubic-bezier(.2,.65,.3,1) both","animation:mmh-public-panel-in .22s cubic-bezier(.2,.65,.3,1) both"]];
+// L1.62: only the two tiny-header caption typography declarations may change.
+const l162HeaderPatches=[
+ ['font-size:clamp(5px,1.2vw,6px);letter-spacing:.08em',
+  'font-size:clamp(8px,2vw,9px);letter-spacing:.055em'],
+ ['body.mmh-nav-unified .site-header .brand-copy small{font-size:5px}',
+  'body.mmh-nav-unified .site-header .brand-copy small{font-size:8px}']
+];
+const l162SharedOnlyEdited=()=>{
+  let expected=source('landing-assets/shared-header-l116.css');
+  for(const [before,after] of l162HeaderPatches){
+    if(expected.split(before).length!==2)return false;
+    expected=expected.replace(before,after);
+  }
+  return read('landing-assets/shared-header-l116.css')===expected;
+};
 const l138MotionOnlyEdited=()=>{
   // L1.38 has already shipped. Protect its final motion and glass styles
   // byte-for-byte against the latest main instead of reapplying the old diff.
   const expected=source('landing-assets/shared-header-l116.css');
-  return read('landing-assets/shared-header-l116.css')===expected &&
+  return l162SharedOnlyEdited() &&
     expected.includes('-webkit-backdrop-filter:blur(24px);backdrop-filter:blur(24px);') &&
     expected.includes('from{opacity:.28;transform:translate3d(0,-4px,0)}') &&
     expected.includes('animation:mmh-public-panel-in .22s cubic-bezier(.2,.65,.3,1) both');
@@ -268,7 +286,10 @@ const l158NewScriptTag="<script defer src=\"/landing-assets/public-pages.js?v=l1
 const l160ScriptTag='<script defer src="/landing-assets/public-pages.js?v=l160"></script>';
 const l161ScriptTag='<script defer src="/landing-assets/public-pages.js?v=l161"></script>';
 // L1.61 compares a released L1.60 page with its cache-busted navigation script.
-const l158RestoreScript=(html)=>html.replace(l161ScriptTag,l160ScriptTag);
+// L1.62: published public-pages.js stays unchanged; reverse only the cache key.
+const l158RestoreScript=(html)=>html.replace(
+  'href="/landing-assets/shared-header-l116.css?v=l162"',
+  'href="/landing-assets/shared-header-l116.css?v=1"');
 const l160PublicRemovals=[" * Read-only presentation: no auth, fetch, history/URL rewrites or finance data.\n"," * Header markup and shared-header-l116.css are identical across public pages.\n","  // L1.26: return focus to a visible trigger when dismissing compact\n","  // navigation, Explore or the language picker on any public page.\n","    // A collapsed Explore inside the mobile menu must not close the menu too.\n"];
 const l160PublicMarker="      mq.addEventListener?mq.addEventListener('change',bind):mq.addListener?.(bind);\n";
 const l160PublicAddition="      // L1.60: settle pending reveals.\n      const reduced=matchMedia('(prefers-reduced-motion: reduce)');\n      const settle=()=>{\n        if(!reduced.matches)return;\n        io.disconnect();\n        for(const el of targets)el.classList.add('mm-public-shown');\n      };\n      reduced.addEventListener?reduced.addEventListener('change',settle):reduced.addListener?.(settle);\n";
@@ -349,7 +370,7 @@ check('L1.45 editable stylesheet retained alongside compact runtime CSS',
   l145CssOnlyEdited());
 check('L1.31 premium layer linked and scoped', current.includes('class="l131 mmh-nav-unified"') && current.includes('href="./landing-assets/premium-l131.min.css?v=l146"') && read('landing-assets/premium-l131.css').includes('body.l131 .showcase-v2'));
 check('Explore styles load after existing premium/motion layers and remain scoped',
- current.includes('href="./landing-assets/header-explore-l147.min.css?v=l147"') &&
+ current.includes('href="./landing-assets/header-explore-l147.min.css?v=l162"') &&
  read('landing-assets/explore-l114.css').includes('body.l131 .site-header #primary-nav') &&
  !read('landing-assets/explore-l114.css').includes('body.app'));
 check('L1.32 motion assets linked from homepage',
@@ -679,7 +700,7 @@ check('Landing has five same-page primary sections and a separate Explore menu',
 check('Homepage retains all prior content and SEO outside shared header layer',
  ['en','zh','my'].every(lang=>translationScript.includes('Object.assign(strings.'+lang+', {\n    navExplore:')) &&
  current.includes('<body id="top" class="l131 mmh-nav-unified">') &&
- current.includes('<link rel="stylesheet" href="./landing-assets/header-explore-l147.min.css?v=l147">') &&
+ current.includes('<link rel="stylesheet" href="./landing-assets/header-explore-l147.min.css?v=l162">') &&
  l142IndexOnlyEdited() &&
  l133BurmeseLayoutOnlyEdited() &&
  source('landing-assets/explore-l114.css')===read('landing-assets/explore-l114.css'));
@@ -721,9 +742,10 @@ check('Seven public pages inherit exact Landing header structure, icons and drop
  !!landingHeader && publicHeaders.every(path=>{
    const html=read(path),old=source(path);
    const h=(html.match(/<header class="site-header">[\s\S]*?<\/header>/)||[])[0]||'';
-   const cssNew='<link rel="stylesheet" href="/landing-assets/shared-header-l116.css?v=1">';
+   const cssNew='<link rel="stylesheet" href="/landing-assets/shared-header-l116.css?v=l162">';
+   const cssOld='<link rel="stylesheet" href="/landing-assets/shared-header-l116.css?v=1">';
    return !!h && normalizeSharedHeader(h)===landingHeader &&
-     html.includes(cssNew) && old.includes(cssNew) &&
+     html.includes(cssNew) && old.includes(cssOld) &&
      // L1.16 already shipped; protect its header, page body and SEO
      // byte-for-byte, allowing ONLY the two localized summary blocks.
      restoreOldLocalizedSummary(path,l158RestoreScript(html),old)===old &&
@@ -732,8 +754,8 @@ check('Seven public pages inherit exact Landing header structure, icons and drop
      (h.match(/class="locale-menu"/g)||[]).length===1;
  }));
 check('One scoped public header stylesheet loads last on homepage and all pages',
- current.includes('href="./landing-assets/header-explore-l147.min.css?v=l147"') &&
- publicHeaders.every(path=>read(path).includes('href="/landing-assets/shared-header-l116.css?v=1"')) &&
+ current.includes('href="./landing-assets/header-explore-l147.min.css?v=l162"') &&
+ publicHeaders.every(path=>read(path).includes('href="/landing-assets/shared-header-l116.css?v=l162"')) &&
  sharedCss.includes('body.mmh-nav-unified .site-header') &&
  sharedCss.includes('@media(max-width:1360px)') &&
  !sharedCss.includes('body.app') &&
@@ -825,22 +847,31 @@ check('L1.27 public tab title matches SEO without language focus scroll',
  l133PublicPagesUnchanged() &&
  l142IndexOnlyEdited() && current.includes(newHeroPreload) &&
  !current.includes(oldHeroPreload));
-check('L1.61 strict twelve-file keyboard navigation, SEO and analytics unchanged',
+check('L1.62 exact twelve public/style/QA files, unmodified SEO, auth and Analytics',
   actual.length===12 &&
-  actual.every(path=>['index.html','landing-assets/landing.js',
-    'landing-assets/public-pages.js','landing-assets/landing-release-check.cjs',
+  actual.every(path=>['index.html','landing-assets/shared-header-l116.css',
+    'landing-assets/header-explore-l147.min.css',
+    'landing-assets/landing-release-check.cjs',
     'landing-assets/landing-browser-check.cjs',...publicHeaders].includes(path)) &&
   publicHeaders.every(path=>{
     const prior=source(path);
-    return prior.split(l160ScriptTag).length===2 &&
-      read(path)===prior.replace(l160ScriptTag,l161ScriptTag);
+    const oldLink='href="/landing-assets/shared-header-l116.css?v=1"';
+    const newLink='href="/landing-assets/shared-header-l116.css?v=l162"';
+    return prior.split(oldLink).length===2 &&
+      read(path)===prior.replace(oldLink,newLink);
   }) &&
+  l162SharedOnlyEdited() &&
+  read('landing-assets/header-explore-l147.min.css')===
+    l145CompactCss(source('landing-assets/explore-l114.css'))+
+    l145CompactCss(read('landing-assets/shared-header-l116.css')) &&
   l139PublicOnlyEdited() && l139MotionOnlyEdited() &&
-  current===prev.replace(l155NewScriptTag,l161LandingTag) &&
+  l148LandingJsOnlyEdited() &&
+  current===prev.replace(l147NewHeaderTags,l162NewHeaderTags) &&
   analyticsAddition.test(rawCurrent) &&
   l142IndexOnlyEdited() && l133BurmeseLayoutOnlyEdited() &&
   l133PublicPagesUnchanged() && l135HeaderCssOnlyEdited() &&
-  ['landing-assets/public-pages.css','landing-assets/business.css',
+  ['landing-assets/landing.js','landing-assets/public-pages.js',
+    'landing-assets/public-pages.css','landing-assets/business.css',
     'landing-assets/cinematic.css','landing-assets/premium-l131.css',
     'landing-assets/motion-l132.css','sitemap.xml','robots.txt',
     'mmh-manifest-v2.webmanifest'].every(path=>read(path)===source(path)));
@@ -865,7 +896,7 @@ check('L1.41 all nine first-party style/script URLs keep coordinated versions',
       .replace('motion-l132.js?v=l141','motion-l132.js?v=l159');
     const bundled=/explore-l114\.css|shared-header-l116\.css/.test(after);
     return before!==after && after.includes('?v=l141') && !current.includes(before) &&
-      (bundled ? current.includes(l147NewHeaderTags)&&!current.includes(after) :
+      (bundled ? current.includes(l162NewHeaderTags)&&!current.includes(after) :
         current.split(tag).length===(/business\.css|motion-l132\.css/.test(after)?3:2));
   }) &&
   (current.match(/<link rel="preload" as="image"/g)||[]).length===1 &&
@@ -901,7 +932,7 @@ check('L1.44 motion stylesheet loads without blocking Hero and keeps no-script s
   l139MotionOnlyEdited() &&
   l148LandingJsOnlyEdited() &&
   read('landing-assets/explore-l114.css')===source('landing-assets/explore-l114.css') &&
-  read('landing-assets/shared-header-l116.css')===source('landing-assets/shared-header-l116.css'));
+  l162SharedOnlyEdited());
 check('L1.45 compacted CSS exactly matches formatting-only transformation with safe cache key',
   l145IndexOnlyEdited() &&
   l145CssOnlyEdited() &&
@@ -930,14 +961,14 @@ check('L1.46 generated critical CSS matches readable originals and only changes 
  read('landing-assets/landing-browser-check.cjs').includes('L1.46 CSSOM critical style parity') &&
  l148LandingJsOnlyEdited() &&
  read('landing-assets/explore-l114.css')===source('landing-assets/explore-l114.css') &&
- read('landing-assets/shared-header-l116.css')===source('landing-assets/shared-header-l116.css'));
+ l162SharedOnlyEdited());
 check('L1.47 ordered header bundle remains identical to merged main',
  l147IndexOnlyEdited(prev) &&
  read('landing-assets/header-explore-l147.min.css')===
   l145CompactCss(source('landing-assets/explore-l114.css'))+
-  l145CompactCss(source('landing-assets/shared-header-l116.css')) &&
+  l145CompactCss(read('landing-assets/shared-header-l116.css')) &&
  read('landing-assets/explore-l114.css')===source('landing-assets/explore-l114.css') &&
- read('landing-assets/shared-header-l116.css')===source('landing-assets/shared-header-l116.css') &&
+ l162SharedOnlyEdited() &&
  read('landing-assets/header-explore-l147.min.css').length<
   read('landing-assets/explore-l114.css').length+
   read('landing-assets/shared-header-l116.css').length-2500 &&
