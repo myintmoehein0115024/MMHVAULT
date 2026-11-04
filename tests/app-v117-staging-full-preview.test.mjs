@@ -37,6 +37,23 @@ test('preview is generated from the current APP without production endpoints',()
  assert.ok(!html.includes(PROD));
  assert.ok(!html.includes('sb_publishable_H38v4XbO0ARnSJToD42wGg_27-SZ3Ao'));
  assert.ok(html.includes(PUBLIC));
+
+ // Reports may calculate Income/Expense from confirmed ledger rows, but
+ // Staging does not contain the optional Budget/Goals/Recurring tables.
+ // Never broaden the allowlist just to suppress their fetch exceptions.
+ assert.ok(html.includes('id="mmhV117ReportLimitNote"'),
+   'QA Report explains that optional financial modules are not available');
+ assert.ok(html.includes("document.querySelector('meta[name=mmhvault-staging-qa]')"),
+   'only the generated Staging Report skips unsupported optional cloud reads');
+ assert.ok(!html.includes("if(!owner||typeof db==='undefined'){state.budget=null;"),
+   'Report must not attempt optional cloud loading under Staging marker');
+ assert.ok(!html.includes('https://'+STAGE+'/rest/v1/budgets'),
+   'Staging CSP must not grant access to budget data');
+ assert.ok(!html.includes('https://'+STAGE+'/rest/v1/financial_goals'),
+   'Staging CSP must not grant access to goals data');
+ assert.ok(!html.includes('https://'+STAGE+'/rest/v1/recurring_transactions'),
+   'Staging CSP must not grant access to recurring transaction data');
+
  assert.match(html,/connect-src https:\/\/ldivswlhtgmznzwhzsoi\.supabase\.co\/auth\/v1\/token/);
  assert.match(html,/https:\/\/ldivswlhtgmznzwhzsoi\.supabase\.co\/rest\/v1\/transactions/);
  assert.match(html,/https:\/\/ldivswlhtgmznzwhzsoi\.supabase\.co\/rest\/v1\/personal_configuration/);
