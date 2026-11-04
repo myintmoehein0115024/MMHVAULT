@@ -442,10 +442,18 @@ async function verifyCloudLink(target){
 // of the optional Manage-link cloud verification. Serialize owner-scoped
 // reads so quick consecutive inserts never let an older reload overwrite a
 // newer snapshot; these tasks NEVER perform another ledger write.
-let ledgerRefreshQueue=Promise.resolve();
+let ledgerRefreshQueue=Promise.resolve(),ledgerRefreshOwner='';
 function queueSavedLedgerRefresh(target){
+  if(owner()!==target.owner||configOwner()!==target.owner)return;
+  // A previous owner's in-flight request may never settle. Never let it
+  // block a new signed-in owner's verified financial refresh.
+  if(ledgerRefreshOwner!==target.owner){
+    ledgerRefreshOwner=target.owner;
+    ledgerRefreshQueue=Promise.resolve();
+  }
   const task=ledgerRefreshQueue.then(()=>{
-    if(owner()!==target.owner||configOwner()!==target.owner)return;
+    if(ledgerRefreshOwner!==target.owner||
+      owner()!==target.owner||configOwner()!==target.owner)return;
     return refreshSavedLedger(target);
   });
   // Keep a rejected task from poisoning subsequent confirmed records.
@@ -557,7 +565,8 @@ function boot(){
       loadedOwner=historyReady?current:'';
     }else if(e?.type==='mmhvault:config-owner-changed'){
       historyReady=false;loadedOwner='';selection={type:'',transaction:'',category:''};
-      pendingSave=null;linkSync=null;cloudConflict=false;close();
+      pendingSave=null;linkSync=null;cloudConflict=false;
+      ledgerRefreshOwner='';ledgerRefreshQueue=Promise.resolve();close();
     }else if(current!==loadedOwner){historyReady=false;selection={type:'',transaction:'',category:''};pendingSave=null;linkSync=null;cloudConflict=false;close();}
     if(e?.type==='mmhvault:config-cloud-synced'&&e.detail?.userId===current)
       cloudConflict=false;
