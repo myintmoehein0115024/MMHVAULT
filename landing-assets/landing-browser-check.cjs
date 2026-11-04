@@ -75,7 +75,7 @@ async function load(page,route,failures){
          window.scrollTo({left:900,top:y,behavior:'instant'});
          const sideways=scrollX;
          window.scrollTo({left:0,top:y,behavior:'instant'});
-         return {mobile,hasStylesheet:!!cs&&cs.href.includes('?v=l166'),
+         return {mobile,hasStylesheet:!!cs&&cs.href.includes('?v=l167'),
            standardBackdrop:computed.backdropFilter,
            webkitBackdrop:computed.webkitBackdropFilter,
            background:computed.backgroundImage,
@@ -83,14 +83,16 @@ async function load(page,route,failures){
            cardCount:cards.length,
            cardsCheap:cards.every(el=>getComputedStyle(el).backdropFilter==='none'),
            ambienceCheap:!isLanding||getComputedStyle(document.querySelector('.ambient')).filter==='none',
-           heroHaloCheap:!isLanding||getComputedStyle(document.querySelector('.hero-halo')).filter==='none'};
+           heroHaloCheap:!isLanding||getComputedStyle(document.querySelector('.hero-halo')).filter==='none',
+           heroCopyFilter:isLanding?getComputedStyle(document.querySelector('.hero-copy')).filter:null};
        });
        const desktop=width>1024;
        ensure(response?.status()===200&&result.hasStylesheet&&result.stickyOff&&
          result.sideways<=2&&result.background.includes('gradient')&&
          (desktop?(result.standardBackdrop==='none'&&(!result.webkitBackdrop||result.webkitBackdrop==='none')&&
-           result.cardsCheap&&result.ambienceCheap&&result.heroHaloCheap):
-           result.mobile&&result.standardBackdrop!=='none')&&exceptions.length===0,
+           result.cardsCheap&&result.ambienceCheap&&result.heroHaloCheap&&
+           (result.heroCopyFilter===null||result.heroCopyFilter==='none')):
+           result.mobile&&result.standardBackdrop!=='none'&&(result.heroCopyFilter===null||result.heroCopyFilter!=='none'))&&exceptions.length===0,
          'L1.64 Chromium desktop compositor / mobile glass parity '+route+
            ' '+width+'px '+JSON.stringify({...result,exceptions}));
        await ctx.close();
@@ -132,7 +134,7 @@ async function load(page,route,failures){
          transform:css.transform,border:css.borderColor};
      });
      const tokens=before.transition.split(',').map(x=>x.trim());
-     ensure(before.version==='l166' && errors.length===0 &&
+     ensure(before.version==='l167' && errors.length===0 &&
        (width>=1025
          ?(!tokens.includes('box-shadow') &&
            before.businessBlur==='none' &&
@@ -1734,14 +1736,14 @@ async function load(page,route,failures){
        layout.styles.filter(v=>v==='l145').length===1 &&
        layout.styles.filter(v=>v==='l146').length===2 &&
        layout.styles.filter(v=>v==='l147').length===1 &&
-       layout.styles.filter(v=>v==='l166').length===1 &&
+       layout.styles.filter(v=>v==='l167').length===1 &&
        layout.styles.filter(v=>v==='l141').length===2 &&
        layout.scripts.includes('l161') && layout.scripts.includes('l159') &&
        loaded.length===9 && loaded.every(r=>r.status===200&&
          r.version===(r.path==='/landing-assets/landing.min.css'?'l145':
            ['/landing-assets/cinematic.min.css','/landing-assets/premium-l131.min.css'].includes(r.path)?'l146':
            r.path==='/landing-assets/header-explore-l147.min.css'?'l147':
-           r.path==='/landing-assets/safari-performance-l164.css'?'l166':
+           r.path==='/landing-assets/safari-performance-l164.css'?'l167':
             r.path==='/landing-assets/landing.js'?'l161':
               r.path==='/landing-assets/motion-l132.js'?'l159':'l141')) &&
        new Set(loaded.map(r=>r.path)).size===9 && failures.length===0,

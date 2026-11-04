@@ -46,3 +46,12 @@
     filter: none;
   }
 }
+
+/* L1.67 — desktop-only: avoid an offscreen drop-shadow surface wrapping
+ * all Hero text and buttons. Existing individual text shadows and layered
+ * Hero contrast gradients remain; mobile/tablet styling stays unchanged. */
+@media (min-width: 1025px) {
+  body.l131 .hero-copy {
+    filter: none;
+  }
+}
