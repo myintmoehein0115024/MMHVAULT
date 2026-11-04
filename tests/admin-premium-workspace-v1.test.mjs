@@ -57,6 +57,15 @@ test('premium enhancements are presentation-only, scoped and responsive',()=>{
   assert.doesNotMatch(premiumJs,/124,680|286,410|62,893|MMH888/);
 });
 
+test('usage overview embeds the original protected Analytics frame without creating another one',()=>{
+  assert.match(admin,/if\(which==='analytics'\|\|which==='usage'\)\{window\.mmhAdminAnalytics\?\.activate\(\)\}/);
+  assert.match(admin,/if\(!analyticsActive\|\|!\$\('adminUsageView'\)\.hidden\)load\(\)/);
+  assert.equal((admin.match(/id="adminAnalyticsFrame"/g)||[]).length,1);
+  assert.doesNotMatch(premiumJs,/createElement\(['"]iframe['"]\)/);
+  assert.match(premiumCss,/#dashboard>#adminUsageView\{grid-row:3\}/);
+  assert.match(premiumCss,/#dashboard>#adminAnalyticsView\{grid-row:2\}/);
+});
+
 test('premium layout script has valid syntax and no direct HTML injection',()=>{
   assert.doesNotThrow(()=>new vm.Script(premiumJs));
   assert.doesNotMatch(premiumJs,/eval\(|new Function\(/);
