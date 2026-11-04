@@ -55,3 +55,12 @@
     filter: none;
   }
 }
+
+/* L1.68 — desktop Hero's large gradient wordmark already has contrast
+ * overlays. Avoid another per-glyph offscreen drop-shadow surface in WebKit;
+ * retain the original mobile/tablet glow and the gold gradient at all sizes. */
+@media (min-width: 1025px) {
+  body.l131 .hero .hero-name {
+    filter: none;
+  }
+}
