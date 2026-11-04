@@ -542,31 +542,37 @@ const say=(condition,label)=>{assert.ok(condition,label);console.log('PASS '+lab
       {
         const cDialog=dpage.locator('.mmh-hier-dialog');
         await cDialog.getByRole('button',{name:'+ Add Category'}).click();
-        await cDialog.locator('input[type=text]').fill('Transfer QA');
+        await cDialog.locator('input[type=text]').fill('Temporary custom label');
         const parent=cDialog.locator('select');
         await parent.selectOption({label:'MoveFunds → Account Move'});
+        say(await cDialog.locator('input[type=text]').inputValue()==='Transfer'&&
+          await cDialog.locator('input[type=text]').evaluate(e=>e.readOnly),
+          'Transfer special Category autofills native fixed name without seeding records');
+        say((await cDialog.locator('.mmh-hier-help').last().textContent())
+          .includes('created only after you press Save'),
+          'Transfer fixed Category rule explained before saving');
         await cDialog.getByRole('button',{name:'Save'}).click();
-        // Category creation may dismiss its editor automatically. Close an
-        // outer Manage dialog only when it remains visible.
-        if(await cDialog.isVisible())
-          await cDialog.locator('header button').click();
+        say(await dpage.evaluate(()=>window.MMHVAULT_CONFIG.txHierarchyV11.categories
+          .some(c=>c.label==='Transfer'&&c.ledgerGroup==='Transfer')),
+          'Transfer Category saves to owner-scoped Manage only after explicit Save');
+        await cDialog.locator('header button').click();
       }
       say(await dpage.locator('#mmhHierarchyCategoryHint').isHidden(),
         'Transfer missing-Category hint disappears after linking');
-      await dpage.locator('#txCategory').selectOption({label:'Transfer QA'});
+      await dpage.locator('#txCategory').selectOption({label:'Transfer'});
       say(!await dpage.locator('#txForm .actions button').isDisabled(),
         'Transfer native Add enables only after all three explicit choices');
       say(await dpage.evaluate(()=>{
         const g=window.MMHVAULT_CONFIG?.txHierarchyV11;
         const type=g?.types?.find(x=>x.label==='MoveFunds'&&!x.archived);
         const txn=g?.transactions?.find(x=>x.label==='Account Move'&&x.parentId===type?.id&&!x.archived);
-        const cat=g?.categories?.find(x=>x.label==='Transfer QA'&&x.parentId===txn?.id&&!x.archived);
+        const cat=g?.categories?.find(x=>x.label==='Transfer'&&x.parentId===txn?.id&&!x.archived);
         return type?.ledgerType==='Transfer'&&txn?.kindId==='Transfer|Transfer'&&
           cat?.ledgerGroup==='Transfer';
       }),'Transfer Category is linked to the correct owner-scoped canonical direction');
       say(await dpage.locator('#txType').inputValue()==='Transfer'&&
         await dpage.locator('#txGroup').inputValue()==='Transfer'&&
-        await dpage.locator('#txCategory').inputValue()==='Transfer QA',
+        await dpage.locator('#txCategory').inputValue()==='Transfer',
         'Transfer maps named hierarchy to canonical Transfer ledger fields');
       // Special loan treatment is opt-in, and still cannot reverse an
       // Income Type into an Expense transaction.
