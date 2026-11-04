@@ -52,6 +52,56 @@ async function load(page,route,failures){
 (async()=>{
  const browser=await chromium.launch({channel:'chrome',headless:true,args:['--no-sandbox','--disable-dev-shm-usage']});
  try{
+   // L1.61: keyboard-opened phone/tablet menu becomes navigable via Tab.
+   // This is presentation-only QA on local public routes; no auth endpoints.
+   for(const [route,width,lang] of [
+     ['/',393,'en'],['/',768,'zh'],['/',1100,'my'],
+     ['/about/',393,'my'],['/features/',393,'zh'],
+     ['/register/',393,'en'],['/business/',393,'my'],
+     ['/privacy.html',393,'en'],['/terms.html',393,'zh'],
+     ['/security.html',393,'my'],['/about/',768,'en'],
+     ['/security.html',1100,'zh']
+   ]){
+     const ctx=await browser.newContext({viewport:{width,height:820},serviceWorkers:'block'});
+     const page=await ctx.newPage(),errors=[];
+     page.on('pageerror',e=>errors.push(e.message));
+     await page.addInitScript(code=>{
+       try{localStorage.setItem('mmhvault.landing.language',code)}catch(_){}
+     },lang);
+     await page.goto(origin+route,{waitUntil:'load',timeout:25000});
+     const toggle=page.locator('.site-header .menu-toggle');
+     await toggle.focus();
+     await toggle.press('Enter');
+     const opened=await page.evaluate(()=>{
+       const nav=document.querySelector('#primary-nav'),first=nav?.querySelector('a');
+       const toggle=document.querySelector('.site-header .menu-toggle');
+       return {expanded:toggle?.getAttribute('aria-expanded'),
+         focusedFirst:document.activeElement===first,
+         visible:!!first&&getComputedStyle(first).display!=='none'&&
+           getComputedStyle(nav).display!=='none',
+         language:document.documentElement.lang};
+     });
+     ensure(opened.expanded==='true' && opened.focusedFirst && opened.visible &&
+       opened.language===(lang==='zh'?'zh-CN':lang),
+       'L1.61 keyboard menu starts on visible link '+route+' '+width+'px '+lang);
+     await page.keyboard.press('Tab');
+     const next=await page.evaluate(()=>{
+       const nav=document.querySelector('#primary-nav');
+       return document.activeElement===nav?.querySelectorAll('a')[1];
+     });
+     ensure(next,'L1.61 Tab advances to next menu link '+route+' '+width+'px');
+     await page.keyboard.press('Escape');
+     const closed=await page.evaluate(()=>{
+       const toggle=document.querySelector('.site-header .menu-toggle');
+       return {expanded:toggle?.getAttribute('aria-expanded'),
+         focusedToggle:document.activeElement===toggle,
+         isOpen:document.querySelector('.site-header').classList.contains('menu-open')};
+     });
+     ensure(closed.expanded==='false' && closed.focusedToggle && !closed.isOpen &&
+       errors.length===0,'L1.61 Escape restores menu toggle '+route+' '+width+'px '+lang);
+     await ctx.close();
+   }
+   console.log('L1.61 mobile navigation keyboard focus parity PASS');
    // L1.56 Business WAAPI interruption browser parity. Compare the actual
    // released script to only the L1.56 changes in a real Chromium session.
    {
@@ -1494,12 +1544,12 @@ async function load(page,route,failures){
        layout.styles.filter(v=>v==='l146').length===2 &&
        layout.styles.filter(v=>v==='l147').length===1 &&
        layout.styles.filter(v=>v==='l141').length===2 &&
-       layout.scripts.includes('l155') && layout.scripts.includes('l159') &&
+       layout.scripts.includes('l161') && layout.scripts.includes('l159') &&
        loaded.length===8 && loaded.every(r=>r.status===200&&
          r.version===(r.path==='/landing-assets/landing.min.css'?'l145':
            ['/landing-assets/cinematic.min.css','/landing-assets/premium-l131.min.css'].includes(r.path)?'l146':
            r.path==='/landing-assets/header-explore-l147.min.css'?'l147':
-            r.path==='/landing-assets/landing.js'?'l155':
+            r.path==='/landing-assets/landing.js'?'l161':
               r.path==='/landing-assets/motion-l132.js'?'l159':'l141')) &&
        new Set(loaded.map(r=>r.path)).size===8 && failures.length===0,
        'L1.47 '+width+'px eight CSS/JS requests with consistent cache keys '+JSON.stringify({loaded,failures}));
@@ -2918,7 +2968,7 @@ async function load(page,route,failures){
        ['/features/',1440,'en']
      ]){
        const result={};
-       for(const [version,script] of [['l159',released],['l160',candidate]]){
+       for(const [version,script] of [['l159',released],['l161',candidate]]){
          const ctx=await browser.newContext({viewport:{width,height:852},
            reducedMotion:'no-preference',serviceWorkers:'block'});
          const page=await ctx.newPage(),errors=[];
@@ -2966,12 +3016,12 @@ async function load(page,route,failures){
          });
          const first=await inspect();
          ensure(first.count>=2 && first.pending>0 && first.observers.length===1 &&
-           first.observers[0].observed>0 && first.version==='l160' &&
+           first.observers[0].observed>0 && first.version==='l161' &&
            first.canonical && first.h1 && first.lang===(lang==='zh'?'zh-CN':lang),
            'L1.60 '+version+' '+route+' '+width+'px initial reveal observer active '+
             JSON.stringify({pending:first.pending,observer:first.observers}));
          await page.emulateMedia({reducedMotion:'reduce'});
-         if(version==='l160')await page.waitForFunction(()=>
+         if(version==='l161')await page.waitForFunction(()=>
            [...document.querySelectorAll('.mm-public-reveal')]
              .every(el=>el.classList.contains('mm-public-shown')),null,{timeout:3000});
          const reduced=await inspect();
@@ -2984,7 +3034,7 @@ async function load(page,route,failures){
          result[version]={first,reduced,resumed};
          await ctx.close();
        }
-       const old=result.l159,newState=result.l160;
+       const old=result.l159,newState=result.l161;
        ensure(old.reduced.pending>0 && old.resumed.pending>0 &&
          !old.resumed.observers[0].disconnected &&
          newState.reduced.pending===0 && newState.resumed.pending===0 &&
@@ -3060,7 +3110,7 @@ async function load(page,route,failures){
          const first=await inspect();
          ensure(first.records.length===1 && first.records[0].margin===(from<=620?mobile:desktop) &&
            first.records[0].observed>0 && first.headline && first.canonical &&
-           first.lang===(lang==='zh'?'zh-CN':lang) && first.script==='l160',
+           first.lang===(lang==='zh'?'zh-CN':lang) && first.script==='l161',
            'L1.58 '+version+' '+route+' '+from+'px initial public reveal');
          await page.setViewportSize({width:to,height:852});
          if(version==='l158')await page.waitForFunction(()=>window.__l158Observers?.length>=2,
