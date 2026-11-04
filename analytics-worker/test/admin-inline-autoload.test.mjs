@@ -90,7 +90,7 @@ test('in-frame controller waits for admin authentication and accepts only same-o
 test('embedded Analytics uses its own Supabase auth without passing JWT through parent',()=>{
   assert.match(analytics,/new URLSearchParams\(location\.search\)\.get\('embedded'\)==='1'/);
   assert.match(analytics,/body\.classList\.add\('mmh-analytics-embedded'\)/);
-  assert.match(analytics,/\.shell\?\.scrollHeight/);
+  assert.match(analytics,/shell\?\.scrollHeight/);
   assert.match(analytics,/postMessage\(\{type:'mmhvault-analytics-height',height:/);
   assert.doesNotMatch(admin,/postMessage\(\{[^}]*access_token/);
   assert.match(analytics,/Authorization:'Bearer '\+token/);
