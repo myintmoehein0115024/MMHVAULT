@@ -93,3 +93,55 @@ test('administrator page inline browser initializer is valid JavaScript',()=>{
   assert.ok(script,'administrator inline initializer must be present');
   assert.doesNotThrow(()=>new Script(script[1]));
 });
+
+test('30d timeline uses the real full window: two recent observed dates do not span 30 days',()=>{
+  const chart=initialize(),container=element('div');container.clientWidth=800;
+  assert.equal(chart.render(container,[
+    {date:'2026-11-03',visits:10,pageViews:10},
+    {date:'2026-11-04',visits:10,pageViews:10}
+  ],'day','30d','2026-11-04T09:26:03.000Z'),true);
+  const nodes=collect(container);
+  const dots=nodes.filter(x=>x.tagName==='circle');
+  assert.equal(dots.length,4);
+  assert.ok(dots.every(d=>Number(d.attributes.cx)>700),
+    'only November 3 and 4 have points, so all dots belong at the right edge');
+  const labels=nodes.filter(x=>x.tagName==='text').map(x=>x.textContent);
+  assert.ok(labels.includes('10-05'),'full 30-day start appears on X axis');
+  assert.ok(labels.includes('11-04'),'end of observed window appears on X axis');
+  assert.equal(nodes.filter(x=>x.tagName==='path').length,3,
+    'only one consecutive daily segment is filled and linked for each series');
+});
+test('24h missing hours stay blank: no invented zero and no line across the gap',()=>{
+  const chart=initialize(),container=element('div');container.clientWidth=960;
+  assert.equal(chart.render(container,[
+    {date:'2026-11-03T17:00:00Z',visits:5,pageViews:5},
+    {date:'2026-11-04T08:00:00Z',visits:5,pageViews:6}
+  ],'hour','24h','2026-11-04T09:26:03.000Z'),true);
+  const nodes=collect(container);
+  assert.equal(nodes.filter(x=>x.tagName==='circle').length,4);
+  assert.equal(nodes.filter(x=>x.tagName==='path').length,0,
+    'no solid line or area filling unobserved hours');
+  const dots=nodes.filter(x=>x.tagName==='circle');
+  assert.ok(Number(dots[1].attributes.cx)-Number(dots[0].attributes.cx)>400);
+  assert.ok(nodes.some(x=>String(x.textContent).includes('Lines connect only consecutive observed periods.')));
+});
+test('invalid or inconsistent snapshot period fails closed instead of positioning false data',()=>{
+  const chart=initialize(),container=element('div');
+  const sample=[{date:'2026-11-04',visits:2,pageViews:3}];
+  assert.equal(chart.render(container,sample,'day','24h','2026-11-04T09:26:03.000Z'),false);
+  assert.equal(chart.render(container,sample,'day','30d','not-a-time'),false);
+  assert.equal(chart.render(container,[{date:'2026-09-01',visits:2,pageViews:3}],
+    'day','30d','2026-11-04T09:26:03.000Z'),false);
+});
+
+test('single recent 24h observation stays near its real UTC hour, not centered',()=>{
+  const chart=initialize(),container=element('div');container.clientWidth=360;
+  assert.equal(chart.render(container,[{date:'2026-11-04T08:00:00Z',visits:2,pageViews:3}],
+    'hour','24h','2026-11-04T09:26:03.000Z'),true);
+  const nodes=collect(container),dots=nodes.filter(x=>x.tagName==='circle');
+  assert.equal(dots.length,2);
+  assert.ok(dots.every(dot=>Number(dot.attributes.cx)>300),
+    'real observed hour must remain on the right end of the 24-hour time window');
+  assert.equal(nodes.filter(x=>x.tagName==='path').length,0,
+    'a single observed hour cannot be interpreted as a continuous trend');
+});
