@@ -180,6 +180,9 @@ Deno.serve(async request=>{
    if(!isSameOwner(beforeStatus,auth)||
      !await liveSession(auth.user.id,auth.sessionId))
     return reply(origin,'session_expired',401);
+   // The QA window can expire after the last asynchronous DB session check.
+   // Never disclose even owner-specific backup status past its deadline.
+   if(!open())return reply(origin,'qa_not_released',503);
    return reply(origin,'backup_status',200,{backed_up:result.data});
   }
   if(!await quota(auth.user.id))return reply(origin,'too_many_attempts',429);
@@ -205,6 +208,9 @@ Deno.serve(async request=>{
   if(!isSameOwner(beforeResponse,auth)||
     !await liveSession(auth.user.id,auth.sessionId))
    return reply(origin,'session_expired',401);
+  // The signed owner can remain valid while this short-lived QA release
+  // expires. Re-check immediately before returning any plaintext words.
+  if(!open())return reply(origin,'qa_not_released',503);
   return reply(origin,'recovery_key',200,{words,expires_in_seconds:45});
  }catch(_){return reply(origin,'qa_unavailable',503);}
 });
