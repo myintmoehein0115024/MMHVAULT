@@ -18,6 +18,11 @@ label{display:block;font-size:12px;color:#d8e6f6;font-weight:650;margin:0 0 7px}
 input{display:block;width:100%;margin:0 0 18px;padding:13px 14px;border-radius:12px;border:1px solid #3a5a79;color:#f4faff;background:#0d213a;outline:none;font:inherit;font-size:15px}input:focus{border-color:#f0c879;box-shadow:0 0 0 3px rgba(240,200,121,.12)}
 button{width:100%;border:0;border-radius:12px;padding:14px 18px;background:linear-gradient(115deg,#f5db9f,#cda257);color:#112137;font-size:15px;font-weight:800;cursor:pointer}button:disabled{opacity:.55;cursor:wait}
 #status{font-size:13px;color:#f6c8a6;min-height:21px;line-height:1.55;margin-top:16px;text-align:center}
+[hidden]{display:none!important}
+#qaMfaStep{margin-top:10px}
+#qaMfaStep p{font-size:12px;line-height:1.6;color:#bdccdf}
+#qaCancelMfa{margin-top:10px;border:1px solid #405a77;color:#cbdcf0;background:#10243e;font-size:13px}
+#qaTotp{font-variant-numeric:tabular-nums;letter-spacing:.22em;text-align:center;font-size:23px}
 .small{font-size:11px;color:#91a7c3;text-align:center;line-height:1.6;margin:18px 0 0}
 </style>
 </head>
@@ -35,6 +40,15 @@ button{width:100%;border:0;border-radius:12px;padding:14px 18px;background:linea
   <input id="qaPassword" type="password" autocomplete="current-password" placeholder="Staging test password" required>
   <button id="qaSubmit" type="submit">Enter Staging APP</button>
  </form>
+ <section id="qaMfaStep" hidden aria-label="Staging second-factor check">
+  <p>Your synthetic test account requires its existing second factor. Enter the six-digit code from your test authenticator. Never share a code in chat.</p>
+  <form id="qaMfaForm">
+   <label for="qaTotp">Test authenticator code</label>
+   <input id="qaTotp" type="text" inputmode="numeric" autocomplete="one-time-code" maxlength="6" pattern="[0-9]{6}" placeholder="••••••" required>
+   <button id="qaMfaSubmit" type="submit">Verify and enter Staging APP</button>
+  </form>
+  <button id="qaCancelMfa" type="button">Cancel and sign out</button>
+ </section>
  <div id="status" role="status" aria-live="polite"></div>
  <p class="small">No registration · No recovery key · No Google login · No Production access<br>Test-only Supabase project: ldivswlhtgmznzwhzsoi</p>
 </main>
@@ -49,7 +63,11 @@ const email=document.getElementById('qaEmail');
 const password=document.getElementById('qaPassword');
 const submit=document.getElementById('qaSubmit');
 const status=document.getElementById('status');
-let working=false;
+const mfaStep=document.getElementById('qaMfaStep');
+const mfaForm=document.getElementById('qaMfaForm');
+const totp=document.getElementById('qaTotp');
+const mfaSubmit=document.getElementById('qaMfaSubmit');
+let working=false,pendingFactorId='';
 function say(msg){status.textContent=msg;}
 if(!window.supabase?.createClient){
  submit.disabled=true;say('Unable to load the login library. Please refresh this Staging page.');
@@ -57,6 +75,58 @@ if(!window.supabase?.createClient){
 }
 const client=window.supabase.createClient(URL,PUBLISHABLE,{
  auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:false}
+});
+const enterApp=()=>{say('Staging verification succeeded. Opening test APP…');location.replace('./app.html');};
+const checkSecondFactor=async()=>{
+ const {data:level,error}=await client.auth.mfa.getAuthenticatorAssuranceLevel();
+ if(error||!level||!['aal1','aal2'].includes(level.nextLevel))
+   throw error||new Error('Unable to confirm this Staging account MFA status.');
+ if(level.nextLevel==='aal2'&&level.currentLevel!=='aal2'){
+   const {data:factors,error:factorError}=await client.auth.mfa.listFactors();
+   if(factorError||!Array.isArray(factors?.all))throw factorError||new Error('Could not verify the Staging account factors.');
+   const verified=factors.all.filter(x=>x?.status==='verified');
+   const factor=verified.find(x=>x.factor_type==='totp'&&typeof x.id==='string');
+   if(!factor)throw new Error('This account requires a factor not supported by the isolated TOTP test login.');
+   pendingFactorId=factor.id;
+   form.hidden=true;mfaStep.hidden=false;totp.value='';totp.focus();
+   say('Verify the existing test MFA code to continue. No second factor is bypassed.');
+   return;
+ }
+ if(level.currentLevel===null){
+   // The native APP has a strict legacy-null-AAL check. Match it
+   // rather than pretending password-only access means MFA-free.
+   const {data:factors,error:factorError}=await client.auth.mfa.listFactors();
+   if(factorError||!Array.isArray(factors?.all)||factors.all.some(x=>x?.status==='verified'))
+     throw factorError||new Error('Could not establish that this legacy session is MFA-free.');
+ }
+ if(level.currentLevel!=='aal2'&&level.nextLevel!=='aal1')
+   throw new Error('The current Staging account has not completed its required MFA level.');
+ enterApp();
+};
+mfaForm.addEventListener('submit',async event=>{
+ event.preventDefault();
+ if(working||!pendingFactorId)return;
+ const code=totp.value.trim();
+ if(!/^[0-9]{6}$/.test(code)){say('Enter exactly six digits from the existing test authenticator.');return;}
+ working=true;mfaSubmit.disabled=true;say('Verifying your test authenticator…');
+ try{
+   const {error}=await client.auth.mfa.challengeAndVerify({factorId:pendingFactorId,code});
+   if(error)throw error;
+   const {data:assurance,error:levelError}=await client.auth.mfa.getAuthenticatorAssuranceLevel();
+   if(levelError||assurance?.currentLevel!=='aal2')
+     throw levelError||new Error('MFA session assurance was not confirmed by Auth.');
+   enterApp();
+ }catch(error){
+   say('Staging MFA verification failed: '+String(error?.message||'Please retry with a new code.').slice(0,160));
+ }finally{totp.value='';working=false;mfaSubmit.disabled=false;}
+});
+document.getElementById('qaCancelMfa').addEventListener('click',async()=>{
+ if(working)return;
+ working=true;mfaSubmit.disabled=true;
+ try{await client.auth.signOut({scope:'local'});}
+ catch(error){console.warn('[APP V11.7 Staging] Local test sign-out failed',error);}
+ pendingFactorId='';mfaStep.hidden=true;form.hidden=false;password.value='';
+ working=false;mfaSubmit.disabled=false;say('Staging test session cancelled.');
 });
 form.addEventListener('submit',async event=>{
  event.preventDefault();
@@ -79,8 +149,7 @@ form.addEventListener('submit',async event=>{
      await client.auth.signOut({scope:'local'});
      throw new Error('The returned test account does not match the requested identity.');
    }
-   say('Staging sign-in succeeded. Opening the test APP…');
-   location.replace('./app.html');
+   await checkSecondFactor();
  }catch(error){
    say('Test sign-in failed: '+String(error?.message||'Please check your Staging test credentials.').slice(0,190));
  }finally{
