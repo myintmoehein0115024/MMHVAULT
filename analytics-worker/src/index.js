@@ -130,19 +130,19 @@ function displayCategory(category,value){
   if(value===null||value===undefined||value==='')return category==='referrers'?'Direct / unknown':'Unknown';
   if(typeof value!=='string')throw new Error('CF_BREAKDOWN_INVALID');
   const clean=value.trim();
-  if(!clean||clean.length>256||/[\\x00-\\x1f\\x7f]/.test(clean))
+  if(!clean||clean.length>256||/[\x00-\x1f\x7f]/.test(clean))
     return category==='pages'?'Other / hidden paths':'Unknown';
   if(category==='pages'){
     // User-specific token paths and query strings must never reach the UI.
     if(!clean.startsWith('/')||clean.length>120||/[?#]/.test(clean)||
        /(?:auth|reset|recovery|callback|invite|token|secret|session|password)/i.test(clean)||
-       /\\/[a-f0-9]{20,}(?:\\/|$)/i.test(clean)||/\\/\\d{12,}(?:\\/|$)/.test(clean))
+       /\/[a-f0-9]{20,}(?:\/|$)/i.test(clean)||/\/\d{12,}(?:\/|$)/.test(clean))
       return 'Other / hidden paths';
     return clean;
   }
   if(category==='referrers')return /^[a-z0-9.-]{1,150}$/i.test(clean)?clean:'Unknown';
   if(category==='countries')return /^[A-Z]{2}$/.test(clean)?clean:'Unknown';
-  return /^[\\p{L}\\p{N} _+.-]{1,80}$/u.test(clean)?clean:'Unknown';
+  return /^[\p{L}\p{N} _+.-]{1,80}$/u.test(clean)?clean:'Unknown';
 }
 async function queryBreakdowns(range,env,diagnostic){
   diagnostic.phase='CF_START';
