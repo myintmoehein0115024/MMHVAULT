@@ -68,6 +68,45 @@ const say=(condition,label)=>{assert.ok(condition,label);console.log('PASS '+lab
       await page.locator('#txGroup').selectOption({label:'Income2'});
       await page.locator('#txCategory').selectOption({label:'Salary'});
       say(await save.isEnabled(),width+' explicit Type→Transaction→Category enables native Save');
+      // Native V321 and account-balance guards must not be defeated by a
+      // subsequent Manage selector refresh. A second submit while busy
+      // cannot overwrite the first ledger insert's pending sidecar path.
+      await page.evaluate(()=>{
+        const f=document.getElementById('txForm'),btn=f.querySelector('.actions button');
+        window.__nativeSubmits=0;
+        f.addEventListener('submit',()=>window.__nativeSubmits++);
+        btn.classList.add('v321-submit-busy');btn.disabled=true;
+        window.MMHV11HierarchyLive.refresh();
+      });
+      await page.evaluate(()=>new Promise(resolve=>setTimeout(resolve,0)));
+      say(await save.isDisabled(),width+' Manage cannot unlock native saving-in-progress button');
+      const busyDuplicate=await page.evaluate(()=>{
+        const ev=new Event('submit',{bubbles:true,cancelable:true});
+        document.getElementById('txForm').dispatchEvent(ev);
+        return {blocked:ev.defaultPrevented,count:window.__nativeSubmits};
+      });
+      say(busyDuplicate.blocked&&busyDuplicate.count===0,
+        width+' busy duplicate submit is stopped before native transaction handler');
+      await page.evaluate(()=>{
+        const btn=document.querySelector('#txForm .actions button');
+        btn.classList.remove('v321-submit-busy');btn.classList.add('balance-blocked');
+        window.MMHV11HierarchyLive.refresh();
+      });
+      await page.evaluate(()=>new Promise(resolve=>setTimeout(resolve,0)));
+      say(await save.isDisabled(),width+' Manage cannot unlock insufficient-balance protection');
+      const insufficient=await page.evaluate(()=>{
+        const ev=new Event('submit',{bubbles:true,cancelable:true});
+        document.getElementById('txForm').dispatchEvent(ev);
+        return {blocked:ev.defaultPrevented,count:window.__nativeSubmits};
+      });
+      say(insufficient.blocked&&insufficient.count===0,
+        width+' insufficient-balance submit is blocked before native ledger write');
+      await page.evaluate(()=>{
+        document.querySelector('#txForm .actions button').classList.remove('balance-blocked');
+        window.MMHV11HierarchyLive.refresh();
+      });
+      await page.evaluate(()=>new Promise(resolve=>setTimeout(resolve,0)));
+      say(await save.isEnabled(),width+' native Save re-enables after external financial locks clear');
       // The full APP's legacy syncTransactionGroup()/updateCategories()
       // still rebuild these native selects after a successful ledger write.
       // V11.7 must restore exact choice IDs and reject ghost legacy options.
