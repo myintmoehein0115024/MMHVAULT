@@ -18,7 +18,7 @@ for(const [name,script] of [['live',guide],['state',state]]){
   for(const dangerous of [
     /\bdb\s*\.\s*from\s*\(/,/\b(?:fetch|XMLHttpRequest|sendBeacon)\s*\(/,
     /\b(?:insert|update|upsert|remove)\s*\(\s*['"]transactions['"]/,
-    /(?:MMHVAULT_CONFIG|MMHVAULT_CONFIG_OWNER|currentSessionUser)\s*=/,
+    /(?:MMHVAULT_CONFIG|MMHVAULT_CONFIG_OWNER|currentSessionUser)\s*=(?!=)/,
     /window\.transactions\s*=/,/\bresetMyCloudDataV380\s*\(/,
     /(?:create|delete)\s+table\b/i
   ])assert.doesNotMatch(script,dangerous,name+' must not change core finance or backend');
