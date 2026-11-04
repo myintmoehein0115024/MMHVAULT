@@ -62,6 +62,24 @@ for(const dir of ['js','css','images','fonts']){
  const from=path.join(root,dir);
  if(fs.existsSync(from)&&fs.statSync(from).isDirectory())fs.cpSync(from,path.join(out,dir),{recursive:true});
 }
+// Bundled APP extensions may themselves contain absolute production API
+// constants (N10 utilities, older login helpers, etc.). Rewrite those in
+// the COPY ONLY, never in Git-tracked source or Production. The CSP is a
+// second independent guard against requests to any unapproved host.
+let sanitizedAssets=0;
+function sanitizeCopiedAssets(dir){
+ for(const entry of fs.readdirSync(dir,{withFileTypes:true})){
+  const file=path.join(dir,entry.name);
+  if(entry.isDirectory()){sanitizeCopiedAssets(file);continue;}
+  if(!/\\.(?:js|mjs|html|css|json|txt|webmanifest)$/i.test(entry.name))continue;
+  const input=fs.readFileSync(file,'utf8');
+  const clean=input.replaceAll(PROD_HOST,STAGING_HOST).replaceAll(PROD_KEY,key);
+  if(clean!==input){fs.writeFileSync(file,clean);sanitizedAssets++;}
+  assert.ok(!clean.includes(PROD_HOST)&&!clean.includes(PROD_KEY),
+    'QA package contains a Production endpoint: '+file);
+ }
+}
+sanitizeCopiedAssets(out);
 const modules=html.matchAll(/<(?:script|link)\b[^>]*\b(?:src|href)=["']([^"']+)["'][^>]*>/gi);
 for(const match of modules){
  const url=match[1];
@@ -88,4 +106,4 @@ fs.writeFileSync(path.join(out,'README-STAGING-QA.txt'),[
 '',
 ].join('\n'));
 console.log(JSON.stringify({destination:out,stagingEndpoint:'https://'+STAGING_HOST,
-  bytes:html.length,originReplacements:3,assetsChecked:true,productionRefCount:count(html,PROD_HOST)}));
+  bytes:html.length,originReplacements:3,sanitizedAssets,assetsChecked:true,productionRefCount:count(html,PROD_HOST)}));
