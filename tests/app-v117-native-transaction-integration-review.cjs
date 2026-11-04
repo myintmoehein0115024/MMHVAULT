@@ -102,3 +102,23 @@ console.log('APP_V117_NATIVE_GUARDED_REFRESH='+JSON.stringify({
   line:guardedAt+1,
   code:guardedAt>=0?lines.slice(guardedAt,guardedAt+32).map((l,k)=>(guardedAt+k+1)+': '+safe(l)):[]
 }));
+
+
+// Protect the integration assumption behind the V11.7 guard. The full APP
+// owns the busy/balance locks, while the hierarchy module may re-render the
+// SAME native Save button. A future independent update to either side must
+// not accidentally re-enable submission during an in-flight financial write.
+const hierarchy=fs.readFileSync(path.join(__dirname,
+  '../js/mmhvault-v11-manage-hierarchy-live.mjs'),'utf8');
+for(const [label,src,pattern] of [
+  ['native in-flight save button marker',app,/v321-submit-busy/],
+  ['native balance guard button marker',app,/balance-blocked/],
+  ['V321 duplicate submit guard',app,/if\s*\(\s*txBusy\s*\)\s*return/],
+  ['V11.7 honors busy saving class',hierarchy,/save\.classList\.contains\(['"]v321-submit-busy['"]\)/],
+  ['V11.7 honors account funding class',hierarchy,/save\.classList\.contains\(['"]balance-blocked['"]\)/],
+  ['V11.7 rejects duplicate busy submit',hierarchy,/submit\?\.classList\.contains\(['"]v321-submit-busy['"]\)/],
+  ['V11.7 rejects insufficient balance submit',hierarchy,/submit\?\.classList\.contains\(['"]balance-blocked['"]\)/],
+]){
+ assert.match(src,pattern,label+' integration contract changed: review before release');
+}
+console.log('APP_V117_NATIVE_LOCK_CONTRACT=PASS busy and balance protections remain shared');
