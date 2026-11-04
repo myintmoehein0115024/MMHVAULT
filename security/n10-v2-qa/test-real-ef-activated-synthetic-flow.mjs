@@ -22,10 +22,10 @@ const WORDLIST=Array.from({length:2048},(_,i)=>{
 });
 assert.equal(new Set(WORDLIST).size,2048);
 
-function fakeWorld({failEscrow=false,revokeOnVaultRead=false,malformedAuthResponse=false}={}){
+function fakeWorld({failEscrow=false,revokeOnVaultRead=false,malformedAuthResponse=false,closeGateOnSignin=false}={}){
  const users=new Map(),byEmail=new Map(),slotOwners=new Map(),claims=new Set();
  const backups=new Map(),sessions=new Map(),tokens=new Map(),verifiedFactors=new Set(),events=[];
- let handlerCount=0;
+ let handlerCount=0,gateOpen=true,closeOnNextSignin=closeGateOnSignin;
  function issueSession(uid,aal='aal1',overrides={}){
    const sid=randomUUID();
    const payload={iss:BASE+'/auth/v1',sub:uid,exp:4102444800,aal,session_id:sid,...overrides};
@@ -40,6 +40,8 @@ function fakeWorld({failEscrow=false,revokeOnVaultRead=false,malformedAuthRespon
    return uid?users.get(uid):null;
  };
  function rpc(name,arg){
+   if(!gateOpen&&['mmh_n10_realef_owner_slot','mmh_n10_realef_slot_user_id'].includes(name))
+    return {data:null,error:{message:'QA window closed'}};
    switch(name){
     case 'mmh_n10_realef_take_attempt':return {data:true,error:null};
     case 'mmh_n10_realef_claim':
@@ -89,6 +91,7 @@ function fakeWorld({failEscrow=false,revokeOnVaultRead=false,malformedAuthRespon
  }
  function client(key){
   const admin=key.startsWith('synthetic-service-');
+  let localSessionId=null;
   return {
    rpc:async(name,arg)=>rpc(name,arg),
    auth:{
@@ -101,9 +104,18 @@ function fakeWorld({failEscrow=false,revokeOnVaultRead=false,malformedAuthRespon
      if(!u||u.password!==password)return {data:null,error:{message:'invalid password'}};
      events.push('signin:'+u.app_metadata.mmhvault_username);
      const session=issueSession(uid,'aal1');
+     localSessionId=session.session_id;
+     if(closeOnNextSignin){gateOpen=false;closeOnNextSignin=false;}
      return {data:{user:u,session},error:null};
     },
-    signOut:async()=>({error:null}),
+    signOut:async()=>{
+     if(localSessionId){
+      const issued=sessions.get(localSessionId);
+      if(issued)issued.live=false;
+      localSessionId=null;
+     }
+     return {error:null};
+    },
     admin:{
      createUser:async({email,password,email_confirm,app_metadata})=>{
       if(!admin)throw Error('unprivileged Auth createUser');
@@ -181,6 +193,8 @@ function fakeWorld({failEscrow=false,revokeOnVaultRead=false,malformedAuthRespon
  }
  return {
   signup,viewer,invoke,events,users,backups,slotOwners,claims,
+  closeGateOnNextSignin(){closeOnNextSignin=true;},
+  activeSessions(uid){return [...sessions.values()].filter(s=>s.uid===uid&&s.live).length;},
   mintAAL2(uid){verifiedFactors.add(uid);return issueSession(uid,'aal2');},
   mintAAL2WithoutFactor(uid){return issueSession(uid,'aal2');},
   mintAAL2WithClaims(uid,overrides){verifiedFactors.add(uid);return issueSession(uid,'aal2',overrides);},
@@ -390,4 +404,45 @@ test('ambiguous Auth createUser response quarantines exact fresh E, never issues
  assert.equal(owner.banned_until,'876000h',
   'the exact newly created user should be quarantined after ambiguous Auth response');
  assert.ok(!x.events.some(v=>v.startsWith('signin:')));
+});
+
+test('gate closing during initial signup session denies tokens, signs out, and quarantines only new E',async()=>{
+ const x=fakeWorld({closeGateOnSignin:true});
+ const failed=await x.invoke(x.signup,{
+  action:'signup',username:'n10real_e_20261104',password:PWD_E,
+  captcha_token:'signup-gate-closes-during-first-session'
+ });
+ assert.equal(failed.status,503);
+ assert.equal(failed.code,'manual_reconciliation_required');
+ assert.equal(failed.recovery_words,undefined);
+ assert.equal(failed.access_token,undefined);
+ assert.equal(failed.refresh_token,undefined);
+ assert.equal(x.users.size,1);
+ assert.equal(x.backups.size,1,'immutable original escrow retained for manual review');
+ assert.equal(x.claims.has('E'),true);
+ const only=[...x.users.values()][0];
+ assert.equal(only.banned_until,'876000h');
+ assert.equal(x.activeSessions(only.id),0,'temporary login must be revoked');
+});
+
+test('gate closing during repeat login returns no token and revokes only new session',async()=>{
+ const x=fakeWorld();
+ const e=await x.invoke(x.signup,{
+  action:'signup',username:'n10real_e_20261104',password:PWD_E,
+  captcha_token:'signup-for-later-gate-closure'
+ });
+ assert.equal(e.status,200);
+ assert.equal(x.activeSessions(e.user_id),1);
+ x.closeGateOnNextSignin();
+ const denied=await x.invoke(x.signup,{
+  action:'login',username:'n10real_e_20261104',password:PWD_E,
+  captcha_token:'login-gate-closes-during-signin'
+ });
+ assert.equal(denied.status,401);
+ assert.equal(denied.code,'invalid_credentials');
+ assert.equal(denied.access_token,undefined);
+ assert.equal(denied.refresh_token,undefined);
+ assert.equal(x.activeSessions(e.user_id),1,
+  'original test session remains; late temporary session is signed out');
+ assert.equal(x.backups.get(e.user_id),e.recovery_words.join(' '));
 });
