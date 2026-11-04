@@ -18,6 +18,7 @@ BEGIN
  THEN RAISE EXCEPTION 'N10 Vault objects already exist: manual reconciliation required' USING ERRCODE='42710'; END IF;
  IF NOT EXISTS(SELECT 1 FROM pg_extension WHERE extname='supabase_vault')
     OR to_regclass('public.mmh_n10a769_recovery_phrases') IS NULL
+    OR to_regclass('public.mmh_n10a740_username_links') IS NULL
     OR to_regclass('auth.sessions') IS NULL OR to_regclass('auth.mfa_factors') IS NULL
  THEN RAISE EXCEPTION 'N10 Vault prerequisites absent' USING ERRCODE='55000'; END IF;
 END
@@ -55,6 +56,101 @@ BEGIN
   SELECT 1 FROM auth.users u
   JOIN public.mmh_n10a769_recovery_phrases r ON r.user_id=u.id
   WHERE u.id=p_user_id
+    AND r.version=1 AND r.verifier ~ '^[a-f0-9]{64}
+    AND u.created_at>=now()-interval '30 minutes'
+    AND r.created_at>=now()-interval '30 minutes'
+    AND u.email_confirmed_at IS NOT NULL
+    AND right(u.email,length('@no-mail.mmhvault.invalid'))='@no-mail.mmhvault.invalid'
+    AND u.raw_app_meta_data->>'mmhvault_auth_kind'='username_only'
+ )
+ THEN RAISE EXCEPTION 'Fresh username verifier required' USING ERRCODE='42501'; END IF;
+ PERFORM pg_catalog.pg_advisory_xact_lock(pg_catalog.hashtextextended(p_user_id::text,190031));
+ SELECT secret_id INTO v_secret_id FROM mmh_n10_privacy.recovery_backup_index
+ WHERE user_id=p_user_id FOR UPDATE;
+ IF v_secret_id IS NOT NULL THEN
+  SELECT decrypted_secret INTO v_existing FROM vault.decrypted_secrets WHERE id=v_secret_id;
+  IF v_existing IS DISTINCT FROM p_phrase
+  THEN RAISE EXCEPTION 'Fixed key immutable' USING ERRCODE='42501'; END IF;
+  RETURN true;
+ END IF;
+ v_secret_id:=vault.create_secret(p_phrase,
+  'mmh_n10_fixed_recovery_'||replace(p_user_id::text,'-',''),
+  'Permanent original recovery words',NULL::uuid);
+ INSERT INTO mmh_n10_privacy.recovery_backup_index(user_id,secret_id) VALUES(p_user_id,v_secret_id);
+ RETURN true;
+END
+$put$;
+
+CREATE FUNCTION public.mmh_n10_recovery_backup_exists(p_user_id uuid)
+RETURNS boolean LANGUAGE sql STABLE SECURITY DEFINER SET search_path = ''
+AS $exists$
+ SELECT EXISTS(SELECT 1 FROM mmh_n10_privacy.recovery_backup_index WHERE user_id=p_user_id);
+$exists$;
+
+CREATE FUNCTION public.mmh_n10_recovery_backup_get(p_user_id uuid)
+RETURNS text LANGUAGE sql STABLE SECURITY DEFINER SET search_path = ''
+AS $get$
+ SELECT v.decrypted_secret FROM mmh_n10_privacy.recovery_backup_index i
+ JOIN vault.decrypted_secrets v ON v.id=i.secret_id WHERE i.user_id=p_user_id;
+$get$;
+
+-- Edge must supply an Auth-verified JWT owner and matching JWT session_id.
+CREATE FUNCTION public.mmh_n10_recovery_session_active(
+ p_user_id uuid,p_session_id uuid,p_expected_aal text)
+RETURNS boolean LANGUAGE sql STABLE SECURITY DEFINER SET search_path = ''
+AS $session$
+ SELECT p_expected_aal IN('aal1','aal2') AND EXISTS(
+  SELECT 1 FROM auth.sessions s WHERE s.id=p_session_id AND s.user_id=p_user_id
+   AND (s.not_after IS NULL OR s.not_after>now())
+   AND (
+    (p_expected_aal='aal1' AND s.aal::text='aal1' AND s.factor_id IS NULL
+     AND NOT EXISTS(SELECT 1 FROM auth.mfa_factors f WHERE f.user_id=p_user_id AND f.status::text='verified'))
+    OR
+    (p_expected_aal='aal2' AND s.aal::text='aal2' AND s.factor_id IS NOT NULL
+     AND EXISTS(SELECT 1 FROM auth.mfa_factors f WHERE f.id=s.factor_id
+       AND f.user_id=p_user_id AND f.status::text='verified'))
+   )
+ );
+$session$;
+
+CREATE FUNCTION public.mmh_n10_recovery_take_attempt(
+ p_bucket text,p_limit integer,p_window_seconds integer)
+RETURNS boolean LANGUAGE plpgsql SECURITY DEFINER SET search_path = ''
+AS $rate$
+DECLARE v_attempts integer;
+BEGIN
+ IF p_bucket !~ '^[a-f0-9]{64}$' OR p_limit NOT BETWEEN 1 AND 10
+ OR p_window_seconds NOT BETWEEN 60 AND 86400
+ THEN RAISE EXCEPTION 'Invalid rate inputs' USING ERRCODE='22023'; END IF;
+ INSERT INTO mmh_n10_privacy.recovery_rate_bucket AS rb(bucket,attempts,reset_at)
+ VALUES(p_bucket,1,now()+pg_catalog.make_interval(secs=>p_window_seconds))
+ ON CONFLICT(bucket) DO UPDATE SET
+ attempts=CASE WHEN rb.reset_at<=now() THEN 1 ELSE LEAST(rb.attempts,p_limit)+1 END,
+ reset_at=CASE WHEN rb.reset_at<=now() THEN now()+pg_catalog.make_interval(secs=>p_window_seconds) ELSE rb.reset_at END
+ RETURNING attempts INTO v_attempts;
+ RETURN v_attempts<=p_limit;
+END
+$rate$;
+
+-- Atomic revocation of the default PUBLIC function EXECUTE grants.
+REVOKE ALL ON FUNCTION public.mmh_n10_recovery_backup_put(uuid,text) FROM PUBLIC,anon,authenticated;
+REVOKE ALL ON FUNCTION public.mmh_n10_recovery_backup_exists(uuid) FROM PUBLIC,anon,authenticated;
+REVOKE ALL ON FUNCTION public.mmh_n10_recovery_backup_get(uuid) FROM PUBLIC,anon,authenticated;
+REVOKE ALL ON FUNCTION public.mmh_n10_recovery_session_active(uuid,uuid,text) FROM PUBLIC,anon,authenticated;
+REVOKE ALL ON FUNCTION public.mmh_n10_recovery_take_attempt(text,integer,integer) FROM PUBLIC,anon,authenticated;
+GRANT EXECUTE ON FUNCTION public.mmh_n10_recovery_backup_put(uuid,text) TO service_role;
+GRANT EXECUTE ON FUNCTION public.mmh_n10_recovery_backup_exists(uuid) TO service_role;
+GRANT EXECUTE ON FUNCTION public.mmh_n10_recovery_backup_get(uuid) TO service_role;
+GRANT EXECUTE ON FUNCTION public.mmh_n10_recovery_session_active(uuid,uuid,text) TO service_role;
+GRANT EXECUTE ON FUNCTION public.mmh_n10_recovery_take_attempt(text,integer,integer) TO service_role;
+COMMIT;
+-- REVIEW ONLY. Do not run without separate Production schema approval.
+
+    -- Never treat a historically signed-in or linked account as a new
+    -- enrollment, even when it is less than thirty minutes old.
+    AND NOT EXISTS(SELECT 1 FROM auth.sessions AS prior WHERE prior.user_id=p_user_id)
+    AND NOT EXISTS(SELECT 1 FROM public.mmh_n10a740_username_links AS link
+                   WHERE link.user_id=p_user_id)
     AND u.created_at>=now()-interval '30 minutes'
     AND r.created_at>=now()-interval '30 minutes'
     AND u.email_confirmed_at IS NOT NULL

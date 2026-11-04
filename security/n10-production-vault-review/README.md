@@ -11,3 +11,7 @@ The SQL uses ON DELETE RESTRICT on owner backups so automated signup cleanup mus
 Only the independently verified Edge may invoke service-role RPCs. Its two hard-OFF release flags, current password proof, server-verified MFA and JWT session revocation checks remain mandatory. Historical keys, finance data, APP V11, Landing, Auth settings and Production RLS are unchanged.
 
 Before any install: independently review the SQL and failed-signup cleanup, approve a scoped Production migration, prove the signed end-to-end Staging flow on isolated test fixtures, rerun cross-owner and revocation adversarial checks, confirm current main compatibility, then request separate merge and deployment approval. Synthetic CI alone is not sufficient.
+
+## Additional pre-enrollment guard (2026-11-04)
+
+The guarded `backup_put` first-install candidate also checks the stored verifier format/version, **no earlier Auth session**, and **no pre-existing username owner link** before writing a Vault secret. The original-word escrow therefore cannot be used as a silent post-login backfill for even a recently created account. A known limitation is that existing backups are not retryable by this registration RPC once the account has signed in; authenticated viewing uses the distinct read-only endpoint instead. The version/format check does not cryptographically bind the SQL parameter to the verifier: that binding must remain validated by the signed reservation protocol and immediately enforced by the service role handler. All changes remain unexecuted review source.
