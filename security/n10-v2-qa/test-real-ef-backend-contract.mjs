@@ -24,7 +24,7 @@ test('only seven isolated service functions; never edits any other schema',()=>{
   'session_active(uuid,uuid)','backup_get(uuid,uuid)',
   'backup_exists(uuid,uuid)','take_attempt(text,integer,integer)'
  ]) {
-  assert.match(src,new RegExp('GRANT\\s+EXECUTE\\s+ON\\s+FUNCTION\\s+public\\.mmh_n10_realef_'+fn.replace(/[.*+?^${}()|[\]\\]/g,'\\req('GRANT EXECUTE ON FUNCTION public.mmh_n10_realef_'+fn+' TO service_role;');')+'\\s+TO\\s+service_role;','i'));
+  assert.ok(src.replace(/\s+/g,' ').includes('GRANT EXECUTE ON FUNCTION public.mmh_n10_realef_'+fn+' TO service_role;'),'missing grant for '+fn);
  }
  req('REVOKE ALL ON ALL TABLES IN SCHEMA '+schema);
 });
