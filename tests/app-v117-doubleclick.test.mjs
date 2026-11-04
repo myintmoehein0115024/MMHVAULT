@@ -6,6 +6,9 @@ import os from 'node:os';
 import path from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {spawnSync} from 'node:child_process';
+import {createRequire} from 'node:module';
+const require=createRequire(import.meta.url);
+const hasEsbuild=(()=>{try{return !!require.resolve('esbuild')}catch(_){return false}})();
 
 const root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'..');
 const dir=fs.mkdtempSync(path.join(os.tmpdir(),'mmh-v117-file-qa-'));
@@ -13,7 +16,8 @@ const builder=path.join(root,'tests','build-app-v117-staging-preview.cjs');
 const second=path.join(root,'tests','build-app-v117-doubleclick.cjs');
 const PUBLIC='sb_publishable_SYNTHETIC_FILE_ONLY_QA_0123456789';
 
-test('double-click entrypoint includes inlined hierarchy and no production URL or scripts requiring CORS',()=>{
+test('double-click entrypoint includes inlined hierarchy and no production URL or scripts requiring CORS',
+  {skip:!hasEsbuild&&'ESM bundling is verified in the dedicated Staging preview workflow'},()=>{
  const pre=spawnSync(process.execPath,[builder],{
    cwd:root,encoding:'utf8',env:{...process.env,MMH_V117_STAGING_OUTPUT_DIR:dir,MMH_V117_STAGING_PUBLISHABLE_KEY:PUBLIC}
  });
