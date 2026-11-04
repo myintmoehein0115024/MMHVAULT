@@ -32,7 +32,15 @@ let html=original.replaceAll(PROD_HOST,STAGING_HOST).replace(PROD_KEY,key);
 const csp=[
 "default-src 'self'","base-uri 'self'","form-action 'self'",
 "script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net",
-"style-src 'self' 'unsafe-inline'","connect-src https://"+STAGING_HOST,
+"style-src 'self' 'unsafe-inline'",
+// Only login/session lookup and the TWO approved finance tables are callable.
+// N10 Edge Functions, MFA/recovery, storage changes, other business APIs and
+// production origins are out of scope and must be network-blocked.
+"connect-src https://"+STAGING_HOST+"/auth/v1/token"+
+  " https://"+STAGING_HOST+"/auth/v1/user"+
+  " https://"+STAGING_HOST+"/auth/v1/logout"+
+  " https://"+STAGING_HOST+"/rest/v1/transactions"+
+  " https://"+STAGING_HOST+"/rest/v1/personal_configuration",
 "img-src 'self' data: blob: https://"+STAGING_HOST,
 "font-src 'self' data:","object-src 'none'","frame-src 'none'",
 "worker-src 'none'","manifest-src 'none'"
