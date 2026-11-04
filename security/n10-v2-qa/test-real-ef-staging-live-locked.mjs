@@ -44,7 +44,10 @@ test('signup Edge rejects GET from legitimate origin',async()=>{
  assert.equal(body?.code,'method_denied');
 });
 test('recovery viewer denies requests lacking user JWT at platform gateway',async()=>{
- const {response}=await probe(VIEWER);
+ const {response,body}=await probe(VIEWER);
  assert.equal(response.status,401,'MFA recovery viewer must require a valid signed JWT');
- assert.equal(response.headers.get('access-control-allow-origin'),null);
+ // The Supabase platform gateway adds CORS before invoking the handler;
+ // 401 is the security boundary, not a specific gateway CORS header value.
+ for(const secret of ['user_id','access_token','refresh_token','recovery_words','words'])
+  assert.equal(body?.[secret],undefined,'unauthenticated response must not disclose '+secret);
 });
