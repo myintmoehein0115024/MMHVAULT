@@ -7,6 +7,7 @@ on:
       - 'js/mmhvault-v11-manage-hierarchy-*.mjs'
       - 'tests/app-v11-manage-hierarchy-*.test.mjs'
       - 'tests/app-v117-legacy-history-immutability.test.mjs'
+      - 'tests/app-v117-full-app-dependency-inventory.cjs'
       - 'tests/app-v11-manage-hierarchy-browser-*'
       - 'tests/app-v117-staging-signed-ab-qa*'
       - 'tests/build-app-v117-staging-preview.cjs'
@@ -36,6 +37,8 @@ jobs:
           node --check js/mmhvault-v11-manage-hierarchy-sync.mjs
       - name: Check owner scope, archival protection and ledger associations
         run: node --test tests/app-v11-manage-hierarchy-model.test.mjs tests/app-v11-manage-hierarchy-controller.test.mjs tests/app-v11-manage-hierarchy-sync.test.mjs tests/app-v11-manage-hierarchy-cloud-conflict.test.mjs tests/app-v117-staging-signed-ab-qa.contract.test.mjs tests/app-v117-legacy-history-immutability.test.mjs
+      - name: Inventory full APP boot dependencies (read-only, no DB)
+        run: node tests/app-v117-full-app-dependency-inventory.cjs
       - name: Check branch-only page integration and protected ledger fields
         run: |
           node --input-type=module - <<'NODE'
