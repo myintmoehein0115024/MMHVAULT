@@ -132,7 +132,10 @@ export function entryUsage(graph,ownerId,field,id,history){
     return 'used';
   if(!Array.isArray(history))return 'unknown'; // never allow destructive edits during cloud load
   for(const row of history){
-    if(!row||typeof row!=='object')continue;
+    // An incomplete historical row cannot prove that an option is unused.
+    // Fail closed for Edit/Delete; Archive keeps ledger rows untouched.
+    if(!row||typeof row!=='object'||!nonempty(row.type)||!nonempty(row.category))
+      return 'unknown';
     const tagged=row.choiceIds||row.manageChoiceIds||row.txManageIds||
       (row.id!=null&&graph.links?.[String(row.id)]?.choiceIds);
     if(tagged&&tagged[field]){if(tagged[field]===id)return 'used';continue;}
@@ -154,8 +157,10 @@ export function entryUsage(graph,ownerId,field,id,history){
       if(!historicGroup||historicGroup===kind.group)return 'used';
       continue;
     }
-    if(row.category===node.label&&(!historicGroup||historicGroup===kind.group))
-      return 'used';
+    // Older ledger labels may differ only in casing or surrounding spaces.
+    // They still refer to a USED canonical Category; never allow a rename.
+    if(row.category.trim().toLocaleLowerCase()===node.label.trim().toLocaleLowerCase()&&
+       (!historicGroup||historicGroup===kind.group))return 'used';
   }
   return 'unused';
 }
