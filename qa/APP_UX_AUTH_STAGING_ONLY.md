@@ -10,3 +10,5 @@ Do not merge this QA branch into main, PR #131 or tutorial PR #127.
 - Staging deployment is limited to a new QA preview. Staging project's production branch stays feature/app-v11-hierarchy-archive-20261103.
 - No production auth, secrets, RLS, finance data or worker edits.
 - Test only synthetic owners. No real passwords or MFA codes in chat.
+
+Staging preview build trigger: 2026-11-04, commit e46a13fa, isolated UX QA only.
