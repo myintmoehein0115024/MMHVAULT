@@ -22,7 +22,7 @@ const WORDLIST=Array.from({length:2048},(_,i)=>{
 });
 assert.equal(new Set(WORDLIST).size,2048);
 
-function fakeWorld({failEscrow=false}={}){
+function fakeWorld({failEscrow=false,revokeOnVaultRead=false}={}){
  const users=new Map(),byEmail=new Map(),slotOwners=new Map(),claims=new Set();
  const backups=new Map(),sessions=new Map(),tokens=new Map(),verifiedFactors=new Set(),events=[];
  let handlerCount=0;
@@ -80,7 +80,9 @@ function fakeWorld({failEscrow=false}={}){
       const s=sessions.get(arg.p_session_id);
       if(!s||s.uid!==arg.p_user_id||s.aal!=='aal2'||!s.live||!verifiedFactors.has(s.uid))
        return {data:null,error:{message:'not authorized'}};
-      return {data:backups.get(s.uid)??null,error:null};
+      const data=backups.get(s.uid)??null;
+      if(revokeOnVaultRead)s.live=false; // Test a session revoked DURING decrypted Vault read.
+      return {data,error:null};
     }
     default:throw Error('unexpected fake RPC '+name);
    }
@@ -323,4 +325,40 @@ test('synthetic forged, downgraded, stale, and cross-session JWTs never disclose
  assert.equal(removed.words,undefined);
  // Security checks fail closed; the E escrow must remain unchanged.
  assert.equal(x.backups.get(e.user_id),e.recovery_words.join(' '));
+});
+
+
+
+test('revoked session during decrypted Vault read cannot return original recovery words',async()=>{
+ const x=fakeWorld({revokeOnVaultRead:true});
+ const e=await x.invoke(x.signup,{
+  action:'signup',username:'n10real_e_20261104',password:PWD_E,
+  captcha_token:'signup-ef-read-race-test'
+ });
+ assert.equal(e.status,200);
+ const aal2=x.mintAAL2(e.user_id);
+ const result=await x.invoke(x.viewer,{action:'reveal',password:PWD_E},aal2.access_token);
+ assert.equal(result.status,401);
+ assert.equal(result.code,'session_expired');
+ assert.equal(result.words,undefined);
+ assert.equal(result.recovery_words,undefined);
+ assert.equal(x.backups.get(e.user_id),e.recovery_words.join(' '));
+});
+
+test('corrupt ten-word Vault readback fails closed and never invents a replacement',async()=>{
+ const x=fakeWorld();
+ const e=await x.invoke(x.signup,{
+  action:'signup',username:'n10real_e_20261104',password:PWD_E,
+  captcha_token:'signup-ef-corrupt-backup-test'
+ });
+ assert.equal(e.status,200);
+ const aal2=x.mintAAL2(e.user_id);
+ x.backups.set(e.user_id,'synthetic incorrect vault payload');
+ const result=await x.invoke(x.viewer,{action:'reveal',password:PWD_E},aal2.access_token);
+ assert.equal(result.status,409);
+ assert.equal(result.code,'backup_not_ready');
+ assert.equal(result.words,undefined);
+ assert.equal(result.recovery_words,undefined);
+ assert.equal(x.backups.get(e.user_id),'synthetic incorrect vault payload');
+ assert.equal(x.users.size,1);
 });
