@@ -906,3 +906,54 @@ body.public-landing-page .policy-card{
     transition:none!important
   }
 }
+
+/* L1.62 — public breadcrumb labels must wrap inside narrow phone viewports.
+   Presentation-only; no navigation, SEO markup or JS changes. */
+@media (max-width: 620px) {
+  body.public-landing-page .page-breadcrumb {
+    flex-wrap: wrap;
+    min-width: 0;
+    max-width: 100%;
+  }
+  body.public-landing-page .page-breadcrumb > :is(a, span) {
+    min-width: 0;
+    overflow-wrap: anywhere;
+  }
+}
+
+/* L1.63 — minimum 44px touch targets for public footer navigation on phones.
+   Keep the desktop footer and all page content, links, language strings intact. */
+@media (max-width: 620px) {
+  body.public-landing-page .public-footer-group {
+    min-width: 0;
+    gap: 5px;
+  }
+  body.public-landing-page .public-footer-group strong {
+    max-width: 100%;
+    overflow-wrap: anywhere;
+  }
+  body.public-landing-page .public-footer-group a {
+    box-sizing: border-box;
+    display: flex;
+    align-items: center;
+    width: 100%;
+    min-width: 0;
+    min-height: 44px;
+    padding: 8px;
+    border-radius: 10px;
+    overflow-wrap: anywhere;
+  }
+  body.public-landing-page .public-footer-group a span {
+    min-width: 0;
+    overflow-wrap: anywhere;
+  }
+  body.public-landing-page .public-footer-bottom > a {
+    display: inline-flex;
+    align-items: center;
+    max-width: 100%;
+    min-height: 44px;
+    padding: 8px;
+    border-radius: 10px;
+    overflow-wrap: anywhere;
+  }
+}

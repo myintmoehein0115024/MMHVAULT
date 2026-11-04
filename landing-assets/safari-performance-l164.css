@@ -1,0 +1,78 @@
+/* L1.64 — desktop WebKit-friendly presentation, shared public site only.
+ * The sticky header is already near-opaque. Avoid sampling and blurring the
+ * entire viewport behind it on every scroll frame. Preserve its blue/gold
+ * gradient, translucency-like depth, border, shadow and all interactions.
+ * This also helps other desktop engines; phone/tablet styles are untouched. */
+@media (min-width: 1025px) {
+  body.mmh-nav-unified .site-header {
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+    background: linear-gradient(180deg, #071928, #051625);
+  }
+  /* These cards already paint nearly opaque gradients. Removing their live
+   * backdrop sampling avoids six separate offscreen compositing surfaces. */
+  body.l131 .showcase-v2 .showcase-card {
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
+  /* The ambient shapes and Hero glow already use soft radial gradients;
+   * their very large filter blur layers need not be repainted on scroll. */
+  body.l131 .ambient,
+  body.l131 .hero::after {
+    filter: none;
+  }
+}
+
+/* L1.65 — desktop Safari paint budget: preserve the premium hover end states
+ * while avoiding large per-frame shadow interpolation on six showcase cards.
+ * The Business ambient glow is already a soft radial gradient, so its extra
+ * offscreen blur layer is redundant during long-page scrolling. */
+@media (min-width: 1025px) {
+  body.l131 #business .business-stage::after {
+    filter: none;
+  }
+}
+@media (min-width: 1025px) and (hover: hover) and (pointer: fine) {
+  body.l131 .showcase-v2 .showcase-card,
+  html.mm-motion-active body.l131 .showcase-v2 .showcase-card {
+    transition-property: opacity, transform, border-color;
+  }
+}
+
+/* L1.66 — desktop Hero uses its existing soft radial gradient without
+ * another large blur surface. Mobile/tablet appearance is untouched. */
+@media (min-width: 1025px) {
+  body.l131 .hero-halo {
+    filter: none;
+  }
+}
+
+/* L1.67 — desktop-only: avoid an offscreen drop-shadow surface wrapping
+ * all Hero text and buttons. Existing individual text shadows and layered
+ * Hero contrast gradients remain; mobile/tablet styling stays unchanged. */
+@media (min-width: 1025px) {
+  body.l131 .hero-copy {
+    filter: none;
+  }
+}
+
+/* L1.68 — desktop Hero's large gradient wordmark already has contrast
+ * overlays. Avoid another per-glyph offscreen drop-shadow surface in WebKit;
+ * retain the original mobile/tablet glow and the gold gradient at all sizes. */
+@media (min-width: 1025px) {
+  body.l131 .hero .hero-name {
+    filter: none;
+  }
+}
+
+/* L1.69 — desktop only: these small photo captions already sit on dark
+ * opaque-enough gradient/solid surfaces. Avoid continuously sampling the
+ * moving image/background behind each label on Safari scroll. Preserve
+ * all borders, colors, shadows and tablet/mobile backdrop glass. */
+@media (min-width: 1025px) {
+  body.l131 .hero-art .demo-disclaimer,
+  body.l131 #business .business-photo-caption {
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
+}

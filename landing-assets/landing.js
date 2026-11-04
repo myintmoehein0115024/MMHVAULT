@@ -712,7 +712,9 @@
     const dictionary = strings[currentLang];
     businessTabs.forEach(button => {
       const selected = button.dataset.businessView === currentBusinessView;
-      button.setAttribute('aria-pressed',String(selected));
+      // L1.53: a language change must not rewrite the active concept state.
+      const pressed=String(selected);
+      if(button.getAttribute('aria-pressed')!==pressed)button.setAttribute('aria-pressed',pressed);
       button.classList.toggle('is-selected',selected);
     });
     document.querySelectorAll('[data-business-amount]').forEach(element => {
@@ -745,12 +747,12 @@
     };
     document.querySelectorAll('[data-business-text]').forEach(element => {
       const key = keyMap[element.dataset.businessText];
-      element.setAttribute('data-i18n',key);
+      if(element.getAttribute('data-i18n')!==key)element.setAttribute('data-i18n',key);
       const value = dictionary[key] || '';
       if (element.textContent !== value) element.textContent = value;
     });
     const panel = document.querySelector('.business-stage');
-    if(panel) panel.dataset.currentView = currentBusinessView;
+    if(panel && panel.dataset.currentView!==currentBusinessView)panel.dataset.currentView = currentBusinessView;
   }
   businessTabs.forEach(button => button.addEventListener('click', () => {
     // L1.49: selecting an already active concept is a no-op. Avoid
@@ -790,16 +792,24 @@
       } else if (node.textContent !== value) node.textContent = value;
     });
     languageButtons.forEach(button => {
-      button.setAttribute('aria-pressed', String(button.dataset.lang === currentLang));
+      // L1.54: preserve existing language choice ARIA on cold hydration.
+      const pressed=String(button.dataset.lang === currentLang);
+      if(button.getAttribute('aria-pressed')!==pressed)button.setAttribute('aria-pressed',pressed);
     });
     // L1.32: feature names use the selected display language on the tabs and
     // in the active story heading; product identity and panel IDs stay fixed.
     productTabs.forEach(tab => {
       const label = tab.querySelector('.product-tab-copy strong');
-      if (label) label.textContent = productLabels[currentLang][tab.dataset.productTab];
+      if (label) {
+        const name=productLabels[currentLang][tab.dataset.productTab];
+        if(label.textContent!==name)label.textContent=name;
+      }
     });
     const activeStoryTitle = document.querySelector('[data-app-story-title]');
-    if (activeStoryTitle) activeStoryTitle.textContent = productLabels[currentLang][activeProduct];
+    if (activeStoryTitle) {
+      const name=productLabels[currentLang][activeProduct];
+      if(activeStoryTitle.textContent!==name)activeStoryTitle.textContent=name;
+    }
     updateBusinessPreview(currentBusinessView);
     // Keep the currently selected feature story in the new display language.
     const storyDesc=document.querySelector('[data-app-story-desc]');
@@ -899,12 +909,16 @@
       languageButtons[next].focus({preventScroll:true});
     }
   });
-  toggle.addEventListener('click', () => {
+  toggle.addEventListener('click', event => {
     closeExplore();
     closeLanguage();
     const isOpen = siteHeader.classList.toggle('menu-open');
     toggle.setAttribute('aria-expanded', String(isOpen));
     syncNavToggleLabel();
+    // L1.61: keyboard-opened menu should lead to the first visible link.
+    // Pointer and touch activation leave focus where it was.
+    if (isOpen && event.detail === 0)
+      document.querySelector('#primary-nav a')?.focus({preventScroll:true});
   });
   document.querySelectorAll('#primary-nav a').forEach(link => link.addEventListener('click', () => {
     closeExplore();
@@ -1044,6 +1058,18 @@
     });
   }
 
+  // L1.55: finish an interrupted crossfade immediately when the tab is
+  // hidden or the user enables reduced motion, preserving selected content.
+  const clearInterruptedPreview = () => {
+    if (previewTransition && (reducedPreviewMotion.matches || document.hidden))
+      settlePreviewTransition();
+  };
+  if (typeof reducedPreviewMotion.addEventListener === 'function')
+    reducedPreviewMotion.addEventListener('change', clearInterruptedPreview);
+  else if (typeof reducedPreviewMotion.addListener === 'function')
+    reducedPreviewMotion.addListener(clearInterruptedPreview);
+  document.addEventListener('visibilitychange', clearInterruptedPreview);
+
   function selectProductView(view,focus=false,instant=false){
     const name=productNames.includes(view)?view:'dashboard';
     // L1.31: touching an already-selected preview is a no-op. Do not reset
@@ -1060,8 +1086,12 @@
     productTabs.forEach(t=>{
       const yes=t.dataset.productTab===name;
       t.classList.toggle('is-active',yes);
-      t.setAttribute('aria-selected',String(yes));
-      t.tabIndex=yes?0:-1;
+      // L1.52: only the two tabs whose selection state actually changes
+      // need ARIA/tabindex writes; preserve the existing roving focus.
+      const selected=String(yes);
+      if(t.getAttribute('aria-selected')!==selected)t.setAttribute('aria-selected',selected);
+      const tabIndex=yes?0:-1;
+      if(t.tabIndex!==tabIndex)t.tabIndex=tabIndex;
       if(yes&&focus)t.focus({preventScroll:true});
     });
     const outgoing=productPanels.find(p=>p.dataset.productPanel===previousName);

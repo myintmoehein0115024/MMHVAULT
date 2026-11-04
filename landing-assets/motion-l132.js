@@ -46,17 +46,41 @@
   });
   root.classList.add('mm-motion-active');
 
-  // L1.40: prewarm mobile reveals further ahead of fast swipes, with no
-  // intersection threshold that might skip a narrow card. Desktop unchanged.
-  const mobileReveal = window.matchMedia && window.matchMedia('(max-width: 620px)').matches;
-  const observer=new IntersectionObserver(entries=>{
-    for(const entry of entries){
-      if(!entry.isIntersecting)continue;
-      entry.target.classList.add('mm-shown');
-      observer.unobserve(entry.target);
-    }
-  },{rootMargin:mobileReveal?'0px 0px 24% 0px':'0px 0px -6% 0px',threshold:mobileReveal?0:0.065});
-  elements.filter(el=>!el.classList.contains('mm-shown')).forEach(el=>observer.observe(el));
+  // L1.57: recalculate phone-first reveal margins after orientation changes.
+  // Keep already revealed sections visible; no scroll interception or repaint.
+  const mobileRevealQuery=window.matchMedia
+    ? window.matchMedia('(max-width: 620px)') : {matches:false};
+  let observer;
+  const bindRevealObserver=()=>{
+    if(observer)observer.disconnect();
+    const mobileReveal=mobileRevealQuery.matches;
+    const nextObserver=new IntersectionObserver(entries=>{
+      for(const entry of entries){
+        if(!entry.isIntersecting)continue;
+        entry.target.classList.add('mm-shown');
+        nextObserver.unobserve(entry.target);
+      }
+    },{rootMargin:mobileReveal?'0px 0px 24% 0px':'0px 0px -6% 0px',threshold:mobileReveal?0:0.065});
+    observer=nextObserver;
+    elements.filter(el=>!el.classList.contains('mm-shown')).forEach(el=>observer.observe(el));
+  };
+  bindRevealObserver();
+  if(typeof mobileRevealQuery.addEventListener==='function')
+    mobileRevealQuery.addEventListener('change',bindRevealObserver);
+  else if(typeof mobileRevealQuery.addListener==='function')
+    mobileRevealQuery.addListener(bindRevealObserver);
+
+  // L1.59: settle any pending reveals when reduced motion is enabled live.
+  // Already visible content stays visible if normal motion is enabled again.
+  const settleReducedReveals=()=>{
+    if(permitted())return;
+    for(const el of elements)el.classList.add('mm-shown');
+    observer.disconnect();
+  };
+  if(typeof motionPreference.addEventListener==='function')
+    motionPreference.addEventListener('change',settleReducedReveals);
+  else if(typeof motionPreference.addListener==='function')
+    motionPreference.addListener(settleReducedReveals);
 
   // Clicking a guide or an in-page navigation link must reveal the destination,
   // even if the user jumps directly to a hash without a normal scroll.
@@ -83,8 +107,21 @@
   // Tab contents remain normal HTML; the existing product and business
   // interactions control their state. Animate only their newly visible content.
   const activeAnimations=new WeakMap();
+  // L1.56: stop only Business concept WAAPI motion on tab hiding or
+  // live reduced-motion changes, leaving presentation and data intact.
+  const runningBusinessAnimations=new Set();
+  const cancelInterruptedBusinessMotion=()=>{
+    if(permitted() && !document.hidden)return;
+    for(const animation of runningBusinessAnimations)animation.cancel();
+    runningBusinessAnimations.clear();
+  };
+  if(typeof motionPreference.addEventListener==='function')
+    motionPreference.addEventListener('change',cancelInterruptedBusinessMotion);
+  else if(typeof motionPreference.addListener==='function')
+    motionPreference.addListener(cancelInterruptedBusinessMotion);
+  document.addEventListener('visibilitychange',cancelInterruptedBusinessMotion);
   const play=(node,delay=0,travel=10,duration=460)=>{
-    if(!permitted() || typeof node.animate!=='function')return;
+    if(!permitted() || document.hidden || typeof node.animate!=='function')return;
     const old=activeAnimations.get(node);
     if(old)old.cancel();
     const animation=node.animate([
@@ -92,6 +129,10 @@
       {opacity:1,transform:'translate3d(0,0,0)'}
     ],{duration,delay,easing:'cubic-bezier(.19,.77,.22,1)',fill:'none'});
     activeAnimations.set(node,animation);
+    runningBusinessAnimations.add(animation);
+    const forget=()=>runningBusinessAnimations.delete(animation);
+    animation.addEventListener('finish',forget,{once:true});
+    animation.addEventListener('cancel',forget,{once:true});
   };
   // L1.21: data-product-current now drives the single coordinated crossfade
   // in landing.js and premium-l131.css. The former per-card staggered opacity
@@ -101,7 +142,7 @@
   const businessStage=document.querySelector('#business .business-stage');
   if(businessStage){
     const watch=new MutationObserver(records=>{
-      if(!permitted())return;
+      if(!permitted() || document.hidden)return;
       if(!records.some(r=>r.oldValue!==businessStage.dataset.currentView))return;
       const nodes=[...businessStage.querySelectorAll('.business-mode-context,.business-ui-heading,.business-ui .business-metric,.business-ui .business-stat')].slice(0,6);
       if(nodes.length)nodes.forEach((n,i)=>play(n,Math.min(i*45,155),8,420));

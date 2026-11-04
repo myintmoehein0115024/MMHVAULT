@@ -52,6 +52,794 @@ async function load(page,route,failures){
 (async()=>{
  const browser=await chromium.launch({channel:'chrome',headless:true,args:['--no-sandbox','--disable-dev-shm-usage']});
  try{
+   // L1.64: rendering-only optimization. Header stays sticky and glass-dark,
+   // while desktop avoids expensive live backdrop blur layers. Mobile unchanged.
+   for(const route of publicRoutes){
+     for(const width of [390,1280]){
+       const ctx=await browser.newContext({viewport:{width,height:850},serviceWorkers:'block'});
+       const page=await ctx.newPage(),exceptions=[];
+       page.on('pageerror',e=>exceptions.push(e.message));
+       const response=await page.goto(origin+route,{waitUntil:'load',timeout:30000});
+       const result=await page.evaluate(()=>{
+         const header=document.querySelector('.site-header');
+         const computed=getComputedStyle(header);
+         const cs=[...document.querySelectorAll('link[rel="stylesheet"]')]
+           .find(el=>el.href.includes('safari-performance-l164.css'));
+         const mobile=innerWidth<=1024;
+         const isLanding=document.body.classList.contains('l131');
+         const cards=[...document.querySelectorAll('.showcase-v2 .showcase-card')];
+         window.scrollTo({top:Math.min(400,document.documentElement.scrollHeight-innerHeight),
+           behavior:'instant'});
+         const off=scrollY===0 || Math.abs(header.getBoundingClientRect().top)<3;
+         const y=scrollY;
+         window.scrollTo({left:900,top:y,behavior:'instant'});
+         const sideways=scrollX;
+         window.scrollTo({left:0,top:y,behavior:'instant'});
+         return {mobile,hasStylesheet:!!cs&&cs.href.includes('?v=l169'),
+           standardBackdrop:computed.backdropFilter,
+           webkitBackdrop:computed.webkitBackdropFilter,
+           background:computed.backgroundImage,
+           stickyOff:off,sideways,
+           cardCount:cards.length,
+           cardsCheap:cards.every(el=>getComputedStyle(el).backdropFilter==='none'),
+           ambienceCheap:!isLanding||getComputedStyle(document.querySelector('.ambient')).filter==='none',
+           heroHaloCheap:!isLanding||getComputedStyle(document.querySelector('.hero-halo')).filter==='none',
+           heroCopyFilter:isLanding?getComputedStyle(document.querySelector('.hero-copy')).filter:null,
+           heroNameFilter:isLanding?getComputedStyle(document.querySelector('.hero .hero-name')).filter:null,
+           heroCaptionBackdrop:isLanding?getComputedStyle(document.querySelector('.hero-art .demo-disclaimer')).backdropFilter:null,
+           businessCaptionBackdrop:isLanding?getComputedStyle(document.querySelector('#business .business-photo-caption')).backdropFilter:null};
+       });
+       const desktop=width>1024;
+       ensure(response?.status()===200&&result.hasStylesheet&&result.stickyOff&&
+         result.sideways<=2&&result.background.includes('gradient')&&
+         (desktop?(result.standardBackdrop==='none'&&(!result.webkitBackdrop||result.webkitBackdrop==='none')&&
+           result.cardsCheap&&result.ambienceCheap&&result.heroHaloCheap&&
+           (result.heroCopyFilter===null||result.heroCopyFilter==='none')&&
+           (result.heroNameFilter===null||result.heroNameFilter==='none')&&
+           (result.heroCaptionBackdrop===null||result.heroCaptionBackdrop==='none')&&
+           (result.businessCaptionBackdrop===null||result.businessCaptionBackdrop==='none')):
+           result.mobile&&result.standardBackdrop!=='none'&&
+           (result.heroCopyFilter===null||result.heroCopyFilter!=='none')&&
+           (result.heroNameFilter===null||result.heroNameFilter!=='none')&&
+           (result.heroCaptionBackdrop===null||result.heroCaptionBackdrop!=='none')&&
+           (result.businessCaptionBackdrop===null||result.businessCaptionBackdrop!=='none'))&&exceptions.length===0,
+         'L1.64 Chromium desktop compositor / mobile glass parity '+route+
+           ' '+width+'px '+JSON.stringify({...result,exceptions}));
+       await ctx.close();
+     }
+   }
+   console.log('L1.64 desktop compositing and mobile glass parity PASS');
+   // L1.66: desktop hover shadows paint once while transform/border
+   // animation remains smooth; the phone/tablet animation is untouched.
+   for(const width of [390,1280,1440]){
+     const ctx=await browser.newContext({viewport:{width,height:850},
+       reducedMotion:'no-preference',serviceWorkers:'block'});
+     const page=await ctx.newPage(),errors=[];
+     page.on('pageerror',e=>errors.push(e.message));
+     await page.goto(origin+'/',{waitUntil:'load',timeout:30000});
+     const card=page.locator('.showcase-v2 .showcase-card').first();
+     // Wait for the existing scroll-reveal transition before measuring hover.
+     // Otherwise the in-flight reveal can mask the hover shadow in Chromium.
+     await card.scrollIntoViewIfNeeded();
+     await page.waitForFunction(()=>{
+       const el=document.querySelector('.showcase-v2 .showcase-card');
+       return el.classList.contains('mm-shown') &&
+         parseFloat(getComputedStyle(el).opacity)>=.999;
+     },null,{timeout:6000});
+     await page.waitForTimeout(150);
+     const before=await page.evaluate(()=>{
+       const el=document.querySelector('.showcase-v2 .showcase-card');
+       const css=getComputedStyle(el);
+       const sheet=[...document.querySelectorAll('link[rel="stylesheet"]')]
+         .find(a=>a.href.includes('safari-performance-l164.css'));
+       return {transition:css.transitionProperty,shadow:css.boxShadow,border:css.borderColor,
+         businessBlur:getComputedStyle(document.querySelector('#business .business-stage'),'::after').filter,
+         version:new URL(sheet.href).searchParams.get('v')};
+     });
+     await card.hover();
+     await page.waitForTimeout(330);
+     const after=await card.evaluate(el=>{
+       const css=getComputedStyle(el);
+       return {transition:css.transitionProperty,shadow:css.boxShadow,
+         transform:css.transform,border:css.borderColor};
+     });
+     const tokens=before.transition.split(',').map(x=>x.trim());
+     ensure(before.version==='l169' && errors.length===0 &&
+       (width>=1025
+         ?(!tokens.includes('box-shadow') &&
+           before.businessBlur==='none' &&
+           before.border!==after.border &&
+           tokens.includes('opacity') &&
+           tokens.includes('transform') &&
+           tokens.includes('border-color'))
+         :(before.businessBlur==='blur(40px)' &&
+           before.shadow!==after.shadow && tokens.includes('transform'))),
+       'L1.66 desktop hover paint and mobile animation parity '+
+         width+'px '+JSON.stringify({before,after,errors}));
+     await ctx.close();
+   }
+   console.log('L1.66 Chromium desktop hover paint and mobile animation parity PASS');
+   // L1.63: tap targets and long translated footer labels on public pages.
+   // Responsive-only; verify original tablet footer and all destinations.
+   for(const route of publicRoutes.slice(1)){
+     for(const [width,lang] of [[320,'my'],[393,'zh'],[620,'en'],[768,'my']]){
+       const ctx=await browser.newContext({viewport:{width,height:800},serviceWorkers:'block'});
+       const page=await ctx.newPage(),errors=[];
+       page.on('pageerror',error=>errors.push(error.message));
+       await page.addInitScript(code=>{
+         try{localStorage.setItem('mmhvault.landing.language',code)}catch(_){}
+       },lang);
+       const response=await page.goto(origin+route,{waitUntil:'load',timeout:25000});
+       ensure(response?.status()===200,'L1.63 footer route HTTP 200 '+route+' '+width+'px');
+       const metrics=await page.locator('.public-footer').evaluate(footer=>{
+         const nav=footer.querySelector('.public-footer-nav');
+         const navBox=nav.getBoundingClientRect();
+         const links=[...footer.querySelectorAll('.public-footer-group a')];
+         const top=footer.querySelector('.public-footer-bottom > a');
+         const anchors=[...links,top];
+         const boxes=anchors.map(a=>{
+           const rect=a.getBoundingClientRect();
+           const css=getComputedStyle(a);
+           return {
+             href:a.getAttribute('href'),height:rect.height,
+             minHeight:parseFloat(css.minHeight)||0,
+             withinViewport:rect.left>=-1&&rect.right<=innerWidth+1,
+             withinNav:a===top||rect.left>=navBox.left-1&&rect.right<=navBox.right+1,
+             textInside:a.scrollWidth<=a.clientWidth+2
+           };
+         });
+         const cssHref=[...document.querySelectorAll('link[rel="stylesheet"]')]
+           .find(l=>l.href.includes('public-pages.css'))?.href||'';
+         const scrollBefore=scrollY;
+         scrollTo({left:999,top:scrollBefore,behavior:'instant'});
+         const travel=scrollX;
+         scrollTo({left:0,top:scrollBefore,behavior:'instant'});
+         return {viewport:innerWidth,language:document.documentElement.lang,
+           cssVersion:new URL(cssHref).searchParams.get('v'),
+           boxes,travel,footerLinks:links.length,
+           topLink:top?.getAttribute('href'),
+           canonical:document.querySelector('link[rel="canonical"]')?.href};
+       });
+       ensure(metrics.cssVersion==='l163' &&
+         metrics.language===(lang==='zh'?'zh-CN':lang) && metrics.footerLinks===9 &&
+         metrics.topLink==='#content' && metrics.canonical &&
+         metrics.travel<=2 && metrics.boxes.every(b=>b.withinViewport&&b.withinNav&&b.textInside&&b.href) &&
+         (width>620 || metrics.boxes.every(b=>b.minHeight>=44&&b.height>=43.5)),
+         'L1.63 footer touch target and translated text bounds '+route+
+           ' '+width+'px '+lang+' '+JSON.stringify(metrics));
+       ensure(errors.length===0,'L1.63 footer no JS errors '+route+' '+width+'px');
+       await ctx.close();
+     }
+   }
+   console.log('L1.63 public footer 28 viewport/language touch checks PASS');
+   // L1.62: verify narrow-screen breadcrumbs do not clip a long Burmese
+   // label, and desktop breadcrumb layout remains unchanged.
+   for(const route of publicRoutes.slice(1)){
+     for(const width of [320,393,768]){
+       const ctx=await browser.newContext({viewport:{width,height:760},serviceWorkers:'block'});
+       const page=await ctx.newPage(),errors=[];
+       page.on('pageerror',e=>errors.push(e.message));
+       await page.addInitScript(()=>{
+         try{localStorage.setItem('mmhvault.landing.language','my')}catch(_){}
+       });
+       await page.goto(origin+route,{waitUntil:'load',timeout:25000});
+       const metrics=await page.evaluate(()=>{
+         const crumb=document.querySelector('.page-breadcrumb');
+         const parts=[...crumb.children];
+         const last=parts.at(-1);
+         // Long synthetic text forces the same wrap pressure as translated
+         // labels or browser text scaling, without changing source content.
+         if(innerWidth<=393)last.textContent='MMHVAULT အကြောင်း အချက်အလက်များ လုံခြုံရေးဆိုင်ရာ အထူးရှင်းလင်းချက်';
+         const bounding=crumb.getBoundingClientRect();
+         const lastRect=last.getBoundingClientRect();
+         const css=getComputedStyle(crumb);
+         const cssHref=[...document.querySelectorAll('link[rel="stylesheet"]')]
+           .find(l=>l.href.includes('public-pages.css'))?.href||'';
+         return {viewport:innerWidth,wrap:css.flexWrap,
+           inside:lastRect.right<=bounding.right+1 && lastRect.left>=bounding.left-1,
+           crumbRight:bounding.right,lastRight:lastRect.right,
+           styleVersion:new URL(cssHref).searchParams.get('v'),
+           canonical:document.querySelector('link[rel="canonical"]')?.href,
+           language:document.documentElement.lang,
+           horizontalScroll:(()=>{
+             const y=scrollY;scrollTo({left:900,top:y,behavior:'instant'});
+             const x=scrollX;scrollTo({left:0,top:y,behavior:'instant'});return x;
+           })()};
+       });
+       ensure(metrics.styleVersion==='l163' && metrics.canonical &&
+         metrics.language==='my' && metrics.inside && metrics.horizontalScroll<=2 &&
+         (width<=393?metrics.wrap==='wrap':['wrap','nowrap'].includes(metrics.wrap)),
+         'L1.62 mobile public breadcrumb bounds '+route+' '+width+'px '+JSON.stringify(metrics));
+       ensure(errors.length===0,'L1.62 no page JS errors '+route+' '+width+'px');
+       await ctx.close();
+     }
+   }
+   console.log('L1.62 public breadcrumb narrow-screen and desktop CSS parity PASS');
+   // L1.61: keyboard-opened phone/tablet menu becomes navigable via Tab.
+   // This is presentation-only QA on local public routes; no auth endpoints.
+   for(const [route,width,lang] of [
+     ['/',393,'en'],['/',768,'zh'],['/',1100,'my'],
+     ['/about/',393,'my'],['/features/',393,'zh'],
+     ['/register/',393,'en'],['/business/',393,'my'],
+     ['/privacy.html',393,'en'],['/terms.html',393,'zh'],
+     ['/security.html',393,'my'],['/about/',768,'en'],
+     ['/security.html',1100,'zh']
+   ]){
+     const ctx=await browser.newContext({viewport:{width,height:820},serviceWorkers:'block'});
+     const page=await ctx.newPage(),errors=[];
+     page.on('pageerror',e=>errors.push(e.message));
+     await page.addInitScript(code=>{
+       try{localStorage.setItem('mmhvault.landing.language',code)}catch(_){}
+     },lang);
+     await page.goto(origin+route,{waitUntil:'load',timeout:25000});
+     const toggle=page.locator('.site-header .menu-toggle');
+     await toggle.focus();
+     await toggle.press('Enter');
+     const opened=await page.evaluate(()=>{
+       const nav=document.querySelector('#primary-nav'),first=nav?.querySelector('a');
+       const toggle=document.querySelector('.site-header .menu-toggle');
+       return {expanded:toggle?.getAttribute('aria-expanded'),
+         focusedFirst:document.activeElement===first,
+         visible:!!first&&getComputedStyle(first).display!=='none'&&
+           getComputedStyle(nav).display!=='none',
+         language:document.documentElement.lang};
+     });
+     ensure(opened.expanded==='true' && opened.focusedFirst && opened.visible &&
+       opened.language===(lang==='zh'?'zh-CN':lang),
+       'L1.61 keyboard menu starts on visible link '+route+' '+width+'px '+lang);
+     await page.keyboard.press('Tab');
+     const next=await page.evaluate(()=>{
+       const nav=document.querySelector('#primary-nav');
+       return document.activeElement===nav?.querySelectorAll('a')[1];
+     });
+     ensure(next,'L1.61 Tab advances to next menu link '+route+' '+width+'px');
+     await page.keyboard.press('Escape');
+     const closed=await page.evaluate(()=>{
+       const toggle=document.querySelector('.site-header .menu-toggle');
+       return {expanded:toggle?.getAttribute('aria-expanded'),
+         focusedToggle:document.activeElement===toggle,
+         isOpen:document.querySelector('.site-header').classList.contains('menu-open')};
+     });
+     ensure(closed.expanded==='false' && closed.focusedToggle && !closed.isOpen &&
+       errors.length===0,'L1.61 Escape restores menu toggle '+route+' '+width+'px '+lang);
+     await ctx.close();
+   }
+   console.log('L1.61 mobile navigation keyboard focus parity PASS');
+   // L1.56 Business WAAPI interruption browser parity. Compare the actual
+   // released script to only the L1.56 changes in a real Chromium session.
+   {
+     const candidate=fs.readFileSync('landing-assets/motion-l132.js','utf8');
+     const patches=[["  const activeAnimations=new WeakMap();\n  const play=","  const activeAnimations=new WeakMap();\n  // L1.56: stop only Business concept WAAPI motion on tab hiding or\n  // live reduced-motion changes, leaving presentation and data intact.\n  const runningBusinessAnimations=new Set();\n  const cancelInterruptedBusinessMotion=()=>{\n    if(permitted() && !document.hidden)return;\n    for(const animation of runningBusinessAnimations)animation.cancel();\n    runningBusinessAnimations.clear();\n  };\n  if(typeof motionPreference.addEventListener==='function')\n    motionPreference.addEventListener('change',cancelInterruptedBusinessMotion);\n  else if(typeof motionPreference.addListener==='function')\n    motionPreference.addListener(cancelInterruptedBusinessMotion);\n  document.addEventListener('visibilitychange',cancelInterruptedBusinessMotion);\n  const play="],["    if(!permitted() || typeof node.animate!=='function')return;","    if(!permitted() || document.hidden || typeof node.animate!=='function')return;"],["    activeAnimations.set(node,animation);\n  };","    activeAnimations.set(node,animation);\n    runningBusinessAnimations.add(animation);\n    const forget=()=>runningBusinessAnimations.delete(animation);\n    animation.addEventListener('finish',forget,{once:true});\n    animation.addEventListener('cancel',forget,{once:true});\n  };"],["      if(!permitted())return;","      if(!permitted() || document.hidden)return;"]];
+     let released=candidate;
+     for(const [before,after] of [...patches].reverse()){
+       assert.equal(released.split(after).length,2,'L1.56 unique isolated patch');
+       released=released.replace(after,before);
+     }
+     for(const [width,lang] of [[393,'my'],[768,'zh'],[1440,'en']]){
+       const versions={};
+       for(const [version,script] of [['released',released],['l156',candidate]]){
+         const ctx=await browser.newContext({
+           viewport:{width,height:852},reducedMotion:'no-preference',serviceWorkers:'block'});
+         const page=await ctx.newPage(),errors=[];
+         page.on('pageerror',e=>errors.push(e.message));
+         await page.addInitScript(value=>{
+           try{localStorage.setItem('mmhvault.landing.language',value)}catch(_){}
+         },lang);
+         await page.route('**/landing-assets/motion-l132.js*',route=>route.fulfill({
+           status:200,contentType:'application/javascript',body:script}));
+         await page.goto(origin+'/',{waitUntil:'load',timeout:25000});
+         const result=await page.evaluate(async()=>{
+           const nodes=[...document.querySelectorAll(
+             '#business .business-mode-context, #business .business-ui-heading, #business .business-ui .business-metric, #business .business-ui .business-stat')].slice(0,6);
+           const running=()=>nodes.reduce((n,node)=>n+node.getAnimations()
+             .filter(a=>a.playState==='running'||a.playState==='paused').length,0);
+           document.querySelector('[data-business-view="business"]').click();
+           await new Promise(resolve=>setTimeout(resolve,0));
+           const before=running();
+           Object.defineProperty(document,'hidden',{value:true,configurable:true});
+           document.dispatchEvent(new Event('visibilitychange'));
+           return {before,after:running(),
+             stage:document.querySelector('#business .business-stage').dataset.currentView,
+             pressed:document.querySelector('[data-business-view="business"]').getAttribute('aria-pressed'),
+             lang:document.documentElement.lang,
+             hero:[...document.querySelectorAll('[data-hero-fixed]')].map(x=>x.textContent.trim())};
+         });
+         ensure(errors.length===0&&result.before>0&&
+           result.stage==='business'&&result.pressed==='true'&&
+           result.lang===(lang==='zh'?'zh-CN':lang)&&result.hero.length===3,
+           'L1.56 '+version+' '+width+'px '+lang+' normal Business motion starts');
+         versions[version]=result;
+         await ctx.close();
+       }
+       ensure(versions.released.after>0&&versions.l156.after===0&&
+         JSON.stringify(versions.released.hero)===JSON.stringify(versions.l156.hero),
+         'L1.56 '+width+'px '+lang+' hidden-tab animation cancellation '+JSON.stringify({
+           before:versions.released.after,after:versions.l156.after
+         }));
+       const ctx=await browser.newContext({
+         viewport:{width,height:852},reducedMotion:'no-preference',serviceWorkers:'block'});
+       const page=await ctx.newPage(),errors=[];
+       page.on('pageerror',e=>errors.push(e.message));
+       await page.addInitScript(value=>{
+         try{localStorage.setItem('mmhvault.landing.language',value)}catch(_){}
+       },lang);
+       await page.goto(origin+'/',{waitUntil:'load',timeout:25000});
+       const started=await page.evaluate(async()=>{
+         const nodes=[...document.querySelectorAll(
+           '#business .business-mode-context, #business .business-ui-heading, #business .business-ui .business-metric, #business .business-ui .business-stat')].slice(0,6);
+         document.querySelector('[data-business-view="business"]').click();
+         await new Promise(resolve=>setTimeout(resolve,0));
+         // L1.57 CI stability: prolong these test-only WAAPI instances so
+         // natural completion cannot be mistaken for a real cancellation.
+         const active=nodes.flatMap(node=>node.getAnimations()
+           .filter(a=>a.playState==='running'));
+         window.__l156CancelEvents=0;
+         window.__l156CancelTargets=active.length;
+         active.forEach(animation=>{
+           animation.playbackRate=0.01;
+           animation.addEventListener('cancel',()=>{window.__l156CancelEvents++;},{once:true});
+         });
+         return active.length;
+       });
+       ensure(started>0,'L1.56 '+width+'px '+lang+' active animation before OS preference change');
+       await page.emulateMedia({reducedMotion:'reduce'});
+       await page.waitForFunction(()=>
+         window.__l156CancelTargets>0 &&
+         window.__l156CancelEvents===window.__l156CancelTargets &&
+         [...document.querySelectorAll(
+           '#business .business-mode-context, #business .business-ui-heading, #business .business-ui .business-metric, #business .business-ui .business-stat')]
+         .slice(0,6).every(node=>node.getAnimations().every(a=>
+           a.playState!=='running'&&a.playState!=='paused')),
+         null,{timeout:2500});
+       ensure(errors.length===0,'L1.56 '+width+'px '+lang+' live reduced-motion preference cancels WAAPI');
+       await ctx.close();
+     }
+     console.log('L1.56 Business interruption motion state comparison PASS; no loading-speed claim.');
+   }
+
+   // L1.55 preview interruption browser parity: exact released-script
+   // baseline versus candidate in real Chromium at mobile/tablet/desktop.
+   {
+     const candidate=fs.readFileSync('landing-assets/landing.js','utf8');
+     const hook="  // L1.55: finish an interrupted crossfade immediately when the tab is\n  // hidden or the user enables reduced motion, preserving selected content.\n  const clearInterruptedPreview = () => {\n    if (previewTransition && (reducedPreviewMotion.matches || document.hidden))\n      settlePreviewTransition();\n  };\n  if (typeof reducedPreviewMotion.addEventListener === 'function')\n    reducedPreviewMotion.addEventListener('change', clearInterruptedPreview);\n  else if (typeof reducedPreviewMotion.addListener === 'function')\n    reducedPreviewMotion.addListener(clearInterruptedPreview);\n  document.addEventListener('visibilitychange', clearInterruptedPreview);\n\n";
+     assert.equal(candidate.split(hook).length,2,'L1.55 exactly one hook');
+     const baseline=candidate.replace(hook,'');
+     for(const [width,lang] of [[393,'my'],[768,'zh'],[1440,'en']]){
+       const results={};
+       for(const [version,script] of [['baseline',baseline],['l155',candidate]]){
+         const context=await browser.newContext({
+           viewport:{width,height:852},reducedMotion:'no-preference',serviceWorkers:'block'});
+         const page=await context.newPage(),errors=[];
+         page.on('pageerror',e=>errors.push(e.message));
+         await page.addInitScript(language=>{
+           try{localStorage.setItem('mmhvault.landing.language',language)}catch(_){}
+         },lang);
+         await page.route('**/landing-assets/landing.js*',route=>route.fulfill({
+           status:200,contentType:'application/javascript',body:script}));
+         await page.goto(origin+'/',{waitUntil:'load',timeout:25000});
+         const result=await page.evaluate(()=>{
+           const snapshot=()=>({
+             visible:[...document.querySelectorAll('[data-product-panel]')]
+               .filter(panel=>!panel.hidden).map(panel=>panel.dataset.productPanel),
+             transient:[...document.querySelectorAll('[data-product-panel]')]
+               .some(panel=>panel.classList.contains('mmh-preview-enter')||
+                 panel.classList.contains('mmh-preview-exit')),
+             aria:[...document.querySelectorAll('[data-product-panel]')]
+               .map(panel=>[panel.dataset.productPanel,panel.inert,panel.getAttribute('aria-hidden')])
+           });
+           document.querySelector('[data-product-tab="transactions"]').click();
+           const during=snapshot();
+           // Same-task synthetic tab hide: no 340 ms timeout can race.
+           Object.defineProperty(document,'hidden',{configurable:true,value:true});
+           document.dispatchEvent(new Event('visibilitychange'));
+           return {during,after:snapshot(),lang:document.documentElement.lang,
+             hero:[...document.querySelectorAll('[data-hero-fixed]')]
+               .map(el=>el.textContent.trim())};
+         });
+         ensure(errors.length===0&&result.during.visible.length===2&&
+           result.lang===(lang==='zh'?'zh-CN':lang)&&result.hero.length===3,
+           'L1.55 '+version+' '+width+'px '+lang+' starts normal transition');
+         results[version]=result;
+         await context.close();
+       }
+       const before=results.baseline.after,after=results.l155.after;
+       ensure(before.visible.length===2&&before.transient&&
+         JSON.stringify(after.visible)===JSON.stringify(['transactions'])&&
+         !after.transient&&after.aria.every(([name,inert,hidden])=>
+           name==='transactions'?!inert&&hidden==='false':inert&&hidden==='true')&&
+         JSON.stringify(results.baseline.hero)===JSON.stringify(results.l155.hero),
+         'L1.55 '+width+'px '+lang+' hidden-tab immediate cleanup 2 panels -> 1');
+       const context=await browser.newContext({
+         viewport:{width,height:852},reducedMotion:'no-preference',serviceWorkers:'block'});
+       const page=await context.newPage(),errors=[];
+       page.on('pageerror',e=>errors.push(e.message));
+       await page.addInitScript(language=>{
+         try{localStorage.setItem('mmhvault.landing.language',language)}catch(_){}
+       },lang);
+       await page.goto(origin+'/',{waitUntil:'load',timeout:25000});
+       const begun=await page.evaluate(()=>{
+         // L1.58 test stability: hold the normal 340ms settle timer open.
+         // The media-change handler must end this transition, not the timer.
+         const nativeSetTimeout=window.setTimeout.bind(window);
+         window.__l155HeldTimers=0;
+         window.setTimeout=(fn,ms,...args)=>{
+           if(ms===340){
+             window.__l155HeldTimers++;
+             return nativeSetTimeout(fn,3000,...args);
+           }
+           return nativeSetTimeout(fn,ms,...args);
+         };
+         document.querySelector('[data-product-tab="accounts"]').click();
+         return {
+           panels:[...document.querySelectorAll('[data-product-panel]')].filter(el=>!el.hidden).length,
+           held:window.__l155HeldTimers
+         };
+       });
+       ensure(begun.panels===2&&begun.held===1,
+         'L1.55 '+width+'px '+lang+' animation starts with fallback timer held');
+       await page.emulateMedia({reducedMotion:'reduce'});
+       await page.waitForFunction(()=>[...document.querySelectorAll('[data-product-panel]')]
+         .filter(el=>!el.hidden).length===1,null,{timeout:1500});
+       const settled=await page.evaluate(()=>({
+         visible:[...document.querySelectorAll('[data-product-panel]')]
+           .filter(el=>!el.hidden).map(el=>el.dataset.productPanel),
+         selected:document.querySelector('[data-product-tab="accounts"]').getAttribute('aria-selected')
+       }));
+       ensure(errors.length===0&&
+         JSON.stringify(settled.visible)===JSON.stringify(['accounts'])&&settled.selected==='true',
+         'L1.55 '+width+'px '+lang+' live reduced-motion toggle settles early');
+       await context.close();
+     }
+     console.log('L1.55 Chromium comparison: hidden tab pending panels 2 to 1; no field-LCP claim.');
+   }
+
+   // L1.54 initial feature and language labels browser parity.
+   // Observe cold-start DOM writes before defer scripts execute, then compare
+   // English/Chinese/Burmese content and actual switch interactions.
+   {
+     const optimized=fs.readFileSync('landing-assets/landing.js','utf8');
+     const patches=[["      button.setAttribute('aria-pressed', String(button.dataset.lang === currentLang));","      // L1.54: preserve existing language choice ARIA on cold hydration.\n      const pressed=String(button.dataset.lang === currentLang);\n      if(button.getAttribute('aria-pressed')!==pressed)button.setAttribute('aria-pressed',pressed);"],["      if (label) label.textContent = productLabels[currentLang][tab.dataset.productTab];","      if (label) {\n        const name=productLabels[currentLang][tab.dataset.productTab];\n        if(label.textContent!==name)label.textContent=name;\n      }"],["    if (activeStoryTitle) activeStoryTitle.textContent = productLabels[currentLang][activeProduct];","    if (activeStoryTitle) {\n      const name=productLabels[currentLang][activeProduct];\n      if(activeStoryTitle.textContent!==name)activeStoryTitle.textContent=name;\n    }"]];
+     let baseline=optimized;
+     for(const [before,after] of patches){
+       assert.equal(baseline.split(after).length,2,'L1.54 unique hydration edit');
+       baseline=baseline.replace(after,before);
+     }
+     const samples=[];
+     for(const width of [393,768,1440])for(const lang of ['en','zh','my']){
+       const versions={};
+       for(const [type,script] of [['baseline',baseline],['optimized',optimized]]){
+         const ctx=await browser.newContext({
+           viewport:{width,height:852},reducedMotion:'reduce',serviceWorkers:'block'});
+         const page=await ctx.newPage(),errors=[];
+         page.on('pageerror',error=>errors.push(error.message));
+         await page.addInitScript(initial=>{
+           try{localStorage.setItem('mmhvault.landing.language',initial)}catch(_){}
+           window.__l154={labels:0,title:0,pressed:0,started:false};
+           document.addEventListener('readystatechange',()=>{
+             if(document.readyState!=='interactive'||window.__l154.started)return;
+             window.__l154.started=true;
+             const obs=new MutationObserver(records=>{
+               for(const record of records){
+                 const target=record.target.nodeType===1
+                   ?record.target:record.target.parentElement;
+                 if(!target||typeof target.matches!=='function')continue;
+                 if(record.type==='attributes' &&
+                   record.attributeName==='aria-pressed'&&target.matches('[data-lang]'))
+                     window.__l154.pressed++;
+                 if(record.type==='childList'){
+                   if(target.matches('.product-tab-copy strong'))window.__l154.labels++;
+                   if(target.matches('[data-app-story-title]'))window.__l154.title++;
+                 }
+               }
+             });
+             obs.observe(document,{attributes:true,attributeFilter:['aria-pressed'],
+               childList:true,subtree:true});
+             window.__l154observer=obs;
+           });
+         },lang);
+         await page.route('**/landing-assets/landing.js*',route=>route.fulfill({
+           status:200,contentType:'application/javascript',body:script}));
+         const response=await page.goto(origin+'/',{waitUntil:'load',timeout:30000});
+         const result=await page.evaluate(initial=>{
+           const take=()=>({
+             htmlLang:document.documentElement.lang,
+             stored:localStorage.getItem('mmhvault.landing.language'),
+             langButtons:[...document.querySelectorAll('[data-lang]')].map(x=>
+               [x.dataset.lang,x.getAttribute('aria-pressed')]),
+             previewLabels:[...document.querySelectorAll('[data-product-tab]')].map(x=>
+               [x.dataset.productTab,x.querySelector('.product-tab-copy strong')?.textContent]),
+             story:document.querySelector('[data-app-story-title]')?.textContent,
+             hero:[...document.querySelectorAll('[data-hero-fixed]')]
+               .map(x=>x.textContent.trim()),
+             meta:document.querySelector('meta[name="description"]')?.content,
+             headerRight:Math.round(document.querySelector('.site-header')
+               .getBoundingClientRect().right)
+           });
+           const writes={labels:window.__l154.labels,title:window.__l154.title,
+             pressed:window.__l154.pressed,started:window.__l154.started};
+           const initialState=take();
+           const next=initial==='en'?'zh':initial==='zh'?'my':'en';
+           document.querySelector('#locale-trigger').click();
+           document.querySelector('[data-lang="'+next+'"]').click();
+           const switched=take();
+           document.querySelector('#locale-trigger').click();
+           document.querySelector('[data-lang="'+initial+'"]').click();
+           const restored=take();
+           window.__l154observer?.disconnect();
+           return {writes,initialState,switched,restored};
+         },lang);
+         const targetLang=lang==='zh'?'zh-CN':lang;
+         const otherLang=lang==='en'?'zh-CN':lang==='zh'?'my':'en';
+         ensure(response?.status()===200&&errors.length===0&&
+           result.writes.started&&
+           result.initialState.htmlLang===targetLang&&
+           result.initialState.hero.length===3&&
+           result.initialState.headerRight<=width+1&&
+           result.switched.htmlLang===otherLang&&
+           result.restored.htmlLang===targetLang&&
+           result.switched.langButtons.filter(x=>x[1]==='true').length===1&&
+           result.restored.langButtons.filter(x=>x[1]==='true').length===1,
+           'L1.54 '+type+' '+width+'px '+lang+' initial and actual locale changes');
+         versions[type]=result;
+         await ctx.close();
+       }
+       const before=versions.baseline,after=versions.optimized;
+       for(const key of ['initialState','switched','restored']){
+         ensure(JSON.stringify(before[key])===JSON.stringify(after[key]),
+           'L1.54 '+width+'px '+lang+' identical '+key+' and fixed Hero');
+       }
+       const b=before.writes,a=after.writes;
+       ensure(a.labels<=b.labels&&a.title<=b.title&&a.pressed<=b.pressed&&
+         b.labels+b.title+b.pressed>a.labels+a.title+a.pressed,
+         'L1.54 '+width+'px '+lang+' skips redundant initial label/ARIA writes '+
+         JSON.stringify({before:b,after:a}));
+       samples.push({width,lang,before:b,after:a});
+     }
+     const saved=samples.reduce((n,x)=>n+
+       x.before.labels+x.before.title+x.before.pressed-
+       x.after.labels-x.after.title-x.after.pressed,0);
+     ensure(saved>0,'L1.54 measured cold hydration DOM writes avoided '+saved);
+     console.log('L1.54 cold hydration DOM lab (not field LCP): '+
+       JSON.stringify({savedInitialWrites:saved,samples}));
+   }
+
+   // L1.53 Business locale metadata no-op browser parity.
+   // Compare L1.52 and candidate at mobile/tablet/desktop × EN/ZH/MY.
+   // Language changes should translate visible copy without rewriting
+   // unchanged Business aria-pressed/data-i18n/data-current-view attributes.
+   {
+     const proposed=fs.readFileSync('landing-assets/landing.js','utf8');
+     const patches=[["      button.setAttribute('aria-pressed',String(selected));","      // L1.53: a language change must not rewrite the active concept state.\n      const pressed=String(selected);\n      if(button.getAttribute('aria-pressed')!==pressed)button.setAttribute('aria-pressed',pressed);"],["      element.setAttribute('data-i18n',key);\n      const value = dictionary[key] || '';","      if(element.getAttribute('data-i18n')!==key)element.setAttribute('data-i18n',key);\n      const value = dictionary[key] || '';"],["    if(panel) panel.dataset.currentView = currentBusinessView;","    if(panel && panel.dataset.currentView!==currentBusinessView)panel.dataset.currentView = currentBusinessView;"]];
+     let baseline=proposed;
+     for(const [oldCode,newCode] of patches){
+       assert.equal(baseline.split(newCode).length,2,
+         'L1.53 unique Business metadata patch');
+       baseline=baseline.replace(newCode,oldCode);
+     }
+     const reports=[];
+     for(const width of [393,768,1440])for(const locale of ['en','zh','my']){
+       const versions={};
+       for(const [name,script] of [['baseline',baseline],['optimized',proposed]]){
+         const ctx=await browser.newContext({
+           viewport:{width,height:852},reducedMotion:'reduce',serviceWorkers:'block'});
+         const page=await ctx.newPage(),errors=[];
+         page.on('pageerror',error=>errors.push(error.message));
+         await page.addInitScript(lang=>{
+           try{localStorage.setItem('mmhvault.landing.language',lang)}catch(_){}
+         },locale);
+         await page.route('**/landing-assets/landing.js*',route=>route.fulfill({
+           status:200,contentType:'application/javascript',body:script}));
+         const response=await page.goto(origin+'/',{waitUntil:'load',timeout:30000});
+         const output=await page.evaluate(start=>{
+           const stage=document.querySelector('.business-stage');
+           const tabs=[...document.querySelectorAll('[data-business-view]')];
+           const langTrigger=document.getElementById('locale-trigger');
+           const langButtons=[...document.querySelectorAll('[data-lang]')];
+           const snapshot=()=>({
+             lang:document.documentElement.lang,
+             stored:localStorage.getItem('mmhvault.landing.language'),
+             mode:stage.dataset.currentView,
+             tabs:tabs.map(x=>[x.dataset.businessView,
+               x.getAttribute('aria-pressed'),x.classList.contains('is-selected')]),
+             text:[...stage.querySelectorAll('[data-business-text]')].map(x=>[
+               x.dataset.businessText,x.getAttribute('data-i18n'),x.textContent]),
+             money:[...stage.querySelectorAll('[data-business-amount]')].map(x=>[
+               x.dataset.businessAmount,x.textContent]),
+             hero:[...document.querySelectorAll('[data-hero-fixed]')].map(x=>x.textContent.trim()),
+             flag:document.querySelector('.locale-active-flag')?.textContent,
+             headerRight:Math.round(document.querySelector('.site-header')
+               .getBoundingClientRect().right)
+           });
+           const observer=new MutationObserver(()=>{});
+           observer.observe(stage,{subtree:true,attributes:true,
+             attributeFilter:['aria-pressed','data-i18n','data-current-view']});
+           const collect=perform=>{
+             observer.takeRecords();
+             perform();
+             return {writes:observer.takeRecords().length,state:snapshot()};
+           };
+           const chooseLang=lang=>collect(()=>{
+             langTrigger.click();
+             langButtons.find(x=>x.dataset.lang===lang).click();
+           });
+           const chooseView=view=>collect(()=>{
+             tabs.find(x=>x.dataset.businessView===view).click();
+           });
+           const initial=snapshot();
+           const nextLang=start==='en'?'zh':start==='zh'?'my':'en';
+           const otherLanguage=chooseLang(nextLang);
+           const business=chooseView('business');
+           const revertLanguage=chooseLang(start);
+           const personal=chooseView('personal');
+           observer.disconnect();
+           return {initial,otherLanguage,business,revertLanguage,personal};
+         },locale);
+         const expectedInitial=locale==='zh'?'zh-CN':locale;
+         const expectedOther=locale==='en'?'zh-CN':locale==='zh'?'my':'en';
+         const views=[output.otherLanguage,output.business,
+           output.revertLanguage,output.personal];
+         ensure(response?.status()===200&&errors.length===0&&
+           output.initial.lang===expectedInitial&&
+           output.initial.mode==='personal'&&
+           output.initial.hero.length===3&&
+           output.initial.headerRight<=width+1&&
+           output.otherLanguage.state.lang===expectedOther&&
+           output.otherLanguage.state.mode==='personal'&&
+           output.business.state.mode==='business'&&
+           output.business.state.money.some(x=>
+             x[0]==='balance'&&x[1]==='$366,250.00')&&
+           output.revertLanguage.state.lang===expectedInitial&&
+           output.revertLanguage.state.mode==='business'&&
+           output.personal.state.mode==='personal'&&
+           output.personal.state.money.some(x=>
+             x[0]==='balance'&&x[1]==='$24,680.50')&&
+           views.every(x=>x.state.tabs.filter(t=>t[1]==='true').length===1)&&
+           output.business.writes>0&&output.personal.writes>0,
+           'L1.53 '+name+' '+width+'px '+locale+' genuine Business/locale changes');
+         versions[name]=output;
+         await ctx.close();
+       }
+       const old=versions.baseline,next=versions.optimized;
+       for(const step of ['initial','otherLanguage','business',
+         'revertLanguage','personal']){
+         const a=step==='initial'?old[step]:old[step].state;
+         const b=step==='initial'?next[step]:next[step].state;
+         ensure(JSON.stringify(a)===JSON.stringify(b),
+           'L1.53 '+width+'px '+locale+' unchanged '+step+' visible content and ARIA');
+       }
+       ensure(old.otherLanguage.writes>0&&old.revertLanguage.writes>0&&
+         next.otherLanguage.writes===0&&next.revertLanguage.writes===0&&
+         next.business.writes===old.business.writes&&
+         next.personal.writes===old.personal.writes,
+         'L1.53 '+width+'px '+locale+' skips only unchanged locale attributes '+
+         JSON.stringify({before:[old.otherLanguage.writes,old.business.writes,
+           old.revertLanguage.writes,old.personal.writes],
+           after:[next.otherLanguage.writes,next.business.writes,
+             next.revertLanguage.writes,next.personal.writes]}));
+       reports.push({width,locale,
+         before:[old.otherLanguage.writes,old.revertLanguage.writes],
+         after:[next.otherLanguage.writes,next.revertLanguage.writes]});
+     }
+     const skipped=reports.reduce((n,x)=>n+
+       x.before.reduce((total,v,i)=>total+v-x.after[i],0),0);
+     ensure(skipped>0,'L1.53 skips redundant Business locale attribute writes '+skipped);
+     console.log('L1.53 Business locale DOM lab (not field LCP): '+
+       JSON.stringify({savedAttributeMutations:skipped,reports}));
+   }
+
+   // L1.52 preview tab attribute browser parity: old released L1.51 and
+   // proposed script, real Chrome, mobile/tablet/desktop, all three locales.
+   // Compare ARIA and roving tabindex writes, keyboard focus and demo content.
+   {
+     const proposed=fs.readFileSync('landing-assets/landing.js','utf8');
+     const before="      t.classList.toggle('is-active',yes);\n      t.setAttribute('aria-selected',String(yes));\n      t.tabIndex=yes?0:-1;\n      if(yes&&focus)t.focus({preventScroll:true});";
+     const after="      t.classList.toggle('is-active',yes);\n      // L1.52: only the two tabs whose selection state actually changes\n      // need ARIA/tabindex writes; preserve the existing roving focus.\n      const selected=String(yes);\n      if(t.getAttribute('aria-selected')!==selected)t.setAttribute('aria-selected',selected);\n      const tabIndex=yes?0:-1;\n      if(t.tabIndex!==tabIndex)t.tabIndex=tabIndex;\n      if(yes&&focus)t.focus({preventScroll:true});";
+     assert.equal(proposed.split(after).length,2,'L1.52 exact four-line tab write replacement');
+     const baseline=proposed.replace(after,before);
+     const records=[];
+     for(const width of [393,768,1440])for(const locale of ['en','zh','my']){
+       const versions={};
+       for(const [name,script] of [['baseline',baseline],['optimized',proposed]]){
+         const ctx=await browser.newContext({
+           viewport:{width,height:852},reducedMotion:'reduce',serviceWorkers:'block'});
+         const page=await ctx.newPage(),errors=[];
+         page.on('pageerror',error=>errors.push(error.message));
+         await page.addInitScript(lang=>{
+           try{localStorage.setItem('mmhvault.landing.language',lang)}catch(_){}
+         },locale);
+         await page.route('**/landing-assets/landing.js*',route=>route.fulfill({
+           status:200,contentType:'application/javascript',body:script}));
+         const res=await page.goto(origin+'/',{waitUntil:'load',timeout:30000});
+         const output=await page.evaluate(()=>{
+           const list=document.querySelector('.product-tablist');
+           const tabs=[...list.querySelectorAll('[data-product-tab]')];
+           const panels=[...document.querySelectorAll('[data-product-panel]')];
+           const stage=document.querySelector('.product-stage');
+           const shot=()=>({
+             lang:document.documentElement.lang,
+             selected:stage.dataset.productCurrent,
+             tabs:tabs.map(t=>[t.dataset.productTab,t.getAttribute('aria-selected'),
+               t.tabIndex,t.classList.contains('is-active'),
+               t.querySelector('strong')?.textContent]),
+             panels:panels.map(p=>[p.dataset.productPanel,p.hidden,p.inert,
+               p.getAttribute('aria-hidden')]),
+             story:document.querySelector('[data-app-story-title]')?.textContent,
+             index:document.querySelector('[data-app-story-index]')?.textContent,
+             description:document.querySelector('[data-app-story-desc]')?.textContent,
+             hero:[...document.querySelectorAll('[data-hero-fixed]')]
+               .map(x=>x.textContent.trim()),
+             focused:document.activeElement?.dataset?.productTab||null,
+             scrollY:Math.round(window.scrollY),
+             headerRight:Math.round(document.querySelector('.site-header')
+               .getBoundingClientRect().right)
+           });
+           const observer=new MutationObserver(()=>{});
+           observer.observe(list,{subtree:true,attributes:true,
+             attributeFilter:['aria-selected','tabindex']});
+           const click=key=>{
+             const tab=tabs.find(x=>x.dataset.productTab===key);
+             observer.takeRecords();
+             tab.click();
+             return {state:shot(),writes:observer.takeRecords().length};
+           };
+           const initial=shot();
+           const transactions=click('transactions');
+           const accounts=click('accounts');
+           const dashboard=click('dashboard');
+           const repeat=click('dashboard');
+           observer.takeRecords();
+           const keyEvent=new KeyboardEvent('keydown',{
+             key:'ArrowRight',bubbles:true,cancelable:true
+           });
+           tabs[0].dispatchEvent(keyEvent);
+           const keyboard={state:shot(),writes:observer.takeRecords().length,
+             defaultPrevented:keyEvent.defaultPrevented};
+           observer.disconnect();
+           return {initial,transactions,accounts,dashboard,repeat,keyboard};
+         });
+         const valid=output&&res?.status()===200&&errors.length===0&&
+           output.initial.lang===(locale==='zh'?'zh-CN':locale)&&
+           output.initial.selected==='dashboard'&&
+           output.transactions.state.selected==='transactions'&&
+           output.accounts.state.selected==='accounts'&&
+           output.dashboard.state.selected==='dashboard'&&
+           output.repeat.state.selected==='dashboard'&&
+           output.keyboard.state.selected==='transactions'&&
+           output.keyboard.defaultPrevented&&
+           output.keyboard.state.focused==='transactions'&&
+           output.initial.hero.length===3&&output.initial.headerRight<=width+1&&
+           [output.transactions,output.accounts,output.dashboard,output.repeat,output.keyboard]
+             .every(x=>x.state.tabs.filter(t=>t[1]==='true').length===1&&
+               x.state.tabs.filter(t=>t[2]===0).length===1&&
+               x.state.panels.filter(p=>!p[1]&&!p[2]&&p[3]==='false').length===1);
+         ensure(valid,'L1.52 '+name+' '+width+'px '+locale+' tab semantics and keyboard focus');
+         versions[name]=output;
+         await ctx.close();
+       }
+       const old=versions.baseline,now=versions.optimized;
+       for(const key of ['initial','transactions','accounts','dashboard','repeat','keyboard']){
+         const a=key==='initial'?old[key]:old[key].state;
+         const b=key==='initial'?now[key]:now[key].state;
+         ensure(JSON.stringify(a)===JSON.stringify(b),
+           'L1.52 '+width+'px '+locale+' unchanged '+key+' visual/locale/focus state');
+       }
+       const changed=['transactions','accounts','dashboard','keyboard'];
+       ensure(changed.every(k=>old[k].writes===12&&now[k].writes===4)&&
+         now.repeat.writes===0&&old.repeat.writes===0,
+         'L1.52 '+width+'px '+locale+' only two changed tabs receive ARIA/tabindex writes '+
+         JSON.stringify({before:changed.map(k=>old[k].writes),
+           after:changed.map(k=>now[k].writes)}));
+       records.push({width,locale,
+         before:changed.map(k=>old[k].writes),
+         after:changed.map(k=>now[k].writes)});
+     }
+     const saved=records.reduce((sum,x)=>sum+
+       x.before.reduce((n,v,i)=>n+v-x.after[i],0),0);
+     ensure(saved>0,'L1.52 skips unnecessary feature preview accessibility writes '+saved);
+     console.log('L1.52 feature tab DOM lab (not real-user loading speed): '+
+       JSON.stringify({savedAttributeMutations:saved,records}));
+   }
+
    // L1.51 repeated section nav highlight DOM parity.
    // Compare exact merged L1.50 handler against L1.51 under Chrome.
    // Only navigation aria-current mutations are counted; don't claim field LCP.
@@ -313,7 +1101,17 @@ async function load(page,route,failures){
    // Repeated clicks should not mutate the Business preview, but actual
    // Personal / Business transitions must produce identical localized UI.
    {
-     const proposed=fs.readFileSync('landing-assets/landing.js','utf8');
+     // L1.53's newer attribute guards would make BOTH historical variants
+     // no-op on repeated clicks. Remove only those three newer edits in this
+     // historical lab to faithfully reproduce the released L1.48→L1.49
+     // comparison; the L1.53 lab above tests the new guards separately.
+     const l153Patches=[["      button.setAttribute('aria-pressed',String(selected));","      // L1.53: a language change must not rewrite the active concept state.\n      const pressed=String(selected);\n      if(button.getAttribute('aria-pressed')!==pressed)button.setAttribute('aria-pressed',pressed);"],["      element.setAttribute('data-i18n',key);\n      const value = dictionary[key] || '';","      if(element.getAttribute('data-i18n')!==key)element.setAttribute('data-i18n',key);\n      const value = dictionary[key] || '';"],["    if(panel) panel.dataset.currentView = currentBusinessView;","    if(panel && panel.dataset.currentView!==currentBusinessView)panel.dataset.currentView = currentBusinessView;"]];
+     let proposed=fs.readFileSync('landing-assets/landing.js','utf8');
+     for(const [oldCode,newCode] of l153Patches){
+       assert.equal(proposed.split(newCode).length,2,
+         'L1.49 historical script reconstructs L1.52 attrs exactly');
+       proposed=proposed.replace(newCode,oldCode);
+     }
      const before="  businessTabs.forEach(button => button.addEventListener('click', () => {\n    updateBusinessPreview(button.dataset.businessView);\n  }));";
      const after="  businessTabs.forEach(button => button.addEventListener('click', () => {\n    // L1.49: selecting an already active concept is a no-op. Avoid\n    // redundant data-current-view mutations and replayed Business animations.\n    // applyLanguage still calls updateBusinessPreview for translated labels.\n    if (button.dataset.businessView !== currentBusinessView)\n      updateBusinessPreview(button.dataset.businessView);\n  }));";
      assert.equal(proposed.split(after).length,2,'L1.49 exact source replacement');
@@ -753,7 +1551,7 @@ async function load(page,route,failures){
      });
      const page=await ctx.newPage(),failures=[];
      page.on('pageerror',e=>failures.push('JS '+e.message));
-     page.on('requestfailed',r=>failures.push('Network '+r.url()+' '+r.failure()?.errorText));
+     page.on('requestfailed',r=>{ if(!/^https:\/\/cloudflareinsights\.com\/cdn-cgi\/rum(?:\?|$)/.test(r.url())) failures.push('Network '+r.url()+' '+r.failure()?.errorText); });
      page.on('response',r=>{
        if(r.url().startsWith(origin)&&r.status()>=400)
          failures.push('HTTP '+r.status()+' '+r.url());
@@ -921,7 +1719,7 @@ async function load(page,route,failures){
      const page=await context.newPage();
      const failures=[],loaded=[];
      page.on('pageerror',e=>failures.push(e.message));
-     page.on('requestfailed',req=>failures.push(req.url()+' '+req.failure()?.errorText));
+     page.on('requestfailed',req=>{ if(!/^https:\/\/cloudflareinsights\.com\/cdn-cgi\/rum(?:\?|$)/.test(req.url())) failures.push(req.url()+' '+req.failure()?.errorText); });
      page.on('response',r=>{
        const url=new URL(r.url());
        if(url.origin!==origin||!url.pathname.startsWith('/landing-assets/'))return;
@@ -944,19 +1742,22 @@ async function load(page,route,failures){
          viewport:innerWidth
        };
      });
-     ensure(layout.styles.length===6&&layout.scripts.length===2 &&
+     ensure(layout.styles.length===7&&layout.scripts.length===2 &&
        layout.styles.filter(v=>v==='l145').length===1 &&
        layout.styles.filter(v=>v==='l146').length===2 &&
        layout.styles.filter(v=>v==='l147').length===1 &&
+       layout.styles.filter(v=>v==='l169').length===1 &&
        layout.styles.filter(v=>v==='l141').length===2 &&
-       layout.scripts.includes('l151') && layout.scripts.includes('l141') &&
-       loaded.length===8 && loaded.every(r=>r.status===200&&
+       layout.scripts.includes('l161') && layout.scripts.includes('l159') &&
+       loaded.length===9 && loaded.every(r=>r.status===200&&
          r.version===(r.path==='/landing-assets/landing.min.css'?'l145':
            ['/landing-assets/cinematic.min.css','/landing-assets/premium-l131.min.css'].includes(r.path)?'l146':
            r.path==='/landing-assets/header-explore-l147.min.css'?'l147':
-            r.path==='/landing-assets/landing.js'?'l151':'l141')) &&
-       new Set(loaded.map(r=>r.path)).size===8 && failures.length===0,
-       'L1.47 '+width+'px eight CSS/JS requests with consistent cache keys '+JSON.stringify({loaded,failures}));
+           r.path==='/landing-assets/safari-performance-l164.css'?'l169':
+            r.path==='/landing-assets/landing.js'?'l161':
+              r.path==='/landing-assets/motion-l132.js'?'l159':'l141')) &&
+       new Set(loaded.map(r=>r.path)).size===9 && failures.length===0,
+       'L1.64 '+width+'px nine CSS/JS requests with consistent cache keys '+JSON.stringify({loaded,failures}));
      ensure(layout.brand.left>=-1&&layout.brand.right<=width+1 &&
        layout.brand.width<width*.8 &&
        layout.hero.left>=-1&&layout.hero.right<=width+1 &&
@@ -2194,6 +2995,353 @@ async function load(page,route,failures){
          route+' '+width+'px keyboard navigation has no missing assets or JS errors');
        await ctx.close();
      }
+   }
+
+   // L1.59 live reduced-motion reveal persistence in real Chromium.
+   {
+     const candidate=fs.readFileSync('landing-assets/motion-l132.js','utf8');
+     const addition="  // L1.59: settle any pending reveals when reduced motion is enabled live.\n  // Already visible content stays visible if normal motion is enabled again.\n  const settleReducedReveals=()=>{\n    if(permitted())return;\n    for(const el of elements)el.classList.add('mm-shown');\n    observer.disconnect();\n  };\n  if(typeof motionPreference.addEventListener==='function')\n    motionPreference.addEventListener('change',settleReducedReveals);\n  else if(typeof motionPreference.addListener==='function')\n    motionPreference.addListener(settleReducedReveals);\n\n";
+     const anchor='  // Clicking a guide or an in-page navigation link must reveal the destination,';
+     assert.equal(candidate.split(addition+anchor).length,2,'L1.59 unique presentation-only patch');
+     const released=candidate.replace(addition+anchor,anchor);
+     for(const [width,lang] of [[393,'my'],[768,'zh'],[1440,'en']]){
+       const results={};
+       for(const [version,script] of [['l158',released],['l159',candidate]]){
+         const ctx=await browser.newContext({viewport:{width,height:852},
+           reducedMotion:'no-preference',serviceWorkers:'block'});
+         const page=await ctx.newPage(),errors=[];
+         page.on('pageerror',e=>errors.push(e.message));
+         await page.addInitScript(code=>{
+           try{localStorage.setItem('mmhvault.landing.language',code)}catch(_){}
+         },lang);
+         await page.addInitScript(()=>{
+           const Native=window.IntersectionObserver;
+           window.__l159Observers=[];
+           if(typeof Native!=='function')return;
+           window.IntersectionObserver=class extends Native{
+             constructor(callback,options){
+               super(callback,options);
+               if(['0px 0px 24% 0px','0px 0px -6% 0px'].includes(options?.rootMargin)){
+                 this.__l159Record={disconnected:false,observed:0};
+                 window.__l159Observers.push(this.__l159Record);
+               }
+             }
+             observe(target){
+               if(this.__l159Record)this.__l159Record.observed++;
+               return super.observe(target);
+             }
+             disconnect(){
+               if(this.__l159Record)this.__l159Record.disconnected=true;
+               return super.disconnect();
+             }
+           };
+         });
+         await page.route('**/landing-assets/motion-l132.js*',r=>r.fulfill({
+           status:200,contentType:'application/javascript',body:script}));
+         await page.goto(origin+'/',{waitUntil:'load',timeout:25000});
+         const sample=()=>page.evaluate(()=>{
+           const all=[...document.querySelectorAll('.mm-reveal')];
+           const pending=all.filter(el=>!el.classList.contains('mm-shown'));
+           return {count:all.length,pending:pending.length,
+             pendingOpacity:pending[0]?getComputedStyle(pending[0]).opacity:null,
+             observers:window.__l159Observers.map(x=>({...x})),
+             hero:[...document.querySelectorAll('[data-hero-fixed]')].map(el=>el.textContent.trim()),
+             language:document.documentElement.lang,
+             feature:document.querySelector('[data-product-tab].is-active')?.dataset.productTab};
+         });
+         const initial=await sample();
+         // CSS transitions can still be entering their first frame at load.
+         // Verify actual pending state and observer registration, not a timed opacity sample.
+         console.log('L1.59 initial reveal snapshot '+JSON.stringify({
+           version,width,lang,pending:initial.pending,opacity:initial.pendingOpacity,
+           observerCount:initial.observers.length,observed:initial.observers[0]?.observed,
+           heroCount:initial.hero.length,language:initial.language}));
+         ensure(initial.count>4 && initial.pending>0 &&
+           initial.observers.length===1 && initial.observers[0].observed>0 &&
+           initial.hero.length===3 && initial.language===(lang==='zh'?'zh-CN':lang),
+           'L1.59 '+version+' '+width+'px '+lang+' initial offscreen reveals observed');
+         await page.emulateMedia({reducedMotion:'reduce'});
+         if(version==='l159')await page.waitForFunction(()=>
+           [...document.querySelectorAll('.mm-reveal')].every(el=>el.classList.contains('mm-shown')),
+           null,{timeout:3000});
+         const reduced=await sample();
+         await page.emulateMedia({reducedMotion:'no-preference'});
+         const resumed=await sample();
+         ensure(errors.length===0 && JSON.stringify(initial.hero)===JSON.stringify(resumed.hero) &&
+           initial.feature===resumed.feature && initial.language===resumed.language &&
+           reduced.count===initial.count && resumed.count===initial.count,
+           'L1.59 '+version+' '+width+'px '+lang+' preserves Hero/features/language');
+         results[version]={initial,reduced,resumed};
+         await ctx.close();
+       }
+       const old=results.l158,next=results.l159;
+       ensure(old.reduced.pending>0 && old.resumed.pending>0 &&
+         !old.reduced.observers[0].disconnected &&
+         next.reduced.pending===0 && next.resumed.pending===0 &&
+         next.reduced.observers[0].disconnected && next.resumed.observers[0].disconnected,
+         'L1.59 '+width+'px '+lang+' OS toggle removes offscreen hiding and observer '+
+           JSON.stringify({baselinePending:old.resumed.pending,newPending:next.resumed.pending}));
+     }
+     console.log('L1.59 live reduced-motion reveal persistence PASS; no loading speed claim.');
+   }
+
+   // L1.57 rotated viewport reveal observer parity: L1.56 vs L1.57.
+   {
+     const currentScript=fs.readFileSync('landing-assets/motion-l132.js','utf8');
+     const oldBlock="  // L1.40: prewarm mobile reveals further ahead of fast swipes, with no\n  // intersection threshold that might skip a narrow card. Desktop unchanged.\n  const mobileReveal = window.matchMedia && window.matchMedia('(max-width: 620px)').matches;\n  const observer=new IntersectionObserver(entries=>{\n    for(const entry of entries){\n      if(!entry.isIntersecting)continue;\n      entry.target.classList.add('mm-shown');\n      observer.unobserve(entry.target);\n    }\n  },{rootMargin:mobileReveal?'0px 0px 24% 0px':'0px 0px -6% 0px',threshold:mobileReveal?0:0.065});\n  elements.filter(el=>!el.classList.contains('mm-shown')).forEach(el=>observer.observe(el));\n",newBlock="  // L1.57: recalculate phone-first reveal margins after orientation changes.\n  // Keep already revealed sections visible; no scroll interception or repaint.\n  const mobileRevealQuery=window.matchMedia\n    ? window.matchMedia('(max-width: 620px)') : {matches:false};\n  let observer;\n  const bindRevealObserver=()=>{\n    if(observer)observer.disconnect();\n    const mobileReveal=mobileRevealQuery.matches;\n    const nextObserver=new IntersectionObserver(entries=>{\n      for(const entry of entries){\n        if(!entry.isIntersecting)continue;\n        entry.target.classList.add('mm-shown');\n        nextObserver.unobserve(entry.target);\n      }\n    },{rootMargin:mobileReveal?'0px 0px 24% 0px':'0px 0px -6% 0px',threshold:mobileReveal?0:0.065});\n    observer=nextObserver;\n    elements.filter(el=>!el.classList.contains('mm-shown')).forEach(el=>observer.observe(el));\n  };\n  bindRevealObserver();\n  if(typeof mobileRevealQuery.addEventListener==='function')\n    mobileRevealQuery.addEventListener('change',bindRevealObserver);\n  else if(typeof mobileRevealQuery.addListener==='function')\n    mobileRevealQuery.addListener(bindRevealObserver);\n";
+     assert.equal(currentScript.split(newBlock).length,2,'L1.57 exact presentation-only patch');
+     const baseline=currentScript.replace(newBlock,oldBlock);
+     const mobile='0px 0px 24% 0px',desktop='0px 0px -6% 0px';
+     for(const [from,to,lang] of [[768,393,'my'],[393,768,'zh'],[1440,393,'en'],[393,1440,'my']]){
+       const measurements={};
+       for(const [version,script] of [['l156',baseline],['l157',currentScript]]){
+         const ctx=await browser.newContext({viewport:{width:from,height:852},reducedMotion:'no-preference',serviceWorkers:'block'});
+         const page=await ctx.newPage(),errors=[];
+         page.on('pageerror',e=>errors.push(e.message));
+         await page.addInitScript(lang=>{
+           try{localStorage.setItem('mmhvault.landing.language',lang)}catch(_){}
+         },lang);
+         await page.addInitScript(()=>{
+           const Native=window.IntersectionObserver;
+           window.__l157io=[];
+           if(typeof Native!=='function')return;
+           window.IntersectionObserver=class extends Native{
+             constructor(callback,options){
+               super(callback,options);
+               if(['0px 0px 24% 0px','0px 0px -6% 0px'].includes(options?.rootMargin)){
+                 this.__l157record={margin:options.rootMargin,threshold:options.threshold,observed:0,disconnected:false};
+                 window.__l157io.push(this.__l157record);
+               }
+             }
+             observe(target){if(this.__l157record)this.__l157record.observed++;return super.observe(target)}
+             disconnect(){if(this.__l157record)this.__l157record.disconnected=true;return super.disconnect()}
+           };
+         });
+         await page.route('**/landing-assets/motion-l132.js*',route=>route.fulfill({
+           status:200,contentType:'application/javascript',body:script}));
+         await page.goto(origin+'/',{waitUntil:'load',timeout:25000});
+         const inspect=()=>page.evaluate(()=>({
+           records:window.__l157io.map(x=>({...x})),
+           shown:document.querySelectorAll('.mm-reveal.mm-shown').length,
+           hero:[...document.querySelectorAll('[data-hero-fixed]')].map(x=>x.textContent.trim()),
+           lang:document.documentElement.lang,
+           active:document.querySelector('.product-tab.is-active')?.dataset.productTab
+         }));
+         const first=await inspect();
+         ensure(first.records.length===1 &&
+           first.records[0].margin===(from<=620?mobile:desktop) &&
+           first.records[0].observed>0 &&
+           first.hero.length===3 && first.lang===(lang==='zh'?'zh-CN':lang),
+           'L1.57 '+version+' initial '+from+'px '+lang+' observer');
+         await page.setViewportSize({width:to,height:852});
+         if(version==='l157')await page.waitForFunction(count=>
+           window.__l157io?.length>=count,2,{timeout:3000});
+         else await page.waitForTimeout(100);
+         const last=await inspect();
+         ensure(last.shown>=first.shown &&
+           JSON.stringify(last.hero)===JSON.stringify(first.hero) &&
+           last.lang===first.lang && last.active===first.active && errors.length===0,
+           'L1.57 '+version+' rotated '+from+'->'+to+'px keeps content and Hero');
+         measurements[version]={first,last};
+         await ctx.close();
+       }
+       const old=measurements.l156,now=measurements.l157;
+       ensure(old.last.records.length===1 &&
+         old.last.records[0].margin===(from<=620?mobile:desktop) &&
+         now.last.records.length===2 &&
+         now.last.records[0].disconnected &&
+         now.last.records[1].margin===(to<=620?mobile:desktop) &&
+         now.last.records[1].threshold===(to<=620?0:0.065) &&
+         now.last.records[1].observed>0,
+         'L1.57 '+from+'->'+to+'px rebinds early reveal margin '+
+           JSON.stringify({before:old.last.records.map(x=>x.margin),after:now.last.records.map(x=>x.margin)}));
+     }
+     console.log('L1.57 viewport rebind responsive comparison PASS; not a loading speed claim.');
+   }
+
+   // L1.60 live reduced-motion public-page reveal persistence in Chromium.
+   // Compare the exact release behavior with the candidate, no live services.
+   {
+     const candidate=fs.readFileSync('landing-assets/public-pages.js','utf8');
+     const anchor="      mq.addEventListener?mq.addEventListener('change',bind):mq.addListener?.(bind);\n";
+     const addition="      // L1.60: settle pending reveals.\n      const reduced=matchMedia('(prefers-reduced-motion: reduce)');\n      const settle=()=>{\n        if(!reduced.matches)return;\n        io.disconnect();\n        for(const el of targets)el.classList.add('mm-public-shown');\n      };\n      reduced.addEventListener?reduced.addEventListener('change',settle):reduced.addListener?.(settle);\n";
+     assert.equal(candidate.split(anchor+addition).length,2,'L1.60 exact public reveal listener addition');
+     const released=candidate.replace(anchor+addition,anchor);
+     for(const [route,width,lang] of [
+       ['/features/',393,'my'],
+       ['/about/',768,'zh'],
+       ['/features/',1440,'en']
+     ]){
+       const result={};
+       for(const [version,script] of [['l159',released],['l161',candidate]]){
+         const ctx=await browser.newContext({viewport:{width,height:852},
+           reducedMotion:'no-preference',serviceWorkers:'block'});
+         const page=await ctx.newPage(),errors=[];
+         page.on('pageerror',e=>errors.push(e.message));
+         await page.addInitScript(language=>{
+           try{localStorage.setItem('mmhvault.landing.language',language)}catch(_){}
+         },lang);
+         await page.addInitScript(()=>{
+           const Native=window.IntersectionObserver;
+           window.__l160IO=[];
+           if(typeof Native!=='function')return;
+           window.IntersectionObserver=class extends Native{
+             constructor(callback,options){
+               super(callback,options);
+               if(['0px 0px 12% 0px','0px 0px -4% 0px'].includes(options?.rootMargin)){
+                 this.__publicRecord={margin:options.rootMargin,disconnected:false,observed:0};
+                 window.__l160IO.push(this.__publicRecord);
+               }
+             }
+             observe(target){
+               if(this.__publicRecord)this.__publicRecord.observed++;
+               return super.observe(target);
+             }
+             disconnect(){
+               if(this.__publicRecord)this.__publicRecord.disconnected=true;
+               return super.disconnect();
+             }
+           };
+         });
+         await page.route('**/landing-assets/public-pages.js*',r=>r.fulfill({
+           status:200,contentType:'application/javascript',body:script}));
+         await page.goto(origin+route,{waitUntil:'load',timeout:25000});
+         const inspect=()=>page.evaluate(()=>{
+           const cards=[...document.querySelectorAll('.mm-public-reveal')];
+           return {
+             count:cards.length,
+             pending:cards.filter(el=>!el.classList.contains('mm-public-shown')).length,
+             observers:window.__l160IO.map(x=>({...x})),
+             title:document.title,
+             h1:document.querySelector('h1')?.textContent.trim(),
+             canonical:document.querySelector('link[rel="canonical"]')?.href,
+             lang:document.documentElement.lang,
+             version:new URL(document.querySelector('script[src*="public-pages.js"]').src).searchParams.get('v')
+           };
+         });
+         const first=await inspect();
+         ensure(first.count>=2 && first.pending>0 && first.observers.length===1 &&
+           first.observers[0].observed>0 && first.version==='l161' &&
+           first.canonical && first.h1 && first.lang===(lang==='zh'?'zh-CN':lang),
+           'L1.60 '+version+' '+route+' '+width+'px initial reveal observer active '+
+            JSON.stringify({pending:first.pending,observer:first.observers}));
+         await page.emulateMedia({reducedMotion:'reduce'});
+         if(version==='l161')await page.waitForFunction(()=>
+           [...document.querySelectorAll('.mm-public-reveal')]
+             .every(el=>el.classList.contains('mm-public-shown')),null,{timeout:3000});
+         const reduced=await inspect();
+         await page.emulateMedia({reducedMotion:'no-preference'});
+         const resumed=await inspect();
+         ensure(errors.length===0 && first.count===resumed.count &&
+           first.title===resumed.title && first.h1===resumed.h1 &&
+           first.canonical===resumed.canonical && first.lang===resumed.lang,
+           'L1.60 '+version+' '+route+' '+width+'px title/heading/canonical/language unchanged');
+         result[version]={first,reduced,resumed};
+         await ctx.close();
+       }
+       const old=result.l159,newState=result.l161;
+       ensure(old.reduced.pending>0 && old.resumed.pending>0 &&
+         !old.resumed.observers[0].disconnected &&
+         newState.reduced.pending===0 && newState.resumed.pending===0 &&
+         newState.reduced.observers[0].disconnected &&
+         newState.resumed.observers[0].disconnected,
+         'L1.60 '+route+' '+width+'px OS toggle reveals all and disconnects public observer '+
+         JSON.stringify({oldPending:old.resumed.pending,nextPending:newState.resumed.pending}));
+     }
+     console.log('L1.60 public-page live reduced-motion preference transition PASS; no speed claim.');
+   }
+
+   // L1.58 rotated public-page observer parity: released L1.57 versus L1.58.
+   // Browser checks preserve public headings, language and revealed elements.
+   {
+     const candidate=fs.readFileSync('landing-assets/public-pages.js','utf8');
+     const oldBlock="      // L1.39: pre-reveal phone cards ahead of viewport; leave desktop as-is.\n      const mobileReveal=window.matchMedia('(max-width: 620px)').matches;\n      const observer=new IntersectionObserver(entries=>{\n        entries.forEach(entry=>{\n          if(!entry.isIntersecting)return;\n          entry.target.classList.add('mm-public-shown');\n          observer.unobserve(entry.target);\n        });\n      },{threshold:.045,rootMargin:mobileReveal?'0px 0px 12% 0px':'0px 0px -4% 0px'});\n      targets.filter(el=>!el.classList.contains('mm-public-shown'))\n        .forEach(el=>observer.observe(el));";
+     const newBlock="      // L1.58: rotate.\n      const mq=matchMedia('(max-width:620px)');\n      let io;\n      function bind(){\n        io?.disconnect();\n        const mobileReveal=mq.matches;\n        const o=new IntersectionObserver(es=>{\n          for(const e of es)if(e.isIntersecting){\n            e.target.classList.add('mm-public-shown');\n            o.unobserve(e.target);\n          }\n        },{threshold:.045,rootMargin:mobileReveal?'0px 0px 12% 0px':'0px 0px -4% 0px'});\n        io=o;\n        for(const e of targets)if(!e.classList.contains('mm-public-shown'))o.observe(e);\n      }\n      bind();\n      mq.addEventListener?mq.addEventListener('change',bind):mq.addListener?.(bind);";
+     assert.equal(candidate.split(newBlock).length,2,'L1.58 exact public-only observer change');
+     const released=candidate.replace(newBlock,oldBlock);
+     const mobile='0px 0px 12% 0px',desktop='0px 0px -4% 0px';
+     for(const [route,from,to,lang] of [
+       ['/features/',768,393,'my'],
+       ['/features/',393,768,'zh'],
+       ['/about/',768,393,'zh'],
+       ['/security.html',1440,393,'en'],
+       ['/security.html',393,1440,'my'],
+       ['/business/',393,768,'en']
+     ]){
+       const observed={};
+       for(const [version,script] of [['l157',released],['l158',candidate]]){
+         const ctx=await browser.newContext({
+           viewport:{width:from,height:852},reducedMotion:'no-preference',serviceWorkers:'block'});
+         const page=await ctx.newPage(),errors=[];
+         page.on('pageerror',e=>errors.push(e.message));
+         await page.addInitScript(code=>{
+           try{localStorage.setItem('mmhvault.landing.language',code)}catch(_){}
+         },lang);
+         await page.addInitScript(()=>{
+           const Native=window.IntersectionObserver;
+           window.__l158Observers=[];
+           if(typeof Native!=='function')return;
+           window.IntersectionObserver=class extends Native{
+             constructor(callback,options){
+               super(callback,options);
+               if(['0px 0px 12% 0px','0px 0px -4% 0px'].includes(options?.rootMargin)){
+                 this.__l158Record={margin:options.rootMargin,threshold:options.threshold,
+                   observed:0,disconnected:false};
+                 window.__l158Observers.push(this.__l158Record);
+               }
+             }
+             observe(target){
+               if(this.__l158Record)this.__l158Record.observed++;
+               return super.observe(target);
+             }
+             disconnect(){
+               if(this.__l158Record)this.__l158Record.disconnected=true;
+               return super.disconnect();
+             }
+           };
+         });
+         await page.route('**/landing-assets/public-pages.js*',route=>route.fulfill({
+           status:200,contentType:'application/javascript',body:script}));
+         await page.goto(origin+route,{waitUntil:'load',timeout:25000});
+         const inspect=()=>page.evaluate(()=>({
+           records:window.__l158Observers.map(x=>({...x})),
+           shown:document.querySelectorAll('.mm-public-reveal.mm-public-shown').length,
+           title:document.title,
+           headline:document.querySelector('h1')?.textContent.trim(),
+           canonical:document.querySelector('link[rel="canonical"]')?.href,
+           lang:document.documentElement.lang,
+           script:new URL(document.querySelector('script[src*="public-pages.js"]').src).searchParams.get('v')
+         }));
+         const first=await inspect();
+         ensure(first.records.length===1 && first.records[0].margin===(from<=620?mobile:desktop) &&
+           first.records[0].observed>0 && first.headline && first.canonical &&
+           first.lang===(lang==='zh'?'zh-CN':lang) && first.script==='l161',
+           'L1.58 '+version+' '+route+' '+from+'px initial public reveal');
+         await page.setViewportSize({width:to,height:852});
+         if(version==='l158')await page.waitForFunction(()=>window.__l158Observers?.length>=2,
+           null,{timeout:3000});
+         else await page.waitForTimeout(90);
+         const last=await inspect();
+         ensure(last.shown>=first.shown && last.title===first.title &&
+           last.headline===first.headline && last.canonical===first.canonical &&
+           last.lang===first.lang && errors.length===0,
+           'L1.58 '+version+' '+route+' '+from+'->'+to+'px preserves public content');
+         observed[version]={first,last};
+         await ctx.close();
+       }
+       const oldState=observed.l157,newState=observed.l158;
+       ensure(oldState.last.records.length===1 &&
+         oldState.last.records[0].margin===(from<=620?mobile:desktop) &&
+         newState.last.records.length===2 &&
+         newState.last.records[0].disconnected &&
+         newState.last.records[1].margin===(to<=620?mobile:desktop) &&
+         newState.last.records[1].threshold===0.045 &&
+         newState.last.records[1].observed>0,
+         'L1.58 '+route+' '+from+'->'+to+'px replaces stale public reveal observer '+
+           JSON.stringify({old:oldState.last.records.map(x=>x.margin),
+             next:newState.last.records.map(x=>x.margin)}));
+     }
+     console.log('L1.58 six actual public-page rotations verified; not a loading-speed claim.');
    }
 
    // L1.39: real IntersectionObserver configuration in phone and desktop

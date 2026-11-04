@@ -1,6 +1,4 @@
 /* L1.16 — Public-only translations and exact Landing-header interactions.
- * Read-only presentation: no auth, fetch, history/URL rewrites or finance data.
- * Header markup and shared-header-l116.css are identical across public pages.
  */
 (() => {
   'use strict';
@@ -37,8 +35,6 @@
       header?.classList.contains('menu-open')?navToggleLabels[locale].close:navToggleLabels[locale].open);
   }
 
-  // L1.26: return focus to a visible trigger when dismissing compact
-  // navigation, Explore or the language picker on any public page.
   function closeExplore(restoreFocus=false){
     if(!explore?.open)return;
     const focusedInside=explore.contains(document.activeElement)&&
@@ -117,12 +113,16 @@
     buttons[next]?.focus({preventScroll:true});
   });
   if(header&&nav&&toggle&&explore){
-    toggle.addEventListener('click',()=>{
+    toggle.addEventListener('click',event=>{
       closeExplore();
       closeLanguage();
       const open=header.classList.toggle('menu-open');
       toggle.setAttribute('aria-expanded',String(open));
       syncNavToggleLabel();
+      // L1.61: keyboard-opened responsive menu starts at its first link.
+      // Leave pointer and touch activation unchanged.
+      if(open && event.detail===0)
+        nav.querySelector('a')?.focus({preventScroll:true});
     });
     nav.querySelectorAll('a').forEach(link=>{
       link.addEventListener('click',()=>{
@@ -140,7 +140,6 @@
       if(!event.target.closest('.locale-picker'))closeLanguage();
     });
     // L1.22: dismiss one header layer per Escape, keeping focus visible.
-    // A collapsed Explore inside the mobile menu must not close the menu too.
     document.addEventListener('keydown',event=>{
       if(event.key!=='Escape')return;
       if(!menu.hidden){
@@ -201,17 +200,31 @@
         el.style.setProperty('--mm-public-delay',Math.min(index%3,2)*55+'ms');
       });
       document.body.classList.add('mm-public-motion');
-      // L1.39: pre-reveal phone cards ahead of viewport; leave desktop as-is.
-      const mobileReveal=window.matchMedia('(max-width: 620px)').matches;
-      const observer=new IntersectionObserver(entries=>{
-        entries.forEach(entry=>{
-          if(!entry.isIntersecting)return;
-          entry.target.classList.add('mm-public-shown');
-          observer.unobserve(entry.target);
-        });
-      },{threshold:.045,rootMargin:mobileReveal?'0px 0px 12% 0px':'0px 0px -4% 0px'});
-      targets.filter(el=>!el.classList.contains('mm-public-shown'))
-        .forEach(el=>observer.observe(el));
+      // L1.58: rotate.
+      const mq=matchMedia('(max-width:620px)');
+      let io;
+      function bind(){
+        io?.disconnect();
+        const mobileReveal=mq.matches;
+        const o=new IntersectionObserver(es=>{
+          for(const e of es)if(e.isIntersecting){
+            e.target.classList.add('mm-public-shown');
+            o.unobserve(e.target);
+          }
+        },{threshold:.045,rootMargin:mobileReveal?'0px 0px 12% 0px':'0px 0px -4% 0px'});
+        io=o;
+        for(const e of targets)if(!e.classList.contains('mm-public-shown'))o.observe(e);
+      }
+      bind();
+      mq.addEventListener?mq.addEventListener('change',bind):mq.addListener?.(bind);
+      // L1.60: settle pending reveals.
+      const reduced=matchMedia('(prefers-reduced-motion: reduce)');
+      const settle=()=>{
+        if(!reduced.matches)return;
+        io.disconnect();
+        for(const el of targets)el.classList.add('mm-public-shown');
+      };
+      reduced.addEventListener?reduced.addEventListener('change',settle):reduced.addListener?.(settle);
     }
   }
 })();

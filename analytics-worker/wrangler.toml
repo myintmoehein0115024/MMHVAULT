@@ -1,0 +1,12 @@
+name = "mmhvault-website-analytics-v2"
+main = "src/index.js"
+compatibility_date = "2026-11-03"
+workers_dev = true
+
+# Intentionally no production route and no embedded credentials.
+# Set secrets via wrangler secret put, never commit token values.
+[vars]
+CF_ACCOUNT_ID = "c864cb8b24ed8eb2def1dfcef2b588ca"
+CF_SITE_TAG = "5789b11473284da6aa6b2c159c945d19"
+SUPABASE_URL = "https://vrypucmyrztxgiqhjspd.supabase.co"
+ALLOWED_ORIGIN = "https://mmhvault.com"
