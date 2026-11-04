@@ -23,8 +23,8 @@ test('feedback workspace is a single isolated page with the approved high-fideli
   'afPersonMetaV1520','afList','afPremiumDockV1','afPremiumEditorHostV1']){
   assert.equal((admin.match(new RegExp('id="'+id+'"','g'))||[]).length,1,'ID must exist exactly once: '+id);
  }
- assert.match(admin,/css\/mmhvault-admin-feedback-premium-v1\.css\?v=1\.0\.0/);
- assert.match(admin,/js\/mmhvault-admin-feedback-premium-v1\.js\?v=1\.0\.0/);
+ assert.match(admin,/css\/mmhvault-admin-feedback-premium-v1\.css\?v=1\.1\.0/);
+ assert.match(admin,/js\/mmhvault-admin-feedback-premium-v1\.js\?v=1\.1\.0/);
  assert.match(css,/#adminFeedbackView\.af-premium-feedback-v1/);
  assert.match(css,/@media\(max-width:720px\)/);
  assert.match(css,/@media\(max-width:480px\)/);
@@ -112,4 +112,51 @@ test('single replies dock selects exactly one original form rather than duplicat
  assert.match(premium,/if\(dashboard\.hidden\)\{clearTimeout\(debounce\);drafts\.clear\(\)/);
  assert.match(css,/#adminFeedbackView\.af-premium-enhanced-v1 #afList \.af-editor-inline-v1520/);
  assert.match(css,/#adminFeedbackView \.af-premium-dock-v1 \.af-editor-inline-v1520/);
+});
+
+
+test('V1.1 filter toolbar aligns four visible labels and responsive columns',()=>{
+ assert.match(admin,/<span class="af-premium-filter-label-v11">搜索反馈<\/span>/);
+ const css11=css.split('/* Admin Feedback Premium V1.1 — viewport-bounded')[1];
+ assert.ok(css11,'Scoped V1.1 layout styles exist');
+ assert.match(css11,/grid-template-columns:minmax\(125px,\.9fr\) minmax\(125px,\.9fr\) minmax\(220px,2fr\) minmax\(130px,\.9fr\)!important/);
+ assert.match(css11,/grid-column:auto!important;grid-row:auto!important/);
+ assert.match(css11,/height:42px!important;min-height:42px!important/);
+ assert.match(css11,/@media\(max-width:1050px\)/);
+ assert.match(css11,/@media\(max-width:480px\)/);
+ assert.match(css11,/grid-template-columns:repeat\(2,minmax\(0,1fr\)\)!important/);
+});
+
+test('V1.1 long feedback uses independent list and timeline scrollports, persistent dock',()=>{
+ const css11=css.split('/* Admin Feedback Premium V1.1 — viewport-bounded')[1];
+ assert.match(css11,/grid-template-rows:auto auto auto auto minmax\(0,1fr\)!important/);
+ assert.match(css11,/100dvh - 138px/);
+ assert.match(css11,/#adminFeedbackView \.af-premium-workspace-v1\{[^}]*min-height:0!important;max-height:100%!important;overflow:hidden!important/s);
+ assert.match(css11,/\.admin-feedback-shell-v1520\{\s*display:grid!important;[^}]*height:100%!important;min-height:0!important;max-height:100%!important/s);
+ assert.match(css11,/\.admin-feedback-members-v1520\{\s*display:grid!important;grid-template-rows:auto minmax\(0,1fr\)!important;/s);
+ assert.match(css11,/\.admin-feedback-member-list-v1520\{[^}]*overflow-y:auto!important/s);
+ assert.match(css11,/#afDetailV1520:not\(\[hidden\]\)\{\s*display:grid!important;grid-template-rows:auto minmax\(0,1fr\) auto!important/s);
+ assert.match(css11,/#afList\.admin-feedback-thread-v1520\{[^}]*max-height:none!important;[^}]*overflow-y:auto!important/s);
+ assert.match(css11,/\.af-premium-dock-v1:not\(\[hidden\]\)\{\s*position:relative!important;z-index:2/s);
+ assert.match(css11,/overscroll-behavior:contain/);
+ assert.match(css11,/@media\(max-width:720px\)/);
+ assert.match(css11,/grid-template-rows:133px minmax\(0,1fr\)!important/);
+ assert.match(css11,/@media\(max-height:790px\) and \(min-width:721px\)/);
+ for(const line of css11.split('\n').filter(x=>x.trim().startsWith('body.'))){
+  assert.match(line,/#adminFeedbackView/);
+ }
+ for(const unsafe of ['#adminChatView','#adminUsageView','#adminAnalyticsView']){
+  assert.ok(!css11.includes(unsafe),'No cross-page selector: '+unsafe);
+ }
+});
+
+test('V1.1 retains the single revision-safe update and verified attachments',()=>{
+ assert.match(admin,/client\.rpc\('mmh_is_admin'\)/);
+ assert.match(admin,/client\.rpc\('mmh_list_feedback',\{p_admin:true,p_status:'',p_offset:offset\}\)/);
+ assert.equal((admin.match(/client\.rpc\('mmh_update_feedback'/g)||[]).length,1);
+ assert.match(admin,/p_revision:row\.revision/);
+ assert.match(admin,/error\.code==='40001'/);
+ assert.match(admin,/await addPhotos\(row,d,token,'fb-admin-photos-v15'\)/);
+ assert.match(premium,/host\.replaceChildren\(form\)/);
+ assert.doesNotMatch(premium,/\.rpc\(|fetch\(|XMLHttpRequest/);
 });
