@@ -59,8 +59,11 @@ function nativeForm(h){
   const t=new Select('type',['Income','Expense','Transfer']);
   const g=new Select('transaction',['Income','Expense','Personal','Loans','Transfer','Data Adjustment']);
   const c=new Select('category',['Salary','Other Income','Dining','Other','Gifts','Transfer']);
+  const submit={disabled:false,dataset:{}};
   const form={
-    id:'txForm',querySelector:sel=>sel==='.mmh-form-section-v1'?{after:node=>{nodes[node.id]=node}}:sel==='.formgrid'?{prepend:()=>{}}:null
+    id:'txForm',querySelector:sel=>sel==='.mmh-form-section-v1'?{after:node=>{nodes[node.id]=node}}:
+      sel==='.formgrid'?{prepend:()=>{}}:
+      sel==='.actions button:not([type="button"])'?submit:null
   };
   nodes.txForm=form;nodes.txType=t;nodes.txGroup=g;nodes.txCategory=c;
   context.document.createElement=tag=>({
@@ -90,7 +93,7 @@ function nativeForm(h){
     const old=c.value;c.replaceChildren(...names.map(x=>({value:x,textContent:x,dataset:{}})));
     if(names.includes(old))c.value=old;
   };
-  return {t,g,c,labels,form};
+  return {t,g,c,labels,form,submit};
 }
 
 test('zero or one configured field hides all three native selects, not a fake Salary dropdown',()=>{
@@ -194,6 +197,29 @@ test('real Manage render moves exactly one Category form, and restores it for le
   const panel=findById(host,'mmhV12Manage');
   assert.ok(panel,'managed owner has one Manage section');
   assert.equal(legacy.hidden,true,'new owner with zero saved/archived Categories should not see empty search card');
+  const rows=panel.querySelector('.mmh-v12-cols').children;
+  assert.equal(rows.length,3,'three compact management rows');
+  const typeQuick=rows[0].querySelector('.mmh-v13-available').children;
+  assert.equal(typeQuick.length,4,'one caption and three optional built-in Types');
+  typeQuick.find(x=>x.textContent==='+ Income').listeners.click();
+  assert.deepEqual(Array.from(h.config.txFieldsV12.type),['Income']);
+  const afterType=panel.querySelector('.mmh-v12-cols').children;
+  const incomeEntry=afterType[0].querySelector('.mmh-v13-active').children[0];
+  assert.equal(incomeEntry.children[0].textContent,'Income','added entry shows a name and action buttons');
+  assert.equal(incomeEntry.children[1].textContent,'Edit');
+  assert.equal(incomeEntry.children[2].textContent,'Remove');
+  const txQuick=afterType[1].querySelector('.mmh-v13-available').children;
+  assert.ok(txQuick.every(x=>!x.textContent?.includes('Expense')),
+    'only compatible new transaction kinds are offered');
+  txQuick.find(x=>x.textContent==='+ Income').listeners.click();
+  assert.deepEqual(Array.from(h.config.txFieldsV12.transaction),['Income|Income']);
+  const preview=panel.querySelector('.mmh-v12-preview-fields');
+  assert.deepEqual(preview.children.map(x=>x.textContent),['Type','Transaction']);
+  const afterReady=panel.querySelector('.mmh-v12-cols').children;
+  afterReady[0].querySelector('.mmh-v13-active').children[0].children[2].listeners.click();
+  assert.equal(h.config.txFieldsV12.type.length,0,'Remove changes owner config only');
+  assert.equal(h.config.txFieldsV12.transaction.length,1,'removing Type keeps Transaction');
+  assert.equal(h.writes.length,3,'all three changes persisted through owner-scoped settings');
   assert.equal(categoryForm.parentElement?.className,'mmh-v12-col mmh-v12-col-category');
   h.api.refreshManage();
   assert.equal(categoryForm.parentElement?.className,'mmh-v12-col mmh-v12-col-category',
@@ -202,7 +228,7 @@ test('real Manage render moves exactly one Category form, and restores it for le
   assert.equal(findAll(host,categoryForm).length,1,'must never duplicate the native Category form');
   h.config.txFieldsV12.category.push('Income|Salary');
   h.api.refreshManage();
-  assert.equal(legacy.hidden,false,'the original saved/archived Category list becomes available after adding one');
+  assert.equal(legacy.hidden,true,'managed owner does not see duplicate native Category list after selecting one');
   h.config.txFieldsV12=null;
   h.api.refreshManage();
   assert.equal(panel.hidden,true);
@@ -211,10 +237,14 @@ test('real Manage render moves exactly one Category form, and restores it for le
 });
 
 test('Manage displays existing native Category editor beside Type and Transaction rather than separate duplicate controls',()=>{
+  assert.match(source,/mmh-v13-entry/);
+  assert.match(source,/mmh-v12-preview-fields/);
+  assert.doesNotMatch(source,/row\.append\(select\)/);
   assert.match(source,/categoryCard=make\('div','mmh-v12-col mmh-v12-col-category'\)/);
   assert.match(source,/if\(categoryForm\)categoryCard\.append\(categoryForm\)/);
   assert.match(source,/if\(!isManaged\(\)\)\{[\s\S]*?header\.after\(categoryForm\)/);
-  assert.match(source,/compatible=kind==='transaction'/);
+  assert.match(source,/mmh-v13-active/);
+  assert.match(source,/function fieldDialog\(field,entry=null\)/);
   assert.doesNotMatch(source,/data-tx-pref-select-v11|mmh-tx-quick-v11|makePref\(/);
 });
 
@@ -257,6 +287,7 @@ test('fresh owner can add Type then Transaction then Category without creating d
   assert.equal(dom.labels.category.dataset.mmhV12Hidden,'0');
   assert.equal(dom.c.value,'Dining');
   assert.equal(h.api.validate(),true);
+  assert.equal(dom.submit.disabled,false,'compatible Expense combination can be saved');
 });
 
 test('managed Type + Transaction displays only original two native fields and safe neutral category',()=>{
@@ -315,7 +346,8 @@ test('two-field Loan Income without explicit Category is blocked instead of gues
   const dom=nativeForm(h);
   h.api.refresh();
   assert.equal(dom.t.value,'Income');
-  assert.equal(dom.g.value,'Loans');
+  assert.equal(dom.g.value,'','incompatible loan group is not offered as a saveable option');
+  assert.equal(h.api.readiness().ready,false);
   assert.equal(h.api.validate(),false);
 });
 
@@ -400,7 +432,7 @@ test('original Add Transaction layout is not restructured or duplicated',()=>{
   assert.match(app,/<div class="tx-tab-panel-v371" id="txAddPanel"/);
   assert.match(app,/<div class="mmh-form-section-v1 full"><span data-en="Accounts & amounts"/);
   assert.match(app,/<div class="mmh-form-section-v1 full"><span data-en="Note & attachment"/);
-  assert.match(app,/js\/mmhvault-transaction-field-layout-v11\.js\?v=2\.1\.0/);
+  assert.match(app,/js\/mmhvault-transaction-field-layout-v11\.js\?v=3\.0\.4/);
   assert.doesNotMatch(source,/txPrefHolderV11|mmh-tx-pref-v11|quick\(form/);
 });
 
@@ -419,4 +451,271 @@ test('unsafe hidden categories never get a guessed loan or personal classificati
   assert.match(source,/return null;\s*\}/);
   assert.match(source,/if\(!defaultCat\|\|!\(list\|\|\[\]\)\.includes\(defaultCat\)\)/);
   assert.match(source,/event\.stopImmediatePropagation\(\)/);
+});
+
+
+test('custom Type and Transaction labels add, edit and remove without modifying ledger codes',()=>{
+  const h=harness({version:1,type:['Income'],transaction:['Income|Income'],category:[]});
+  const type={key:'base:Income',canonical:'Income',label:'Income',custom:false};
+  assert.equal(h.api.saveName('type',type,'Income','Main Income'),true);
+  assert.equal(h.api.fieldItems('type')[0].label,'Main Income');
+  assert.equal(h.api.saveName('type',null,'Income','Weekend Job'),true);
+  const alias=h.api.fieldItems('type').find(x=>x.custom);
+  assert.ok(alias,'additional custom label is saved under canonical Income');
+  assert.equal(alias.canonical,'Income');
+  assert.equal(h.api.saveName('transaction',null,'Income|Income','Paycheck'),true);
+  const tx=h.api.fieldItems('transaction').find(x=>x.custom);
+  assert.ok(tx);
+  assert.equal(h.api.saveName('transaction',tx,'Income|Income','Project Pay'),true);
+  assert.equal(h.api.fieldItems('transaction').find(x=>x.custom).label,'Project Pay');
+  assert.equal(h.api.removeName('type',type),false,'cannot remove base while extra aliases depend on it');
+  assert.equal(h.api.removeName('type',alias),true);
+  assert.equal(h.api.removeName('type',type),true);
+  assert.deepEqual(Array.from(h.config.txFieldsV12.type),[]);
+  assert.deepEqual(Array.from(h.config.txFieldsV12.transaction),['Income|Income']);
+  assert.equal(h.config.txFieldsV12.displayV13.extraTypes.length,0);
+  assert.ok(h.writes.length>=6);
+});
+
+test('owner isolation, duplicate rejection and unsafe financial type cannot create a custom code',()=>{
+  const h=harness({version:1,type:['Income'],transaction:[],category:[]});
+  assert.equal(h.api.saveName('type',null,'Income','Income'),false,'existing visible label is not duplicated');
+  assert.equal(h.api.saveName('type',null,'Mystery','Mystery Type'),false);
+  assert.equal(h.api.saveName('type',null,'Income','New Name'),true);
+  assert.equal(h.config.txFieldsV12.displayV13.extraTypes.length,1);
+  const anonymous=harness(fresh(),null);
+  assert.equal(anonymous.api.saveName('type',null,'Income','New Label'),false);
+  assert.equal(anonymous.writes.length,0);
+});
+
+test('managed Category rename retains current selection, while app uses existing secure edit flow',()=>{
+  const h=harness({version:1,type:[],transaction:[],category:['Expense|Dining']});
+  h.api.onCategoryRenamed('Expense','Dining','Cafe');
+  assert.deepEqual(Array.from(h.config.txFieldsV12.category),['Expense|Cafe']);
+  assert.match(app,/onCategoryRenamed\?\.\(currentGroup,currentName,newName\)/);
+  assert.match(app,/displayV13:\{/);
+  assert.match(app,/typeLabels:names\(v13\.typeLabels,typeCodes\)/);
+  assert.match(app,/extraTransactions:aliases\(v13\.extraTransactions,transactionCodes\)/);
+});
+
+test('managed custom names display in original Add Transaction selects with canonical values',()=>{
+  const h=harness({
+    version:1,type:['Income'],transaction:['Income|Income'],category:[],
+    displayV13:{typeLabels:{Income:'Main income'},transactionLabels:{'Income|Income':'Paid work'},
+      extraTypes:[{id:'user_abcd1234',canonical:'Income',label:'Bonus income'}],
+      extraTransactions:[{id:'user_efgh5678',canonical:'Income|Income',label:'Side job'}]}
+  });
+  const dom=nativeForm(h);h.api.refresh();
+  assert.ok(dom.t.options.some(x=>x.textContent==='Main income'));
+  assert.ok(dom.t.options.some(x=>x.textContent==='Bonus income'));
+  assert.ok(dom.g.options.some(x=>x.textContent==='Paid work'));
+  assert.ok(dom.g.options.some(x=>x.textContent==='Side job'));
+  assert.equal(dom.t.value,'Income');assert.equal(dom.g.value,'Income');
+  assert.equal(h.api.validate(),true,'custom display alias does not change finance validation');
+});
+
+
+test('ready counter never lies: two selected kinds with incompatible Income Transaction and Expense Category are not ready',()=>{
+  const h=harness({version:1,type:[],transaction:['Income|Income'],category:['Expense|Dining']});
+  const dom=nativeForm(h);
+  h.api.refresh();
+  const status=h.api.readiness();
+  assert.equal(status.count,2);
+  assert.equal(status.ready,false);
+  assert.match(status.reason,/no matching financial combination/i);
+  assert.equal(h.api.validate(),false);
+  for(const label of Object.values(dom.labels))assert.equal(label.hidden,true);
+  assert.equal(dom.submit.disabled,true,'incompatible configured fields must disable Add Transaction');
+  assert.equal(dom.g.options.length,0,'stale Transaction choices are removed when selection is invalid');
+  assert.equal(dom.c.options.length,0,'default Income Salary is not incorrectly shown');
+  assert.match(h.nodes.mmhV12SetupNote.children[0].textContent,/no matching/i);
+});
+
+test('Transaction + Category with an Income and Expense choice auto-selects only compatible Expense Category',()=>{
+  const h=harness({
+    version:1,type:[],
+    transaction:['Income|Income','Expense|Expense'],
+    category:['Expense|Dining']
+  });
+  const dom=nativeForm(h);h.api.refresh();
+  assert.equal(h.api.readiness().ready,true);
+  assert.equal(dom.labels.type.hidden,true);
+  assert.equal(dom.labels.transaction.hidden,false);
+  assert.equal(dom.labels.category.hidden,false);
+  assert.deepEqual(Array.from(dom.g.options.map(x=>x.textContent)),['Expense'],
+    'Income is excluded because only an Expense Category is selected');
+  assert.deepEqual(Array.from(dom.c.options.map(x=>x.value)),['Dining'],
+    'not all historical/default categories are offered');
+  assert.equal(dom.t.value,'Expense');
+  assert.equal(dom.g.value,'Expense');
+  assert.equal(dom.c.value,'Dining');
+  assert.equal(h.api.validate(),true);
+});
+
+test('two fields with Type and Category but incompatible types remain blocked without guessing ledger groups',()=>{
+  const h=harness({version:1,type:['Income'],transaction:[],category:['Expense|Dining']});
+  const dom=nativeForm(h);h.api.refresh();
+  assert.equal(h.api.readiness().ready,false);
+  assert.equal(h.api.validate(),false);
+  assert.equal(dom.labels.type.hidden,true);
+  assert.equal(dom.labels.category.hidden,true);
+  h.config.txFieldsV12.type.push('Expense');
+  h.api.refresh();
+  assert.equal(h.api.readiness().ready,true);
+  dom.t.value='Expense';h.api.refresh();
+  assert.equal(dom.t.value,'Expense');
+  assert.equal(dom.c.value,'Dining');
+  assert.equal(h.api.validate(),true);
+});
+
+test('legacy accounts retain all original native fields and editable submission',()=>{
+  const h=harness(null),dom=nativeForm(h);h.api.refresh();
+  assert.equal(dom.labels.type.hidden,false);
+  assert.equal(dom.labels.transaction.hidden,false);
+  assert.equal(dom.labels.category.hidden,false);
+  assert.equal(h.api.validate(),true);
+});
+
+
+test('when globally Ready but only Expense has a Category, Add Transaction hides unready Income Type',()=>{
+  const h=harness({version:1,
+    type:['Income','Expense'],
+    transaction:['Income|Income','Expense|Expense'],
+    category:['Expense|Dining']});
+  const dom=nativeForm(h);h.api.refresh();
+  assert.equal(h.api.readiness().ready,true,'at least one valid financial combination exists');
+  assert.deepEqual(Array.from(dom.t.options.map(x=>x.value)),['Expense'],
+    'Income is configured but has no matching Category and must not appear as saveable');
+  assert.deepEqual(Array.from(dom.g.options.map(x=>x.value)),['Expense']);
+  assert.deepEqual(Array.from(dom.c.options.map(x=>x.value)),['Dining']);
+  assert.equal(dom.t.value,'Expense');
+  assert.equal(h.api.validate(),true);
+  assert.equal(dom.submit.disabled,false);
+});
+
+
+test('archived Category selection is ignored in new managed form while canonical Type + Transaction works',()=>{
+  const h=harness({version:1,
+    type:['Income'],transaction:['Income|Income'],category:['Income|Salary']});
+  const dom=nativeForm(h);
+  h.config.categories.Income=h.config.categories.Income.filter(x=>x!=='Salary');
+  h.api.refresh();
+  assert.equal(h.api.getMode(),'type-transaction');
+  assert.equal(h.api.readiness().count,2);
+  assert.equal(h.api.readiness().ready,true);
+  assert.equal(dom.c.value,'Other Income');
+  assert.equal(dom.c.value,'Other Income');
+  assert.equal(h.api.validate(),true);
+});
+
+
+test('legacy dropdown rewrite cannot reintroduce unconfigured Transfer into a managed Type',()=>{
+  const h=harness({version:1,type:['Income','Expense'],transaction:['Income|Income','Expense|Expense'],category:[]});
+  const dom=nativeForm(h);
+  h.api.refresh();
+  assert.deepEqual(dom.t.options.map(x=>x.value),['Income','Expense']);
+  assert.equal(h.api.validate(),true);
+  // Legacy language/cascade code can rebuild the original three-item select
+  // after V11 has already rendered the managed two-item version.
+  dom.t.replaceChildren(...['Income','Expense','Transfer'].map(value=>({value,textContent:value,dataset:{}})));
+  dom.g.replaceChildren(...['Income','Loans','Data Adjustment'].map(value=>({value,textContent:value,dataset:{}})));
+  h.api.reconcileNative();
+  assert.deepEqual(dom.t.options.map(x=>x.value),['Income','Expense']);
+  assert.ok(dom.t.options.every(x=>x.dataset.mmhChoiceId));
+  assert.deepEqual(dom.g.options.map(x=>x.value),['Income']);
+  assert.equal(h.api.validate(),true);
+});
+
+test('legacy option rebuild cannot break managed Transaction + Category pairing or save',()=>{
+  const h=harness({version:1,type:[],transaction:['Income|Income'],category:['Income|Salary']});
+  const dom=nativeForm(h);
+  h.api.refresh();
+  assert.equal(h.api.validate(),true);
+  assert.equal(dom.labels.type.hidden,true);
+  dom.g.replaceChildren(...['Expense','Loans','Transfer'].map(value=>({value,textContent:value,dataset:{}})));
+  dom.c.replaceChildren(...['Other','Dining'].map(value=>({value,textContent:value,dataset:{}})));
+  h.api.reconcileNative();
+  assert.equal(dom.g.value,'Income');
+  assert.equal(dom.g.options.length,1);
+  assert.equal(dom.g.options[0].dataset.mmhCanonicalType,'Income');
+  assert.equal(dom.c.value,'Salary');
+  assert.equal(dom.c.options[0].dataset.mmhCanonicalGroup,'Income');
+  assert.equal(h.api.validate(),true);
+  assert.equal(dom.submit.disabled,false);
+});
+
+test('legacy rewrite in Type + Category restores category options without adding Transaction',()=>{
+  const h=harness({version:1,type:['Expense'],transaction:[],category:['Expense|Dining']});
+  const dom=nativeForm(h);
+  h.api.refresh();
+  dom.c.replaceChildren(...['Salary','Other','Dining'].map(value=>({value,textContent:value,dataset:{}})));
+  h.api.reconcileNative();
+  assert.deepEqual(dom.t.options.map(x=>x.value),['Expense']);
+  assert.deepEqual(dom.c.options.map(x=>x.value),['Dining']);
+  assert.equal(dom.labels.transaction.hidden,true);
+  assert.equal(h.api.validate(),true);
+});
+
+test('incomplete new-owner setup remains empty even when old widgets insert default categories',()=>{
+  const h=harness(fresh()),dom=nativeForm(h);
+  h.api.refresh();
+  dom.g.replaceChildren({value:'Income',textContent:'Income',dataset:{}});
+  dom.c.replaceChildren({value:'Salary',textContent:'Salary',dataset:{}});
+  h.api.reconcileNative();
+  assert.equal(dom.g.options.length,0);
+  assert.equal(dom.c.options.length,0);
+  assert.equal(h.api.validate(),false);
+  assert.equal(dom.submit.disabled,true);
+});
+
+test('legacy owner selector options are not modified by managed owner reconciliation',()=>{
+  const h=harness(null),dom=nativeForm(h);
+  const existing=dom.t.options.map(x=>x.value);
+  h.api.reconcileNative();
+  assert.deepEqual(dom.t.options.map(x=>x.value),existing);
+});
+
+
+test('existing owner exposes modern presentation entries without migrating its old field layout or ledger',()=>{
+  const h=harness(null),dom=nativeForm(h);
+  const before=JSON.stringify(h.config);
+  const legacy=h.api.getLegacyView();
+  assert.ok(legacy);
+  assert.deepEqual(Array.from(legacy.type,x=>x.canonical),['Income','Expense','Transfer']);
+  assert.equal(legacy.transaction.length,8);
+  assert.ok(legacy.category.some(x=>x.raw==='Expense|Dining'));
+  assert.ok(legacy.category.some(x=>x.raw==='Income|Salary'));
+  assert.equal(h.api.isManaged(),false);
+  h.api.refresh();
+  assert.deepEqual(Object.values(dom.labels).map(x=>x.hidden),[false,false,false],
+    'old accounts still see the original three Add Transaction fields');
+  assert.equal(JSON.stringify(h.config),before,'read-only presentation must not modify the configuration');
+  assert.equal(h.writes.length,0,'read-only presentation performs no cloud save');
+});
+
+test('legacy presentation category list shows active names and separate archive without altering config',()=>{
+  const h=harness(null);
+  h.config.archivedCategories={Expense:['Archived Dining']};
+  const before=JSON.stringify(h.config);
+  const legacy=h.api.getLegacyView();
+  assert.ok(legacy.category.some(x=>x.group==='Income'&&x.name==='Salary'));
+  assert.ok(!legacy.category.some(x=>x.name==='Archived Dining'));
+  assert.equal(h.api.getArchivedCategoryEntries().length,1);
+  assert.equal(h.api.getArchivedCategoryEntries()[0].name,'Archived Dining');
+  assert.equal(JSON.stringify(h.config),before);
+  assert.equal(h.writes.length,0);
+});
+
+test('no signed-in owner cannot expose legacy account lists through presentation API',()=>{
+  const h=harness(null,null);
+  assert.equal(h.api.getLegacyView(),null);
+  assert.equal(h.api.getArchivedCategoryEntries().length,0);
+});
+
+test('new owner retains empty Manage and is never auto-migrated into old defaults',()=>{
+  const h=harness(fresh());
+  assert.equal(h.api.getLegacyView(),null);
+  assert.equal(h.api.fieldItems('type').length,0);
+  assert.equal(h.api.fieldItems('transaction').length,0);
+  assert.equal(h.api.getCategoryEntries().length,0);
 });

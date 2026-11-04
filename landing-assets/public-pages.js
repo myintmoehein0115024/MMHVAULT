@@ -201,17 +201,23 @@
         el.style.setProperty('--mm-public-delay',Math.min(index%3,2)*55+'ms');
       });
       document.body.classList.add('mm-public-motion');
-      // L1.39: pre-reveal phone cards ahead of viewport; leave desktop as-is.
-      const mobileReveal=window.matchMedia('(max-width: 620px)').matches;
-      const observer=new IntersectionObserver(entries=>{
-        entries.forEach(entry=>{
-          if(!entry.isIntersecting)return;
-          entry.target.classList.add('mm-public-shown');
-          observer.unobserve(entry.target);
-        });
-      },{threshold:.045,rootMargin:mobileReveal?'0px 0px 12% 0px':'0px 0px -4% 0px'});
-      targets.filter(el=>!el.classList.contains('mm-public-shown'))
-        .forEach(el=>observer.observe(el));
+      // L1.58: rotate.
+      const mq=matchMedia('(max-width:620px)');
+      let io;
+      function bind(){
+        io?.disconnect();
+        const mobileReveal=mq.matches;
+        const o=new IntersectionObserver(es=>{
+          for(const e of es)if(e.isIntersecting){
+            e.target.classList.add('mm-public-shown');
+            o.unobserve(e.target);
+          }
+        },{threshold:.045,rootMargin:mobileReveal?'0px 0px 12% 0px':'0px 0px -4% 0px'});
+        io=o;
+        for(const e of targets)if(!e.classList.contains('mm-public-shown'))o.observe(e);
+      }
+      bind();
+      mq.addEventListener?mq.addEventListener('change',bind):mq.addListener?.(bind);
     }
   }
 })();

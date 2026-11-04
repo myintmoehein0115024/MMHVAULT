@@ -712,15 +712,18 @@
     const dictionary = strings[currentLang];
     businessTabs.forEach(button => {
       const selected = button.dataset.businessView === currentBusinessView;
-      button.setAttribute('aria-pressed',String(selected));
+      // L1.53: a language change must not rewrite the active concept state.
+      const pressed=String(selected);
+      if(button.getAttribute('aria-pressed')!==pressed)button.setAttribute('aria-pressed',pressed);
       button.classList.toggle('is-selected',selected);
     });
     document.querySelectorAll('[data-business-amount]').forEach(element => {
-      element.textContent = conceptData[currentBusinessView][element.dataset.businessAmount] || '';
+      const value = conceptData[currentBusinessView][element.dataset.businessAmount] || '';
+      if (element.textContent !== value) element.textContent = value;
     });
     document.querySelectorAll('[data-business-share]').forEach(element=>{
       const value=conceptData[currentBusinessView].shares[element.dataset.businessShare];
-      if(value) element.textContent=value;
+      if(value && element.textContent !== value) element.textContent=value;
     });
     const keyMap = {
       eyebrow: prefix + 'ContextEyebrow',
@@ -744,14 +747,19 @@
     };
     document.querySelectorAll('[data-business-text]').forEach(element => {
       const key = keyMap[element.dataset.businessText];
-      element.setAttribute('data-i18n',key);
-      element.textContent = dictionary[key] || '';
+      if(element.getAttribute('data-i18n')!==key)element.setAttribute('data-i18n',key);
+      const value = dictionary[key] || '';
+      if (element.textContent !== value) element.textContent = value;
     });
     const panel = document.querySelector('.business-stage');
-    if(panel) panel.dataset.currentView = currentBusinessView;
+    if(panel && panel.dataset.currentView!==currentBusinessView)panel.dataset.currentView = currentBusinessView;
   }
   businessTabs.forEach(button => button.addEventListener('click', () => {
-    updateBusinessPreview(button.dataset.businessView);
+    // L1.49: selecting an already active concept is a no-op. Avoid
+    // redundant data-current-view mutations and replayed Business animations.
+    // applyLanguage still calls updateBusinessPreview for translated labels.
+    if (button.dataset.businessView !== currentBusinessView)
+      updateBusinessPreview(button.dataset.businessView);
   }));
 
 
@@ -777,20 +785,31 @@
       const key = node.getAttribute('data-i18n');
       const value = dict[key];
       if (typeof value !== 'string') return;
-      if (htmlKeys.has(key)) node.innerHTML = value; // only hardcoded local, trusted translations
-      else node.textContent = value;
+      // L1.48: preserve the existing node when its localized value is already correct.
+      // Avoid unnecessary text/style invalidation on first paint and language changes.
+      if (htmlKeys.has(key)) {
+        if (node.innerHTML !== value) node.innerHTML = value; // trusted local translations only
+      } else if (node.textContent !== value) node.textContent = value;
     });
     languageButtons.forEach(button => {
-      button.setAttribute('aria-pressed', String(button.dataset.lang === currentLang));
+      // L1.54: preserve existing language choice ARIA on cold hydration.
+      const pressed=String(button.dataset.lang === currentLang);
+      if(button.getAttribute('aria-pressed')!==pressed)button.setAttribute('aria-pressed',pressed);
     });
     // L1.32: feature names use the selected display language on the tabs and
     // in the active story heading; product identity and panel IDs stay fixed.
     productTabs.forEach(tab => {
       const label = tab.querySelector('.product-tab-copy strong');
-      if (label) label.textContent = productLabels[currentLang][tab.dataset.productTab];
+      if (label) {
+        const name=productLabels[currentLang][tab.dataset.productTab];
+        if(label.textContent!==name)label.textContent=name;
+      }
     });
     const activeStoryTitle = document.querySelector('[data-app-story-title]');
-    if (activeStoryTitle) activeStoryTitle.textContent = productLabels[currentLang][activeProduct];
+    if (activeStoryTitle) {
+      const name=productLabels[currentLang][activeProduct];
+      if(activeStoryTitle.textContent!==name)activeStoryTitle.textContent=name;
+    }
     updateBusinessPreview(currentBusinessView);
     // Keep the currently selected feature story in the new display language.
     const storyDesc=document.querySelector('[data-app-story-desc]');
@@ -868,7 +887,9 @@
     }
   }
   languageButtons.forEach(button => button.addEventListener('click', () => {
-    applyLanguage(button.dataset.lang);
+    // L1.50: reselecting the active language only closes the selector;
+    // preserve keyboard focus without retranslating the entire page.
+    if (button.dataset.lang !== currentLang) applyLanguage(button.dataset.lang);
     closeLanguage();
     localeTrigger.focus({preventScroll:true});
   }));
@@ -938,13 +959,21 @@
   const homeLink = document.querySelector('#primary-nav [data-i18n="navHome"]');
   const sectionMap = new Map(sectionLinks.map(link => [link.getAttribute('href').slice(1), link]));
   function markSection(id) {
+    // L1.51: repeated viewport observations must not rewrite unchanged
+    // navigation attributes; keep the same active section and semantics.
     if (homeLink) {
-      if (id === 'top') homeLink.setAttribute('aria-current','location');
-      else homeLink.removeAttribute('aria-current');
+      if (id === 'top') {
+        if (homeLink.getAttribute('aria-current') !== 'location')
+          homeLink.setAttribute('aria-current','location');
+      } else if (homeLink.hasAttribute('aria-current'))
+        homeLink.removeAttribute('aria-current');
     }
     sectionLinks.forEach(link => {
-      if (link.getAttribute('href') === '#' + id) link.setAttribute('aria-current','location');
-      else link.removeAttribute('aria-current');
+      if (link.getAttribute('href') === '#' + id) {
+        if (link.getAttribute('aria-current') !== 'location')
+          link.setAttribute('aria-current','location');
+      } else if (link.hasAttribute('aria-current'))
+        link.removeAttribute('aria-current');
     });
   }
   // Home keeps a canonical "/" URL and scrolls smoothly within the already
@@ -1025,6 +1054,18 @@
     });
   }
 
+  // L1.55: finish an interrupted crossfade immediately when the tab is
+  // hidden or the user enables reduced motion, preserving selected content.
+  const clearInterruptedPreview = () => {
+    if (previewTransition && (reducedPreviewMotion.matches || document.hidden))
+      settlePreviewTransition();
+  };
+  if (typeof reducedPreviewMotion.addEventListener === 'function')
+    reducedPreviewMotion.addEventListener('change', clearInterruptedPreview);
+  else if (typeof reducedPreviewMotion.addListener === 'function')
+    reducedPreviewMotion.addListener(clearInterruptedPreview);
+  document.addEventListener('visibilitychange', clearInterruptedPreview);
+
   function selectProductView(view,focus=false,instant=false){
     const name=productNames.includes(view)?view:'dashboard';
     // L1.31: touching an already-selected preview is a no-op. Do not reset
@@ -1041,8 +1082,12 @@
     productTabs.forEach(t=>{
       const yes=t.dataset.productTab===name;
       t.classList.toggle('is-active',yes);
-      t.setAttribute('aria-selected',String(yes));
-      t.tabIndex=yes?0:-1;
+      // L1.52: only the two tabs whose selection state actually changes
+      // need ARIA/tabindex writes; preserve the existing roving focus.
+      const selected=String(yes);
+      if(t.getAttribute('aria-selected')!==selected)t.setAttribute('aria-selected',selected);
+      const tabIndex=yes?0:-1;
+      if(t.tabIndex!==tabIndex)t.tabIndex=tabIndex;
       if(yes&&focus)t.focus({preventScroll:true});
     });
     const outgoing=productPanels.find(p=>p.dataset.productPanel===previousName);

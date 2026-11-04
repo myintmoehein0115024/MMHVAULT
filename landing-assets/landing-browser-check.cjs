@@ -52,6 +52,1157 @@ async function load(page,route,failures){
 (async()=>{
  const browser=await chromium.launch({channel:'chrome',headless:true,args:['--no-sandbox','--disable-dev-shm-usage']});
  try{
+   // L1.56 Business WAAPI interruption browser parity. Compare the actual
+   // released script to only the L1.56 changes in a real Chromium session.
+   {
+     const candidate=fs.readFileSync('landing-assets/motion-l132.js','utf8');
+     const patches=[["  const activeAnimations=new WeakMap();\n  const play=","  const activeAnimations=new WeakMap();\n  // L1.56: stop only Business concept WAAPI motion on tab hiding or\n  // live reduced-motion changes, leaving presentation and data intact.\n  const runningBusinessAnimations=new Set();\n  const cancelInterruptedBusinessMotion=()=>{\n    if(permitted() && !document.hidden)return;\n    for(const animation of runningBusinessAnimations)animation.cancel();\n    runningBusinessAnimations.clear();\n  };\n  if(typeof motionPreference.addEventListener==='function')\n    motionPreference.addEventListener('change',cancelInterruptedBusinessMotion);\n  else if(typeof motionPreference.addListener==='function')\n    motionPreference.addListener(cancelInterruptedBusinessMotion);\n  document.addEventListener('visibilitychange',cancelInterruptedBusinessMotion);\n  const play="],["    if(!permitted() || typeof node.animate!=='function')return;","    if(!permitted() || document.hidden || typeof node.animate!=='function')return;"],["    activeAnimations.set(node,animation);\n  };","    activeAnimations.set(node,animation);\n    runningBusinessAnimations.add(animation);\n    const forget=()=>runningBusinessAnimations.delete(animation);\n    animation.addEventListener('finish',forget,{once:true});\n    animation.addEventListener('cancel',forget,{once:true});\n  };"],["      if(!permitted())return;","      if(!permitted() || document.hidden)return;"]];
+     let released=candidate;
+     for(const [before,after] of [...patches].reverse()){
+       assert.equal(released.split(after).length,2,'L1.56 unique isolated patch');
+       released=released.replace(after,before);
+     }
+     for(const [width,lang] of [[393,'my'],[768,'zh'],[1440,'en']]){
+       const versions={};
+       for(const [version,script] of [['released',released],['l156',candidate]]){
+         const ctx=await browser.newContext({
+           viewport:{width,height:852},reducedMotion:'no-preference',serviceWorkers:'block'});
+         const page=await ctx.newPage(),errors=[];
+         page.on('pageerror',e=>errors.push(e.message));
+         await page.addInitScript(value=>{
+           try{localStorage.setItem('mmhvault.landing.language',value)}catch(_){}
+         },lang);
+         await page.route('**/landing-assets/motion-l132.js*',route=>route.fulfill({
+           status:200,contentType:'application/javascript',body:script}));
+         await page.goto(origin+'/',{waitUntil:'load',timeout:25000});
+         const result=await page.evaluate(async()=>{
+           const nodes=[...document.querySelectorAll(
+             '#business .business-mode-context, #business .business-ui-heading, #business .business-ui .business-metric, #business .business-ui .business-stat')].slice(0,6);
+           const running=()=>nodes.reduce((n,node)=>n+node.getAnimations()
+             .filter(a=>a.playState==='running'||a.playState==='paused').length,0);
+           document.querySelector('[data-business-view="business"]').click();
+           await new Promise(resolve=>setTimeout(resolve,0));
+           const before=running();
+           Object.defineProperty(document,'hidden',{value:true,configurable:true});
+           document.dispatchEvent(new Event('visibilitychange'));
+           return {before,after:running(),
+             stage:document.querySelector('#business .business-stage').dataset.currentView,
+             pressed:document.querySelector('[data-business-view="business"]').getAttribute('aria-pressed'),
+             lang:document.documentElement.lang,
+             hero:[...document.querySelectorAll('[data-hero-fixed]')].map(x=>x.textContent.trim())};
+         });
+         ensure(errors.length===0&&result.before>0&&
+           result.stage==='business'&&result.pressed==='true'&&
+           result.lang===(lang==='zh'?'zh-CN':lang)&&result.hero.length===3,
+           'L1.56 '+version+' '+width+'px '+lang+' normal Business motion starts');
+         versions[version]=result;
+         await ctx.close();
+       }
+       ensure(versions.released.after>0&&versions.l156.after===0&&
+         JSON.stringify(versions.released.hero)===JSON.stringify(versions.l156.hero),
+         'L1.56 '+width+'px '+lang+' hidden-tab animation cancellation '+JSON.stringify({
+           before:versions.released.after,after:versions.l156.after
+         }));
+       const ctx=await browser.newContext({
+         viewport:{width,height:852},reducedMotion:'no-preference',serviceWorkers:'block'});
+       const page=await ctx.newPage(),errors=[];
+       page.on('pageerror',e=>errors.push(e.message));
+       await page.addInitScript(value=>{
+         try{localStorage.setItem('mmhvault.landing.language',value)}catch(_){}
+       },lang);
+       await page.goto(origin+'/',{waitUntil:'load',timeout:25000});
+       const started=await page.evaluate(async()=>{
+         const nodes=[...document.querySelectorAll(
+           '#business .business-mode-context, #business .business-ui-heading, #business .business-ui .business-metric, #business .business-ui .business-stat')].slice(0,6);
+         document.querySelector('[data-business-view="business"]').click();
+         await new Promise(resolve=>setTimeout(resolve,0));
+         // L1.57 CI stability: prolong these test-only WAAPI instances so
+         // natural completion cannot be mistaken for a real cancellation.
+         const active=nodes.flatMap(node=>node.getAnimations()
+           .filter(a=>a.playState==='running'));
+         window.__l156CancelEvents=0;
+         window.__l156CancelTargets=active.length;
+         active.forEach(animation=>{
+           animation.playbackRate=0.01;
+           animation.addEventListener('cancel',()=>{window.__l156CancelEvents++;},{once:true});
+         });
+         return active.length;
+       });
+       ensure(started>0,'L1.56 '+width+'px '+lang+' active animation before OS preference change');
+       await page.emulateMedia({reducedMotion:'reduce'});
+       await page.waitForFunction(()=>
+         window.__l156CancelTargets>0 &&
+         window.__l156CancelEvents===window.__l156CancelTargets &&
+         [...document.querySelectorAll(
+           '#business .business-mode-context, #business .business-ui-heading, #business .business-ui .business-metric, #business .business-ui .business-stat')]
+         .slice(0,6).every(node=>node.getAnimations().every(a=>
+           a.playState!=='running'&&a.playState!=='paused')),
+         null,{timeout:2500});
+       ensure(errors.length===0,'L1.56 '+width+'px '+lang+' live reduced-motion preference cancels WAAPI');
+       await ctx.close();
+     }
+     console.log('L1.56 Business interruption motion state comparison PASS; no loading-speed claim.');
+   }
+
+   // L1.55 preview interruption browser parity: exact released-script
+   // baseline versus candidate in real Chromium at mobile/tablet/desktop.
+   {
+     const candidate=fs.readFileSync('landing-assets/landing.js','utf8');
+     const hook="  // L1.55: finish an interrupted crossfade immediately when the tab is\n  // hidden or the user enables reduced motion, preserving selected content.\n  const clearInterruptedPreview = () => {\n    if (previewTransition && (reducedPreviewMotion.matches || document.hidden))\n      settlePreviewTransition();\n  };\n  if (typeof reducedPreviewMotion.addEventListener === 'function')\n    reducedPreviewMotion.addEventListener('change', clearInterruptedPreview);\n  else if (typeof reducedPreviewMotion.addListener === 'function')\n    reducedPreviewMotion.addListener(clearInterruptedPreview);\n  document.addEventListener('visibilitychange', clearInterruptedPreview);\n\n";
+     assert.equal(candidate.split(hook).length,2,'L1.55 exactly one hook');
+     const baseline=candidate.replace(hook,'');
+     for(const [width,lang] of [[393,'my'],[768,'zh'],[1440,'en']]){
+       const results={};
+       for(const [version,script] of [['baseline',baseline],['l155',candidate]]){
+         const context=await browser.newContext({
+           viewport:{width,height:852},reducedMotion:'no-preference',serviceWorkers:'block'});
+         const page=await context.newPage(),errors=[];
+         page.on('pageerror',e=>errors.push(e.message));
+         await page.addInitScript(language=>{
+           try{localStorage.setItem('mmhvault.landing.language',language)}catch(_){}
+         },lang);
+         await page.route('**/landing-assets/landing.js*',route=>route.fulfill({
+           status:200,contentType:'application/javascript',body:script}));
+         await page.goto(origin+'/',{waitUntil:'load',timeout:25000});
+         const result=await page.evaluate(()=>{
+           const snapshot=()=>({
+             visible:[...document.querySelectorAll('[data-product-panel]')]
+               .filter(panel=>!panel.hidden).map(panel=>panel.dataset.productPanel),
+             transient:[...document.querySelectorAll('[data-product-panel]')]
+               .some(panel=>panel.classList.contains('mmh-preview-enter')||
+                 panel.classList.contains('mmh-preview-exit')),
+             aria:[...document.querySelectorAll('[data-product-panel]')]
+               .map(panel=>[panel.dataset.productPanel,panel.inert,panel.getAttribute('aria-hidden')])
+           });
+           document.querySelector('[data-product-tab="transactions"]').click();
+           const during=snapshot();
+           // Same-task synthetic tab hide: no 340 ms timeout can race.
+           Object.defineProperty(document,'hidden',{configurable:true,value:true});
+           document.dispatchEvent(new Event('visibilitychange'));
+           return {during,after:snapshot(),lang:document.documentElement.lang,
+             hero:[...document.querySelectorAll('[data-hero-fixed]')]
+               .map(el=>el.textContent.trim())};
+         });
+         ensure(errors.length===0&&result.during.visible.length===2&&
+           result.lang===(lang==='zh'?'zh-CN':lang)&&result.hero.length===3,
+           'L1.55 '+version+' '+width+'px '+lang+' starts normal transition');
+         results[version]=result;
+         await context.close();
+       }
+       const before=results.baseline.after,after=results.l155.after;
+       ensure(before.visible.length===2&&before.transient&&
+         JSON.stringify(after.visible)===JSON.stringify(['transactions'])&&
+         !after.transient&&after.aria.every(([name,inert,hidden])=>
+           name==='transactions'?!inert&&hidden==='false':inert&&hidden==='true')&&
+         JSON.stringify(results.baseline.hero)===JSON.stringify(results.l155.hero),
+         'L1.55 '+width+'px '+lang+' hidden-tab immediate cleanup 2 panels -> 1');
+       const context=await browser.newContext({
+         viewport:{width,height:852},reducedMotion:'no-preference',serviceWorkers:'block'});
+       const page=await context.newPage(),errors=[];
+       page.on('pageerror',e=>errors.push(e.message));
+       await page.addInitScript(language=>{
+         try{localStorage.setItem('mmhvault.landing.language',language)}catch(_){}
+       },lang);
+       await page.goto(origin+'/',{waitUntil:'load',timeout:25000});
+       const begun=await page.evaluate(()=>{
+         // L1.58 test stability: hold the normal 340ms settle timer open.
+         // The media-change handler must end this transition, not the timer.
+         const nativeSetTimeout=window.setTimeout.bind(window);
+         window.__l155HeldTimers=0;
+         window.setTimeout=(fn,ms,...args)=>{
+           if(ms===340){
+             window.__l155HeldTimers++;
+             return nativeSetTimeout(fn,3000,...args);
+           }
+           return nativeSetTimeout(fn,ms,...args);
+         };
+         document.querySelector('[data-product-tab="accounts"]').click();
+         return {
+           panels:[...document.querySelectorAll('[data-product-panel]')].filter(el=>!el.hidden).length,
+           held:window.__l155HeldTimers
+         };
+       });
+       ensure(begun.panels===2&&begun.held===1,
+         'L1.55 '+width+'px '+lang+' animation starts with fallback timer held');
+       await page.emulateMedia({reducedMotion:'reduce'});
+       await page.waitForFunction(()=>[...document.querySelectorAll('[data-product-panel]')]
+         .filter(el=>!el.hidden).length===1,null,{timeout:1500});
+       const settled=await page.evaluate(()=>({
+         visible:[...document.querySelectorAll('[data-product-panel]')]
+           .filter(el=>!el.hidden).map(el=>el.dataset.productPanel),
+         selected:document.querySelector('[data-product-tab="accounts"]').getAttribute('aria-selected')
+       }));
+       ensure(errors.length===0&&
+         JSON.stringify(settled.visible)===JSON.stringify(['accounts'])&&settled.selected==='true',
+         'L1.55 '+width+'px '+lang+' live reduced-motion toggle settles early');
+       await context.close();
+     }
+     console.log('L1.55 Chromium comparison: hidden tab pending panels 2 to 1; no field-LCP claim.');
+   }
+
+   // L1.54 initial feature and language labels browser parity.
+   // Observe cold-start DOM writes before defer scripts execute, then compare
+   // English/Chinese/Burmese content and actual switch interactions.
+   {
+     const optimized=fs.readFileSync('landing-assets/landing.js','utf8');
+     const patches=[["      button.setAttribute('aria-pressed', String(button.dataset.lang === currentLang));","      // L1.54: preserve existing language choice ARIA on cold hydration.\n      const pressed=String(button.dataset.lang === currentLang);\n      if(button.getAttribute('aria-pressed')!==pressed)button.setAttribute('aria-pressed',pressed);"],["      if (label) label.textContent = productLabels[currentLang][tab.dataset.productTab];","      if (label) {\n        const name=productLabels[currentLang][tab.dataset.productTab];\n        if(label.textContent!==name)label.textContent=name;\n      }"],["    if (activeStoryTitle) activeStoryTitle.textContent = productLabels[currentLang][activeProduct];","    if (activeStoryTitle) {\n      const name=productLabels[currentLang][activeProduct];\n      if(activeStoryTitle.textContent!==name)activeStoryTitle.textContent=name;\n    }"]];
+     let baseline=optimized;
+     for(const [before,after] of patches){
+       assert.equal(baseline.split(after).length,2,'L1.54 unique hydration edit');
+       baseline=baseline.replace(after,before);
+     }
+     const samples=[];
+     for(const width of [393,768,1440])for(const lang of ['en','zh','my']){
+       const versions={};
+       for(const [type,script] of [['baseline',baseline],['optimized',optimized]]){
+         const ctx=await browser.newContext({
+           viewport:{width,height:852},reducedMotion:'reduce',serviceWorkers:'block'});
+         const page=await ctx.newPage(),errors=[];
+         page.on('pageerror',error=>errors.push(error.message));
+         await page.addInitScript(initial=>{
+           try{localStorage.setItem('mmhvault.landing.language',initial)}catch(_){}
+           window.__l154={labels:0,title:0,pressed:0,started:false};
+           document.addEventListener('readystatechange',()=>{
+             if(document.readyState!=='interactive'||window.__l154.started)return;
+             window.__l154.started=true;
+             const obs=new MutationObserver(records=>{
+               for(const record of records){
+                 const target=record.target.nodeType===1
+                   ?record.target:record.target.parentElement;
+                 if(!target||typeof target.matches!=='function')continue;
+                 if(record.type==='attributes' &&
+                   record.attributeName==='aria-pressed'&&target.matches('[data-lang]'))
+                     window.__l154.pressed++;
+                 if(record.type==='childList'){
+                   if(target.matches('.product-tab-copy strong'))window.__l154.labels++;
+                   if(target.matches('[data-app-story-title]'))window.__l154.title++;
+                 }
+               }
+             });
+             obs.observe(document,{attributes:true,attributeFilter:['aria-pressed'],
+               childList:true,subtree:true});
+             window.__l154observer=obs;
+           });
+         },lang);
+         await page.route('**/landing-assets/landing.js*',route=>route.fulfill({
+           status:200,contentType:'application/javascript',body:script}));
+         const response=await page.goto(origin+'/',{waitUntil:'load',timeout:30000});
+         const result=await page.evaluate(initial=>{
+           const take=()=>({
+             htmlLang:document.documentElement.lang,
+             stored:localStorage.getItem('mmhvault.landing.language'),
+             langButtons:[...document.querySelectorAll('[data-lang]')].map(x=>
+               [x.dataset.lang,x.getAttribute('aria-pressed')]),
+             previewLabels:[...document.querySelectorAll('[data-product-tab]')].map(x=>
+               [x.dataset.productTab,x.querySelector('.product-tab-copy strong')?.textContent]),
+             story:document.querySelector('[data-app-story-title]')?.textContent,
+             hero:[...document.querySelectorAll('[data-hero-fixed]')]
+               .map(x=>x.textContent.trim()),
+             meta:document.querySelector('meta[name="description"]')?.content,
+             headerRight:Math.round(document.querySelector('.site-header')
+               .getBoundingClientRect().right)
+           });
+           const writes={labels:window.__l154.labels,title:window.__l154.title,
+             pressed:window.__l154.pressed,started:window.__l154.started};
+           const initialState=take();
+           const next=initial==='en'?'zh':initial==='zh'?'my':'en';
+           document.querySelector('#locale-trigger').click();
+           document.querySelector('[data-lang="'+next+'"]').click();
+           const switched=take();
+           document.querySelector('#locale-trigger').click();
+           document.querySelector('[data-lang="'+initial+'"]').click();
+           const restored=take();
+           window.__l154observer?.disconnect();
+           return {writes,initialState,switched,restored};
+         },lang);
+         const targetLang=lang==='zh'?'zh-CN':lang;
+         const otherLang=lang==='en'?'zh-CN':lang==='zh'?'my':'en';
+         ensure(response?.status()===200&&errors.length===0&&
+           result.writes.started&&
+           result.initialState.htmlLang===targetLang&&
+           result.initialState.hero.length===3&&
+           result.initialState.headerRight<=width+1&&
+           result.switched.htmlLang===otherLang&&
+           result.restored.htmlLang===targetLang&&
+           result.switched.langButtons.filter(x=>x[1]==='true').length===1&&
+           result.restored.langButtons.filter(x=>x[1]==='true').length===1,
+           'L1.54 '+type+' '+width+'px '+lang+' initial and actual locale changes');
+         versions[type]=result;
+         await ctx.close();
+       }
+       const before=versions.baseline,after=versions.optimized;
+       for(const key of ['initialState','switched','restored']){
+         ensure(JSON.stringify(before[key])===JSON.stringify(after[key]),
+           'L1.54 '+width+'px '+lang+' identical '+key+' and fixed Hero');
+       }
+       const b=before.writes,a=after.writes;
+       ensure(a.labels<=b.labels&&a.title<=b.title&&a.pressed<=b.pressed&&
+         b.labels+b.title+b.pressed>a.labels+a.title+a.pressed,
+         'L1.54 '+width+'px '+lang+' skips redundant initial label/ARIA writes '+
+         JSON.stringify({before:b,after:a}));
+       samples.push({width,lang,before:b,after:a});
+     }
+     const saved=samples.reduce((n,x)=>n+
+       x.before.labels+x.before.title+x.before.pressed-
+       x.after.labels-x.after.title-x.after.pressed,0);
+     ensure(saved>0,'L1.54 measured cold hydration DOM writes avoided '+saved);
+     console.log('L1.54 cold hydration DOM lab (not field LCP): '+
+       JSON.stringify({savedInitialWrites:saved,samples}));
+   }
+
+   // L1.53 Business locale metadata no-op browser parity.
+   // Compare L1.52 and candidate at mobile/tablet/desktop × EN/ZH/MY.
+   // Language changes should translate visible copy without rewriting
+   // unchanged Business aria-pressed/data-i18n/data-current-view attributes.
+   {
+     const proposed=fs.readFileSync('landing-assets/landing.js','utf8');
+     const patches=[["      button.setAttribute('aria-pressed',String(selected));","      // L1.53: a language change must not rewrite the active concept state.\n      const pressed=String(selected);\n      if(button.getAttribute('aria-pressed')!==pressed)button.setAttribute('aria-pressed',pressed);"],["      element.setAttribute('data-i18n',key);\n      const value = dictionary[key] || '';","      if(element.getAttribute('data-i18n')!==key)element.setAttribute('data-i18n',key);\n      const value = dictionary[key] || '';"],["    if(panel) panel.dataset.currentView = currentBusinessView;","    if(panel && panel.dataset.currentView!==currentBusinessView)panel.dataset.currentView = currentBusinessView;"]];
+     let baseline=proposed;
+     for(const [oldCode,newCode] of patches){
+       assert.equal(baseline.split(newCode).length,2,
+         'L1.53 unique Business metadata patch');
+       baseline=baseline.replace(newCode,oldCode);
+     }
+     const reports=[];
+     for(const width of [393,768,1440])for(const locale of ['en','zh','my']){
+       const versions={};
+       for(const [name,script] of [['baseline',baseline],['optimized',proposed]]){
+         const ctx=await browser.newContext({
+           viewport:{width,height:852},reducedMotion:'reduce',serviceWorkers:'block'});
+         const page=await ctx.newPage(),errors=[];
+         page.on('pageerror',error=>errors.push(error.message));
+         await page.addInitScript(lang=>{
+           try{localStorage.setItem('mmhvault.landing.language',lang)}catch(_){}
+         },locale);
+         await page.route('**/landing-assets/landing.js*',route=>route.fulfill({
+           status:200,contentType:'application/javascript',body:script}));
+         const response=await page.goto(origin+'/',{waitUntil:'load',timeout:30000});
+         const output=await page.evaluate(start=>{
+           const stage=document.querySelector('.business-stage');
+           const tabs=[...document.querySelectorAll('[data-business-view]')];
+           const langTrigger=document.getElementById('locale-trigger');
+           const langButtons=[...document.querySelectorAll('[data-lang]')];
+           const snapshot=()=>({
+             lang:document.documentElement.lang,
+             stored:localStorage.getItem('mmhvault.landing.language'),
+             mode:stage.dataset.currentView,
+             tabs:tabs.map(x=>[x.dataset.businessView,
+               x.getAttribute('aria-pressed'),x.classList.contains('is-selected')]),
+             text:[...stage.querySelectorAll('[data-business-text]')].map(x=>[
+               x.dataset.businessText,x.getAttribute('data-i18n'),x.textContent]),
+             money:[...stage.querySelectorAll('[data-business-amount]')].map(x=>[
+               x.dataset.businessAmount,x.textContent]),
+             hero:[...document.querySelectorAll('[data-hero-fixed]')].map(x=>x.textContent.trim()),
+             flag:document.querySelector('.locale-active-flag')?.textContent,
+             headerRight:Math.round(document.querySelector('.site-header')
+               .getBoundingClientRect().right)
+           });
+           const observer=new MutationObserver(()=>{});
+           observer.observe(stage,{subtree:true,attributes:true,
+             attributeFilter:['aria-pressed','data-i18n','data-current-view']});
+           const collect=perform=>{
+             observer.takeRecords();
+             perform();
+             return {writes:observer.takeRecords().length,state:snapshot()};
+           };
+           const chooseLang=lang=>collect(()=>{
+             langTrigger.click();
+             langButtons.find(x=>x.dataset.lang===lang).click();
+           });
+           const chooseView=view=>collect(()=>{
+             tabs.find(x=>x.dataset.businessView===view).click();
+           });
+           const initial=snapshot();
+           const nextLang=start==='en'?'zh':start==='zh'?'my':'en';
+           const otherLanguage=chooseLang(nextLang);
+           const business=chooseView('business');
+           const revertLanguage=chooseLang(start);
+           const personal=chooseView('personal');
+           observer.disconnect();
+           return {initial,otherLanguage,business,revertLanguage,personal};
+         },locale);
+         const expectedInitial=locale==='zh'?'zh-CN':locale;
+         const expectedOther=locale==='en'?'zh-CN':locale==='zh'?'my':'en';
+         const views=[output.otherLanguage,output.business,
+           output.revertLanguage,output.personal];
+         ensure(response?.status()===200&&errors.length===0&&
+           output.initial.lang===expectedInitial&&
+           output.initial.mode==='personal'&&
+           output.initial.hero.length===3&&
+           output.initial.headerRight<=width+1&&
+           output.otherLanguage.state.lang===expectedOther&&
+           output.otherLanguage.state.mode==='personal'&&
+           output.business.state.mode==='business'&&
+           output.business.state.money.some(x=>
+             x[0]==='balance'&&x[1]==='$366,250.00')&&
+           output.revertLanguage.state.lang===expectedInitial&&
+           output.revertLanguage.state.mode==='business'&&
+           output.personal.state.mode==='personal'&&
+           output.personal.state.money.some(x=>
+             x[0]==='balance'&&x[1]==='$24,680.50')&&
+           views.every(x=>x.state.tabs.filter(t=>t[1]==='true').length===1)&&
+           output.business.writes>0&&output.personal.writes>0,
+           'L1.53 '+name+' '+width+'px '+locale+' genuine Business/locale changes');
+         versions[name]=output;
+         await ctx.close();
+       }
+       const old=versions.baseline,next=versions.optimized;
+       for(const step of ['initial','otherLanguage','business',
+         'revertLanguage','personal']){
+         const a=step==='initial'?old[step]:old[step].state;
+         const b=step==='initial'?next[step]:next[step].state;
+         ensure(JSON.stringify(a)===JSON.stringify(b),
+           'L1.53 '+width+'px '+locale+' unchanged '+step+' visible content and ARIA');
+       }
+       ensure(old.otherLanguage.writes>0&&old.revertLanguage.writes>0&&
+         next.otherLanguage.writes===0&&next.revertLanguage.writes===0&&
+         next.business.writes===old.business.writes&&
+         next.personal.writes===old.personal.writes,
+         'L1.53 '+width+'px '+locale+' skips only unchanged locale attributes '+
+         JSON.stringify({before:[old.otherLanguage.writes,old.business.writes,
+           old.revertLanguage.writes,old.personal.writes],
+           after:[next.otherLanguage.writes,next.business.writes,
+             next.revertLanguage.writes,next.personal.writes]}));
+       reports.push({width,locale,
+         before:[old.otherLanguage.writes,old.revertLanguage.writes],
+         after:[next.otherLanguage.writes,next.revertLanguage.writes]});
+     }
+     const skipped=reports.reduce((n,x)=>n+
+       x.before.reduce((total,v,i)=>total+v-x.after[i],0),0);
+     ensure(skipped>0,'L1.53 skips redundant Business locale attribute writes '+skipped);
+     console.log('L1.53 Business locale DOM lab (not field LCP): '+
+       JSON.stringify({savedAttributeMutations:skipped,reports}));
+   }
+
+   // L1.52 preview tab attribute browser parity: old released L1.51 and
+   // proposed script, real Chrome, mobile/tablet/desktop, all three locales.
+   // Compare ARIA and roving tabindex writes, keyboard focus and demo content.
+   {
+     const proposed=fs.readFileSync('landing-assets/landing.js','utf8');
+     const before="      t.classList.toggle('is-active',yes);\n      t.setAttribute('aria-selected',String(yes));\n      t.tabIndex=yes?0:-1;\n      if(yes&&focus)t.focus({preventScroll:true});";
+     const after="      t.classList.toggle('is-active',yes);\n      // L1.52: only the two tabs whose selection state actually changes\n      // need ARIA/tabindex writes; preserve the existing roving focus.\n      const selected=String(yes);\n      if(t.getAttribute('aria-selected')!==selected)t.setAttribute('aria-selected',selected);\n      const tabIndex=yes?0:-1;\n      if(t.tabIndex!==tabIndex)t.tabIndex=tabIndex;\n      if(yes&&focus)t.focus({preventScroll:true});";
+     assert.equal(proposed.split(after).length,2,'L1.52 exact four-line tab write replacement');
+     const baseline=proposed.replace(after,before);
+     const records=[];
+     for(const width of [393,768,1440])for(const locale of ['en','zh','my']){
+       const versions={};
+       for(const [name,script] of [['baseline',baseline],['optimized',proposed]]){
+         const ctx=await browser.newContext({
+           viewport:{width,height:852},reducedMotion:'reduce',serviceWorkers:'block'});
+         const page=await ctx.newPage(),errors=[];
+         page.on('pageerror',error=>errors.push(error.message));
+         await page.addInitScript(lang=>{
+           try{localStorage.setItem('mmhvault.landing.language',lang)}catch(_){}
+         },locale);
+         await page.route('**/landing-assets/landing.js*',route=>route.fulfill({
+           status:200,contentType:'application/javascript',body:script}));
+         const res=await page.goto(origin+'/',{waitUntil:'load',timeout:30000});
+         const output=await page.evaluate(()=>{
+           const list=document.querySelector('.product-tablist');
+           const tabs=[...list.querySelectorAll('[data-product-tab]')];
+           const panels=[...document.querySelectorAll('[data-product-panel]')];
+           const stage=document.querySelector('.product-stage');
+           const shot=()=>({
+             lang:document.documentElement.lang,
+             selected:stage.dataset.productCurrent,
+             tabs:tabs.map(t=>[t.dataset.productTab,t.getAttribute('aria-selected'),
+               t.tabIndex,t.classList.contains('is-active'),
+               t.querySelector('strong')?.textContent]),
+             panels:panels.map(p=>[p.dataset.productPanel,p.hidden,p.inert,
+               p.getAttribute('aria-hidden')]),
+             story:document.querySelector('[data-app-story-title]')?.textContent,
+             index:document.querySelector('[data-app-story-index]')?.textContent,
+             description:document.querySelector('[data-app-story-desc]')?.textContent,
+             hero:[...document.querySelectorAll('[data-hero-fixed]')]
+               .map(x=>x.textContent.trim()),
+             focused:document.activeElement?.dataset?.productTab||null,
+             scrollY:Math.round(window.scrollY),
+             headerRight:Math.round(document.querySelector('.site-header')
+               .getBoundingClientRect().right)
+           });
+           const observer=new MutationObserver(()=>{});
+           observer.observe(list,{subtree:true,attributes:true,
+             attributeFilter:['aria-selected','tabindex']});
+           const click=key=>{
+             const tab=tabs.find(x=>x.dataset.productTab===key);
+             observer.takeRecords();
+             tab.click();
+             return {state:shot(),writes:observer.takeRecords().length};
+           };
+           const initial=shot();
+           const transactions=click('transactions');
+           const accounts=click('accounts');
+           const dashboard=click('dashboard');
+           const repeat=click('dashboard');
+           observer.takeRecords();
+           const keyEvent=new KeyboardEvent('keydown',{
+             key:'ArrowRight',bubbles:true,cancelable:true
+           });
+           tabs[0].dispatchEvent(keyEvent);
+           const keyboard={state:shot(),writes:observer.takeRecords().length,
+             defaultPrevented:keyEvent.defaultPrevented};
+           observer.disconnect();
+           return {initial,transactions,accounts,dashboard,repeat,keyboard};
+         });
+         const valid=output&&res?.status()===200&&errors.length===0&&
+           output.initial.lang===(locale==='zh'?'zh-CN':locale)&&
+           output.initial.selected==='dashboard'&&
+           output.transactions.state.selected==='transactions'&&
+           output.accounts.state.selected==='accounts'&&
+           output.dashboard.state.selected==='dashboard'&&
+           output.repeat.state.selected==='dashboard'&&
+           output.keyboard.state.selected==='transactions'&&
+           output.keyboard.defaultPrevented&&
+           output.keyboard.state.focused==='transactions'&&
+           output.initial.hero.length===3&&output.initial.headerRight<=width+1&&
+           [output.transactions,output.accounts,output.dashboard,output.repeat,output.keyboard]
+             .every(x=>x.state.tabs.filter(t=>t[1]==='true').length===1&&
+               x.state.tabs.filter(t=>t[2]===0).length===1&&
+               x.state.panels.filter(p=>!p[1]&&!p[2]&&p[3]==='false').length===1);
+         ensure(valid,'L1.52 '+name+' '+width+'px '+locale+' tab semantics and keyboard focus');
+         versions[name]=output;
+         await ctx.close();
+       }
+       const old=versions.baseline,now=versions.optimized;
+       for(const key of ['initial','transactions','accounts','dashboard','repeat','keyboard']){
+         const a=key==='initial'?old[key]:old[key].state;
+         const b=key==='initial'?now[key]:now[key].state;
+         ensure(JSON.stringify(a)===JSON.stringify(b),
+           'L1.52 '+width+'px '+locale+' unchanged '+key+' visual/locale/focus state');
+       }
+       const changed=['transactions','accounts','dashboard','keyboard'];
+       ensure(changed.every(k=>old[k].writes===12&&now[k].writes===4)&&
+         now.repeat.writes===0&&old.repeat.writes===0,
+         'L1.52 '+width+'px '+locale+' only two changed tabs receive ARIA/tabindex writes '+
+         JSON.stringify({before:changed.map(k=>old[k].writes),
+           after:changed.map(k=>now[k].writes)}));
+       records.push({width,locale,
+         before:changed.map(k=>old[k].writes),
+         after:changed.map(k=>now[k].writes)});
+     }
+     const saved=records.reduce((sum,x)=>sum+
+       x.before.reduce((n,v,i)=>n+v-x.after[i],0),0);
+     ensure(saved>0,'L1.52 skips unnecessary feature preview accessibility writes '+saved);
+     console.log('L1.52 feature tab DOM lab (not real-user loading speed): '+
+       JSON.stringify({savedAttributeMutations:saved,records}));
+   }
+
+   // L1.51 repeated section nav highlight DOM parity.
+   // Compare exact merged L1.50 handler against L1.51 under Chrome.
+   // Only navigation aria-current mutations are counted; don't claim field LCP.
+   {
+     const proposed=fs.readFileSync('landing-assets/landing.js','utf8');
+     const oldHandler="  function markSection(id) {\n    if (homeLink) {\n      if (id === 'top') homeLink.setAttribute('aria-current','location');\n      else homeLink.removeAttribute('aria-current');\n    }\n    sectionLinks.forEach(link => {\n      if (link.getAttribute('href') === '#' + id) link.setAttribute('aria-current','location');\n      else link.removeAttribute('aria-current');\n    });\n  }";
+     const newHandler="  function markSection(id) {\n    // L1.51: repeated viewport observations must not rewrite unchanged\n    // navigation attributes; keep the same active section and semantics.\n    if (homeLink) {\n      if (id === 'top') {\n        if (homeLink.getAttribute('aria-current') !== 'location')\n          homeLink.setAttribute('aria-current','location');\n      } else if (homeLink.hasAttribute('aria-current'))\n        homeLink.removeAttribute('aria-current');\n    }\n    sectionLinks.forEach(link => {\n      if (link.getAttribute('href') === '#' + id) {\n        if (link.getAttribute('aria-current') !== 'location')\n          link.setAttribute('aria-current','location');\n      } else if (link.hasAttribute('aria-current'))\n        link.removeAttribute('aria-current');\n    });\n  }";
+     assert.equal(proposed.split(newHandler).length,2,'L1.51 exact nav-only edit');
+     const baseline=proposed.replace(newHandler,oldHandler);
+     const records=[];
+     for(const width of [393,1440])for(const locale of ['en','zh','my']){
+       const results={};
+       for(const [kind,script] of [['baseline',baseline],['optimized',proposed]]){
+         const ctx=await browser.newContext({
+           viewport:{width,height:852},reducedMotion:'reduce',serviceWorkers:'block'});
+         const page=await ctx.newPage(),errors=[];
+         page.on('pageerror',e=>errors.push(e.message));
+         await page.addInitScript(lang=>{
+           try{localStorage.setItem('mmhvault.landing.language',lang)}catch(_){}
+         },locale);
+         await page.route('**/landing-assets/landing.js*',route=>route.fulfill({
+           status:200,contentType:'application/javascript',body:script}));
+         const response=await page.goto(origin+'/',{waitUntil:'load',timeout:30000});
+         await page.waitForTimeout(60);
+         const measured=await page.evaluate(()=>{
+           const nav=document.querySelector('#primary-nav');
+           const home=nav.querySelector('[data-i18n="navHome"]');
+           const links=[...nav.querySelectorAll('a[href^="#"]')];
+           const hero=[...document.querySelectorAll('[data-hero-fixed]')]
+             .map(el=>el.textContent.trim());
+           // Keep navigation native click handlers but suppress hash navigation,
+           // so tests compare attribute work rather than scroll animations.
+           links.forEach(link=>link.addEventListener('click',e=>e.preventDefault(),{
+             capture:true}));
+           const snapshot=()=>({
+             lang:document.documentElement.lang,
+             meta:document.querySelector('meta[name="description"]')?.content,
+             title:document.title,
+             home:[home.getAttribute('href'),home.getAttribute('aria-current'),
+               home.textContent.trim()],
+             links:links.map(x=>[x.getAttribute('href'),x.getAttribute('aria-current'),
+               x.textContent.trim()]),
+             hero:[...document.querySelectorAll('[data-hero-fixed]')]
+               .map(x=>x.textContent.trim()),
+             currentBusiness:document.querySelector('.business-stage')?.dataset.currentView,
+             pathname:location.pathname,
+             hash:location.hash,
+             scrollY:Math.round(window.scrollY),
+             headerRight:Math.round(document.querySelector('.site-header')
+               .getBoundingClientRect().right)
+           });
+           const observer=new MutationObserver(()=>{});
+           observer.observe(nav,{subtree:true,attributes:true,
+             attributeFilter:['aria-current']});
+           const select=href=>{
+             const link=links.find(x=>x.getAttribute('href')===href);
+             observer.takeRecords();
+             link.click();
+             return {mutations:observer.takeRecords().length,state:snapshot()};
+           };
+           const initial=snapshot();
+           const firstFeatures=select('#features');
+           const repeatFeatures=select('#features');
+           const firstBusiness=select('#business');
+           const repeatBusiness=select('#business');
+           const backFeatures=select('#features');
+           observer.disconnect();
+           return {initial,firstFeatures,repeatFeatures,firstBusiness,
+             repeatBusiness,backFeatures,hero};
+         });
+         ensure(response?.status()===200&&errors.length===0&&
+           measured.initial.lang===(locale==='zh'?'zh-CN':locale)&&
+           measured.initial.home[1]==='location'&&
+           measured.hero.length===3&&
+           measured.initial.headerRight<=width+1&&
+           measured.initial.hash===''&&
+           measured.firstFeatures.state.links.some(x=>
+             x[0]==='#features'&&x[1]==='location')&&
+           measured.firstBusiness.state.links.some(x=>
+             x[0]==='#business'&&x[1]==='location')&&
+           measured.backFeatures.state.links.some(x=>
+             x[0]==='#features'&&x[1]==='location')&&
+           measured.firstFeatures.state.home[1]===null&&
+           measured.firstFeatures.state.hash===''&&
+           measured.firstFeatures.state.scrollY===measured.initial.scrollY,
+           'L1.51 '+kind+' '+width+'px '+locale+' correct nav semantics and Hero');
+         results[kind]=measured;
+         await ctx.close();
+       }
+       const old=results.baseline,now=results.optimized;
+       for(const step of ['initial','firstFeatures','repeatFeatures',
+         'firstBusiness','repeatBusiness','backFeatures']){
+         const a=step==='initial'?old[step]:old[step].state;
+         const b=step==='initial'?now[step]:now[step].state;
+         ensure(JSON.stringify(a)===JSON.stringify(b),
+           'L1.51 '+width+'px '+locale+' unchanged '+step+' nav/locale content');
+       }
+       ensure(now.repeatFeatures.mutations===0&&
+         now.repeatBusiness.mutations===0&&
+         old.repeatFeatures.mutations>0&&old.repeatBusiness.mutations>0&&
+         now.firstFeatures.mutations<=old.firstFeatures.mutations&&
+         now.firstBusiness.mutations<=old.firstBusiness.mutations&&
+         now.backFeatures.mutations<=old.backFeatures.mutations,
+         'L1.51 '+width+'px '+locale+' redundant nav updates eliminated '+
+         JSON.stringify({before:[
+           old.firstFeatures.mutations,old.repeatFeatures.mutations,
+           old.firstBusiness.mutations,old.repeatBusiness.mutations,
+           old.backFeatures.mutations],after:[
+           now.firstFeatures.mutations,now.repeatFeatures.mutations,
+           now.firstBusiness.mutations,now.repeatBusiness.mutations,
+           now.backFeatures.mutations]}));
+       records.push({width,locale,before:{
+         firstFeatures:old.firstFeatures.mutations,
+         repeatFeatures:old.repeatFeatures.mutations,
+         firstBusiness:old.firstBusiness.mutations,
+         repeatBusiness:old.repeatBusiness.mutations,
+         backFeatures:old.backFeatures.mutations
+       },after:{
+         firstFeatures:now.firstFeatures.mutations,
+         repeatFeatures:now.repeatFeatures.mutations,
+         firstBusiness:now.firstBusiness.mutations,
+         repeatBusiness:now.repeatBusiness.mutations,
+         backFeatures:now.backFeatures.mutations
+       }});
+     }
+     const skipped=records.reduce((n,x)=>
+       n+x.before.repeatFeatures+x.before.repeatBusiness,0);
+     ensure(skipped>0,'L1.51 bypasses repeat nav aria-current writes '+skipped);
+     console.log('L1.51 nav highlight DOM lab (not field LCP): '+
+       JSON.stringify({skippedMutationRecords:skipped,records}));
+   }
+
+   // L1.50 active language selection no-op browser parity. Compare the
+   // exact L1.49 baseline and new handler across mobile/desktop + EN/ZH/MY.
+   // Observe only <main> to exclude the intentional language-menu close.
+   {
+     const proposed=fs.readFileSync('landing-assets/landing.js','utf8');
+     const oldHandler="  languageButtons.forEach(button => button.addEventListener('click', () => {\n    applyLanguage(button.dataset.lang);\n    closeLanguage();\n    localeTrigger.focus({preventScroll:true});\n  }));";
+     const newHandler="  languageButtons.forEach(button => button.addEventListener('click', () => {\n    // L1.50: reselecting the active language only closes the selector;\n    // preserve keyboard focus without retranslating the entire page.\n    if (button.dataset.lang !== currentLang) applyLanguage(button.dataset.lang);\n    closeLanguage();\n    localeTrigger.focus({preventScroll:true});\n  }));";
+     assert.equal(proposed.split(newHandler).length,2,'L1.50 guarded handler unique');
+     const baseline=proposed.replace(newHandler,oldHandler);
+     const records=[];
+     for(const width of [393,1440])for(const locale of ['en','zh','my']){
+       const results={};
+       for(const [version,script] of [['baseline',baseline],['optimized',proposed]]){
+         const ctx=await browser.newContext({
+           viewport:{width,height:852},reducedMotion:'reduce',serviceWorkers:'block'});
+         const page=await ctx.newPage(),errors=[];
+         page.on('pageerror',e=>errors.push(e.message));
+         await page.addInitScript(lang=>{
+           try{localStorage.setItem('mmhvault.landing.language',lang)}catch(_){}
+         },locale);
+         await page.route('**/landing-assets/landing.js*',route=>route.fulfill({
+           status:200,contentType:'application/javascript',body:script}));
+         const response=await page.goto(origin+'/',{waitUntil:'load',timeout:30000});
+         const result=await page.evaluate(startLang=>{
+           const trigger=document.getElementById('locale-trigger');
+           const menu=document.getElementById('locale-menu');
+           const main=document.querySelector('main');
+           const buttons=[...document.querySelectorAll('[data-lang]')];
+           const hero=[...document.querySelectorAll('[data-hero-fixed]')].map(x=>x.textContent.trim());
+           const snapshot=()=>({
+             lang:document.documentElement.lang,
+             stored:localStorage.getItem('mmhvault.landing.language'),
+             title:document.title,
+             meta:document.querySelector('meta[name="description"]')?.content,
+             flag:document.querySelector('.locale-active-flag')?.textContent,
+             label:document.querySelector('.locale-active-name')?.textContent,
+             pressed:buttons.filter(b=>b.getAttribute('aria-pressed')==='true')
+               .map(b=>b.dataset.lang),
+             header:[...document.querySelectorAll('#primary-nav [data-i18n]')]
+               .map(x=>[x.dataset.i18n,x.textContent]),
+             main:[...main.querySelectorAll('[data-i18n]')]
+               .map(x=>[x.dataset.i18n,x.textContent]),
+             view:document.querySelector('.business-stage')?.dataset.currentView,
+             hero:[...document.querySelectorAll('[data-hero-fixed]')]
+               .map(x=>x.textContent.trim()),
+             menuClosed:menu.hidden
+           });
+           const observer=new MutationObserver(()=>{});
+           observer.observe(main,{
+             attributes:true,childList:true,characterData:true,subtree:true});
+           const choose=lang=>{
+             const target=buttons.find(b=>b.dataset.lang===lang);
+             trigger.click();
+             const menuOpened=!menu.hidden;
+             observer.takeRecords();
+             target.click();
+             const mutations=observer.takeRecords().length;
+             return {mutations,menuOpened,menuClosed:menu.hidden,
+               focusRestored:document.activeElement===trigger,
+               state:snapshot()};
+           };
+           const initial=snapshot();
+           const repeatInitial=choose(startLang);
+           const other=startLang==='en'?'zh':startLang==='zh'?'my':'en';
+           const switchOther=choose(other);
+           const repeatOther=choose(other);
+           const returnInitial=choose(startLang);
+           observer.disconnect();
+           return {hero,initial,repeatInitial,switchOther,repeatOther,returnInitial,
+             headerRight:Math.round(document.querySelector('.site-header')
+               .getBoundingClientRect().right)};
+         },locale);
+         const originalLang=locale==='zh'?'zh-CN':locale;
+         const otherLang=locale==='en'?'zh-CN':locale==='zh'?'my':'en';
+         ensure(response?.status()===200&&errors.length===0&&
+           result.initial.lang===originalLang&&
+           result.initial.stored===locale&&
+           result.hero.length===3&&
+           result.headerRight<=width+1&&
+           result.repeatInitial.state.lang===originalLang&&
+           result.switchOther.state.lang===otherLang&&
+           result.repeatOther.state.lang===otherLang&&
+           result.returnInitial.state.lang===originalLang&&
+           result.returnInitial.state.stored===locale&&
+           [result.repeatInitial,result.switchOther,result.repeatOther,result.returnInitial]
+             .every(x=>x.menuOpened&&x.menuClosed&&x.focusRestored)&&
+           result.switchOther.mutations>0&&result.returnInitial.mutations>0,
+           'L1.50 '+version+' '+width+'px '+locale+' genuine language transitions, focus and menu');
+         results[version]=result;
+         await ctx.close();
+       }
+       const old=results.baseline,next=results.optimized;
+       for(const key of ['initial','repeatInitial','switchOther','repeatOther','returnInitial']){
+         const a=key==='initial'?old[key]:old[key].state;
+         const b=key==='initial'?next[key]:next[key].state;
+         ensure(JSON.stringify(a)===JSON.stringify(b),
+           'L1.50 '+width+'px '+locale+' unchanged '+key+' translations and Hero');
+       }
+       ensure(next.repeatInitial.mutations===0&&next.repeatOther.mutations===0&&
+         old.repeatInitial.mutations>0&&old.repeatOther.mutations>0&&
+         next.switchOther.mutations===old.switchOther.mutations&&
+         next.returnInitial.mutations===old.returnInitial.mutations&&
+         JSON.stringify(next.initial.hero)===JSON.stringify(next.returnInitial.state.hero),
+         'L1.50 '+width+'px '+locale+' zero repeat-selection main DOM updates '+
+         JSON.stringify({before:[old.repeatInitial.mutations,old.repeatOther.mutations],
+           after:[next.repeatInitial.mutations,next.repeatOther.mutations]}));
+       records.push({width,locale,before:{
+           repeatInitial:old.repeatInitial.mutations,
+           switchOther:old.switchOther.mutations,
+           repeatOther:old.repeatOther.mutations,
+           returnInitial:old.returnInitial.mutations
+         },after:{
+           repeatInitial:next.repeatInitial.mutations,
+           switchOther:next.switchOther.mutations,
+           repeatOther:next.repeatOther.mutations,
+           returnInitial:next.returnInitial.mutations
+         }});
+     }
+     const skipped=records.reduce((n,x)=>n+x.before.repeatInitial+x.before.repeatOther,0);
+     ensure(skipped>0,'L1.50 skipped redundant full-page language mutations '+skipped);
+     console.log('L1.50 repeated-language DOM lab (not field LCP): '+
+       JSON.stringify({skippedMutationRecords:skipped,records}));
+   }
+
+   // L1.49 active Business tab no-op browser parity: compare baseline vs
+   // optimized interaction behavior in independent Chrome contexts.
+   // Repeated clicks should not mutate the Business preview, but actual
+   // Personal / Business transitions must produce identical localized UI.
+   {
+     // L1.53's newer attribute guards would make BOTH historical variants
+     // no-op on repeated clicks. Remove only those three newer edits in this
+     // historical lab to faithfully reproduce the released L1.48→L1.49
+     // comparison; the L1.53 lab above tests the new guards separately.
+     const l153Patches=[["      button.setAttribute('aria-pressed',String(selected));","      // L1.53: a language change must not rewrite the active concept state.\n      const pressed=String(selected);\n      if(button.getAttribute('aria-pressed')!==pressed)button.setAttribute('aria-pressed',pressed);"],["      element.setAttribute('data-i18n',key);\n      const value = dictionary[key] || '';","      if(element.getAttribute('data-i18n')!==key)element.setAttribute('data-i18n',key);\n      const value = dictionary[key] || '';"],["    if(panel) panel.dataset.currentView = currentBusinessView;","    if(panel && panel.dataset.currentView!==currentBusinessView)panel.dataset.currentView = currentBusinessView;"]];
+     let proposed=fs.readFileSync('landing-assets/landing.js','utf8');
+     for(const [oldCode,newCode] of l153Patches){
+       assert.equal(proposed.split(newCode).length,2,
+         'L1.49 historical script reconstructs L1.52 attrs exactly');
+       proposed=proposed.replace(newCode,oldCode);
+     }
+     const before="  businessTabs.forEach(button => button.addEventListener('click', () => {\n    updateBusinessPreview(button.dataset.businessView);\n  }));";
+     const after="  businessTabs.forEach(button => button.addEventListener('click', () => {\n    // L1.49: selecting an already active concept is a no-op. Avoid\n    // redundant data-current-view mutations and replayed Business animations.\n    // applyLanguage still calls updateBusinessPreview for translated labels.\n    if (button.dataset.businessView !== currentBusinessView)\n      updateBusinessPreview(button.dataset.businessView);\n  }));";
+     assert.equal(proposed.split(after).length,2,'L1.49 exact source replacement');
+     const baseline=proposed.replace(after,before);
+     const records=[];
+     for(const width of [393,1440])for(const locale of ['en','zh','my']){
+       const results={};
+       for(const [kind,script] of [['baseline',baseline],['optimized',proposed]]){
+         const ctx=await browser.newContext({viewport:{width,height:852},
+           reducedMotion:'reduce',serviceWorkers:'block'});
+         const page=await ctx.newPage(),errors=[];
+         page.on('pageerror',error=>errors.push(error.message));
+         await page.addInitScript(lang=>{
+           try{localStorage.setItem('mmhvault.landing.language',lang)}catch(_){}
+         },locale);
+         await page.route('**/landing-assets/landing.js*',route=>route.fulfill({
+           status:200,contentType:'application/javascript',body:script}));
+         const response=await page.goto(origin+'/',{waitUntil:'load',timeout:30000});
+         const result=await page.evaluate(()=>{
+           const stage=document.querySelector('.business-stage');
+           const p=document.querySelector('[data-business-view="personal"]');
+           const b=document.querySelector('[data-business-view="business"]');
+           const snapshot=()=>({
+             view:stage.dataset.currentView,
+             lang:document.documentElement.lang,
+             active:[...document.querySelectorAll('[data-business-view]')]
+               .filter(x=>x.getAttribute('aria-pressed')==='true')
+               .map(x=>x.dataset.businessView),
+             amounts:[...stage.querySelectorAll('[data-business-amount]')]
+               .map(x=>[x.dataset.businessAmount,x.textContent]),
+             text:[...stage.querySelectorAll('[data-business-text]')]
+               .map(x=>[x.dataset.businessText,x.dataset.i18n,x.textContent]),
+             hero:[...document.querySelectorAll('[data-hero-fixed]')]
+               .map(x=>x.textContent.trim()),
+             headerRight:Math.round(document.querySelector('.site-header')
+               .getBoundingClientRect().right)
+           });
+           const observer=new MutationObserver(()=>{});
+           observer.observe(stage,{subtree:true,attributes:true,childList:true,characterData:true});
+           observer.observe(p,{attributes:true});
+           observer.observe(b,{attributes:true});
+           const measure=button=>{
+             observer.takeRecords();
+             button.click();
+             return observer.takeRecords().length;
+           };
+           const initial=snapshot();
+           const repeatPersonal=measure(p),personal=snapshot();
+           const switchBusiness=measure(b),business=snapshot();
+           const repeatBusiness=measure(b),businessRepeat=snapshot();
+           const switchPersonal=measure(p),returned=snapshot();
+           observer.disconnect();
+           return {initial,personal,business,businessRepeat,returned,
+             mutations:{repeatPersonal,switchBusiness,repeatBusiness,switchPersonal}};
+         });
+         ensure(response?.status()===200 && errors.length===0 &&
+           result.initial.lang===(locale==='zh'?'zh-CN':locale) &&
+           result.initial.hero.length===3 &&
+           result.initial.view==='personal' &&
+           result.personal.view==='personal' &&
+           result.business.view==='business' &&
+           result.businessRepeat.view==='business' &&
+           result.returned.view==='personal' &&
+           result.business.amounts.some(x=>x[0]==='balance'&&x[1]==='$366,250.00') &&
+           result.returned.amounts.some(x=>x[0]==='balance'&&x[1]==='$24,680.50') &&
+           result.initial.headerRight<=width+1 &&
+           result.mutations.switchBusiness>0 && result.mutations.switchPersonal>0,
+           'L1.49 '+kind+' '+width+'px '+locale+' meaningful Business toggles');
+         results[kind]=result;
+         await ctx.close();
+       }
+       const previous=results.baseline,next=results.optimized;
+       for(const state of ['initial','personal','business','businessRepeat','returned']){
+         ensure(JSON.stringify(previous[state])===JSON.stringify(next[state]),
+           'L1.49 '+width+'px '+locale+' unchanged '+state+' localized UI');
+       }
+       ensure(JSON.stringify(next.personal)===JSON.stringify(next.initial) &&
+         JSON.stringify(next.businessRepeat)===JSON.stringify(next.business) &&
+         next.mutations.repeatPersonal===0 &&
+         next.mutations.repeatBusiness===0 &&
+         previous.mutations.repeatPersonal>0 && previous.mutations.repeatBusiness>0,
+         'L1.49 '+width+'px '+locale+' zero DOM mutations on repeated selected tabs '+
+         JSON.stringify({before:previous.mutations,after:next.mutations}));
+       records.push({width,locale,before:previous.mutations,after:next.mutations});
+     }
+     const skipped=records.reduce((sum,x)=>sum+
+       x.before.repeatPersonal+x.before.repeatBusiness,0);
+     ensure(skipped>0,'L1.49 demonstrably skips redundant Business updates '+skipped);
+     console.log('L1.49 Business click lab (not a field speed claim): '+
+       JSON.stringify({skippedMutationRecords:skipped,records}));
+   }
+
+   // L1.48 measured initial-language DOM write parity: run the previous
+   // released script and the proposed script on the SAME current HTML,
+   // from independent cold-cache browser contexts at two widths/three locales.
+   // The baseline is an exact inverse of four release-checked code edits;
+   // instrumentation is injected only into the intercepted test response.
+   {
+     const optimized=fs.readFileSync('landing-assets/landing.js','utf8');
+     const patches=[
+  [
+    "      element.textContent = conceptData[currentBusinessView][element.dataset.businessAmount] || '';",
+    "      const value = conceptData[currentBusinessView][element.dataset.businessAmount] || '';\n      if (element.textContent !== value) element.textContent = value;"
+  ],
+  [
+    "      if(value) element.textContent=value;",
+    "      if(value && element.textContent !== value) element.textContent=value;"
+  ],
+  [
+    "      element.textContent = dictionary[key] || '';",
+    "      const value = dictionary[key] || '';\n      if (element.textContent !== value) element.textContent = value;"
+  ],
+  [
+    "      if (htmlKeys.has(key)) node.innerHTML = value; // only hardcoded local, trusted translations\n      else node.textContent = value;",
+    "      // L1.48: preserve the existing node when its localized value is already correct.\n      // Avoid unnecessary text/style invalidation on first paint and language changes.\n      if (htmlKeys.has(key)) {\n        if (node.innerHTML !== value) node.innerHTML = value; // trusted local translations only\n      } else if (node.textContent !== value) node.textContent = value;"
+  ]
+];
+     let baseline=optimized;
+     for(const [before,after] of patches){
+       assert.equal(baseline.split(after).length,2,'L1.48 JS edit is unique');
+       baseline=baseline.replace(after,before);
+     }
+     const inject=script=>{
+       const marker='  applyLanguage(saved);';
+       assert.equal(script.split(marker).length,2,'L1.48 measurement anchor unique');
+       return script.replace(marker, [
+         '  const __l148Observer = new MutationObserver(() => {});',
+         '  __l148Observer.observe(document.documentElement,',
+         '    {subtree:true,attributes:true,characterData:true,childList:true});',
+         '  const __l148Started = performance.now();',
+         '  applyLanguage(saved);',
+         '  window.__l148Probe = {durationMs:performance.now()-__l148Started,',
+         '    domMutations:__l148Observer.takeRecords().length};',
+         '  __l148Observer.disconnect();'
+       ].join('\n'));
+     };
+     const records=[];
+     for(const width of [393,1440]) for(const locale of ['en','zh','my']) {
+       const outcomes={};
+       for(const [label,js] of [['baseline',baseline],['optimized',optimized]]){
+         const ctx=await browser.newContext({viewport:{width,height:852},
+           reducedMotion:'reduce',serviceWorkers:'block'});
+         const page=await ctx.newPage(),errors=[];
+         page.on('pageerror',error=>errors.push(error.message));
+         await page.addInitScript(lang=>{
+           try{localStorage.setItem('mmhvault.landing.language',lang)}catch(_){}
+         },locale);
+         await page.route('**/landing-assets/landing.js*',route=>
+           route.fulfill({status:200,contentType:'application/javascript',body:inject(js)}));
+         const response=await page.goto(origin+'/',{waitUntil:'load',timeout:30000});
+         const state=await page.evaluate(()=>({
+           lang:document.documentElement.lang,
+           probe:window.__l148Probe,
+           fixed:[...document.querySelectorAll('[data-hero-fixed]')]
+             .map(node=>node.textContent.trim()),
+           texts:[...document.querySelectorAll('[data-i18n]')]
+             .map(node=>[node.dataset.i18n,node.textContent]),
+           alt:document.querySelector('.hero-device-cinematic')?.alt,
+           activeTab:document.querySelector('[data-product-tab].is-active')?.dataset.productTab,
+           heroX:document.querySelector('.hero').getBoundingClientRect().left,
+           headerRight:document.querySelector('.site-header').getBoundingClientRect().right
+         }));
+         ensure(response?.status()===200&&errors.length===0 &&
+           state.probe && Number.isFinite(state.probe.durationMs) &&
+           state.probe.domMutations>=0 && state.fixed.length===3 &&
+           state.lang===(locale==='zh'?'zh-CN':locale) &&
+           state.heroX>=-1 && state.headerRight<=width+1,
+           'L1.48 '+label+' '+width+'px '+locale+' probe and Hero integrity');
+         outcomes[label]=state;
+         await ctx.close();
+       }
+       const old=outcomes.baseline,now=outcomes.optimized;
+       const {probe:oldProbe,...oldView}=old;
+       const {probe:newProbe,...newView}=now;
+       ensure(JSON.stringify(oldView)===JSON.stringify(newView) &&
+         newProbe.domMutations<=oldProbe.domMutations,
+         'L1.48 '+width+'px '+locale+' presentation parity + no extra DOM mutations '+
+         JSON.stringify({before:oldProbe,after:newProbe}));
+       records.push({width,locale,before:oldProbe,after:newProbe});
+     }
+     const saved=records.reduce((sum,row)=>sum+row.before.domMutations-row.after.domMutations,0);
+     ensure(saved>0,'L1.48 skips genuinely redundant initial DOM mutations '+saved);
+     console.log('L1.48 DOM LAB (not field LCP): '+JSON.stringify({
+       disclaimer:'Synthetic same-page CPU timings; no guaranteed user-perceived speed gain',
+       skippedDOMWrites:saved,records
+     }));
+   }
+
+   // L1.45 CSSOM rule-for-rule equivalence: compare the current compact CSS
+   // against the readable predecessor from origin/main using Chrome's own
+   // stylesheet parser. This fails on rule/value/order/selector differences.
+   // These tests never load an authenticated route or call external services.
+   {
+     const previous=fs.readFileSync('landing-assets/landing.css','utf8');
+     const currentCss=fs.readFileSync('landing-assets/landing.min.css','utf8');
+     const ctx=await browser.newContext({
+       viewport:{width:393,height:852},reducedMotion:'reduce'
+     });
+     const page=await ctx.newPage(),failures=[],cssResponses=[];
+     page.on('pageerror',e=>failures.push(e.message));
+     page.on('response',r=>{
+       if(r.url().includes('/landing-assets/landing.min.css'))
+         cssResponses.push({status:r.status(),url:r.url()});
+     });
+     await page.goto(origin+'/',{waitUntil:'load',timeout:30000});
+     const cssom=await page.evaluate(({before,after})=>{
+       const originalSheet=new CSSStyleSheet();
+       const compactSheet=new CSSStyleSheet();
+       originalSheet.replaceSync(before);
+       compactSheet.replaceSync(after);
+       const a=[...originalSheet.cssRules].map(x=>x.cssText);
+       const b=[...compactSheet.cssRules].map(x=>x.cssText);
+       const mismatch=a.findIndex((rule,i)=>rule!==b[i]);
+       const styles=[...document.querySelectorAll('link[rel="stylesheet"]')]
+         .filter(x=>x.href.includes('/landing-assets/landing.min.css'));
+       return {same:a.length===b.length&&mismatch===-1,
+         originalRuleCount:a.length,compactRuleCount:b.length,
+         mismatch,oldRule:mismatch<0?null:a[mismatch]?.slice(0,240),
+         newRule:mismatch<0?null:b[mismatch]?.slice(0,240),
+         requestedStyle:styles.map(x=>({href:x.href,loaded:!!x.sheet})),
+         heroWidth:document.querySelector('#hero-title').getBoundingClientRect().width};
+     },{before:previous,after:currentCss});
+     ensure(cssom.same&&cssom.originalRuleCount>150&&
+       previous.length-currentCss.length>=8000&&
+       cssom.requestedStyle.length===1&&
+       cssom.requestedStyle[0].href.endsWith('/landing-assets/landing.min.css?v=l145')&&
+       cssom.requestedStyle[0].loaded&&
+       cssom.heroWidth>0&&
+       cssResponses.length===1&&cssResponses[0].status===200&&
+       failures.length===0,
+       'L1.45 byte reduction preserves every parsed CSS rule '+JSON.stringify({
+         cssom,oldBytes:Buffer.byteLength(previous),newBytes:Buffer.byteLength(currentCss),
+         cssResponses,failures
+       }));
+     await ctx.close();
+   }
+
+   // L1.47 Chrome CSSOM header bundle parity: original Explore and shared
+   // header styles remain readable and the combined request must preserve
+   // every rule in exactly the same cascade order.
+   {
+     const originals=[
+       fs.readFileSync('landing-assets/explore-l114.css','utf8'),
+       fs.readFileSync('landing-assets/shared-header-l116.css','utf8')
+     ];
+     const merged=fs.readFileSync('landing-assets/header-explore-l147.min.css','utf8');
+     const ctx=await browser.newContext({viewport:{width:393,height:852},reducedMotion:'reduce'});
+     const page=await ctx.newPage(),errors=[],requests=[];
+     page.on('pageerror',error=>errors.push(error.message));
+     page.on('response',response=>{
+       const url=new URL(response.url());
+       if(url.origin===origin && url.pathname.startsWith('/landing-assets/') &&
+         url.pathname.endsWith('.css')){
+         requests.push({path:url.pathname,status:response.status(),
+           version:url.searchParams.get('v')});
+       }
+     });
+     await page.goto(origin+'/',{waitUntil:'load',timeout:30000});
+     const checks=await page.evaluate(({source,bundle})=>{
+       const cssRules=content=>{
+         const sheet=new CSSStyleSheet();
+         sheet.replaceSync(content);
+         return [...sheet.cssRules].map(rule=>rule.cssText);
+       };
+       const oldRules=source.flatMap(cssRules);
+       const bundledRules=cssRules(bundle);
+       const index=oldRules.findIndex((rule,i)=>rule!==bundledRules[i]);
+       const link=[...document.querySelectorAll('link[rel="stylesheet"]')]
+         .filter(el=>new URL(el.href).pathname==='/landing-assets/header-explore-l147.min.css');
+       const header=document.querySelector('.site-header').getBoundingClientRect();
+       const explore=document.querySelector('#landing-explore');
+       return {ruleCount:oldRules.length,bundledCount:bundledRules.length,
+         same:oldRules.length===bundledRules.length && index===-1,
+         firstMismatch:index,linkCount:link.length,loaded:link[0]?.sheet!=null,
+         cacheVersion:link.length===1?new URL(link[0].href).searchParams.get('v'):null,
+         navExists:!!explore,headerRight:header.right,
+         oldLinkCount:[...document.querySelectorAll('link[rel="stylesheet"]')]
+           .filter(el=>/\/(?:explore-l114|shared-header-l116)\.css$/.test(new URL(el.href).pathname)).length
+       };
+     },{source:originals,bundle:merged});
+     const hits=requests.filter(r=>r.path==='/landing-assets/header-explore-l147.min.css');
+     const missingOld=requests.filter(r=>
+       ['/landing-assets/explore-l114.css','/landing-assets/shared-header-l116.css'].includes(r.path));
+     ensure(checks.same&&checks.ruleCount>=90&&checks.linkCount===1&&checks.loaded&&
+       checks.cacheVersion==='l147'&&checks.navExists&&checks.headerRight<=394&&
+       checks.oldLinkCount===0&&hits.length===1&&hits[0].status===200&&
+       missingOld.length===0&&originals.join('').length-merged.length>2500&&errors.length===0,
+       'L1.47 combined header CSS parses identically and saves one request '+
+         JSON.stringify({checks,oldBytes:originals.reduce((sum,c)=>sum+Buffer.byteLength(c),0),
+           newBytes:Buffer.byteLength(merged),hits,missingOld,errors}));
+     await ctx.close();
+   }
+
+   // L1.46 CSSOM critical style parity: keep editable original CSS and prove
+   // that Chrome parses every rule identically in the compact runtime copy.
+   {
+     const payload=['cinematic','premium-l131'].map(name=>({
+       name,
+       before:fs.readFileSync('landing-assets/'+name+'.css','utf8'),
+       after:fs.readFileSync('landing-assets/'+name+'.min.css','utf8')
+     }));
+     const ctx=await browser.newContext({viewport:{width:393,height:852},reducedMotion:'reduce'});
+     const page=await ctx.newPage(),failures=[],requests=[];
+     page.on('pageerror',error=>failures.push(error.message));
+     page.on('response',response=>{
+       const url=new URL(response.url());
+       if(url.origin===origin&&
+          /\/(?:cinematic|premium-l131)\.min\.css$/.test(url.pathname)){
+         requests.push({path:url.pathname,status:response.status(),
+           version:url.searchParams.get('v')});
+       }
+     });
+     await page.goto(origin+'/',{waitUntil:'load',timeout:30000});
+     const result=await page.evaluate(styles=>{
+       const checked=[];
+       for(const {name,before,after} of styles){
+         const oldSheet=new CSSStyleSheet(),newSheet=new CSSStyleSheet();
+         oldSheet.replaceSync(before);newSheet.replaceSync(after);
+         const original=[...oldSheet.cssRules].map(rule=>rule.cssText);
+         const compact=[...newSheet.cssRules].map(rule=>rule.cssText);
+         const firstMismatch=original.findIndex((rule,i)=>rule!==compact[i]);
+         const linked=[...document.querySelectorAll('link[rel="stylesheet"]')]
+           .filter(link=>new URL(link.href).pathname==='/landing-assets/'+name+'.min.css');
+         checked.push({name,originalRules:original.length,compactRules:compact.length,
+           identical:original.length===compact.length&&firstMismatch===-1,
+           firstMismatch,links:linked.map(link=>({loaded:!!link.sheet,
+             version:new URL(link.href).searchParams.get('v')}))});
+       }
+       return {checked,
+         heroWidth:document.querySelector('#hero-title').getBoundingClientRect().width,
+         headerRight:document.querySelector('.site-header').getBoundingClientRect().right};
+     },payload);
+     ensure(result.checked.length===2&&result.checked.every(x=>
+       x.identical&&x.originalRules>10&&x.links.length===1&&
+       x.links[0].loaded&&x.links[0].version==='l146')&&
+       result.heroWidth>0&&result.headerRight<=394&&
+       requests.length===2&&requests.every(x=>x.status===200&&x.version==='l146')&&
+       payload.every(x=>x.before.length-x.after.length>=500)&&failures.length===0,
+       'L1.46 compact critical CSS identical Chrome rules and single requests '+
+       JSON.stringify({result,bytes:payload.map(x=>({name:x.name,
+         original:Buffer.byteLength(x.before),compact:Buffer.byteLength(x.after)})),requests,failures}));
+     await ctx.close();
+   }
+
    // L1.44 — hold the small animation-only CSS until after DOMContentLoaded.
    // Hero and first-screen navigation must render normally without waiting.
    // A fast scroll while delayed must not cause invisible feature cards.
@@ -147,7 +1298,7 @@ async function load(page,route,failures){
      });
      const page=await ctx.newPage(),failures=[];
      page.on('pageerror',e=>failures.push('JS '+e.message));
-     page.on('requestfailed',r=>failures.push('Network '+r.url()+' '+r.failure()?.errorText));
+     page.on('requestfailed',r=>{ if(!/^https:\/\/cloudflareinsights\.com\/cdn-cgi\/rum(?:\?|$)/.test(r.url())) failures.push('Network '+r.url()+' '+r.failure()?.errorText); });
      page.on('response',r=>{
        if(r.url().startsWith(origin)&&r.status()>=400)
          failures.push('HTTP '+r.status()+' '+r.url());
@@ -212,7 +1363,7 @@ async function load(page,route,failures){
        ensure(sample.width===width&&sample.fcpMs>0&&sample.lcpMs>0&&
          sample.loadMs>0&&sample.heroDecoded&&sample.heroReady&&
          sample.heroRequestCount>=1&&sample.heroRequestCount<=2&&
-         sample.headerRight<=width+1&&sample.cssRequests>=7&&
+         sample.headerRight<=width+1&&sample.cssRequests>=6&&
          sample.cls<0.25&&failures.length===0,
          'L1.43 '+width+'px throttled cold-cache LCP/FCP/CLS/image baseline '+JSON.stringify({sample,failures}));
        l143Samples.push(sample);
@@ -315,7 +1466,7 @@ async function load(page,route,failures){
      const page=await context.newPage();
      const failures=[],loaded=[];
      page.on('pageerror',e=>failures.push(e.message));
-     page.on('requestfailed',req=>failures.push(req.url()+' '+req.failure()?.errorText));
+     page.on('requestfailed',req=>{ if(!/^https:\/\/cloudflareinsights\.com\/cdn-cgi\/rum(?:\?|$)/.test(req.url())) failures.push(req.url()+' '+req.failure()?.errorText); });
      page.on('response',r=>{
        const url=new URL(r.url());
        if(url.origin!==origin||!url.pathname.startsWith('/landing-assets/'))return;
@@ -338,11 +1489,20 @@ async function load(page,route,failures){
          viewport:innerWidth
        };
      });
-     ensure(layout.styles.length===7&&layout.scripts.length===2 &&
-       [...layout.styles,...layout.scripts].every(v=>v==='l141') &&
-       loaded.length===9 && loaded.every(r=>r.status===200&&r.version==='l141') &&
-       new Set(loaded.map(r=>r.path)).size===9 && failures.length===0,
-       'L1.41 '+width+'px nine consistent fresh cache-key requests '+JSON.stringify({loaded,failures}));
+     ensure(layout.styles.length===6&&layout.scripts.length===2 &&
+       layout.styles.filter(v=>v==='l145').length===1 &&
+       layout.styles.filter(v=>v==='l146').length===2 &&
+       layout.styles.filter(v=>v==='l147').length===1 &&
+       layout.styles.filter(v=>v==='l141').length===2 &&
+       layout.scripts.includes('l155') && layout.scripts.includes('l159') &&
+       loaded.length===8 && loaded.every(r=>r.status===200&&
+         r.version===(r.path==='/landing-assets/landing.min.css'?'l145':
+           ['/landing-assets/cinematic.min.css','/landing-assets/premium-l131.min.css'].includes(r.path)?'l146':
+           r.path==='/landing-assets/header-explore-l147.min.css'?'l147':
+            r.path==='/landing-assets/landing.js'?'l155':
+              r.path==='/landing-assets/motion-l132.js'?'l159':'l141')) &&
+       new Set(loaded.map(r=>r.path)).size===8 && failures.length===0,
+       'L1.47 '+width+'px eight CSS/JS requests with consistent cache keys '+JSON.stringify({loaded,failures}));
      ensure(layout.brand.left>=-1&&layout.brand.right<=width+1 &&
        layout.brand.width<width*.8 &&
        layout.hero.left>=-1&&layout.hero.right<=width+1 &&
@@ -1580,6 +2740,261 @@ async function load(page,route,failures){
          route+' '+width+'px keyboard navigation has no missing assets or JS errors');
        await ctx.close();
      }
+   }
+
+   // L1.59 live reduced-motion reveal persistence in real Chromium.
+   {
+     const candidate=fs.readFileSync('landing-assets/motion-l132.js','utf8');
+     const addition="  // L1.59: settle any pending reveals when reduced motion is enabled live.\n  // Already visible content stays visible if normal motion is enabled again.\n  const settleReducedReveals=()=>{\n    if(permitted())return;\n    for(const el of elements)el.classList.add('mm-shown');\n    observer.disconnect();\n  };\n  if(typeof motionPreference.addEventListener==='function')\n    motionPreference.addEventListener('change',settleReducedReveals);\n  else if(typeof motionPreference.addListener==='function')\n    motionPreference.addListener(settleReducedReveals);\n\n";
+     const anchor='  // Clicking a guide or an in-page navigation link must reveal the destination,';
+     assert.equal(candidate.split(addition+anchor).length,2,'L1.59 unique presentation-only patch');
+     const released=candidate.replace(addition+anchor,anchor);
+     for(const [width,lang] of [[393,'my'],[768,'zh'],[1440,'en']]){
+       const results={};
+       for(const [version,script] of [['l158',released],['l159',candidate]]){
+         const ctx=await browser.newContext({viewport:{width,height:852},
+           reducedMotion:'no-preference',serviceWorkers:'block'});
+         const page=await ctx.newPage(),errors=[];
+         page.on('pageerror',e=>errors.push(e.message));
+         await page.addInitScript(code=>{
+           try{localStorage.setItem('mmhvault.landing.language',code)}catch(_){}
+         },lang);
+         await page.addInitScript(()=>{
+           const Native=window.IntersectionObserver;
+           window.__l159Observers=[];
+           if(typeof Native!=='function')return;
+           window.IntersectionObserver=class extends Native{
+             constructor(callback,options){
+               super(callback,options);
+               if(['0px 0px 24% 0px','0px 0px -6% 0px'].includes(options?.rootMargin)){
+                 this.__l159Record={disconnected:false,observed:0};
+                 window.__l159Observers.push(this.__l159Record);
+               }
+             }
+             observe(target){
+               if(this.__l159Record)this.__l159Record.observed++;
+               return super.observe(target);
+             }
+             disconnect(){
+               if(this.__l159Record)this.__l159Record.disconnected=true;
+               return super.disconnect();
+             }
+           };
+         });
+         await page.route('**/landing-assets/motion-l132.js*',r=>r.fulfill({
+           status:200,contentType:'application/javascript',body:script}));
+         await page.goto(origin+'/',{waitUntil:'load',timeout:25000});
+         const sample=()=>page.evaluate(()=>{
+           const all=[...document.querySelectorAll('.mm-reveal')];
+           const pending=all.filter(el=>!el.classList.contains('mm-shown'));
+           return {count:all.length,pending:pending.length,
+             pendingOpacity:pending[0]?getComputedStyle(pending[0]).opacity:null,
+             observers:window.__l159Observers.map(x=>({...x})),
+             hero:[...document.querySelectorAll('[data-hero-fixed]')].map(el=>el.textContent.trim()),
+             language:document.documentElement.lang,
+             feature:document.querySelector('[data-product-tab].is-active')?.dataset.productTab};
+         });
+         const initial=await sample();
+         // CSS transitions can still be entering their first frame at load.
+         // Verify actual pending state and observer registration, not a timed opacity sample.
+         console.log('L1.59 initial reveal snapshot '+JSON.stringify({
+           version,width,lang,pending:initial.pending,opacity:initial.pendingOpacity,
+           observerCount:initial.observers.length,observed:initial.observers[0]?.observed,
+           heroCount:initial.hero.length,language:initial.language}));
+         ensure(initial.count>4 && initial.pending>0 &&
+           initial.observers.length===1 && initial.observers[0].observed>0 &&
+           initial.hero.length===3 && initial.language===(lang==='zh'?'zh-CN':lang),
+           'L1.59 '+version+' '+width+'px '+lang+' initial offscreen reveals observed');
+         await page.emulateMedia({reducedMotion:'reduce'});
+         if(version==='l159')await page.waitForFunction(()=>
+           [...document.querySelectorAll('.mm-reveal')].every(el=>el.classList.contains('mm-shown')),
+           null,{timeout:3000});
+         const reduced=await sample();
+         await page.emulateMedia({reducedMotion:'no-preference'});
+         const resumed=await sample();
+         ensure(errors.length===0 && JSON.stringify(initial.hero)===JSON.stringify(resumed.hero) &&
+           initial.feature===resumed.feature && initial.language===resumed.language &&
+           reduced.count===initial.count && resumed.count===initial.count,
+           'L1.59 '+version+' '+width+'px '+lang+' preserves Hero/features/language');
+         results[version]={initial,reduced,resumed};
+         await ctx.close();
+       }
+       const old=results.l158,next=results.l159;
+       ensure(old.reduced.pending>0 && old.resumed.pending>0 &&
+         !old.reduced.observers[0].disconnected &&
+         next.reduced.pending===0 && next.resumed.pending===0 &&
+         next.reduced.observers[0].disconnected && next.resumed.observers[0].disconnected,
+         'L1.59 '+width+'px '+lang+' OS toggle removes offscreen hiding and observer '+
+           JSON.stringify({baselinePending:old.resumed.pending,newPending:next.resumed.pending}));
+     }
+     console.log('L1.59 live reduced-motion reveal persistence PASS; no loading speed claim.');
+   }
+
+   // L1.57 rotated viewport reveal observer parity: L1.56 vs L1.57.
+   {
+     const currentScript=fs.readFileSync('landing-assets/motion-l132.js','utf8');
+     const oldBlock="  // L1.40: prewarm mobile reveals further ahead of fast swipes, with no\n  // intersection threshold that might skip a narrow card. Desktop unchanged.\n  const mobileReveal = window.matchMedia && window.matchMedia('(max-width: 620px)').matches;\n  const observer=new IntersectionObserver(entries=>{\n    for(const entry of entries){\n      if(!entry.isIntersecting)continue;\n      entry.target.classList.add('mm-shown');\n      observer.unobserve(entry.target);\n    }\n  },{rootMargin:mobileReveal?'0px 0px 24% 0px':'0px 0px -6% 0px',threshold:mobileReveal?0:0.065});\n  elements.filter(el=>!el.classList.contains('mm-shown')).forEach(el=>observer.observe(el));\n",newBlock="  // L1.57: recalculate phone-first reveal margins after orientation changes.\n  // Keep already revealed sections visible; no scroll interception or repaint.\n  const mobileRevealQuery=window.matchMedia\n    ? window.matchMedia('(max-width: 620px)') : {matches:false};\n  let observer;\n  const bindRevealObserver=()=>{\n    if(observer)observer.disconnect();\n    const mobileReveal=mobileRevealQuery.matches;\n    const nextObserver=new IntersectionObserver(entries=>{\n      for(const entry of entries){\n        if(!entry.isIntersecting)continue;\n        entry.target.classList.add('mm-shown');\n        nextObserver.unobserve(entry.target);\n      }\n    },{rootMargin:mobileReveal?'0px 0px 24% 0px':'0px 0px -6% 0px',threshold:mobileReveal?0:0.065});\n    observer=nextObserver;\n    elements.filter(el=>!el.classList.contains('mm-shown')).forEach(el=>observer.observe(el));\n  };\n  bindRevealObserver();\n  if(typeof mobileRevealQuery.addEventListener==='function')\n    mobileRevealQuery.addEventListener('change',bindRevealObserver);\n  else if(typeof mobileRevealQuery.addListener==='function')\n    mobileRevealQuery.addListener(bindRevealObserver);\n";
+     assert.equal(currentScript.split(newBlock).length,2,'L1.57 exact presentation-only patch');
+     const baseline=currentScript.replace(newBlock,oldBlock);
+     const mobile='0px 0px 24% 0px',desktop='0px 0px -6% 0px';
+     for(const [from,to,lang] of [[768,393,'my'],[393,768,'zh'],[1440,393,'en'],[393,1440,'my']]){
+       const measurements={};
+       for(const [version,script] of [['l156',baseline],['l157',currentScript]]){
+         const ctx=await browser.newContext({viewport:{width:from,height:852},reducedMotion:'no-preference',serviceWorkers:'block'});
+         const page=await ctx.newPage(),errors=[];
+         page.on('pageerror',e=>errors.push(e.message));
+         await page.addInitScript(lang=>{
+           try{localStorage.setItem('mmhvault.landing.language',lang)}catch(_){}
+         },lang);
+         await page.addInitScript(()=>{
+           const Native=window.IntersectionObserver;
+           window.__l157io=[];
+           if(typeof Native!=='function')return;
+           window.IntersectionObserver=class extends Native{
+             constructor(callback,options){
+               super(callback,options);
+               if(['0px 0px 24% 0px','0px 0px -6% 0px'].includes(options?.rootMargin)){
+                 this.__l157record={margin:options.rootMargin,threshold:options.threshold,observed:0,disconnected:false};
+                 window.__l157io.push(this.__l157record);
+               }
+             }
+             observe(target){if(this.__l157record)this.__l157record.observed++;return super.observe(target)}
+             disconnect(){if(this.__l157record)this.__l157record.disconnected=true;return super.disconnect()}
+           };
+         });
+         await page.route('**/landing-assets/motion-l132.js*',route=>route.fulfill({
+           status:200,contentType:'application/javascript',body:script}));
+         await page.goto(origin+'/',{waitUntil:'load',timeout:25000});
+         const inspect=()=>page.evaluate(()=>({
+           records:window.__l157io.map(x=>({...x})),
+           shown:document.querySelectorAll('.mm-reveal.mm-shown').length,
+           hero:[...document.querySelectorAll('[data-hero-fixed]')].map(x=>x.textContent.trim()),
+           lang:document.documentElement.lang,
+           active:document.querySelector('.product-tab.is-active')?.dataset.productTab
+         }));
+         const first=await inspect();
+         ensure(first.records.length===1 &&
+           first.records[0].margin===(from<=620?mobile:desktop) &&
+           first.records[0].observed>0 &&
+           first.hero.length===3 && first.lang===(lang==='zh'?'zh-CN':lang),
+           'L1.57 '+version+' initial '+from+'px '+lang+' observer');
+         await page.setViewportSize({width:to,height:852});
+         if(version==='l157')await page.waitForFunction(count=>
+           window.__l157io?.length>=count,2,{timeout:3000});
+         else await page.waitForTimeout(100);
+         const last=await inspect();
+         ensure(last.shown>=first.shown &&
+           JSON.stringify(last.hero)===JSON.stringify(first.hero) &&
+           last.lang===first.lang && last.active===first.active && errors.length===0,
+           'L1.57 '+version+' rotated '+from+'->'+to+'px keeps content and Hero');
+         measurements[version]={first,last};
+         await ctx.close();
+       }
+       const old=measurements.l156,now=measurements.l157;
+       ensure(old.last.records.length===1 &&
+         old.last.records[0].margin===(from<=620?mobile:desktop) &&
+         now.last.records.length===2 &&
+         now.last.records[0].disconnected &&
+         now.last.records[1].margin===(to<=620?mobile:desktop) &&
+         now.last.records[1].threshold===(to<=620?0:0.065) &&
+         now.last.records[1].observed>0,
+         'L1.57 '+from+'->'+to+'px rebinds early reveal margin '+
+           JSON.stringify({before:old.last.records.map(x=>x.margin),after:now.last.records.map(x=>x.margin)}));
+     }
+     console.log('L1.57 viewport rebind responsive comparison PASS; not a loading speed claim.');
+   }
+
+   // L1.58 rotated public-page observer parity: released L1.57 versus L1.58.
+   // Browser checks preserve public headings, language and revealed elements.
+   {
+     const candidate=fs.readFileSync('landing-assets/public-pages.js','utf8');
+     const oldBlock="      // L1.39: pre-reveal phone cards ahead of viewport; leave desktop as-is.\n      const mobileReveal=window.matchMedia('(max-width: 620px)').matches;\n      const observer=new IntersectionObserver(entries=>{\n        entries.forEach(entry=>{\n          if(!entry.isIntersecting)return;\n          entry.target.classList.add('mm-public-shown');\n          observer.unobserve(entry.target);\n        });\n      },{threshold:.045,rootMargin:mobileReveal?'0px 0px 12% 0px':'0px 0px -4% 0px'});\n      targets.filter(el=>!el.classList.contains('mm-public-shown'))\n        .forEach(el=>observer.observe(el));";
+     const newBlock="      // L1.58: rotate.\n      const mq=matchMedia('(max-width:620px)');\n      let io;\n      function bind(){\n        io?.disconnect();\n        const mobileReveal=mq.matches;\n        const o=new IntersectionObserver(es=>{\n          for(const e of es)if(e.isIntersecting){\n            e.target.classList.add('mm-public-shown');\n            o.unobserve(e.target);\n          }\n        },{threshold:.045,rootMargin:mobileReveal?'0px 0px 12% 0px':'0px 0px -4% 0px'});\n        io=o;\n        for(const e of targets)if(!e.classList.contains('mm-public-shown'))o.observe(e);\n      }\n      bind();\n      mq.addEventListener?mq.addEventListener('change',bind):mq.addListener?.(bind);";
+     assert.equal(candidate.split(newBlock).length,2,'L1.58 exact public-only observer change');
+     const released=candidate.replace(newBlock,oldBlock);
+     const mobile='0px 0px 12% 0px',desktop='0px 0px -4% 0px';
+     for(const [route,from,to,lang] of [
+       ['/features/',768,393,'my'],
+       ['/features/',393,768,'zh'],
+       ['/about/',768,393,'zh'],
+       ['/security.html',1440,393,'en'],
+       ['/security.html',393,1440,'my'],
+       ['/business/',393,768,'en']
+     ]){
+       const observed={};
+       for(const [version,script] of [['l157',released],['l158',candidate]]){
+         const ctx=await browser.newContext({
+           viewport:{width:from,height:852},reducedMotion:'no-preference',serviceWorkers:'block'});
+         const page=await ctx.newPage(),errors=[];
+         page.on('pageerror',e=>errors.push(e.message));
+         await page.addInitScript(code=>{
+           try{localStorage.setItem('mmhvault.landing.language',code)}catch(_){}
+         },lang);
+         await page.addInitScript(()=>{
+           const Native=window.IntersectionObserver;
+           window.__l158Observers=[];
+           if(typeof Native!=='function')return;
+           window.IntersectionObserver=class extends Native{
+             constructor(callback,options){
+               super(callback,options);
+               if(['0px 0px 12% 0px','0px 0px -4% 0px'].includes(options?.rootMargin)){
+                 this.__l158Record={margin:options.rootMargin,threshold:options.threshold,
+                   observed:0,disconnected:false};
+                 window.__l158Observers.push(this.__l158Record);
+               }
+             }
+             observe(target){
+               if(this.__l158Record)this.__l158Record.observed++;
+               return super.observe(target);
+             }
+             disconnect(){
+               if(this.__l158Record)this.__l158Record.disconnected=true;
+               return super.disconnect();
+             }
+           };
+         });
+         await page.route('**/landing-assets/public-pages.js*',route=>route.fulfill({
+           status:200,contentType:'application/javascript',body:script}));
+         await page.goto(origin+route,{waitUntil:'load',timeout:25000});
+         const inspect=()=>page.evaluate(()=>({
+           records:window.__l158Observers.map(x=>({...x})),
+           shown:document.querySelectorAll('.mm-public-reveal.mm-public-shown').length,
+           title:document.title,
+           headline:document.querySelector('h1')?.textContent.trim(),
+           canonical:document.querySelector('link[rel="canonical"]')?.href,
+           lang:document.documentElement.lang,
+           script:new URL(document.querySelector('script[src*="public-pages.js"]').src).searchParams.get('v')
+         }));
+         const first=await inspect();
+         ensure(first.records.length===1 && first.records[0].margin===(from<=620?mobile:desktop) &&
+           first.records[0].observed>0 && first.headline && first.canonical &&
+           first.lang===(lang==='zh'?'zh-CN':lang) && first.script==='l158',
+           'L1.58 '+version+' '+route+' '+from+'px initial public reveal');
+         await page.setViewportSize({width:to,height:852});
+         if(version==='l158')await page.waitForFunction(()=>window.__l158Observers?.length>=2,
+           null,{timeout:3000});
+         else await page.waitForTimeout(90);
+         const last=await inspect();
+         ensure(last.shown>=first.shown && last.title===first.title &&
+           last.headline===first.headline && last.canonical===first.canonical &&
+           last.lang===first.lang && errors.length===0,
+           'L1.58 '+version+' '+route+' '+from+'->'+to+'px preserves public content');
+         observed[version]={first,last};
+         await ctx.close();
+       }
+       const oldState=observed.l157,newState=observed.l158;
+       ensure(oldState.last.records.length===1 &&
+         oldState.last.records[0].margin===(from<=620?mobile:desktop) &&
+         newState.last.records.length===2 &&
+         newState.last.records[0].disconnected &&
+         newState.last.records[1].margin===(to<=620?mobile:desktop) &&
+         newState.last.records[1].threshold===0.045 &&
+         newState.last.records[1].observed>0,
+         'L1.58 '+route+' '+from+'->'+to+'px replaces stale public reveal observer '+
+           JSON.stringify({old:oldState.last.records.map(x=>x.margin),
+             next:newState.last.records.map(x=>x.margin)}));
+     }
+     console.log('L1.58 six actual public-page rotations verified; not a loading-speed claim.');
    }
 
    // L1.39: real IntersectionObserver configuration in phone and desktop

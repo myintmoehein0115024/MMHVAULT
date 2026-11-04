@@ -13116,10 +13116,46 @@ function mmhVaultNormalizeTxFieldsV12(value){
     const raw=Array.isArray(value[key])?value[key]:[];
     return [...new Set(raw.map(x=>String(x||'').trim()).filter(x=>x.length<=90&&pattern.test(x)))].slice(0,100);
   };
+  // V13: display-only labels / aliases are independently owner-scoped.
+  // Every alias maps onto a whitelisted canonical finance code.
+  const names=(source,allowed)=>{
+    const out={};
+    if(!source||typeof source!=='object'||Array.isArray(source))return out;
+    for(const [key,raw] of Object.entries(source)){
+      const value=String(raw||'').trim();
+      if(allowed.includes(key)&&value.length>0&&value.length<=40)out[key]=value;
+    }
+    return out;
+  };
+  const typeCodes=['Income','Expense','Transfer'];
+  const transactionCodes=['Income|Income','Expense|Expense','Expense|Personal',
+    'Income|Loans','Expense|Loans','Transfer|Transfer',
+    'Income|Data Adjustment','Expense|Data Adjustment'];
+  const aliases=(raw,codes)=>{
+    if(!Array.isArray(raw))return [];
+    const out=[],seen=new Set();
+    for(const item of raw){
+      if(!item||typeof item!=='object'||Array.isArray(item))continue;
+      const id=String(item.id||''),canonical=String(item.canonical||''),label=String(item.label||'').trim();
+      if(!/^user_[a-z0-9]{7,22}$/.test(id)||!codes.includes(canonical)||
+        !label||label.length>40||seen.has(id))continue;
+      seen.add(id);out.push({id,canonical,label});
+      if(out.length===24)break;
+    }
+    return out;
+  };
+  const v13=value.displayV13&&typeof value.displayV13==='object'&&!Array.isArray(value.displayV13)
+    ?value.displayV13:{};
   return {version:1,
     type:select('type',/^(Income|Expense|Transfer)$/),
     transaction:select('transaction',/^(Income|Expense|Transfer)\|(Income|Expense|Personal|Loans|Transfer|Data Adjustment)$/),
-    category:select('category',/^(Expense|Income|Personal|LoanIncome|LoanExpense)\|.+$/)};
+    category:select('category',/^(Expense|Income|Personal|LoanIncome|LoanExpense)\|.+$/),
+    displayV13:{
+      typeLabels:names(v13.typeLabels,typeCodes),
+      transactionLabels:names(v13.transactionLabels,transactionCodes),
+      extraTypes:aliases(v13.extraTypes,typeCodes),
+      extraTransactions:aliases(v13.extraTransactions,transactionCodes)
+    }};
 }
 function mmhVaultReadConfig(owner=MMHVAULT_CONFIG_OWNER){
   const fallback={accounts:[],categories:Object.fromEntries(Object.entries(MMHVAULT_DEFAULT_CATEGORIES).map(([k,v])=>[k,[...v]])),archivedCategories:{},txFieldsV12:{version:1,type:[],transaction:[],category:[]}};
@@ -13770,6 +13806,7 @@ function mmhVaultEditCategoryV449(group,name){
         (transactions||[]).forEach(t=>{if(t&&t.category===currentName)t.category=newName;});
         try{window.transactions=transactions;}catch(_){ }
         list[idx]=newName;
+        window.MMHV11TxFieldPrefs?.onCategoryRenamed?.(currentGroup,currentName,newName);
         mmhVaultPersistConfig();
         mmhVaultRefreshCategoryUIV449(currentGroup,newName);
         try{window.mmhvaultInvalidateTransactionRenderV34241?.();}catch(_){ }
@@ -35152,6 +35189,6 @@ html body #settings.page.active #stPage_security #mmhA783SecurityCenter .mmh-a78
 </style>
 <script src="js/mmhvault-n10-a7-83-security-center.js?v=10.790.1"></script>
 <script src="js/mmhvault-account-reference-fx-v1.js?v=1.0.1"></script>
-<script src="js/mmhvault-transaction-field-layout-v11.js?v=2.1.0" defer></script>
+<script src="js/mmhvault-transaction-field-layout-v11.js?v=3.0.4" defer></script>
 </body>
 </html>
