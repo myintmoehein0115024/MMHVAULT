@@ -53,6 +53,9 @@ test('new Auth sessions re-check the private E/F gate and sign out if it closes 
  has('if(issuedSession)await revokeQAAuthSession(issuedSession)');
  has('await quarantineCompletedSignup(result.user_id,data.username)');
  has('if(x&&!await revokeQAAuthSession(x))');
+ has('!await ownerGateOpen(result.user_id,slotOf(data.username))');
+ has('await ownerGateOpen(x.user_id,slotOf(data.username)):open()');
+ has('}catch(_){return false;}');
  has('verifiedPasswordSession(email,password,newUserId,slot)');
  has('verifiedPasswordSession(user.email,password,userId,slot)');
 });
