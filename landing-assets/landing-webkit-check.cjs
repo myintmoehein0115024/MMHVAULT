@@ -60,14 +60,16 @@ function pass(condition,label,detail){
           ?getComputedStyle(document.querySelector('.hero-art .demo-disclaimer')).backdropFilter==='none':true,
         businessCaptionOff:document.body.classList.contains('l131')
           ?getComputedStyle(document.querySelector('#business .business-photo-caption')).backdropFilter==='none':true,
+        businessSectionHaloOff:document.body.classList.contains('l131')
+          ?getComputedStyle(document.querySelector('#business.business-section'),'::after').filter==='none':true,
         canonical:document.querySelector('link[rel="canonical"]')?.href,
         horizontalOverflow:document.documentElement.scrollWidth>innerWidth+2
       };
     });
-    pass(metrics.safariSheet?.includes('?v=l169') &&
+    pass(metrics.safariSheet?.includes('?v=l170') &&
       metrics.headerBackdrop==='none'&&metrics.headerWebkitBackdrop==='none'&&
       metrics.headerBackground.includes('linear-gradient')&&
-      metrics.cardBlurOff&&metrics.ambientOff&&metrics.heroGlowOff&&metrics.heroHaloOff&&metrics.heroCopyOff&&metrics.heroNameOff&&metrics.heroCaptionOff&&metrics.businessCaptionOff&&
+      metrics.cardBlurOff&&metrics.ambientOff&&metrics.heroGlowOff&&metrics.heroHaloOff&&metrics.heroCopyOff&&metrics.heroNameOff&&metrics.heroCaptionOff&&metrics.businessCaptionOff&&metrics.businessSectionHaloOff&&
       metrics.canonical?.startsWith('https://mmhvault.com/')&&
       !metrics.horizontalOverflow&&metrics.scrollX===0&&
       (metrics.scrollY<10||Math.abs(metrics.headerTop)<=2),
@@ -121,6 +123,8 @@ function pass(condition,label,detail){
           getComputedStyle(document.querySelector('.hero-art .demo-disclaimer')).backdropFilter:null,
         mobileBusinessCaptionBackdrop:document.body.classList.contains('l131')?
           getComputedStyle(document.querySelector('#business .business-photo-caption')).backdropFilter:null,
+        mobileSectionHaloFilter:document.body.classList.contains('l131')?
+          getComputedStyle(document.querySelector('#business.business-section'),'::after').filter:null,
         mobileHeroNameFilter:document.body.classList.contains('l131')?
           getComputedStyle(document.querySelector('.hero .hero-name')).filter:null,
         mobileBusinessBlur:document.querySelector('#business .business-stage')?
@@ -128,7 +132,8 @@ function pass(condition,label,detail){
     });
     pass(!metrics.desktopRule&&metrics.cssLoaded&&metrics.background.includes('gradient')&&
       (path!=='/'||(metrics.mobileBusinessBlur==='blur(40px)'&&metrics.mobileHeroNameFilter!=='none'&&
-          metrics.mobileHeroCaptionBackdrop!=='none'&&metrics.mobileBusinessCaptionBackdrop!=='none')),
+          metrics.mobileHeroCaptionBackdrop!=='none'&&metrics.mobileBusinessCaptionBackdrop!=='none'&&
+          metrics.mobileSectionHaloFilter!=='none')),
       'WebKit mobile baseline is not overridden '+path,metrics);
     await context.close();
   }
