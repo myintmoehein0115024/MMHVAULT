@@ -78,6 +78,13 @@ assert.equal(bootSortByTable.get('investments'),'inv_date');
 assert.equal(bootSortByTable.get('custom_investments'),'inv_date');
 const helperMatch=/\b(?:async\s+)?function\s+mmhPersonalReadAllV191\s*\(|\b(?:const|let)\s+mmhPersonalReadAllV191\s*=/.exec(source);
 assert.ok(helperMatch,'Owner-filtered shared finance reader not found');
+const helperGuard=source.slice(helperMatch.index,helperMatch.index+2000);
+assert.match(helperGuard,/\.from\s*\(\s*table\s*\)\.select\(['"]\*['"]\)\.eq\(['"]user_id['"],\s*owner\)/,
+  'Full APP shared reader must still query only signed-in owner rows');
+assert.match(helperGuard,/\.order\(order,\s*\{ascending:true\}\)/,
+  'Full APP read depends on a sortable column (normally id)');
+assert.match(helperGuard,/currentSessionUser\?\.id\s*!==\s*owner/,
+  'Owner switch must invalidate the shared reader');
 const helperBody=source.slice(helperMatch.index,helperMatch.index+6500).split('\n').slice(0,65);
 const helperReview=helperBody.filter(line=>/mmhPersonalReadAllV191|\.from\s*\(|\b(?:select|eq|read|throw|owner|user_id|return)\b/.test(line))
   .slice(0,35).map(scrub);
