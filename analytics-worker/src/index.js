@@ -96,5 +96,11 @@ export default {async fetch(request,env){
     if(verified.status!==200)return response(verified.status,{error:verified.status===401?'authentication_required':'forbidden'},cors);
     const data=await queryAnalytics(range,env);
     return response(200,{source:'cloudflare-web-analytics',verified:true,...data},cors);
-  }catch{return response(503,{error:'analytics_unavailable'},cors)}
+  }catch(error){
+    // Diagnostic allowlist: never log credentials, request headers, user IDs or upstream bodies.
+    const safeCodes=new Set(['CF_HTTP_ERROR','CF_GRAPHQL_ERROR','CF_ACCOUNT_MISMATCH','CF_GROUPS_INVALID','CF_METRICS_INVALID','CF_DATE_INVALID','CF_METRICS_OVERFLOW']);
+    const code=safeCodes.has(error?.message)?error.message:'ANALYTICS_UNEXPECTED_ERROR';
+    console.error('MMH_ANALYTICS_V2_FAILURE', {code});
+    return response(503,{error:'analytics_unavailable'},cors);
+  }
 }};
