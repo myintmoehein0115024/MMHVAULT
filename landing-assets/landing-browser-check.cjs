@@ -52,6 +52,49 @@ async function load(page,route,failures){
 (async()=>{
  const browser=await chromium.launch({channel:'chrome',headless:true,args:['--no-sandbox','--disable-dev-shm-usage']});
  try{
+   // L1.62: verify narrow-screen breadcrumbs do not clip a long Burmese
+   // label, and desktop breadcrumb layout remains unchanged.
+   for(const route of publicRoutes.slice(1)){
+     for(const width of [320,393,768]){
+       const ctx=await browser.newContext({viewport:{width,height:760},serviceWorkers:'block'});
+       const page=await ctx.newPage(),errors=[];
+       page.on('pageerror',e=>errors.push(e.message));
+       await page.addInitScript(()=>{
+         try{localStorage.setItem('mmhvault.landing.language','my')}catch(_){}
+       });
+       await page.goto(origin+route,{waitUntil:'load',timeout:25000});
+       const metrics=await page.evaluate(()=>{
+         const crumb=document.querySelector('.page-breadcrumb');
+         const parts=[...crumb.children];
+         const last=parts.at(-1);
+         // Long synthetic text forces the same wrap pressure as translated
+         // labels or browser text scaling, without changing source content.
+         if(innerWidth<=393)last.textContent='MMHVAULT အကြောင်း အချက်အလက်များ လုံခြုံရေးဆိုင်ရာ အထူးရှင်းလင်းချက်';
+         const bounding=crumb.getBoundingClientRect();
+         const lastRect=last.getBoundingClientRect();
+         const css=getComputedStyle(crumb);
+         const cssHref=[...document.querySelectorAll('link[rel="stylesheet"]')]
+           .find(l=>l.href.includes('public-pages.css'))?.href||'';
+         return {viewport:innerWidth,wrap:css.flexWrap,
+           inside:lastRect.right<=bounding.right+1 && lastRect.left>=bounding.left-1,
+           crumbRight:bounding.right,lastRight:lastRect.right,
+           styleVersion:new URL(cssHref).searchParams.get('v'),
+           canonical:document.querySelector('link[rel="canonical"]')?.href,
+           language:document.documentElement.lang,
+           horizontalScroll:(()=>{
+             const y=scrollY;scrollTo({left:900,top:y,behavior:'instant'});
+             const x=scrollX;scrollTo({left:0,top:y,behavior:'instant'});return x;
+           })()};
+       });
+       ensure(metrics.styleVersion==='l162' && metrics.canonical &&
+         metrics.language==='my' && metrics.inside && metrics.horizontalScroll<=2 &&
+         (width<=393?metrics.wrap==='wrap':metrics.wrap==='nowrap'),
+         'L1.62 mobile public breadcrumb bounds '+route+' '+width+'px '+JSON.stringify(metrics));
+       ensure(errors.length===0,'L1.62 no page JS errors '+route+' '+width+'px');
+       await ctx.close();
+     }
+   }
+   console.log('L1.62 public breadcrumb narrow-screen and desktop CSS parity PASS');
    // L1.61: keyboard-opened phone/tablet menu becomes navigable via Tab.
    // This is presentation-only QA on local public routes; no auth endpoints.
    for(const [route,width,lang] of [
