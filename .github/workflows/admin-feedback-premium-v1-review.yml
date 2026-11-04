@@ -16,7 +16,7 @@ permissions:
 jobs:
   feedback-regression:
     runs-on: ubuntu-latest
-    timeout-minutes: 12
+    timeout-minutes: 18
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -32,7 +32,9 @@ jobs:
         run: node --test analytics-worker/test/*.test.mjs
       - name: Install isolated browser QA driver
         run: npm install --no-save --no-package-lock playwright-core@1.56.1
-      - name: Verify feedback viewport geometry in real Chrome
+      - name: Install WebKit browser and Linux dependencies for Safari-engine QA
+        run: npx playwright-core install --with-deps webkit
+      - name: Verify feedback viewport geometry in Chrome and WebKit
         run: node tests/admin-feedback-premium-v11.browser.cjs
       - name: Attach synthetic feedback layout screenshots
         if: always()
