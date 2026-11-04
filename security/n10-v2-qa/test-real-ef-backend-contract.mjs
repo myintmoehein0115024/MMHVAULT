@@ -5,7 +5,7 @@ import {readFileSync} from 'node:fs';
 const src=readFileSync(new URL('./staging_real_ef_backend_NOT_AUTHORIZED.sql',import.meta.url),'utf8');
 const schema='mmh_n10_realef_20261104';
 const req=(s)=>assert.ok(src.includes(s),'Missing:'+s);
-test('never runs on arbitrary Production or a live/dirty QA schema',()=>{
+test('rejects incomplete, drifted or live E/F QA schema (not a project-identity guarantee)',()=>{
  req("to_regnamespace('"+schema+"') IS NULL");
  req("to_regnamespace('mmh_n10_v2qa_20261104') IS NULL");
  req("to_regprocedure('public.mmh_n10_recovery_backup_put(uuid,text,text)') IS NOT NULL");
@@ -73,4 +73,45 @@ test('exactly eight narrowly allowlisted service RPCs; no accidental ninth publi
  assert.match(withoutComments,/\bCOMMIT\s*;\s*$/,'grant revocation must precede commit');
  assert.doesNotMatch(withoutComments,/\bGRANT\s+EXECUTE\s+ON\s+FUNCTION\s+public\.[^;]*\bTO\s+(?:PUBLIC|anon|authenticated)\s*;/i);
  assert.doesNotMatch(withoutComments,/\bGRANT\s+(?:USAGE|ALL|SELECT|INSERT|UPDATE|DELETE)\b[^;]*\bTO\s+(?:PUBLIC|anon|authenticated)\s*;/i);
+});
+
+
+// Cross-layer consistency audit only. SQL in the NOT_AUTHORIZED file is read
+// as UTF-8 text; neither this test nor CI may execute the migration.
+test('every real E/F Edge RPC has an exact candidate backend signature',()=>{
+ const edges=[
+  readFileSync(new URL('./staging_real_ef_signup_REVIEW_ONLY.ts',import.meta.url),'utf8'),
+  readFileSync(new URL('./staging_real_ef_viewer_REVIEW_ONLY.ts',import.meta.url),'utf8')
+ ];
+ const functionPattern=/\bCREATE\s+FUNCTION\s+public\.(mmh_n10_realef_\w+)\s*\(([\s\S]*?)\)\s*RETURNS\s+\w+\s+LANGUAGE\s+\w+\s+(?:STABLE\s+)?SECURITY\s+DEFINER\s+SET\s+search_path\s*=\s*''/gi;
+ const sqlSigs=new Map();
+ for(const match of src.matchAll(functionPattern)){
+  const [,name,args]=match;
+  assert.ok(!sqlSigs.has(name),'no overloaded/duplicate E/F function: '+name);
+  const names=args.split(',').map(part=>part.trim().split(/\s+/)[0]);
+  assert.ok(names.every(x=>/^p_[a-z_]+$/.test(x)),'all SQL RPC args must be explicitly named: '+name);
+  sqlSigs.set(name,names.sort());
+ }
+ assert.equal(sqlSigs.size,8,'exactly eight privileged SQL functions with fixed search_path');
+
+ const invoked=new Set();
+ const rpcPattern=/\badmin\.rpc\(\s*['"](mmh_n10_realef_\w+)['"]\s*,\s*\{([\s\S]*?)\}\s*\)/g;
+ for(const [i,edge] of edges.entries()){
+  assert.match(edge,/const RELEASE_ENABLED=false;/,'Edge candidate '+i+' must remain hard OFF');
+  assert.match(edge,/const QA_WINDOW_END_UTC='1970-01-01T00:00:00\.000Z';/);
+  for(const match of edge.matchAll(rpcPattern)){
+   const [,name,body]=match;
+   assert.ok(sqlSigs.has(name),'Edge references missing backend RPC: '+name);
+   const keys=[...body.matchAll(/\b(p_[a-z_]+)\s*:/g)].map(x=>x[1]).sort();
+   assert.equal(new Set(keys).size,keys.length,'duplicate RPC key: '+name);
+   assert.deepEqual(keys,sqlSigs.get(name),'Edge/SQL parameter mismatch for '+name);
+   invoked.add(name);
+  }
+  const everyReference=[...edge.matchAll(/\badmin\.rpc\(\s*['"](mmh_n10_realef_\w+)['"]/g)];
+  const parsed=[...edge.matchAll(rpcPattern)];
+  assert.equal(parsed.length,everyReference.length,
+   'review every real E/F admin.rpc object, never ignore an unparseable call');
+ }
+ assert.deepEqual([...invoked].sort(),[...sqlSigs.keys()].sort(),
+  'all eight proposed backend RPCs must be exercised by the two Edge candidates');
 });
