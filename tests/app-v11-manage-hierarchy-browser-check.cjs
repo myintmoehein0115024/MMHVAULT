@@ -546,7 +546,10 @@ const say=(condition,label)=>{assert.ok(condition,label);console.log('PASS '+lab
         const parent=cDialog.locator('select');
         await parent.selectOption({label:'MoveFunds → Account Move'});
         await cDialog.getByRole('button',{name:'Save'}).click();
-        await cDialog.locator('header button').click();
+        // Category creation may dismiss its editor automatically. Close an
+        // outer Manage dialog only when it remains visible.
+        if(await cDialog.isVisible())
+          await cDialog.locator('header button').click();
       }
       say(await dpage.locator('#mmhHierarchyCategoryHint').isHidden(),
         'Transfer missing-Category hint disappears after linking');
