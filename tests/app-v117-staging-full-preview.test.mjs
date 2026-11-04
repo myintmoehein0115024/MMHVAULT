@@ -40,6 +40,13 @@ test('preview is generated from the current APP without production endpoints',()
  assert.match(html,/connect-src https:\/\/ldivswlhtgmznzwhzsoi\.supabase\.co\/auth\/v1\/token/);
  assert.match(html,/https:\/\/ldivswlhtgmznzwhzsoi\.supabase\.co\/rest\/v1\/transactions/);
  assert.match(html,/https:\/\/ldivswlhtgmznzwhzsoi\.supabase\.co\/rest\/v1\/personal_configuration/);
+ const balanceRpc='https://'+STAGE+'/rest/v1/rpc/mmh_personal_account_balance';
+ const csp=html.match(/<meta http-equiv="Content-Security-Policy" content="([^"]+)">/)?.[1]||'';
+ assert.ok(csp.includes(balanceRpc),'approved owner-only Staging balance RPC should be allowed');
+ assert.equal((csp.match(/\\/rest\\/v1\\/rpc\\//g)||[]).length,1,
+   'No other RPC path may be allowed by this isolated CSP');
+ assert.ok(!csp.includes('/rest/v1/rpc/*'),'never open wildcard RPC paths');
+ assert.ok(!csp.includes(PROD),'Production origins must remain blocked');
  for(const table of ['investments','custom_investments','crypto_wallet_movements']){
    assert.ok(html.includes('https://'+STAGE+'/rest/v1/'+table),
      'Approved Auth-Staging boot-only route missing for '+table);
