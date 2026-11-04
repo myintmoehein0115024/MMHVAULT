@@ -10,3 +10,21 @@
 - This isolated rehearsal DOES NOT modify the existing Staging V1 RPC or close/reopen any legacy C/D Edge; it does not deploy an Edge or public preview page.
 - If clean-up is later approved, delete the synthetic Vault secrets by their distinct `mmh_n10_v2qa_20261104_*` names with a separately verified Staging-only plan before dropping the QA schema. Never delete any A/B/C/D secret.
 - Next: source-verified SQL migration in Staging, readback of private ACL and E/F rows, differential E/F integrity tests, then close. Real E/F registration through Auth and MFA is a separate end-to-end gate and not claimed by this fixture test.
+
+## Completed automated E/F Staging verification — 2026-11-04
+
+**Actual live Staging facts (not Production):** `mmh_n10_v2qa_20261104` migration applied successfully. Private function ACL inspection confirms exactly three service-role-only methods, no anon/authenticated EXECUTE, and seven isolated RLS tables without client policies. Exactly two synthetic owner/verifier/link rows, two simulated verified AAL2 sessions, two encrypted Vault secrets and two private backup-index rows; A/B/C/D each retain original link/verifier/encrypted backup (four each).
+
+**Positive and negative tests:**
+- Simultaneous E initial writes with different synthetic word strings: one committed; other rejected `42501 Fixed synthetic key immutable`; **exactly one Vault secret for E**.
+- F attempted E's verifier: rejected `42501`; F's own verifier: accepted.
+- E/F identical-word retry before login/link: accepted without new Vault entries; different-word retry: rejected `42501`.
+- Each of E/F using simulated verified AAL2 session: recovered exact original boolean match; E→F and F→E, incorrect session and incorrect words: all false. No plaintext returned.
+- Any backup_put after first simulated session/link: rejected `42501` (no silent backfill).
+- E session revocation: viewer false; restored simulated session: viewer true.
+- Rate limiter: first two accepted, third blocked for a two-attempt quota.
+- A further synthetic banned-owner toggle was **not executed** because the connector safety check blocked it; the code still contains a denial predicate, but live ban behavior is NOT claimed as tested.
+
+**Hard closure:** at completion updated only isolated `qa_window.enabled=false`. Verified `recovery_matches` returns false, `backup_put` and `take_attempt` reject with `42501 N10 isolated V2 QA is closed`. No E/F password, actual Supabase Auth user, JWT, TOTP or real browser session exists. Old V1 Staging functions and E/F encrypted synthetic fixtures remain intact for safe review. Do not call this end-to-end MFA QA.
+
+The SQL file is an independently reviewed staging-only fixture; the added Node contract test is OFFLINE ONLY and must never deploy or invoke it.
