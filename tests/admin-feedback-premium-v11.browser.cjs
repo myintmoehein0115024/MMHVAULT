@@ -5,7 +5,7 @@
 const assert=require('node:assert/strict');
 const fs=require('node:fs');
 const path=require('node:path');
-const {chromium}=require('playwright-core');
+const {chromium,webkit}=require('playwright-core');
 const root=path.resolve(__dirname,'..');
 const read=name=>fs.readFileSync(path.join(root,name),'utf8');
 const admin=read('admin.html');
@@ -74,7 +74,7 @@ async function mount(page){
   form.append(status,reply,foot);host.append(form);
  });
 }
-async function inspect(browser,spec){
+async function inspect(browser,spec,engine){
  const page=await browser.newPage({viewport:{width:spec.width,height:spec.height}});
  try{
   await mount(page);
@@ -100,7 +100,7 @@ async function inspect(browser,spec){
     outerScrollHeight:document.documentElement.scrollHeight
    };
   });
-  const name=spec.name;
+  const name=engine+'-'+spec.name;
   assert.ok(result.workspace.height>=350,name+': workspace must be usable');
   assert.ok(result.threadScrollable,name+': long feedback must scroll independently');
   assert.ok(result.memberScrollable,name+': members must scroll separately');
@@ -124,14 +124,20 @@ async function inspect(browser,spec){
  let browser;
  try{
   browser=await chromium.launch({channel:'chrome',headless:true,args:['--no-sandbox','--disable-dev-shm-usage']});
-  for(const spec of [
+  const scenarios=[
    {name:'desktop-1440',width:1440,height:900},
    {name:'desktop-1280',width:1280,height:800},
+   {name:'laptop-short',width:1366,height:768},
    {name:'tablet-820',width:820,height:900},
+   {name:'tablet-short',width:820,height:680},
    {name:'mobile-390',width:390,height:844},
    {name:'mobile-375',width:375,height:667}
-  ])await inspect(browser,spec);
-  console.log('All five browser geometry scenarios passed.');
+  ];
+  for(const spec of scenarios)await inspect(browser,spec,'chromium');
+  await browser.close();browser=null;
+  browser=await webkit.launch({headless:true});
+  for(const spec of scenarios)await inspect(browser,spec,'webkit');
+  console.log('All 14 Chrome and WebKit browser geometry scenarios passed.');
  }catch(error){console.error(error.stack||error.message);process.exitCode=1}
  finally{if(browser)await browser.close()}
 })();
