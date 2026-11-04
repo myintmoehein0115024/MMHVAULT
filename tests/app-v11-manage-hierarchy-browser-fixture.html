@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="robots" content="noindex,nofollow">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>APP V11.7 synthetic hierarchy browser QA (no auth/no backend)</title>
+<style>
+  *{box-sizing:border-box}
+  body{margin:0;background:#101928;color:#f3e7d1;font-family:system-ui,sans-serif}
+  main{max-width:1120px;padding:20px;margin:auto}
+  select,button{font:inherit}
+  label{display:flex;flex-direction:column;gap:6px;min-width:0}
+  #txForm{padding:12px;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+  #txForm select{width:100%;padding:12px;background:#253a55;color:white}
+  #txForm .actions{grid-column:1/-1}
+  @media(max-width:700px){#txForm{grid-template-columns:1fr}}
+</style></head><body>
+<main>
+  <section id="mmhManagerCategoriesPanelV445"></section>
+  <form id="txForm">
+    <!-- Synthetic V141 legacy toolbar: deliberately present to prove V11.7
+         never exposes unconfigured built-in transaction kind buttons. -->
+    <div id="txSmartV141" class="tx-smart-v141">
+      <div>TRANSACTION KIND — legacy only</div>
+      <div class="tx-kind-grid-v141" role="group" aria-label="Transaction kind">
+        <button type="button" data-kind-v141="Income">Income</button>
+        <button type="button" data-kind-v141="Expense">Expense</button>
+        <button type="button" data-kind-v141="Personal">Personal</button>
+        <button type="button" data-kind-v141="Loans">Loans</button>
+        <button type="button" data-kind-v141="Transfer">Transfer</button>
+        <button type="button" data-kind-v141="Adjustment">Adjustment</button>
+      </div>
+    </div>
+    <label>Type<select id="txType"></select></label>
+    <label>Transaction<select id="txGroup"></select></label>
+    <label>Category<select id="txCategory"></select></label>
+    <div class="actions"><button type="submit">Save Transaction</button></div>
+  </form>
+</main>
+<script>
+  // No production or staging credentials, no SDK, network reads/writes or real users.
+  var currentSessionUser={id:'fixture-A'};
+  var MMHVAULT_CONFIG_OWNER='fixture-A';
+  var MMHVAULT_CONFIG={
+    txFieldsV12:{version:1,type:[],transaction:[],category:[]},
+    txHierarchyV11:null,
+    categories:{
+      Income:['Salary','Other Income'],Expense:['Dining'],
+      Personal:[],LoanIncome:[],LoanExpense:[],Transfer:['Transfer']
+    },archivedCategories:{}
+  };
+  if(new URL(location.href).searchParams.has('legacy')){
+    delete MMHVAULT_CONFIG.txFieldsV12;
+  }
+  window.transactions=new URL(location.href).searchParams.has('legacy')
+    ?[{id:1,user_id:'fixture-A',type:'Income',category:'Salary'}]:[];
+  window.mmhWalletDataOwnerV191='fixture-A';
+  window.__mmhLastCloudLoadAtV1235=1;
+  window.__syntheticWrites=0;window.__messages=[];
+  window.__syntheticLedgerRefreshes=0;
+  window.__syntheticStaleFirstRead=true;
+  window.__syntheticSavedIds=['fixture-saved-ledger-42'];
+  // Model the existing app's owner-scoped reload after an already-confirmed
+  // native INSERT. This is synthetic browser QA, not Supabase acceptance.
+  window.loadAll=async ({force}={})=>{
+    if(force!==true)throw Error('Expected forced financial-data refresh');
+    if(currentSessionUser?.id!=='fixture-A'||MMHVAULT_CONFIG_OWNER!=='fixture-A')
+      return {ok:false};
+    window.__syntheticLedgerRefreshes++;
+    // First in-flight cloud snapshot could predate the latest INSERT.
+    if(window.__syntheticStaleFirstRead){
+      window.__syntheticStaleFirstRead=false;
+      return {ok:true};
+    }
+    window.transactions=window.__syntheticSavedIds.map(id=>({
+      id,user_id:'fixture-A',type:'Income',category:'Salary',tx_date:'2026-11-04',
+      to_account:'Cash',to_amount:500
+    }));
+    window.dispatchEvent(new CustomEvent('mmhvault:data-loaded',{detail:{ok:true}}));
+    return {ok:true};
+  };
+  function mmhVaultPersistConfig(){
+    if(window.__failNextPersist){window.__failNextPersist=false;throw Error('Synthetic storage failure')}
+    window.__syntheticWrites++;
+  }
+  function mmhVaultRebuildConfigArrays(){}
+  function updateAccountLocks(){}
+  function mmhVaultCustomMessageV449(title,text){window.__messages.push({title,text})}
+  window.MMHConfigCloudSyncV122={syncNow:async()=>false};
+  // This fixture deliberately has no db; live network verification cannot run.
+</script>
+<script type="module" src="../js/mmhvault-v11-manage-hierarchy-live.mjs"></script>
+</body></html>

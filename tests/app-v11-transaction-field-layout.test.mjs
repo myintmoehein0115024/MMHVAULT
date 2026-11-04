@@ -432,7 +432,7 @@ test('original Add Transaction layout is not restructured or duplicated',()=>{
   assert.match(app,/<div class="tx-tab-panel-v371" id="txAddPanel"/);
   assert.match(app,/<div class="mmh-form-section-v1 full"><span data-en="Accounts & amounts"/);
   assert.match(app,/<div class="mmh-form-section-v1 full"><span data-en="Note & attachment"/);
-  assert.match(app,/js\/mmhvault-transaction-field-layout-v11\.js\?v=3\.0\.4/);
+  assert.match(app,/js\/mmhvault-v11-manage-hierarchy-live\.mjs\?v=0\.7\.0/);
   assert.doesNotMatch(source,/txPrefHolderV11|mmh-tx-pref-v11|quick\(form/);
 });
 
