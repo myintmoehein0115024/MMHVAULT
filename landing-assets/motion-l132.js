@@ -46,17 +46,29 @@
   });
   root.classList.add('mm-motion-active');
 
-  // L1.40: prewarm mobile reveals further ahead of fast swipes, with no
-  // intersection threshold that might skip a narrow card. Desktop unchanged.
-  const mobileReveal = window.matchMedia && window.matchMedia('(max-width: 620px)').matches;
-  const observer=new IntersectionObserver(entries=>{
-    for(const entry of entries){
-      if(!entry.isIntersecting)continue;
-      entry.target.classList.add('mm-shown');
-      observer.unobserve(entry.target);
-    }
-  },{rootMargin:mobileReveal?'0px 0px 24% 0px':'0px 0px -6% 0px',threshold:mobileReveal?0:0.065});
-  elements.filter(el=>!el.classList.contains('mm-shown')).forEach(el=>observer.observe(el));
+  // L1.57: recalculate phone-first reveal margins after orientation changes.
+  // Keep already revealed sections visible; no scroll interception or repaint.
+  const mobileRevealQuery=window.matchMedia
+    ? window.matchMedia('(max-width: 620px)') : {matches:false};
+  let observer;
+  const bindRevealObserver=()=>{
+    if(observer)observer.disconnect();
+    const mobileReveal=mobileRevealQuery.matches;
+    const nextObserver=new IntersectionObserver(entries=>{
+      for(const entry of entries){
+        if(!entry.isIntersecting)continue;
+        entry.target.classList.add('mm-shown');
+        nextObserver.unobserve(entry.target);
+      }
+    },{rootMargin:mobileReveal?'0px 0px 24% 0px':'0px 0px -6% 0px',threshold:mobileReveal?0:0.065});
+    observer=nextObserver;
+    elements.filter(el=>!el.classList.contains('mm-shown')).forEach(el=>observer.observe(el));
+  };
+  bindRevealObserver();
+  if(typeof mobileRevealQuery.addEventListener==='function')
+    mobileRevealQuery.addEventListener('change',bindRevealObserver);
+  else if(typeof mobileRevealQuery.addListener==='function')
+    mobileRevealQuery.addListener(bindRevealObserver);
 
   // Clicking a guide or an in-page navigation link must reveal the destination,
   // even if the user jumps directly to a hash without a normal scroll.
