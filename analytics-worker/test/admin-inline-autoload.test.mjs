@@ -10,7 +10,7 @@ const embeddedScript=admin.match(/<script id="mmhvault-admin-analytics-embed-v24
 
 test('admin workbench embeds Analytics without leaving the protected page',()=>{
   assert.match(admin,/id="adminAnalyticsTab"[^>]*aria-controls="adminAnalyticsView"/);
-  assert.match(admin,/id="adminAnalyticsShortcut"/);
+  assert.doesNotMatch(admin,/<button[^>]*id="adminAnalyticsShortcut"/); // Removed duplicated header link; sidebar is canonical.
   assert.match(admin,/id="adminAnalyticsView" hidden/);
   assert.match(admin,/id="adminAnalyticsFrame"[^>]*title=/);
   assert.doesNotMatch(admin,/href="admin-analytics\.html"/);
