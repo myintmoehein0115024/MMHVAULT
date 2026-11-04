@@ -124,20 +124,26 @@ async function checkPassword(user,password){
  const auth=createClient(BASE,ANON,{
   auth:{persistSession:false,autoRefreshToken:false,detectSessionInUrl:false}
  });
- let passwordVerified=false;
+ let passwordVerified=false,proofToken=null;
  try{
   const {data,error}=await auth.auth.signInWithPassword({
    email:user.email,password
   });
-  if(!error&&data?.user?.id===user.id&&data.session?.access_token){
-   const check=await auth.auth.getUser(data.session.access_token);
+  // Capture this exact temporary session even if Auth returns an ambiguous
+  // user or a subsequent getUser check fails. Never sign out other sessions.
+  proofToken=data?.session?.access_token??null;
+  if(!error&&data?.user?.id===user.id&&typeof proofToken==='string'&&
+     proofToken.length>0&&typeof data.session?.refresh_token==='string'){
+   const check=await auth.auth.getUser(proofToken);
    passwordVerified=!check.error&&check.data?.user?.id===user.id;
   }
  }catch(_){passwordVerified=false;}
- // A password proof creates a separate temporary Auth session. Never release
- // the original words if local sign-out cannot confirm that session ended.
+ // Password re-authentication creates an extra server-side Auth session.
+ // Revoke exactly that session with the service-side local-scope API before
+ // disclosing the original key, even if the client has no stored session.
+ if(typeof proofToken!=='string'||!proofToken)return false;
  try{
-  const {error:logoutError}=await auth.auth.signOut({scope:'local'});
+  const {error:logoutError}=await admin.auth.admin.signOut(proofToken,'local');
   if(logoutError)return false;
  }catch(_){return false;}
  return passwordVerified;
