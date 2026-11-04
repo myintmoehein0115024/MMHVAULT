@@ -10,7 +10,7 @@ test('Production migration requires two independent externally supplied guards',
  assert.match(src,/current_setting\('mmhvault\.n10_private_vault_schema_approved',true\)/);
  assert.match(src,/current_setting\('mmhvault\.n10_private_vault_project_ref',true\)/);
  assert.match(src,/IS DISTINCT FROM 'vrypucmyrztxgiqhjspd'/);
- assert.match(src,/to_regclass\('public\.mmh_n10a740_username_links'\) IS NULL/);
+ assert.ok(src.includes("to_regclass('public.mmh_n10a740_username_links') IS NULL"));
  assert.doesNotMatch(src,/\bSET\s+(?:LOCAL\s+)?mmhvault\.n10_private_vault_/i);
  assert.match(src,/BEGIN;[\s\S]*COMMIT;/);
  assert.doesNotMatch(src,/\bDROP\s+|\bTRUNCATE\s+|DELETE\s+FROM|CREATE\s+OR\s+REPLACE/i);
@@ -35,7 +35,7 @@ test('five RPCs are restricted to service_role, no client EXECUTE grants',()=>{
 });
 test('fresh signup only, encrypted once, exact original immutable',()=>{
  assert.match(src,/JOIN public\.mmh_n10a769_recovery_phrases r ON r\.user_id=u\.id/);
- assert.match(src,/r\.version=1 AND r\.verifier ~ '\^\[a-f0-9\]\{64\}\
+ assert.ok(src.includes("AND r.version=1 AND r.verifier ~ '^[a-f0-9]{64}
  assert.match(src,/u\.created_at>=now\(\)-interval '30 minutes'/);
  assert.match(src,/r\.created_at>=now\(\)-interval '30 minutes'/);
  assert.match(src,/u\.raw_app_meta_data->>'mmhvault_auth_kind'='username_only'/);
@@ -60,9 +60,9 @@ test('rate limiter saturates without overflow and words stay inside Vault',()=>{
  assert.match(src,/RETURN v_attempts<=p_limit/);
  assert.match(src,/JOIN vault\.decrypted_secrets v ON v\.id=i\.secret_id/);
 });
-/);
- assert.match(src,/NOT EXISTS\(SELECT 1 FROM auth\.sessions AS prior WHERE prior\.user_id=p_user_id\)/);
- assert.match(src,/NOT EXISTS\(SELECT 1 FROM public\.mmh_n10a740_username_links AS link/);
+"));
+ assert.ok(src.includes('AND NOT EXISTS(SELECT 1 FROM auth.sessions AS prior WHERE prior.user_id=p_user_id)'));
+ assert.ok(src.includes('AND NOT EXISTS(SELECT 1 FROM public.mmh_n10a740_username_links AS link'));
  assert.match(src,/u\.created_at>=now\(\)-interval '30 minutes'/);
  assert.match(src,/r\.created_at>=now\(\)-interval '30 minutes'/);
  assert.match(src,/u\.raw_app_meta_data->>'mmhvault_auth_kind'='username_only'/);
