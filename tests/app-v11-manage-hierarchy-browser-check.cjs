@@ -74,19 +74,28 @@ const say=(condition,label)=>{assert.ok(condition,label);console.log('PASS '+lab
       await dlg.getByRole('button',{name:'Save'}).click();
       say((await cards.nth(0).textContent()).includes('Income (+)'),
         width+' Type saved with visible positive balance direction');
+      say(await dlg.locator('header').evaluate(el=>{
+        const css=getComputedStyle(el);
+        return css.backgroundImage.includes('gradient')&&css.borderRadius!=='0px';
+      })&&await dlg.getByRole('button',{name:'+ Add Type'}).evaluate(el=>
+        parseFloat(getComputedStyle(el).marginTop)>=18),
+        width+' Manage modal has liquid-glass header and breathing room above Add Type');
       await dlg.locator('header button').click();
       await directions.nth(1).click();
       say(await page.locator('#txType option').count()===0&&
         (await page.locator('#mmhHierarchyEntryGuide').textContent()).includes('for this direction'),
         width+' Expense shortcut shows only owner-configured Expense Types');
       await directions.nth(0).click();
-      say(await page.locator('#txType option').count()===2&&
+      say(await page.locator('#txType option').count()===1&&
         await page.locator('#txType').inputValue()==='Income'&&
         await page.locator('#txGroup option').count()===0&&
         await page.locator('#mmhHierarchyEntryGuide button').textContent().then(x=>x.includes('Transaction'))&&
         await page.locator('#txForm .actions button').isDisabled(),
         width+' Income shortcut picks available Type but prompts missing Transaction, no Save');
       await directions.nth(0).click();
+      say(await page.evaluate(()=>!['txType','txGroup','txCategory']
+        .includes(document.activeElement?.id||'')),
+        width+' direction shortcut never focuses/opens a native selector');
       // Step 2: Transaction assigned to Income.
       await cards.nth(1).getByRole('button',{name:'Manage'}).click();
       dlg=page.locator('.mmh-hier-dialog');
@@ -133,6 +142,10 @@ const say=(condition,label)=>{assert.ok(condition,label);console.log('PASS '+lab
         .map(id=>[id,[...document.getElementById(id).options]
           .filter(x=>x.dataset.mmhChoiceId).map(x=>x.textContent)])));
       assert.deepEqual(options,{txType:['Income'],txGroup:['Income2'],txCategory:['Salary']});
+      say(await page.evaluate(()=>['txType','txGroup','txCategory'].every(id=>
+        [...document.getElementById(id).options].every(o=>o.dataset.mmhChoiceId&&
+          !/^Select (Type|Transaction|Category)/.test(o.textContent)))),
+        width+' native Add selectors contain only real choices, no Select Type prompt');
       say(true,width+' Add Transaction has exact linked Type, no ghost defaults');
       const save=page.locator('#txForm .actions button');
       say(await page.locator('#txType').inputValue()==='Income'&&
@@ -295,7 +308,9 @@ const say=(condition,label)=>{assert.ok(condition,label);console.log('PASS '+lab
       await dlg.getByRole('button',{name:'Save'}).click();
       say(await save.isEnabled(),width+' adding another Category preserves explicit Salary choice');
       await dlg.getByRole('button',{name:'Archive'}).first().click();
-      say(await page.locator('#txCategory').inputValue()==='',width+' archived selected Salary clears native Category');
+      say(await page.locator('#txCategory').inputValue()===''&&
+        await page.locator('#txCategory').evaluate(el=>el.selectedIndex===-1),
+        width+' archived selected Salary clears native Category without selecting another item');
       say(await save.isDisabled(),width+' Archive cannot silently recategorize next ledger insert to Bonus');
       const remaining=await page.locator('#txCategory option').allTextContents();
       say(remaining.includes('Bonus')&&!remaining.includes('Salary'),
