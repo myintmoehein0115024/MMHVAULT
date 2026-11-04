@@ -46,3 +46,31 @@ test('original words immutable and exact Vault readback before first session',()
  req('immutable_realef_claims BEFORE UPDATE OR DELETE');
  req('ON CONFLICT DO NOTHING');
 });
+
+
+test('exactly eight narrowly allowlisted service RPCs; no accidental ninth public endpoint',()=>{
+ const expected=[
+  'mmh_n10_realef_claim',
+  'mmh_n10_realef_backup_put',
+  'mmh_n10_realef_owner_slot',
+  'mmh_n10_realef_slot_user_id',
+  'mmh_n10_realef_session_active',
+  'mmh_n10_realef_backup_get',
+  'mmh_n10_realef_backup_exists',
+  'mmh_n10_realef_take_attempt'
+ ].sort();
+ const withoutComments=src.replace(/--[^\n]*/g,'');
+ const introduced=[...withoutComments.matchAll(/\bCREATE\s+FUNCTION\s+public\.(mmh_n10_realef_\w+)\s*\(/gi)]
+  .map(m=>m[1]).sort();
+ const granted=[...withoutComments.matchAll(/\bGRANT\s+EXECUTE\s+ON\s+FUNCTION\s+public\.(mmh_n10_realef_\w+)\s*\([^;]*\)\s*TO\s+service_role\s*;/gi)]
+  .map(m=>m[1]).sort();
+ const revoked=[...withoutComments.matchAll(/\bREVOKE\s+ALL\s+ON\s+FUNCTION\s+public\.(mmh_n10_realef_\w+)\s*\([^;]*\)\s*FROM\s+PUBLIC\s*,\s*anon\s*,\s*authenticated\s*;/gi)]
+  .map(m=>m[1]).sort();
+ assert.deepEqual(introduced,expected,'no extra or missing real E/F public functions');
+ assert.deepEqual(granted,expected,'no extra or missing service-role RPC grants');
+ assert.deepEqual(revoked,expected,'each function explicitly denies PUBLIC/anon/authenticated');
+ assert.match(withoutComments,/^\s*BEGIN\s*;/,'grant revocation must share one transaction');
+ assert.match(withoutComments,/\bCOMMIT\s*;\s*$/,'grant revocation must precede commit');
+ assert.doesNotMatch(withoutComments,/\bGRANT\s+EXECUTE\s+ON\s+FUNCTION\s+public\.[^;]*\bTO\s+(?:PUBLIC|anon|authenticated)\s*;/i);
+ assert.doesNotMatch(withoutComments,/\bGRANT\s+(?:USAGE|ALL|SELECT|INSERT|UPDATE|DELETE)\b[^;]*\bTO\s+(?:PUBLIC|anon|authenticated)\s*;/i);
+});
