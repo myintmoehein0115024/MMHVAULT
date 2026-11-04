@@ -22,7 +22,7 @@ const WORDLIST=Array.from({length:2048},(_,i)=>{
 });
 assert.equal(new Set(WORDLIST).size,2048);
 
-function fakeWorld(){
+function fakeWorld({failEscrow=false}={}){
  const users=new Map(),byEmail=new Map(),slotOwners=new Map(),claims=new Set();
  const backups=new Map(),sessions=new Map(),tokens=new Map(),verifiedFactors=new Set(),events=[];
  let handlerCount=0;
@@ -46,6 +46,7 @@ function fakeWorld(){
       if(!['E','F'].includes(arg.p_slot)||claims.has(arg.p_slot))return {data:false,error:null};
       claims.add(arg.p_slot);events.push('claim:'+arg.p_slot);return {data:true,error:null};
     case 'mmh_n10_realef_backup_put':{
+      if(failEscrow)return {data:null,error:{message:'synthetic Vault readback failure'}};
       const uid=arg.p_user_id,u=users.get(uid),slot=arg.p_slot;
       if(!u||!claims.has(slot)||!['E','F'].includes(slot)||
        u.app_metadata.mmhvault_username!=='n10real_'+slot.toLowerCase()+'_20261104'||
@@ -242,4 +243,33 @@ test('synthetic E/F signup -> immutable words BEFORE first password session; AAL
  const afterRevoke=await x.invoke(x.viewer,{action:'reveal',password:PWD_E},e2.access_token);
  assert.equal(afterRevoke.status,401);
  assert.equal(afterRevoke.code,'session_expired');
+});
+
+
+test('synthetic Vault write failure quarantines newly created E, returns no key or token, and cannot retry slot',async()=>{
+ const x=fakeWorld({failEscrow:true});
+ const failed=await x.invoke(x.signup,{
+  action:'signup',username:'n10real_e_20261104',password:PWD_E,
+  captcha_token:'signup-synthetic-vault-failure-token'
+ });
+ assert.equal(failed.status,503);
+ assert.equal(failed.code,'manual_reconciliation_required');
+ assert.equal(failed.access_token,undefined);
+ assert.equal(failed.refresh_token,undefined);
+ assert.equal(failed.recovery_words,undefined);
+ assert.equal(x.users.size,1,'only the newly created synthetic E should exist');
+ assert.equal(x.backups.size,0,'failed Vault write must not claim a successful backup');
+ assert.equal(x.slotOwners.size,0,'failed Vault write must not bind the owner');
+ assert.ok(x.claims.has('E'),'single-use claim must remain consumed');
+ const onlyUser=[...x.users.values()][0];
+ assert.equal(onlyUser.app_metadata.mmhvault_username,'n10real_e_20261104');
+ assert.equal(onlyUser.banned_until,'876000h','newly created owner must be quarantined');
+ assert.ok(!x.events.some(v=>v.startsWith('signin:')),'no first login session issued after failure');
+ const retry=await x.invoke(x.signup,{
+  action:'signup',username:'n10real_e_20261104',password:PWD_E,
+  captcha_token:'signup-synthetic-repeat-after-failure'
+ });
+ assert.equal(retry.status,409);
+ assert.equal(retry.code,'qa_slot_unavailable');
+ assert.equal(x.users.size,1,'ambiguous failed slot must never silently create a replacement user');
 });
