@@ -2904,6 +2904,98 @@ async function load(page,route,failures){
      console.log('L1.57 viewport rebind responsive comparison PASS; not a loading speed claim.');
    }
 
+   // L1.60 live reduced-motion public-page reveal persistence in Chromium.
+   // Compare the exact release behavior with the candidate, no live services.
+   {
+     const candidate=fs.readFileSync('landing-assets/public-pages.js','utf8');
+     const anchor="      mq.addEventListener?mq.addEventListener('change',bind):mq.addListener?.(bind);\n";
+     const addition="      // L1.60: settle pending reveals.\n      const reduced=matchMedia('(prefers-reduced-motion: reduce)');\n      const settle=()=>{\n        if(!reduced.matches)return;\n        io.disconnect();\n        for(const el of targets)el.classList.add('mm-public-shown');\n      };\n      reduced.addEventListener?reduced.addEventListener('change',settle):reduced.addListener?.(settle);\n";
+     assert.equal(candidate.split(anchor+addition).length,2,'L1.60 exact public reveal listener addition');
+     const released=candidate.replace(anchor+addition,anchor);
+     for(const [route,width,lang] of [
+       ['/features/',393,'my'],
+       ['/about/',768,'zh'],
+       ['/features/',1440,'en']
+     ]){
+       const result={};
+       for(const [version,script] of [['l159',released],['l160',candidate]]){
+         const ctx=await browser.newContext({viewport:{width,height:852},
+           reducedMotion:'no-preference',serviceWorkers:'block'});
+         const page=await ctx.newPage(),errors=[];
+         page.on('pageerror',e=>errors.push(e.message));
+         await page.addInitScript(language=>{
+           try{localStorage.setItem('mmhvault.landing.language',language)}catch(_){}
+         },lang);
+         await page.addInitScript(()=>{
+           const Native=window.IntersectionObserver;
+           window.__l160IO=[];
+           if(typeof Native!=='function')return;
+           window.IntersectionObserver=class extends Native{
+             constructor(callback,options){
+               super(callback,options);
+               if(['0px 0px 12% 0px','0px 0px -4% 0px'].includes(options?.rootMargin)){
+                 this.__publicRecord={margin:options.rootMargin,disconnected:false,observed:0};
+                 window.__l160IO.push(this.__publicRecord);
+               }
+             }
+             observe(target){
+               if(this.__publicRecord)this.__publicRecord.observed++;
+               return super.observe(target);
+             }
+             disconnect(){
+               if(this.__publicRecord)this.__publicRecord.disconnected=true;
+               return super.disconnect();
+             }
+           };
+         });
+         await page.route('**/landing-assets/public-pages.js*',r=>r.fulfill({
+           status:200,contentType:'application/javascript',body:script}));
+         await page.goto(origin+route,{waitUntil:'load',timeout:25000});
+         const inspect=()=>page.evaluate(()=>{
+           const cards=[...document.querySelectorAll('.mm-public-reveal')];
+           return {
+             count:cards.length,
+             pending:cards.filter(el=>!el.classList.contains('mm-public-shown')).length,
+             observers:window.__l160IO.map(x=>({...x})),
+             title:document.title,
+             h1:document.querySelector('h1')?.textContent.trim(),
+             canonical:document.querySelector('link[rel="canonical"]')?.href,
+             lang:document.documentElement.lang,
+             version:new URL(document.querySelector('script[src*="public-pages.js"]').src).searchParams.get('v')
+           };
+         });
+         const first=await inspect();
+         ensure(first.count>=2 && first.pending>0 && first.observers.length===1 &&
+           first.observers[0].observed>0 && first.version==='l160' &&
+           first.canonical && first.h1 && first.lang===(lang==='zh'?'zh-CN':lang),
+           'L1.60 '+version+' '+route+' '+width+'px initial reveal observer active '+
+            JSON.stringify({pending:first.pending,observer:first.observers}));
+         await page.emulateMedia({reducedMotion:'reduce'});
+         if(version==='l160')await page.waitForFunction(()=>
+           [...document.querySelectorAll('.mm-public-reveal')]
+             .every(el=>el.classList.contains('mm-public-shown')),null,{timeout:3000});
+         const reduced=await inspect();
+         await page.emulateMedia({reducedMotion:'no-preference'});
+         const resumed=await inspect();
+         ensure(errors.length===0 && first.count===resumed.count &&
+           first.title===resumed.title && first.h1===resumed.h1 &&
+           first.canonical===resumed.canonical && first.lang===resumed.lang,
+           'L1.60 '+version+' '+route+' '+width+'px title/heading/canonical/language unchanged');
+         result[version]={first,reduced,resumed};
+         await ctx.close();
+       }
+       const old=result.l159,newState=result.l160;
+       ensure(old.reduced.pending>0 && old.resumed.pending>0 &&
+         !old.resumed.observers[0].disconnected &&
+         newState.reduced.pending===0 && newState.resumed.pending===0 &&
+         newState.reduced.observers[0].disconnected &&
+         newState.resumed.observers[0].disconnected,
+         'L1.60 '+route+' '+width+'px OS toggle reveals all and disconnects public observer '+
+         JSON.stringify({oldPending:old.resumed.pending,nextPending:newState.resumed.pending}));
+     }
+     console.log('L1.60 public-page live reduced-motion preference transition PASS; no speed claim.');
+   }
+
    // L1.58 rotated public-page observer parity: released L1.57 versus L1.58.
    // Browser checks preserve public headings, language and revealed elements.
    {
@@ -2968,7 +3060,7 @@ async function load(page,route,failures){
          const first=await inspect();
          ensure(first.records.length===1 && first.records[0].margin===(from<=620?mobile:desktop) &&
            first.records[0].observed>0 && first.headline && first.canonical &&
-           first.lang===(lang==='zh'?'zh-CN':lang) && first.script==='l158',
+           first.lang===(lang==='zh'?'zh-CN':lang) && first.script==='l160',
            'L1.58 '+version+' '+route+' '+from+'px initial public reveal');
          await page.setViewportSize({width:to,height:852});
          if(version==='l158')await page.waitForFunction(()=>window.__l158Observers?.length>=2,
