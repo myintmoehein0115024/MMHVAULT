@@ -119,7 +119,7 @@ async function load(page,route,failures){
        const css=getComputedStyle(el);
        const sheet=[...document.querySelectorAll('link[rel="stylesheet"]')]
          .find(a=>a.href.includes('safari-performance-l164.css'));
-       return {transition:css.transitionProperty,shadow:css.boxShadow,
+       return {transition:css.transitionProperty,shadow:css.boxShadow,border:css.borderColor,
          businessBlur:getComputedStyle(document.querySelector('#business .business-stage'),'::after').filter,
          version:new URL(sheet.href).searchParams.get('v')};
      });
@@ -135,7 +135,7 @@ async function load(page,route,failures){
        (width>=1025
          ?(!tokens.includes('box-shadow') &&
            before.businessBlur==='none' &&
-           before.shadow!==after.shadow &&
+           before.border!==after.border &&
            tokens.includes('transform') &&
            tokens.includes('border-color'))
          :(before.businessBlur==='blur(40px)' &&
