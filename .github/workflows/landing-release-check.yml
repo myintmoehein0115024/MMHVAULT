@@ -67,3 +67,24 @@ jobs:
             landing-qa-screenshots/performance-l143.json
           if-no-files-found: ignore
           retention-days: 7
+
+  webkit-desktop-qa:
+    name: macOS WebKit desktop Safari-engine QA (no auth)
+    runs-on: macos-15
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install isolated WebKit test driver
+        run: |
+          npm install --no-save --no-package-lock --no-audit --no-fund playwright-core@1.56.1
+          node node_modules/playwright-core/cli.js install webkit
+      - name: Run native macOS WebKit public-only desktop regression
+        run: |
+          python3 -m http.server 8765 --bind 127.0.0.1 >/tmp/mmhvault-safari-http.log 2>&1 &
+          SERVER_PID=$!
+          trap 'kill "$SERVER_PID"' EXIT
+          sleep 2
+          node landing-assets/landing-webkit-check.cjs

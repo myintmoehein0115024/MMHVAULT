@@ -1,0 +1,24 @@
+/* L1.64 — desktop WebKit-friendly presentation, shared public site only.
+ * The sticky header is already near-opaque. Avoid sampling and blurring the
+ * entire viewport behind it on every scroll frame. Preserve its blue/gold
+ * gradient, translucency-like depth, border, shadow and all interactions.
+ * This also helps other desktop engines; phone/tablet styles are untouched. */
+@media (min-width: 1025px) {
+  body.mmh-nav-unified .site-header {
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+    background: linear-gradient(180deg, #071928, #051625);
+  }
+  /* These cards already paint nearly opaque gradients. Removing their live
+   * backdrop sampling avoids six separate offscreen compositing surfaces. */
+  body.l131 .showcase-v2 .showcase-card {
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
+  /* The ambient shapes and Hero glow already use soft radial gradients;
+   * their very large filter blur layers need not be repainted on scroll. */
+  body.l131 .ambient,
+  body.l131 .hero::after {
+    filter: none;
+  }
+}
