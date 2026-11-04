@@ -191,6 +191,7 @@ function ensureStage(){
   halo=make('div','mmh-onboard-halo-v1');halo.hidden=true;root.append(halo);
   card=make('section','mmh-onboard-card-v1');card.tabIndex=-1;card.setAttribute('role','dialog');
   card.setAttribute('aria-label','Transactions onboarding');
+  card.addEventListener('keydown',e=>{if(e.key==='Escape'){e.preventDefault();saveAndClose();}});
   root.append(card);doc.body.append(root);
   doc.body.classList.add('mmh-onboarding-active-v1');
 }
@@ -265,7 +266,14 @@ function renderGuide(){
   const header=make('div','mmh-onboard-head-v1');
   const brand=make('div','mmh-onboard-brand-v1');brand.append(make('span','mmh-onboard-logo-v1','✦'),make('span','',t.brand));
   const x=make('button','mmh-onboard-close-v1','×');x.type='button';x.setAttribute('aria-label',t.close);
-  x.addEventListener('click',()=>saveAndClose());header.append(brand,x);card.append(header);
+  x.addEventListener('click',()=>saveAndClose());
+  const right=make('div','mmh-onboard-head-actions-v1');
+  if(stage!=='complete'){
+    const skipAll=make('button','mmh-onboard-skip-v1',t.skip);
+    skipAll.type='button';skipAll.addEventListener('click',()=>saveAndClose('skipped'));
+    right.append(skipAll);
+  }
+  right.append(x);header.append(brand,right);card.append(header);
   card.append(make('div','mmh-onboard-step-v1',t.step+' '+(state.step+1)+' '+t.of+' '+STEPS.length));
   card.append(make('h2','mmh-onboard-title-v1',t[stage+'Title']));
   card.append(make('p','mmh-onboard-copy-v1',t[stage+'Copy']));
@@ -306,7 +314,6 @@ function renderGuide(){
     footer.append(action(t.finish,end,true));
   }
   card.append(footer);
-  card.addEventListener('keydown',e=>{if(e.key==='Escape'){e.preventDefault();saveAndClose();}});
   placement();
 }
 function checkSaved(){
