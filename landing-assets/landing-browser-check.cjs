@@ -75,7 +75,7 @@ async function load(page,route,failures){
          window.scrollTo({left:900,top:y,behavior:'instant'});
          const sideways=scrollX;
          window.scrollTo({left:0,top:y,behavior:'instant'});
-         return {mobile,hasStylesheet:!!cs&&cs.href.includes('?v=l167'),
+         return {mobile,hasStylesheet:!!cs&&cs.href.includes('?v=l168'),
            standardBackdrop:computed.backdropFilter,
            webkitBackdrop:computed.webkitBackdropFilter,
            background:computed.backgroundImage,
@@ -84,15 +84,19 @@ async function load(page,route,failures){
            cardsCheap:cards.every(el=>getComputedStyle(el).backdropFilter==='none'),
            ambienceCheap:!isLanding||getComputedStyle(document.querySelector('.ambient')).filter==='none',
            heroHaloCheap:!isLanding||getComputedStyle(document.querySelector('.hero-halo')).filter==='none',
-           heroCopyFilter:isLanding?getComputedStyle(document.querySelector('.hero-copy')).filter:null};
+           heroCopyFilter:isLanding?getComputedStyle(document.querySelector('.hero-copy')).filter:null,
+           heroNameFilter:isLanding?getComputedStyle(document.querySelector('.hero .hero-name')).filter:null};
        });
        const desktop=width>1024;
        ensure(response?.status()===200&&result.hasStylesheet&&result.stickyOff&&
          result.sideways<=2&&result.background.includes('gradient')&&
          (desktop?(result.standardBackdrop==='none'&&(!result.webkitBackdrop||result.webkitBackdrop==='none')&&
            result.cardsCheap&&result.ambienceCheap&&result.heroHaloCheap&&
-           (result.heroCopyFilter===null||result.heroCopyFilter==='none')):
-           result.mobile&&result.standardBackdrop!=='none'&&(result.heroCopyFilter===null||result.heroCopyFilter!=='none'))&&exceptions.length===0,
+           (result.heroCopyFilter===null||result.heroCopyFilter==='none')&&
+           (result.heroNameFilter===null||result.heroNameFilter==='none')):
+           result.mobile&&result.standardBackdrop!=='none'&&
+           (result.heroCopyFilter===null||result.heroCopyFilter!=='none')&&
+           (result.heroNameFilter===null||result.heroNameFilter!=='none'))&&exceptions.length===0,
          'L1.64 Chromium desktop compositor / mobile glass parity '+route+
            ' '+width+'px '+JSON.stringify({...result,exceptions}));
        await ctx.close();
@@ -134,7 +138,7 @@ async function load(page,route,failures){
          transform:css.transform,border:css.borderColor};
      });
      const tokens=before.transition.split(',').map(x=>x.trim());
-     ensure(before.version==='l167' && errors.length===0 &&
+     ensure(before.version==='l168' && errors.length===0 &&
        (width>=1025
          ?(!tokens.includes('box-shadow') &&
            before.businessBlur==='none' &&
