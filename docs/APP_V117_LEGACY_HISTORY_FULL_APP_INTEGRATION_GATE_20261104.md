@@ -126,3 +126,14 @@ During PR #87 code review, V11.7 `form()` was found to assign `save.disabled=clo
 **Automated regression:** Chrome and WebKit local-only synthetic browser tests at phone/tablet/desktop widths assert each lock survives a hierarchy refresh, duplicate/insufficient-funds submissions are intercepted before native submit handling, and the button re-enables when the external locks are cleared. The source-inventory CI additionally asserts both marker names and all binding guards remain present in the real full `app.html` and PR #87 hierarchy module. This is **not** a signed, full-APP real-funds test and does not authorize a Production or database migration.
 
 Release gate unchanged: preserve the legacy ledger, full-APP Staging signed integration pending, PR #87 remains Draft.
+
+
+## 2026-11-04 — delayed previous-owner Manage cloud verification isolation
+
+**Bug scenario:** `verifyCloudLink()` used a single `checkingCloud` Boolean. If account A's `syncNow()` was still awaiting a network response when the user switched to B, `mmhvault:config-owner-changed` cleared the selected link but did **not** clear A's pending verification lock. As a result, B's `verifyCloudLink()` returned without running, and even a late A result could affect the shared `checkingCloud` flag.
+
+**Draft-only fix:** Track the checking owner and a monotonic generation token. On owner-change or unverified account reset, increment the generation and clear both the verification state and financial reload queue for the old session. The new owner can immediately start an independent cloud readback. Any late old-owner completion must match its original generation to clear the lock or start deferred checks; otherwise it is ignored. The underlying `verifyStoredCloudLink` owner and config-owner guards remain intact, and only matching real `recordId` / Type → Transaction → Category paths can display cloud-verified status.
+
+**Browser regression:** A is deliberately left waiting in `syncNow()`; switch to synthetic B, confirm B's own verification starts while A remains unresolved, resolve A first, assert B stays locked/pending, then resolve B and verify the **exact B config** was queried once and only B ledger data remains. Tested with local Chrome and WebKit fixtures, not real auth tokens or database writes.
+
+**Release status:** automated checks alone are not the real full APP signed financial acceptance. PR #87 remains Draft, no Production or Staging mutation, no N10/Landing changes. Do not merge until separately authorized signed full-APP integration.
