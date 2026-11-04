@@ -43,3 +43,12 @@ test('signup/login isolated RPC, rate, captcha and request safeguards',()=>{
  has("Cache-Control':'no-store, private'");
  assert.doesNotMatch(src,/console\.log|localStorage|sessionStorage|function resetRecovery|function rotateRecovery/i);
 });
+
+test('new Auth sessions re-check the private E/F gate and sign out if it closes mid-login',()=>{
+ has('async function ownerGateOpen(uid,expectedSlot)');
+ has("admin.rpc('mmh_n10_realef_owner_slot'");
+ has('if(!await ownerGateOpen(expectedId,expectedSlot))return null;');
+ has("if(!result)try{await client.auth.signOut({scope:'local'});}");
+ has('verifiedPasswordSession(email,password,newUserId,slot)');
+ has('verifiedPasswordSession(user.email,password,userId,slot)');
+});
