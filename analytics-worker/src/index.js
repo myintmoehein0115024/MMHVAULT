@@ -10,24 +10,29 @@ const JSON_HEADERS = {'content-type':'application/json; charset=utf-8','cache-co
 const response = (status, data, origin) => new Response(JSON.stringify(data),{status,headers:{...JSON_HEADERS,...(origin?{'access-control-allow-origin':origin,'vary':'Origin'}:{})}});
 const RANGE_DAYS = {'24h':1,'7d':7,'30d':30};
 function isConfigured(env){return Boolean(env.CF_ANALYTICS_TOKEN&&env.SUPABASE_ANON_KEY&&env.CF_ACCOUNT_ID&&env.CF_SITE_TAG&&env.SUPABASE_URL&&env.ALLOWED_ORIGIN)}
-async function verifyAdmin(token,env){
+async function verifyAdmin(token,env,diagnostic){
   const headers={apikey:env.SUPABASE_ANON_KEY,authorization:'Bearer '+token};
   // Verify the JWT against the Auth service before invoking the admin RPC.
   // This prevents anonymous or expired tokens from reaching the analytics query.
+  diagnostic.phase='AUTH_USER_FETCH';
   const identity=await fetch(new URL('/auth/v1/user',env.SUPABASE_URL),{
     method:'GET',headers,redirect:'error'
   });
   if(!identity.ok)return {status:401};
+  diagnostic.phase='AUTH_USER_JSON';
   const user=await identity.json();
   if(!user||typeof user.id!=='string'||!user.id)return {status:401};
+  diagnostic.phase='AUTH_RPC_FETCH';
   const result=await fetch(new URL('/rest/v1/rpc/mmh_is_admin',env.SUPABASE_URL),{
     method:'POST',headers:{...headers,'content-type':'application/json'},body:'{}',redirect:'error'
   });
   if(result.status===401)return {status:401};
   if(!result.ok)return {status:403};
+  diagnostic.phase='AUTH_RPC_JSON';
   return {status:(await result.json())===true?200:403};
 }
-async function queryAnalytics(range,env){
+async function queryAnalytics(range,env,diagnostic){
+  diagnostic.phase='CF_START';
   const now = new Date();
   const start = new Date(now.getTime() - RANGE_DAYS[range] * 86400000);
   const query = `query WebsiteAnalytics($accountTag: string!, $siteTag: string!, $start: Time!, $end: Time!) {
@@ -45,6 +50,7 @@ async function queryAnalytics(range,env){
       }
     }
   }`;
+  diagnostic.phase='CF_FETCH';
   const result = await fetch('https://api.cloudflare.com/client/v4/graphql', {
     method:'POST',
     headers:{Authorization:'Bearer '+env.CF_ANALYTICS_TOKEN,'content-type':'application/json'},
@@ -54,8 +60,11 @@ async function queryAnalytics(range,env){
     }}),
     redirect:'error'
   });
+  diagnostic.phase='CF_RESPONSE_STATUS';
   if(!result.ok)throw new Error('CF_HTTP_ERROR');
+  diagnostic.phase='CF_RESPONSE_JSON';
   const body=await result.json();
+  diagnostic.phase='CF_VALIDATION';
   if(body.errors?.length)throw new Error('CF_GRAPHQL_ERROR');
   const accounts=body.data?.viewer?.accounts;
   if(!Array.isArray(accounts)||accounts.length!==1)throw new Error('CF_ACCOUNT_MISMATCH');
@@ -91,16 +100,20 @@ export default {async fetch(request,env){
   if(!isConfigured(env))return response(503,{error:'analytics_not_configured'},cors);
   const header=request.headers.get('Authorization')||'';
   if(!/^Bearer [A-Za-z0-9._~-]+$/.test(header))return response(401,{error:'authentication_required'},cors);
+  const diagnostic={phase:'AUTH_START'};
   try{
-    const verified=await verifyAdmin(header.slice(7),env);
+    const verified=await verifyAdmin(header.slice(7),env,diagnostic);
     if(verified.status!==200)return response(verified.status,{error:verified.status===401?'authentication_required':'forbidden'},cors);
-    const data=await queryAnalytics(range,env);
+    const data=await queryAnalytics(range,env,diagnostic);
+    diagnostic.phase='RESPONSE_BUILD';
     return response(200,{source:'cloudflare-web-analytics',verified:true,...data},cors);
   }catch(error){
     // Diagnostic allowlist: never log credentials, request headers, user IDs or upstream bodies.
     const safeCodes=new Set(['CF_HTTP_ERROR','CF_GRAPHQL_ERROR','CF_ACCOUNT_MISMATCH','CF_GROUPS_INVALID','CF_METRICS_INVALID','CF_DATE_INVALID','CF_METRICS_OVERFLOW']);
     const code=safeCodes.has(error?.message)?error.message:'ANALYTICS_UNEXPECTED_ERROR';
-    console.error('MMH_ANALYTICS_V2_FAILURE', {code});
+    const phases=new Set(['AUTH_START','AUTH_USER_FETCH','AUTH_USER_JSON','AUTH_RPC_FETCH','AUTH_RPC_JSON','CF_START','CF_FETCH','CF_RESPONSE_STATUS','CF_RESPONSE_JSON','CF_VALIDATION','RESPONSE_BUILD']);
+    const phase=phases.has(diagnostic.phase)?diagnostic.phase:'UNKNOWN';
+    console.error('MMH_ANALYTICS_V2_FAILURE', {code,phase});
     return response(503,{error:'analytics_unavailable'},cors);
   }
 }};
