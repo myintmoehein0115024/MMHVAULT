@@ -773,7 +773,8 @@ test('private QA gate closing after signup password proof denies tokens and quar
   captcha_token:'signup-private-gate-closes-after-first-owner-proof'
  });
  assert.equal(denied.status,503);
- assert.equal(denied.code,'manual_reconciliation_required');
+ assert.equal(denied.code,'qa_not_released',
+  'verified local revoke plus exact new-owner quarantine is a safe closed-gate outcome');
  assert.equal(denied.access_token,undefined);
  assert.equal(denied.refresh_token,undefined);
  assert.equal(denied.recovery_words,undefined);
