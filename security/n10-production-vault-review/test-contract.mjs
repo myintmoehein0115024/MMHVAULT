@@ -22,6 +22,9 @@ test('only status and reveal, no code path to replace or generate a key',()=>{
 });
 test('owner is from verified JWT plus private username link, never request body',()=>{
  assert.match(src,/admin\.auth\.getUser\(m\[1\]\)/);
+ assert.ok(src.includes("if(error||!user?.id||user.is_anonymous||user.deleted_at)"));
+ assert.ok(src.includes("if(user.banned_until!=null)"));
+ assert.ok(src.includes("!Number.isFinite(banExpiry)||banExpiry>Date.now()"));
  assert.match(src,/user\.app_metadata\?\.mmhvault_auth_kind!=='username_only'/);
  assert.match(src,/\.select\('username_key'\)\.eq\('user_id',user\.id\)\.limit\(2\)/);
  assert.match(src,/links\[0\]\.username_key!==boundName/);

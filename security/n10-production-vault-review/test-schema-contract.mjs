@@ -50,6 +50,10 @@ test('fresh signup only, encrypted once, exact original immutable',()=>{
 test('server sessions enforce MFA AAL2, AAL1 only without enrolled factors',()=>{
  assert.match(src,/FROM auth\.sessions s/);
  assert.match(src,/s\.user_id=p_user_id/);
+ assert.ok(src.includes("JOIN auth.users active_owner ON active_owner.id=s.user_id"));
+ assert.ok(src.includes("AND active_owner.deleted_at IS NULL"));
+ assert.ok(src.includes("AND active_owner.is_anonymous IS FALSE"));
+ assert.ok(src.includes("AND (active_owner.banned_until IS NULL OR active_owner.banned_until<=now())"));
  assert.match(src,/s\.not_after IS NULL OR s\.not_after>now\(\)/);
  assert.match(src,/p_expected_aal='aal1'/);
  assert.match(src,/s\.factor_id IS NULL/);

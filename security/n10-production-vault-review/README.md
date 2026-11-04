@@ -15,3 +15,7 @@ Before any install: independently review the SQL and failed-signup cleanup, appr
 ## Additional pre-enrollment guard (2026-11-04)
 
 The guarded `backup_put` first-install candidate also checks the stored verifier format/version, **no earlier Auth session**, and **no pre-existing username owner link** before writing a Vault secret. The original-word escrow therefore cannot be used as a silent post-login backfill for even a recently created account. A known limitation is that existing backups are not retryable by this registration RPC once the account has signed in; authenticated viewing uses the distinct read-only endpoint instead. The version/format check does not cryptographically bind the SQL parameter to the verifier: that binding must remain validated by the signed reservation protocol and immediately enforced by the service role handler. All changes remain unexecuted review source.
+
+## Banned and deleted users (2026-11-04)
+
+The read-only Edge candidate now rejects Auth users with a deletion marker or an active ban when Auth exposes those fields. Independently, the `session_active` SQL candidate joins the authoritative Auth user row and refuses deleted, anonymous, or currently banned owners even if a previously issued JWT/session still exists. This is a review-only defense against quarantined-registration key disclosure; it has not been deployed or live-tested.

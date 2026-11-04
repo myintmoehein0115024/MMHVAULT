@@ -104,8 +104,13 @@ CREATE FUNCTION public.mmh_n10_recovery_session_active(
 RETURNS boolean LANGUAGE sql STABLE SECURITY DEFINER SET search_path = ''
 AS $session$
  SELECT p_expected_aal IN('aal1','aal2') AND EXISTS(
-  SELECT 1 FROM auth.sessions s WHERE s.id=p_session_id AND s.user_id=p_user_id
+  SELECT 1 FROM auth.sessions s
+  JOIN auth.users active_owner ON active_owner.id=s.user_id
+  WHERE s.id=p_session_id AND s.user_id=p_user_id
    AND (s.not_after IS NULL OR s.not_after>now())
+   AND active_owner.deleted_at IS NULL
+   AND active_owner.is_anonymous IS FALSE
+   AND (active_owner.banned_until IS NULL OR active_owner.banned_until<=now())
    AND (
     (p_expected_aal='aal1' AND s.aal::text='aal1' AND s.factor_id IS NULL
      AND NOT EXISTS(SELECT 1 FROM auth.mfa_factors f WHERE f.user_id=p_user_id AND f.status::text='verified'))

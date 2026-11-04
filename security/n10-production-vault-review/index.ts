@@ -100,7 +100,16 @@ async function verifiedUser(req:Request){
  if(!m||m[1].length>8192)return {state:'unauthorized' as const};
  const {data,error}=await admin.auth.getUser(m[1]);
  const user=data?.user;
- if(error||!user?.id||user.is_anonymous)return {state:'unauthorized' as const};
+ if(error||!user?.id||user.is_anonymous||user.deleted_at)
+  return {state:'unauthorized' as const};
+ // A revoked/banned owner must never use an older still-valid bearer for Vault.
+ // getUser's optional ban field is a first check; the private DB session guard
+ // enforces the authoritative ban independently immediately before disclosure.
+ if(user.banned_until!=null){
+  const banExpiry=Date.parse(user.banned_until);
+  if(!Number.isFinite(banExpiry)||banExpiry>Date.now())
+   return {state:'unauthorized' as const};
+ }
  // Auth verified the signed bearer; independently read real server-side factors.
  const {data:factors,error:factorError}=await admin.auth.admin.mfa.listFactors({userId:user.id});
  if(factorError||!Array.isArray(factors?.factors))return {state:'unavailable' as const};
