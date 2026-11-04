@@ -21,6 +21,19 @@ const say=(condition,label)=>{assert.ok(condition,label);console.log('PASS '+lab
       await page.waitForSelector('#mmhHierarchyManage .mmh-hier-card');
       const cards=page.locator('.mmh-hier-card');
       say(await cards.count()===3,width+' three Manage cards');
+      const directions=page.locator('#mmhHierarchyDirection button[data-mmh-direction]');
+      say(await page.locator('#mmhHierarchyDirection').isVisible()&&
+        await directions.count()===3&&
+        (await directions.allTextContents()).every(x=>/Money in|Money out|Transfer/.test(x)),
+        width+' exactly three fixed funds in/out/transfer shortcuts visible');
+      await directions.nth(1).click();
+      say(await directions.nth(1).getAttribute('aria-pressed')==='true'&&
+        await page.locator('#txType option').count()===0&&
+        await page.locator('#txForm .actions button').isDisabled(),
+        width+' Expense shortcut does not create a Type or enable Save');
+      await directions.nth(1).click();
+      say(await directions.nth(1).getAttribute('aria-pressed')==='false',
+        width+' selecting the same shortcut again restores all owner Types');
       say(!await page.locator('#txSmartV141').isVisible()&&
         await page.locator('#txSmartV141 [data-kind-v141]').count()===6,
         width+' all SIX hardcoded legacy Transaction Kind buttons stay hidden');
@@ -55,6 +68,16 @@ const say=(condition,label)=>{assert.ok(condition,label);console.log('PASS '+lab
       say((await cards.nth(0).textContent()).includes('Income (+)'),
         width+' Type saved with visible positive balance direction');
       await dlg.locator('header button').click();
+      await directions.nth(1).click();
+      say(await page.locator('#txType option').count()===0&&
+        (await page.locator('#mmhHierarchyEntryGuide').textContent()).includes('for this direction'),
+        width+' Expense shortcut shows only owner-configured Expense Types');
+      await directions.nth(0).click();
+      say(await page.locator('#txType option').count()===2&&
+        await page.locator('#txType').inputValue()===''&&
+        await page.locator('#txForm .actions button').isDisabled(),
+        width+' Income shortcut filters choices without auto-selecting Type or saving');
+      await directions.nth(0).click();
       // Step 2: Transaction assigned to Income.
       await cards.nth(1).getByRole('button',{name:'Manage'}).click();
       dlg=page.locator('.mmh-hier-dialog');
@@ -266,6 +289,9 @@ const say=(condition,label)=>{assert.ok(condition,label);console.log('PASS '+lab
       say(await save.isEnabled(),width+' explicitly selecting Bonus re-enables Save');
       await dlg.getByRole('button',{name:'Archive'}).last().click();
       say(await page.locator('#txCategory option').count()===0,width+' all archived Categories hidden from Add Transaction');
+      say(await directions.count()===3&&
+        (await directions.allTextContents()).length===3,
+        width+' archived owner still sees only three fixed direction filters');
       say(await page.locator('#mmhHierarchyEntryGuide').isVisible()&&
         !await page.locator('#txSmartV141').isVisible(),
         width+' fully archived hierarchy presents empty-state, never restores six preset kinds');
@@ -504,6 +530,7 @@ const say=(condition,label)=>{assert.ok(condition,label);console.log('PASS '+lab
       await dpage.goto(base,{waitUntil:'load'});
       await dpage.waitForSelector('#mmhHierarchyManage .mmh-hier-card');
       const dCards=dpage.locator('.mmh-hier-card');
+      const dDirections=dpage.locator('#mmhHierarchyDirection button[data-mmh-direction]');
       for(const [name,direction,mark] of [['MyPay','Income','+'],
         ['Type-Expense','Expense','−'],['MoveFunds','Transfer','⇄']]){
         await dCards.nth(0).getByRole('button',{name:'Manage'}).click();
@@ -518,6 +545,18 @@ const say=(condition,label)=>{assert.ok(condition,label);console.log('PASS '+lab
         say((await dCards.nth(0).textContent()).includes(name+' ('+mark+')'),
           'Type '+name+' retains '+direction+' direction, regardless of its name');
       }
+      // The filters must never show unconfigured types for another
+      // direction, or silently choose a Type when the button is pressed.
+      for(const [idx,expected,other] of [
+        [0,'MyPay','Type-Expense'],[1,'Type-Expense','MoveFunds'],[2,'MoveFunds','MyPay']
+      ]){
+        await dDirections.nth(idx).click();
+        const names=await dpage.locator('#txType option').allTextContents();
+        say(names.includes(expected)&&!names.includes(other)&&
+          (await dpage.locator('#txType').inputValue())==='',
+          'Fixed direction '+idx+' filters user choices without hidden presets');
+      }
+      await dDirections.nth(2).click(); // Clear Transfer filter for legacy direct Type selection.
       for(const [typeName,transactionName,purposeGroup,sign] of [
         ['MyPay','Monthly Pay','Income','Money increases (+)'],
         ['Type-Expense','Shopping','Expense','Money decreases (−)'],
