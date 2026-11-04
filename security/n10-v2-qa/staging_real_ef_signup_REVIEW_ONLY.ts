@@ -62,7 +62,7 @@ function generateWords(){
  const values=crypto.getRandomValues(new Uint16Array(10));
  return Array.from(values,v=>wordlist[v&2047]).join(' ');
 }
-function hex(bytes){return Array.from(bytes,x=>x.toString(16).padStart(2,'0')).join('');}
+function hex(bytes){return Array.from(bytes,x=>Number(x).toString(16).padStart(2,'0')).join('');}
 async function mac(input){
  const key=await crypto.subtle.importKey('raw',enc.encode(HMAC),
   {name:'HMAC',hash:'SHA-256'},false,['sign']);
