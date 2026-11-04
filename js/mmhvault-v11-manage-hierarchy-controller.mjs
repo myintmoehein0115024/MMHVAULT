@@ -29,8 +29,10 @@ export function createHierarchyController(host){
     const result=host.history();
     if(!result||result.ownerId!==owner||result.loaded!==true||
       !Array.isArray(result.rows))fail('Transaction history has not loaded securely');
-    if(result.rows.some(x=>x?.user_id!=null&&x.user_id!==owner))
-      fail('Cross-owner history rejected');
+    // Every history row must carry the signed-in owner. A missing owner
+    // cannot prove the row belongs to this account, or that an option is unused.
+    if(result.rows.some(x=>!x||x.user_id!==owner))
+      fail('Cross-owner or incomplete transaction history rejected');
     return result.rows;
   };
   const hasLegacySetup=c=>{
