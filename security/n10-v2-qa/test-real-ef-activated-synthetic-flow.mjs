@@ -30,6 +30,7 @@ function fakeWorld({failEscrow=false,revokeOnVaultRead=false,revokeOnStatusRead=
  let handlerCount=0,gateOpen=true,closeOnNextSignin=closeGateOnSignin;
  let windowExpired=false,sessionCheckCount=0,qaOpenChecks=0;
  let mismatchNextSignIn=false,closeAfterNextOwnerProof=false;
+ let omitNextRefreshToken=false;
  function issueSession(uid,aal='aal1',overrides={}){
    const sid=randomUUID();
    const payload={iss:BASE+'/auth/v1',sub:uid,exp:4102444800,aal,session_id:sid,...overrides};
@@ -126,6 +127,11 @@ function fakeWorld({failEscrow=false,revokeOnVaultRead=false,revokeOnStatusRead=
      events.push('signin:'+u.app_metadata.mmhvault_username);
      const session=issueSession(uid,'aal1');
      localSessionId=session.session_id;
+     if(omitNextRefreshToken){
+      session.refresh_token='';
+      omitNextRefreshToken=false;
+      events.push('auth-returned-empty-refresh');
+     }
      if(closeOnNextSignin){gateOpen=false;closeOnNextSignin=false;}
      const responseUser=(mismatchPasswordAuthUserOnSignin||mismatchNextSignIn)?
       {...u,id:randomUUID()}:u;
@@ -248,6 +254,7 @@ function fakeWorld({failEscrow=false,revokeOnVaultRead=false,revokeOnStatusRead=
   closeGateOnNextSignin(){closeOnNextSignin=true;},
   closeGateAfterNextOwnerProof(){closeAfterNextOwnerProof=true;},
   mismatchNextPasswordAuthUser(){mismatchNextSignIn=true;},
+  omitNextPasswordRefreshToken(){omitNextRefreshToken=true;},
   activeSessions(uid){return [...sessions.values()].filter(s=>s.uid===uid&&s.live).length;},
   isSessionLive(token){
    try{
@@ -853,4 +860,51 @@ test('private QA gate closing after repeat-login password proof denies only new 
  assert.equal(x.users.get(enrolled.user_id).banned_until,null,
   'preexisting user not quarantined due to DB gate shutdown');
  assert.equal(x.backups.get(enrolled.user_id),enrolled.recovery_words.join(' '));
+});
+
+test('fresh E signup: issued Auth session with empty refresh token is revoked and exact owner quarantined',async()=>{
+ const x=fakeWorld();
+ x.omitNextPasswordRefreshToken();
+ const denied=await x.invoke(x.signup,{
+  action:'signup',username:'n10real_e_20261104',password:PWD_E,
+  captcha_token:'signup-incomplete-auth-refresh-response'
+ });
+ assert.equal(denied.status,503);
+ assert.equal(denied.code,'manual_reconciliation_required');
+ assert.equal(denied.access_token,undefined);
+ assert.equal(denied.refresh_token,undefined);
+ assert.equal(denied.recovery_words,undefined);
+ assert.equal(x.users.size,1);
+ const owner=[...x.users.values()][0];
+ assert.equal(owner.banned_until,'876000h');
+ assert.equal(x.activeSessions(owner.id),0,'the server-created but undelivered session must be revoked');
+ assert.equal(x.backups.get(owner.id)?.split(' ').length,10,'original escrow must survive');
+ assert.equal(x.events.filter(e=>e==='auth-returned-empty-refresh').length,1);
+ assert.equal(x.events.filter(e=>e==='admin-signout-local:'+owner.id).length,1);
+});
+
+test('existing E login: incomplete Auth refresh response cannot affect older valid session',async()=>{
+ const x=fakeWorld();
+ const enrolled=await x.invoke(x.signup,{
+  action:'signup',username:'n10real_e_20261104',password:PWD_E,
+  captcha_token:'signup-before-incomplete-repeat-refresh'
+ });
+ assert.equal(enrolled.status,200);
+ const oldToken=enrolled.access_token,originalWords=enrolled.recovery_words.join(' ');
+ x.omitNextPasswordRefreshToken();
+ const denied=await x.invoke(x.signup,{
+  action:'login',username:'n10real_e_20261104',password:PWD_E,
+  captcha_token:'login-incomplete-auth-refresh-response'
+ });
+ assert.equal(denied.status,401);
+ assert.equal(denied.code,'invalid_credentials');
+ assert.equal(denied.access_token,undefined);
+ assert.equal(denied.refresh_token,undefined);
+ assert.equal(denied.recovery_words,undefined);
+ assert.equal(x.activeSessions(enrolled.user_id),1,'only undelivered new login session was revoked');
+ assert.equal(x.isSessionLive(oldToken),true,'earlier delivered E session must remain active');
+ assert.equal(x.users.get(enrolled.user_id).banned_until,null,'existing owner must not be quarantined');
+ assert.equal(x.backups.get(enrolled.user_id),originalWords);
+ assert.equal(x.events.filter(e=>e==='auth-returned-empty-refresh').length,1);
+ assert.equal(x.events.filter(e=>e==='admin-signout-local:'+enrolled.user_id).length,1);
 });
