@@ -14,6 +14,9 @@ const l164HomeLink="  <link rel=\"stylesheet\" href=\"./landing-assets/safari-pe
 const l164PublicLink="<link rel=\"stylesheet\" href=\"/landing-assets/safari-performance-l164.css?v=l164\">";
 const l165HomeLink="  <link rel=\"stylesheet\" href=\"./landing-assets/safari-performance-l164.css?v=l165\">";
 const l165PublicLink="<link rel=\"stylesheet\" href=\"/landing-assets/safari-performance-l164.css?v=l165\">";
+const l166HomeLink="  <link rel=\"stylesheet\" href=\"./landing-assets/safari-performance-l164.css?v=l166\">";
+const l166PublicLink="<link rel=\"stylesheet\" href=\"/landing-assets/safari-performance-l164.css?v=l166\">";
+const l166SafariPatch="\n/* L1.66 — desktop Hero uses its existing soft radial gradient without\n * another large blur surface. Mobile/tablet appearance is untouched. */\n@media (min-width: 1025px) {\n  body.l131 .hero-halo {\n    filter: none;\n  }\n}\n";
 const l165SafariPatch="\n/* L1.65 — desktop Safari paint budget: preserve the premium hover end states\n * while avoiding large per-frame shadow interpolation on six showcase cards.\n * The Business ambient glow is already a soft radial gradient, so its extra\n * offscreen blur layer is redundant during long-page scrolling. */\n@media (min-width: 1025px) {\n  body.l131 #business .business-stage::after {\n    filter: none;\n  }\n}\n@media (min-width: 1025px) and (hover: hover) and (pointer: fine) {\n  body.l131 .showcase-v2 .showcase-card,\n  html.mm-motion-active body.l131 .showcase-v2 .showcase-card {\n    transition-property: opacity, transform, border-color;\n  }\n}\n";
 const l164PublicAnchor="<link rel=\"stylesheet\" href=\"/landing-assets/shared-header-l116.css?v=1\">";
 const l164HomeAnchor="  <link rel=\"stylesheet\" href=\"./landing-assets/header-explore-l147.min.css?v=l147\">";
@@ -33,8 +36,8 @@ assert.ok(analyticsAddition.test(rawCurrent),'Unexpected analytics snippet');
 assert.equal((rawPrevious.match(analyticsAddition)||[]).length,1,'Released main must contain Analytics V1');
 assert.equal((rawCurrent.match(analyticsAddition)||[])[0],(rawPrevious.match(analyticsAddition)||[])[0],
   'L1.57 must preserve the exact already-released analytics beacon');
-const prev=rawPrevious.replace(analyticsAddition,'').replace(l164HomeLink+'\n','');
-const current = rawCurrent.replace(analyticsAddition,'').replace(l165HomeLink+'\n','');
+const prev=rawPrevious.replace(analyticsAddition,'').replace(l165HomeLink+'\n','');
+const current = rawCurrent.replace(analyticsAddition,'').replace(l166HomeLink+'\n','');
 // Legacy release checks below validate all previously approved Landing differences.
 
 // L1.41: preserve every byte of the published homepage except the nine
@@ -285,7 +288,7 @@ const l162OldCssLink="<link rel=\"stylesheet\" href=\"/landing-assets/public-pag
 const l162NewCssLink="<link rel=\"stylesheet\" href=\"/landing-assets/public-pages.css?v=l162\">";
 const l162RestoreCss=(html)=>html.replace(l162NewCssLink,l162OldCssLink);
 const l163NewCssLink="<link rel=\"stylesheet\" href=\"/landing-assets/public-pages.css?v=l163\">";
-const l163RestoreCss=(html)=>html.replace(l165PublicLink,l164PublicLink); // L1.64 CSS link is released.
+const l163RestoreCss=(html)=>html.replace(l166PublicLink,l164PublicLink); // L1.64 CSS link is released.
 const l163FooterCssPatch="\n/* L1.63 — minimum 44px touch targets for public footer navigation on phones.\n   Keep the desktop footer and all page content, links, language strings intact. */\n@media (max-width: 620px) {\n  body.public-landing-page .public-footer-group {\n    min-width: 0;\n    gap: 5px;\n  }\n  body.public-landing-page .public-footer-group strong {\n    max-width: 100%;\n    overflow-wrap: anywhere;\n  }\n  body.public-landing-page .public-footer-group a {\n    box-sizing: border-box;\n    display: flex;\n    align-items: center;\n    width: 100%;\n    min-width: 0;\n    min-height: 44px;\n    padding: 8px;\n    border-radius: 10px;\n    overflow-wrap: anywhere;\n  }\n  body.public-landing-page .public-footer-group a span {\n    min-width: 0;\n    overflow-wrap: anywhere;\n  }\n  body.public-landing-page .public-footer-bottom > a {\n    display: inline-flex;\n    align-items: center;\n    max-width: 100%;\n    min-height: 44px;\n    padding: 8px;\n    border-radius: 10px;\n    overflow-wrap: anywhere;\n  }\n}\n";
 const l163FooterCssOnlyEdited=()=>
   read('landing-assets/public-pages.css')===source('landing-assets/public-pages.css') &&
@@ -846,7 +849,7 @@ check('L1.27 public tab title matches SEO without language focus scroll',
  l133PublicPagesUnchanged() &&
  l142IndexOnlyEdited() && current.includes(newHeroPreload) &&
  !current.includes(oldHeroPreload));
-check('L1.65 strict twelve-file desktop Safari paint adjustment; all protected areas unchanged',
+check('L1.66 strict twelve-file desktop Hero halo optimization; protected areas unchanged',
   actual.length===12 &&
   actual.every(path=>[
     'index.html','landing-assets/safari-performance-l164.css',
@@ -855,14 +858,17 @@ check('L1.65 strict twelve-file desktop Safari paint adjustment; all protected a
     'landing-assets/landing-browser-check.cjs',
     ...publicHeaders
   ].includes(path)) &&
-  rawCurrent===rawPrevious.replace(l164HomeLink,l165HomeLink) &&
+  rawCurrent===rawPrevious.replace(l165HomeLink,l166HomeLink) &&
   publicHeaders.every(path=>{
     const old=source(path);
-    return old.split(l164PublicLink).length===2 &&
-      read(path)===old.replace(l164PublicLink,l165PublicLink);
+    return old.split(l165PublicLink).length===2 &&
+      read(path)===old.replace(l165PublicLink,l166PublicLink);
   }) &&
-  source('landing-assets/safari-performance-l164.css')===l164SafariCSS &&
-  read('landing-assets/safari-performance-l164.css')===l164SafariCSS+l165SafariPatch &&
+  source('landing-assets/safari-performance-l164.css')===l164SafariCSS+l165SafariPatch &&
+  read('landing-assets/safari-performance-l164.css')===l164SafariCSS+l165SafariPatch+l166SafariPatch &&
+  l166SafariPatch.includes('body.l131 .hero-halo') &&
+  l166SafariPatch.includes('@media (min-width: 1025px)') &&
+  !l166SafariPatch.includes('body.app') &&
   l165SafariPatch.includes('@media (min-width: 1025px)') &&
   l165SafariPatch.includes('transition-property: opacity, transform, border-color') &&
   l165SafariPatch.includes('body.l131 #business .business-stage::after') &&
