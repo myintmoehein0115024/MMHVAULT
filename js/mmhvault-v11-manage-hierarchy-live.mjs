@@ -493,6 +493,21 @@ function put(el,items,pick,field){
   // index 0 is the disabled placeholder, never an inferred financial choice.
   el.selectedIndex=index>0?index:0;
 }
+// Select only an owner-created, active, COMPLETE Type → Transaction → Category.
+// This never creates a choice, writes a setting, or changes a financial direction.
+function firstLinkedPath(direction,typeId='',transactionId=''){
+  const types=controller.list('type').filter(type=>
+    (!direction||type.ledgerType===direction)&&(!typeId||type.id===typeId));
+  for(const type of types){
+    for(const txn of controller.list('transaction',type.id)){
+      if(transactionId&&txn.id!==transactionId)continue;
+      if(!ledgerKind(txn.kindId)?.group)continue;
+      const cat=controller.list('category',txn.id)[0];
+      if(cat)return {type:type.id,transaction:txn.id,category:cat.id};
+    }
+  }
+  return null;
+}
 // Fixed directions only filter the current owner's active Manage Type list.
 // No seed choices, ledger changes, implicit Type selection or cloud writes.
 const directions=[
@@ -528,10 +543,11 @@ function ensureDirectionButtons(f,t){
         // Clicking again clears the filter; it never creates a Type.
         const next=directionFilter===direction?'':direction;
         directionFilter=next;
-        if(selection.type){
+        if(next){
+          selection=firstLinkedPath(next)||{type:'',transaction:'',category:''};
+        }else if(selection.type){
           const chosen=controller.list('type').find(x=>x.id===selection.type);
-          if(!chosen||(next&&chosen.ledgerType!==next))
-            selection={type:'',transaction:'',category:''};
+          if(!chosen)selection={type:'',transaction:'',category:''};
         }
         form();
         $('txType')?.focus({preventScroll:true});
@@ -797,11 +813,17 @@ function boot(){
       if(rendering||![ $('txType'),$('txGroup'),$('txCategory') ].includes(e.target))return;
       e.stopImmediatePropagation();
       if(e.target===$('txType')){
-        selection.type=selected(e.target);selection.transaction='';selection.category='';
-        const picked=controller.list('type').find(x=>x.id===selection.type);
+        const id=selected(e.target);
+        const picked=controller.list('type').find(x=>x.id===id);
         if(picked)directionFilter=picked.ledgerType;
+        selection=firstLinkedPath(picked?.ledgerType||'',id)||
+          {type:id,transaction:'',category:''};
       }
-      else if(e.target===$('txGroup')){selection.transaction=selected(e.target);selection.category='';}
+      else if(e.target===$('txGroup')){
+        const id=selected(e.target);
+        selection=firstLinkedPath(directionFilter,selection.type,id)||
+          {type:selection.type,transaction:id,category:''};
+      }
       else selection.category=selected(e.target);
       form();
     },true);

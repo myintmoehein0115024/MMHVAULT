@@ -644,6 +644,47 @@ const say=(condition,label)=>{assert.ok(condition,label);console.log('PASS '+lab
       say(await dpage.evaluate(()=>window.MMHVAULT_CONFIG.txHierarchyV11.transactions
         .some(t=>t.label==='Borrowed money'&&t.kindId==='Income|Loans')),
         'special Loan Income preserves positive Type direction and canonical purpose');
+      // UX V1: direction shortcut auto-picks the FIRST complete owner-linked
+      // path only after an explicit direction click; it never writes data.
+      for(const [typeLabel,txLabel,catLabel] of [
+        ['MyPay','Monthly Pay','Salary'],['Type-Expense','Shopping','Groceries']
+      ]){
+        await dCards.nth(2).getByRole('button',{name:'Manage'}).click();
+        const cd=dpage.locator('.mmh-hier-dialog');
+        await cd.getByRole('button',{name:'+ Add Category'}).click();
+        await cd.locator('input[type=text]').fill(catLabel);
+        await cd.locator('select').selectOption({label:typeLabel+' → '+txLabel});
+        await cd.getByRole('button',{name:'Save'}).click();
+        await cd.locator('header button').click();
+      }
+      const beforeAutoWrites=await dpage.evaluate(()=>window.__syntheticWrites);
+      for(const [directionIndex,ledgerType,group,category] of [
+        [0,'Income','Income','Salary'],[1,'Expense','Expense','Groceries'],
+        [2,'Transfer','Transfer','Transfer']
+      ]){
+        await dDirections.nth(directionIndex).click();
+        say(await dpage.locator('#txType').inputValue()===ledgerType&&
+          await dpage.locator('#txGroup').inputValue()===group&&
+          await dpage.locator('#txCategory').inputValue()===category,
+          'Shortcut '+ledgerType+' auto-selects first complete owner-created path');
+      }
+      say(await dpage.evaluate(()=>window.__syntheticWrites)===beforeAutoWrites,
+        'direction auto-selection makes no settings or ledger writes');
+      // A later form refresh must not clobber a human-selected category.
+      await dDirections.nth(0).click();
+      await dCards.nth(2).getByRole('button',{name:'Manage'}).click();
+      {
+        const cd=dpage.locator('.mmh-hier-dialog');
+        await cd.getByRole('button',{name:'+ Add Category'}).click();
+        await cd.locator('input[type=text]').fill('Manual Bonus');
+        await cd.locator('select').selectOption({label:'MyPay → Monthly Pay'});
+        await cd.getByRole('button',{name:'Save'}).click();
+        await cd.locator('header button').click();
+      }
+      await dpage.locator('#txCategory').selectOption({label:'Manual Bonus'});
+      await dpage.evaluate(()=>window.MMHV11HierarchyLive.refresh());
+      say(await dpage.locator('#txCategory').inputValue()==='Manual Bonus',
+        'manual Category remains selected on unrelated UI refresh');
       say(consoleErrors.length===0,
         'positive, negative, transfer and special-purpose QA has no script errors');
       await directionContext.close();
