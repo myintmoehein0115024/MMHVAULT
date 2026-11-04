@@ -332,6 +332,122 @@ const say=(condition,label)=>{assert.ok(condition,label);console.log('PASS '+lab
       say(errors.length===0,'owner-switch refresh has no browser exceptions');
       await switched.close();
     }
+    // The previous owner A has a hung Manage-cloud check. B must start a
+    // separate verification, and A's late completion must not clear B's
+    // "verifying" state or overwrite B's exact saved Category link.
+    {
+      const checkContext=await browser.newContext({
+        viewport:{width:393,height:800},serviceWorkers:'block'
+      });
+      const checkPage=await checkContext.newPage(),pageErrors=[];
+      checkPage.on('pageerror',e=>pageErrors.push(e.message));
+      await checkPage.goto(base,{waitUntil:'load'});
+      await checkPage.waitForSelector('#mmhHierarchyManage .mmh-hier-card');
+      await checkPage.evaluate(async()=>{
+        const model=await import('/js/mmhvault-v11-manage-hierarchy-model.mjs');
+        function graphFor(who){
+          const graph=model.emptyHierarchy(who);
+          let serial=0;
+          const uid=()=>who+'-choice-'+ ++serial;
+          const t=model.addType(graph,who,'Income','Income',uid);
+          const x=model.addTransaction(graph,who,'Income2',t.id,'Income|Income',uid);
+          model.addCategory(graph,who,'Salary',x.id,uid);
+          return graph;
+        }
+        window.__makeTestGraph=graphFor;
+        window.MMHVAULT_CONFIG.txHierarchyV11=graphFor('fixture-A');
+        window.__aCloudSyncCalls=0;
+        window.MMHConfigCloudSyncV122.syncNow=()=>{
+          window.__aCloudSyncCalls++;
+          return new Promise(resolve=>{window.__releaseOldCloudCheck=resolve;});
+        };
+        window.MMHV11HierarchyLive.refresh();
+      });
+      await checkPage.waitForSelector('#txType option[data-mmh-choice-id]');
+      await checkPage.locator('#txType').selectOption({label:'Income'});
+      await checkPage.locator('#txGroup').selectOption({label:'Income2'});
+      await checkPage.locator('#txCategory').selectOption({label:'Salary'});
+      await checkPage.evaluate(()=>{
+        const form=document.getElementById('txForm');
+        form.addEventListener('submit',event=>event.preventDefault(),{once:true});
+        form.dispatchEvent(new Event('submit',{bubbles:true,cancelable:true}));
+        window.MMHV11HierarchyLive.onLedgerInserted('fixture-A','A-cloud-ledger',
+          {type:'Income',group:'Income',category:'Salary'});
+      });
+      await checkPage.waitForFunction(()=>
+        typeof window.__releaseOldCloudCheck==='function');
+      say(await checkPage.evaluate(()=>window.__aCloudSyncCalls===1),
+        'A-sidecar cloud check starts once before account switch');
+
+      await checkPage.evaluate(()=>{
+        window.currentSessionUser={id:'fixture-B'};
+        window.MMHVAULT_CONFIG_OWNER='fixture-B';
+        window.MMHVAULT_CONFIG={
+          txFieldsV12:{version:1,type:[],transaction:[],category:[]},
+          txHierarchyV11:window.__makeTestGraph('fixture-B'),
+          categories:{Income:['Salary'],Expense:[],Personal:[],LoanIncome:[],
+            LoanExpense:[],Transfer:['Transfer']},archivedCategories:{}
+        };
+        window.mmhWalletDataOwnerV191='fixture-B';
+        window.transactions=[];
+        window.loadAll=async ()=>{
+          window.transactions=[{id:'B-cloud-ledger',user_id:'fixture-B',
+            type:'Income',category:'Salary',tx_date:'2026-11-04'}];
+          window.dispatchEvent(new CustomEvent('mmhvault:data-loaded',
+            {detail:{ok:true}}));
+          return {ok:true};
+        };
+        window.__bCloudReads=0;
+        window.db={from:table=>{
+          if(table!=='personal_configuration')throw Error('Unexpected table');
+          return {select:()=>({eq:(_field,user)=>({
+            maybeSingle:async()=>{
+              if(user!=='fixture-B')throw Error('Cross-owner cloud read');
+              window.__bCloudReads++;
+              return {data:{config:window.MMHVAULT_CONFIG},error:null};
+            }
+          })})};
+        }};
+        window.MMHConfigCloudSyncV122.syncNow=()=>new Promise(resolve=>{
+          window.__releaseNewCloudCheck=resolve;
+        });
+        window.dispatchEvent(new Event('mmhvault:config-owner-changed'));
+        window.dispatchEvent(new CustomEvent('mmhvault:data-loaded',
+          {detail:{ok:true}}));
+        window.MMHV11HierarchyLive.refresh();
+      });
+      await checkPage.waitForSelector('#txType option[data-mmh-choice-id]');
+      await checkPage.locator('#txType').selectOption({label:'Income'});
+      await checkPage.locator('#txGroup').selectOption({label:'Income2'});
+      await checkPage.locator('#txCategory').selectOption({label:'Salary'});
+      await checkPage.evaluate(()=>{
+        const form=document.getElementById('txForm');
+        form.addEventListener('submit',event=>event.preventDefault(),{once:true});
+        form.dispatchEvent(new Event('submit',{bubbles:true,cancelable:true}));
+        window.MMHV11HierarchyLive.onLedgerInserted('fixture-B','B-cloud-ledger',
+          {type:'Income',group:'Income',category:'Salary'});
+      });
+      await checkPage.waitForFunction(()=>
+        typeof window.__releaseNewCloudCheck==='function');
+      say(await checkPage.locator('#mmhHierarchyManage [role=status]')
+        .getByRole('button',{name:'Recheck sync'}).isDisabled(),
+        'B cloud verification starts even while A cloud request is stuck');
+      await checkPage.evaluate(()=>window.__releaseOldCloudCheck(true));
+      await checkPage.waitForTimeout(60);
+      say(await checkPage.locator('#mmhHierarchyManage [role=status]')
+        .getByRole('button',{name:'Recheck sync'}).isDisabled(),
+        'late A cloud result cannot unlock or cancel B pending verification');
+      await checkPage.evaluate(()=>window.__releaseNewCloudCheck(true));
+      await checkPage.waitForFunction(()=>
+        document.querySelector('#mmhHierarchyManage [role=status]')?.textContent
+          .includes('cloud verified'));
+      say(await checkPage.evaluate(()=>window.__bCloudReads===1&&
+        window.transactions.length===1&&window.transactions[0].user_id==='fixture-B'),
+        'B verification reads only B config and ledger after stale A completes');
+      say(pageErrors.length===0,
+        'owner-scoped cloud verification has no browser exceptions');
+      await checkContext.close();
+    }
     const context=await browser.newContext({viewport:{width:393,height:800},serviceWorkers:'block',
       ...(engine==='webkit'?{isMobile:true,hasTouch:true,deviceScaleFactor:2}:{})});
     const page=await context.newPage(),errors=[];page.on('pageerror',e=>errors.push(e.message));
