@@ -94,7 +94,9 @@ const l155NewScriptTag='<script defer src="./landing-assets/landing.js?v=l155"><
 const l156OldMotionTag='<script defer src="./landing-assets/motion-l132.js?v=l141"></script>';
 const l156NewMotionTag='<script defer src="./landing-assets/motion-l132.js?v=l156"></script>';
 const l157NewMotionTag='<script defer src="./landing-assets/motion-l132.js?v=l157"></script>';
-const l148IndexOnlyEdited=()=>prev.includes(l157NewMotionTag) && current===prev;
+const l159NewMotionTag='<script defer src="./landing-assets/motion-l132.js?v=l159"></script>';
+const l148IndexOnlyEdited=()=>prev.split(l157NewMotionTag).length===2 &&
+  current===prev.replace(l157NewMotionTag,l159NewMotionTag);
 const l147IndexOnlyEdited=baseline=>baseline===prev && l148IndexOnlyEdited() &&
   baseline.includes(l147NewHeaderTags) && !current.includes(l147OldHeaderTags);
 // The runtime JS may change only these four targeted DOM write sites.
@@ -246,9 +248,13 @@ const l139PublicInsertion="      // L1.39: pre-reveal phone cards ahead of viewp
 const l156MotionPatches=[["  const activeAnimations=new WeakMap();\n  const play=","  const activeAnimations=new WeakMap();\n  // L1.56: stop only Business concept WAAPI motion on tab hiding or\n  // live reduced-motion changes, leaving presentation and data intact.\n  const runningBusinessAnimations=new Set();\n  const cancelInterruptedBusinessMotion=()=>{\n    if(permitted() && !document.hidden)return;\n    for(const animation of runningBusinessAnimations)animation.cancel();\n    runningBusinessAnimations.clear();\n  };\n  if(typeof motionPreference.addEventListener==='function')\n    motionPreference.addEventListener('change',cancelInterruptedBusinessMotion);\n  else if(typeof motionPreference.addListener==='function')\n    motionPreference.addListener(cancelInterruptedBusinessMotion);\n  document.addEventListener('visibilitychange',cancelInterruptedBusinessMotion);\n  const play="],["    if(!permitted() || typeof node.animate!=='function')return;","    if(!permitted() || document.hidden || typeof node.animate!=='function')return;"],["    activeAnimations.set(node,animation);\n  };","    activeAnimations.set(node,animation);\n    runningBusinessAnimations.add(animation);\n    const forget=()=>runningBusinessAnimations.delete(animation);\n    animation.addEventListener('finish',forget,{once:true});\n    animation.addEventListener('cancel',forget,{once:true});\n  };"],["      if(!permitted())return;","      if(!permitted() || document.hidden)return;"]];
 const l157RevealBefore="  // L1.40: prewarm mobile reveals further ahead of fast swipes, with no\n  // intersection threshold that might skip a narrow card. Desktop unchanged.\n  const mobileReveal = window.matchMedia && window.matchMedia('(max-width: 620px)').matches;\n  const observer=new IntersectionObserver(entries=>{\n    for(const entry of entries){\n      if(!entry.isIntersecting)continue;\n      entry.target.classList.add('mm-shown');\n      observer.unobserve(entry.target);\n    }\n  },{rootMargin:mobileReveal?'0px 0px 24% 0px':'0px 0px -6% 0px',threshold:mobileReveal?0:0.065});\n  elements.filter(el=>!el.classList.contains('mm-shown')).forEach(el=>observer.observe(el));\n";
 const l157RevealAfter="  // L1.57: recalculate phone-first reveal margins after orientation changes.\n  // Keep already revealed sections visible; no scroll interception or repaint.\n  const mobileRevealQuery=window.matchMedia\n    ? window.matchMedia('(max-width: 620px)') : {matches:false};\n  let observer;\n  const bindRevealObserver=()=>{\n    if(observer)observer.disconnect();\n    const mobileReveal=mobileRevealQuery.matches;\n    const nextObserver=new IntersectionObserver(entries=>{\n      for(const entry of entries){\n        if(!entry.isIntersecting)continue;\n        entry.target.classList.add('mm-shown');\n        nextObserver.unobserve(entry.target);\n      }\n    },{rootMargin:mobileReveal?'0px 0px 24% 0px':'0px 0px -6% 0px',threshold:mobileReveal?0:0.065});\n    observer=nextObserver;\n    elements.filter(el=>!el.classList.contains('mm-shown')).forEach(el=>observer.observe(el));\n  };\n  bindRevealObserver();\n  if(typeof mobileRevealQuery.addEventListener==='function')\n    mobileRevealQuery.addEventListener('change',bindRevealObserver);\n  else if(typeof mobileRevealQuery.addListener==='function')\n    mobileRevealQuery.addListener(bindRevealObserver);\n";
+const l159RevealAddition="  // L1.59: settle any pending reveals when reduced motion is enabled live.\n  // Already visible content stays visible if normal motion is enabled again.\n  const settleReducedReveals=()=>{\n    if(permitted())return;\n    for(const el of elements)el.classList.add('mm-shown');\n    observer.disconnect();\n  };\n  if(typeof motionPreference.addEventListener==='function')\n    motionPreference.addEventListener('change',settleReducedReveals);\n  else if(typeof motionPreference.addListener==='function')\n    motionPreference.addListener(settleReducedReveals);\n\n";
+const l159RevealAnchor="  // Clicking a guide or an in-page navigation link must reveal the destination,";
 const l139MotionOnlyEdited=()=>{
   const released=source('landing-assets/motion-l132.js');
-  return read('landing-assets/motion-l132.js')===released &&
+  return released.split(l159RevealAnchor).length===2 &&
+    read('landing-assets/motion-l132.js')===
+      released.replace(l159RevealAnchor,l159RevealAddition+l159RevealAnchor) &&
     released.includes('L1.57: recalculate phone-first reveal margins') &&
     released.includes('L1.56: stop only Business concept WAAPI motion');
 };
@@ -256,13 +262,12 @@ const l158PublicRevealBefore="      // L1.39: pre-reveal phone cards ahead of vi
 const l158PublicRevealAfter="      // L1.58: rotate.\n      const mq=matchMedia('(max-width:620px)');\n      let io;\n      function bind(){\n        io?.disconnect();\n        const mobileReveal=mq.matches;\n        const o=new IntersectionObserver(es=>{\n          for(const e of es)if(e.isIntersecting){\n            e.target.classList.add('mm-public-shown');\n            o.unobserve(e.target);\n          }\n        },{threshold:.045,rootMargin:mobileReveal?'0px 0px 12% 0px':'0px 0px -4% 0px'});\n        io=o;\n        for(const e of targets)if(!e.classList.contains('mm-public-shown'))o.observe(e);\n      }\n      bind();\n      mq.addEventListener?mq.addEventListener('change',bind):mq.addListener?.(bind);";
 const l158OldScriptTag="<script defer src=\"/landing-assets/public-pages.js\"></script>";
 const l158NewScriptTag="<script defer src=\"/landing-assets/public-pages.js?v=l158\"></script>";
-const l158RestoreScript=(html)=>html.replace(l158NewScriptTag,l158OldScriptTag);
+const l158RestoreScript=(html)=>html; // L1.58 seven public pages are now released.
 const l139PublicOnlyEdited=()=>{
   const released=source('landing-assets/public-pages.js');
-  return released.split(l158PublicRevealBefore).length===2 &&
-    released.includes("mobileReveal?'0px 0px 12% 0px':'0px 0px -4% 0px'") &&
-    read('landing-assets/public-pages.js')===
-      released.replace(l158PublicRevealBefore,l158PublicRevealAfter);
+  return read('landing-assets/public-pages.js')===released &&
+    released.includes('L1.58: rotate.') &&
+    released.includes("mobileReveal?'0px 0px 12% 0px':'0px 0px -4% 0px'");
 };
 const l137PublicJSOnlyEdited=()=>{
   const expected=source('landing-assets/public-pages.js');
@@ -339,7 +344,7 @@ check('Explore styles load after existing premium/motion layers and remain scope
  !read('landing-assets/explore-l114.css').includes('body.app'));
 check('L1.32 motion assets linked from homepage',
   current.includes('href="./landing-assets/motion-l132.css?v=l141"') &&
-  current.includes('src="./landing-assets/motion-l132.js?v=l157"'));
+  current.includes('src="./landing-assets/motion-l132.js?v=l159"'));
 const motionSource=read('landing-assets/motion-l132.js');
 const motionStyles=read('landing-assets/motion-l132.css');
 check('L1.32 reveal uses IntersectionObserver and no forced hidden fallback',
@@ -810,20 +815,18 @@ check('L1.27 public tab title matches SEO without language focus scroll',
  l133PublicPagesUnchanged() &&
  l142IndexOnlyEdited() && current.includes(newHeroPreload) &&
  !current.includes(oldHeroPreload));
-check('L1.58 exact ten public-file changes and no content or SEO modification',
-  actual.length===10 &&
+check('L1.59 exact four-file homepage motion-only change and L1.58 public pages preserved',
+  actual.length===4 &&
   actual.every(path=>[
-   'landing-assets/public-pages.js',
-   'landing-assets/landing-release-check.cjs',
-   'landing-assets/landing-browser-check.cjs',
-   ...publicHeaders
+    'index.html',
+    'landing-assets/motion-l132.js',
+    'landing-assets/landing-release-check.cjs',
+    'landing-assets/landing-browser-check.cjs'
   ].includes(path)) &&
-  publicHeaders.every(path=>{
-    const prior=source(path);
-    return prior.split(l158OldScriptTag).length===2 &&
-      read(path)===prior.replace(l158OldScriptTag,l158NewScriptTag);
-  }) &&
-  current===prev && analyticsAddition.test(rawCurrent) &&
+  l139MotionOnlyEdited() &&
+  l139PublicOnlyEdited() &&
+  publicHeaders.every(path=>read(path)===source(path)) &&
+  current!==prev &&
   l142IndexOnlyEdited() && l133BurmeseLayoutOnlyEdited() &&
   l133PublicPagesUnchanged() && l135HeaderCssOnlyEdited() &&
   ['landing-assets/public-pages.css','landing-assets/business.css',
@@ -848,7 +851,7 @@ check('L1.41 all nine first-party style/script URLs keep coordinated versions',
       .replace('cinematic.css?v=l141','cinematic.min.css?v=l146')
       .replace('premium-l131.css?v=l141','premium-l131.min.css?v=l146')
       .replace('landing.js?v=l141','landing.js?v=l155')
-      .replace('motion-l132.js?v=l141','motion-l132.js?v=l157');
+      .replace('motion-l132.js?v=l141','motion-l132.js?v=l159');
     const bundled=/explore-l114\.css|shared-header-l116\.css/.test(after);
     return before!==after && after.includes('?v=l141') && !current.includes(before) &&
       (bundled ? current.includes(l147NewHeaderTags)&&!current.includes(after) :
@@ -968,21 +971,26 @@ check('L1.54 language and feature title hydration skips identical writes',
 check('L1.56 released Business interruption remains intact',
   l139MotionOnlyEdited() &&
   prev.includes(l157NewMotionTag) &&
-  current.includes(l157NewMotionTag) &&
+  current.includes(l159NewMotionTag) &&
   !current.includes(l156OldMotionTag) &&
   read('landing-assets/landing-browser-check.cjs').includes('L1.56 Business WAAPI interruption browser parity'));
 check('L1.58 public introduction pages rebind observer after viewport changes',
   l139PublicOnlyEdited() &&
   publicHeaders.every(path=>read(path).includes(l158NewScriptTag)) &&
   read('landing-assets/landing-browser-check.cjs').includes('L1.58 rotated public-page observer parity') &&
-  current===prev);
+  l148IndexOnlyEdited());
 check('L1.57 orientation-aware observer rebind is isolated to Landing presentation',
   l139MotionOnlyEdited() &&
-  current.includes(l157NewMotionTag) &&
+  current.includes(l159NewMotionTag) &&
   read('landing-assets/landing-browser-check.cjs').includes('L1.57 rotated viewport reveal observer parity') &&
   !read('landing-assets/motion-l132.js').includes('preventDefault(') &&
   !read('landing-assets/motion-l132.js').includes('localStorage') &&
   l139PublicOnlyEdited());
+check('L1.59 live reduced-motion change permanently reveals all pending Landing cards',
+  l139MotionOnlyEdited() &&
+  current.includes(l159NewMotionTag) &&
+  read('landing-assets/landing-browser-check.cjs').includes('L1.59 live reduced-motion reveal persistence') &&
+  !read('landing-assets/motion-l132.js').includes('preventDefault('));
 check('L1.55 interrupted crossfade isolated from current main',
   l148LandingJsOnlyEdited() &&
   read('landing-assets/landing-browser-check.cjs').includes('L1.55 preview interruption browser parity') &&
