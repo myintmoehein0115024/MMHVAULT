@@ -1270,7 +1270,7 @@ async function load(page,route,failures){
      });
      const page=await ctx.newPage(),failures=[];
      page.on('pageerror',e=>failures.push('JS '+e.message));
-     page.on('requestfailed',r=>failures.push('Network '+r.url()+' '+r.failure()?.errorText));
+     page.on('requestfailed',r=>{ if(!/^https:\/\/cloudflareinsights\.com\/cdn-cgi\/rum(?:\?|$)/.test(r.url())) failures.push('Network '+r.url()+' '+r.failure()?.errorText); });
      page.on('response',r=>{
        if(r.url().startsWith(origin)&&r.status()>=400)
          failures.push('HTTP '+r.status()+' '+r.url());
@@ -1438,7 +1438,7 @@ async function load(page,route,failures){
      const page=await context.newPage();
      const failures=[],loaded=[];
      page.on('pageerror',e=>failures.push(e.message));
-     page.on('requestfailed',req=>failures.push(req.url()+' '+req.failure()?.errorText));
+     page.on('requestfailed',req=>{ if(!/^https:\/\/cloudflareinsights\.com\/cdn-cgi\/rum(?:\?|$)/.test(req.url())) failures.push(req.url()+' '+req.failure()?.errorText); });
      page.on('response',r=>{
        const url=new URL(r.url());
        if(url.origin!==origin||!url.pathname.startsWith('/landing-assets/'))return;
