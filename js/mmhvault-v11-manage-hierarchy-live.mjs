@@ -438,10 +438,25 @@ async function verifyCloudLink(target){
       queueMicrotask(()=>{void verifyCloudLink(linkSync)});
   }
 }
+// A confirmed INSERT must refresh Accounts/Dashboard/Analyze independently
+// of the optional Manage-link cloud verification. Serialize owner-scoped
+// reads so quick consecutive inserts never let an older reload overwrite a
+// newer snapshot; these tasks NEVER perform another ledger write.
+let ledgerRefreshQueue=Promise.resolve();
+function queueSavedLedgerRefresh(target){
+  const task=ledgerRefreshQueue.then(()=>{
+    if(owner()!==target.owner||configOwner()!==target.owner)return;
+    return refreshSavedLedger(target);
+  });
+  // Keep a rejected task from poisoning subsequent confirmed records.
+  ledgerRefreshQueue=task.catch(error=>{
+    console.warn('[MMHVAULT] Serialized financial refresh interrupted',error);
+  });
+}
 // Native addTransaction confirms the ledger INSERT but its V321 wrapper
-// does not reload Accounts/Dashboard/Analyze. After the separate Manage
-// sidecar attempt, refresh from the cloud using the SAME verified owner.
-// A failed refresh never retries, rolls back, or duplicates the ledger INSERT.
+// does not reload Accounts/Dashboard/Analyze. Re-fetch the owner ledger
+// regardless of whether the optional Manage sidecar confirms promptly.
+// A failed refresh never rolls back or duplicates the financial INSERT.
 async function refreshSavedLedger(target){
   if(!target||owner()!==target.owner||configOwner()!==target.owner)return;
   const matches=()=>Array.isArray(window.transactions)&&window.transactions.some(row=>
@@ -479,7 +494,7 @@ function ledgerInserted(userId,id,values){
   if(!current||current.owner!==userId||!values||
     values.type!==current.path.type||values.group!==current.path.group||
     values.category!==current.path.category){
-    void refreshSavedLedger({owner:userId,recordId});
+    queueSavedLedgerRefresh({owner:userId,recordId});
     notify(tr('Transaction saved, but its Manage choices could not be verified. Review this record; do not save it again.',
       '交易已保存，但 Manage 关联未通过确认。请检查这笔记录，不要重复记账。',
       'မှတ်တမ်း သိမ်းပြီးသော်လည်း Manage ချိတ်ဆက်မှု မအတည်ပြုနိုင်ပါ။ ထပ်မသိမ်းပါနှင့်။'));
@@ -491,12 +506,13 @@ function ledgerInserted(userId,id,values){
   try{
     controller.recorded(target.recordId,target.ids.type,target.ids.transaction,target.ids.category,values);
     target.state='pending';schedule();
-    void verifyCloudLink(target).finally(()=>{void refreshSavedLedger(target)});
+    queueSavedLedgerRefresh(target);
+    void verifyCloudLink(target);
   }catch(error){console.warn('[MMHVAULT] Ledger saved but Manage link write did not complete',error);
     schedule();notify(tr('Transaction saved. Its Manage link needs a retry; no duplicate transaction will be created.',
       '交易已保存，项目关联需要重试，不会再次创建交易。',
       'မှတ်တမ်း သိမ်းပြီး၊ ချိတ်ဆက်မှု ပြန်လုပ်ရန် လိုပါသည်။'));
-    void refreshSavedLedger(target);
+    queueSavedLedgerRefresh(target);
   }
 }
 function boot(){
