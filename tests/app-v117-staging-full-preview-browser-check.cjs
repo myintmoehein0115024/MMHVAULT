@@ -65,6 +65,45 @@ const PROD='https://vrypucmyrztxgiqhjspd.supabase.co';
     assert.ok(allowedAPI.includes('/rest/v1/'+table),
       'approved Staging-only boot REST route must be requested: '+table);
   console.log('PASS APP V11.7 Chrome local full APP staging CSP smoke — Production/N10 blocked; exactly five finance REST routes');
+
+  // Reproduce the real native signed-out route: app.html -> login.html.
+  // The Pages build MUST ship a proper login.html rather than falling back
+  // to index.html and bouncing forever to /app.html (navy flash bug).
+  await page.route('https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.57.4/dist/umd/supabase.js',
+    route=>route.fulfill({status:200,contentType:'application/javascript',body:
+      "window.supabase={createClient:function(url,key){window.__qaClientUrl=url;window.__qaPublicKey=key;window.__qaSignins=0;return {auth:{signInWithPassword:async function(args){window.__qaSignins++;return {data:{session:{user:{id:'fixture-A',email:args.email}}},error:null};}}};}};"}));
+  const loginResponse=await page.goto(PREVIEW.replace('/app.html','/login.html'),
+    {waitUntil:'load',timeout:30000});
+  assert.equal(loginResponse.status(),200,'Native app signed-out redirect has a real Staging login page');
+  assert.match(await page.title(),/STAGING TEST LOGIN/);
+  assert.equal(await page.locator('#qaLoginForm').isVisible(),true);
+  assert.equal(await page.locator('#qaEmail').isVisible(),true);
+  assert.equal(await page.locator('#qaPassword').isVisible(),true);
+  const loginSource=await page.content();
+  assert.ok(loginSource.includes(STAGE));
+  assert.ok(!loginSource.includes(PROD));
+  assert.ok(!loginSource.includes('functions/v1/'));
+  assert.equal(await page.evaluate(()=>window.__qaClientUrl),STAGE,
+    'Staging login initializes Supabase SDK with Staging only');
+
+  await page.locator('#qaEmail').fill('production@example.test');
+  await page.locator('#qaPassword').fill('not-a-real-password');
+  await page.locator('#qaSubmit').click();
+  assert.match(await page.locator('#status').textContent(),/Only dedicated v117qa synthetic/);
+  assert.equal(await page.evaluate(()=>window.__qaSignins),0,
+    'Non-fixture identity must never be submitted to Auth');
+
+  // The credential is synthetic and the SDK is mocked. Assert that a
+  // successful QA-only sign-in navigates to APP without real login/network.
+  await page.route('**/app.html',route=>route.fulfill({status:200,
+    contentType:'text/html',body:'<!doctype html><title>Mock APP route</title><div id="qa-route-success">Staging APP navigation OK</div>'}));
+  await page.locator('#qaEmail').fill('fixture-v117qa-a@example.test');
+  await page.locator('#qaPassword').fill('synthetic-only-not-a-real-password');
+  await page.locator('#qaSubmit').click();
+  await page.waitForSelector('#qa-route-success',{timeout:10000});
+  assert.match(page.url(),/\/app\.html$/,
+    'Only native APP route is navigated to after synthetic sign-in');
+  console.log('PASS APP V11.7 isolated Staging login route — visible, fixture-gated, mocked Auth, no redirect loop');
   await context.close();
  }finally{await browser.close()}
 })().catch(e=>{console.error(e);process.exitCode=1});
