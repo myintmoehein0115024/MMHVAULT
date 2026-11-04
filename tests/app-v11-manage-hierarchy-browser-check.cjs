@@ -18,6 +18,19 @@ const say=(condition,label)=>{assert.ok(condition,label);console.log('PASS '+lab
       page.on('pageerror',err=>errors.push(err.message));
       const resp=await page.goto(base,{waitUntil:'load'});
       say(resp?.status()===200,width+' fixture served');
+      // Mirror the actual APP date input without altering finance fixtures.
+      await page.evaluate(()=>{
+        const lbl=document.createElement('label'),date=document.createElement('input');
+        lbl.textContent='Date';date.id='txDate';date.type='date';date.value='2026-11-04';
+        lbl.append(date);document.getElementById('txForm').prepend(lbl);
+      });
+      say(await page.evaluate(()=>{
+        const date=document.getElementById('txDate');
+        const outer=date.closest('label').getBoundingClientRect();
+        const inner=date.getBoundingClientRect();
+        return inner.width>0&&inner.left>=outer.left-1&&inner.right<=outer.right+1&&
+          inner.right<=window.innerWidth+1&&getComputedStyle(date).minWidth==='0px';
+      }),width+' localized-date input remains within its own label and viewport');
       await page.waitForSelector('#mmhHierarchyManage .mmh-hier-card');
       const cards=page.locator('.mmh-hier-card');
       say(await cards.count()===3,width+' three Manage cards');
@@ -96,6 +109,11 @@ const say=(condition,label)=>{assert.ok(condition,label);console.log('PASS '+lab
       say(await page.evaluate(()=>!['txType','txGroup','txCategory']
         .includes(document.activeElement?.id||'')),
         width+' direction shortcut never focuses/opens a native selector');
+      for(const id of ['txType','txGroup','txCategory']){
+        await page.locator('label:has(> #'+id+')').click({position:{x:5,y:5}});
+        say(await page.evaluate(id=>document.activeElement?.id!==id,id),
+          width+' adjacent '+id+' label click does not invoke native picker');
+      }
       // Step 2: Transaction assigned to Income.
       await cards.nth(1).getByRole('button',{name:'Manage'}).click();
       dlg=page.locator('.mmh-hier-dialog');
