@@ -28,6 +28,9 @@ export function attachRecoveryViewLifecycle({
   const hide = () => { if (!closed) controller.hide(); };
   const onVisibility = () => { if (documentRef.hidden === true) hide(); };
   const onPageHide = () => hide();
+  // On desktop Safari/Chromium a window can lose focus to another app
+  // without document.hidden becoming true. Never leave words exposed there.
+  const onBlur = () => hide();
   const onClose = () => hide();
   const onAuth = event => {
     if (INVALIDATING_AUTH_EVENTS.has(event)) hide();
@@ -50,6 +53,7 @@ export function attachRecoveryViewLifecycle({
   try {
     wire(documentRef, 'visibilitychange', onVisibility);
     wire(windowRef, 'pagehide', onPageHide);
+    wire(windowRef, 'blur', onBlur);
     for (const target of closeTargets) wire(target, 'click', onClose);
     const result = auth.onAuthStateChange(onAuth);
     subscription = result?.data?.subscription;
