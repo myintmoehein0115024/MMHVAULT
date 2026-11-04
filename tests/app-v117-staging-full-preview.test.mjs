@@ -48,7 +48,7 @@ test('preview is generated from the current APP without production endpoints',()
    for(const entry of fs.readdirSync(folder,{withFileTypes:true})){
      const full=path.join(folder,entry.name);
      if(entry.isDirectory()){checkAssets(full);continue;}
-     if(!/\\.(?:js|mjs|html|css|json|txt)$/i.test(entry.name))continue;
+     if(!/\.(?:js|mjs|html|css|json|txt)$/i.test(entry.name))continue;
      const asset=fs.readFileSync(full,'utf8');
      assert.ok(!asset.includes(PROD),'Production host survived in '+full);
      assert.ok(!asset.includes('sb_publishable_H38v4XbO0ARnSJToD42wGg_27-SZ3Ao'),'Production key survived in '+full);
