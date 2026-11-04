@@ -50,14 +50,24 @@ function pass(condition,label,detail){
           ?getComputedStyle(document.querySelector('.ambient')).filter==='none':true,
         heroGlowOff:document.body.classList.contains('l131')
           ?getComputedStyle(document.querySelector('.hero'),'::after').filter==='none':true,
+        heroHaloOff:document.body.classList.contains('l131')
+          ?getComputedStyle(document.querySelector('.hero-halo')).filter==='none':true,
+        heroCopyOff:document.body.classList.contains('l131')
+          ?getComputedStyle(document.querySelector('.hero-copy')).filter==='none':true,
+        heroNameOff:document.body.classList.contains('l131')
+          ?getComputedStyle(document.querySelector('.hero .hero-name')).filter==='none':true,
+        heroCaptionOff:document.body.classList.contains('l131')
+          ?getComputedStyle(document.querySelector('.hero-art .demo-disclaimer')).backdropFilter==='none':true,
+        businessCaptionOff:document.body.classList.contains('l131')
+          ?getComputedStyle(document.querySelector('#business .business-photo-caption')).backdropFilter==='none':true,
         canonical:document.querySelector('link[rel="canonical"]')?.href,
         horizontalOverflow:document.documentElement.scrollWidth>innerWidth+2
       };
     });
-    pass(metrics.safariSheet?.includes('?v=l165') &&
+    pass(metrics.safariSheet?.includes('?v=l169') &&
       metrics.headerBackdrop==='none'&&metrics.headerWebkitBackdrop==='none'&&
       metrics.headerBackground.includes('linear-gradient')&&
-      metrics.cardBlurOff&&metrics.ambientOff&&metrics.heroGlowOff&&
+      metrics.cardBlurOff&&metrics.ambientOff&&metrics.heroGlowOff&&metrics.heroHaloOff&&metrics.heroCopyOff&&metrics.heroNameOff&&metrics.heroCaptionOff&&metrics.businessCaptionOff&&
       metrics.canonical?.startsWith('https://mmhvault.com/')&&
       !metrics.horizontalOverflow&&metrics.scrollX===0&&
       (metrics.scrollY<10||Math.abs(metrics.headerTop)<=2),
@@ -73,7 +83,7 @@ function pass(condition,label,detail){
     cases++;
    }
   }
-  // L1.65: keep premium hover shadow end states without interpolating them.
+  // L1.66: keep premium hover shadow end states without interpolating them.
   for(const width of [1280,1440]){
     const context=await browser.newContext({viewport:{width,height:900},reducedMotion:'no-preference'});
     await context.route('https://static.cloudflareinsights.com/**',
@@ -94,7 +104,7 @@ function pass(condition,label,detail){
     pass(response?.status()===200&&before.glow==='none'&&
       !props.includes('box-shadow')&&props.includes('opacity')&&props.includes('transform')&&
       props.includes('border-color')&&before.shadow!==after&&errors.length===0,
-      'L1.65 WebKit desktop hover and Business glow parity '+width+'px',
+      'L1.66 WebKit desktop hover and Business glow parity '+width+'px',
       {before,after,errors});
     await context.close();
   }
@@ -107,14 +117,21 @@ function pass(condition,label,detail){
       const h=getComputedStyle(document.querySelector('.site-header'));
       return {desktopRule:matchMedia('(min-width:1025px)').matches,
         background:h.backgroundImage,cssLoaded:[...document.styleSheets].some(s=>s.href?.includes('safari-performance-l164.css')),
+        mobileHeroCaptionBackdrop:document.body.classList.contains('l131')?
+          getComputedStyle(document.querySelector('.hero-art .demo-disclaimer')).backdropFilter:null,
+        mobileBusinessCaptionBackdrop:document.body.classList.contains('l131')?
+          getComputedStyle(document.querySelector('#business .business-photo-caption')).backdropFilter:null,
+        mobileHeroNameFilter:document.body.classList.contains('l131')?
+          getComputedStyle(document.querySelector('.hero .hero-name')).filter:null,
         mobileBusinessBlur:document.querySelector('#business .business-stage')?
           getComputedStyle(document.querySelector('#business .business-stage'),'::after').filter:null};
     });
     pass(!metrics.desktopRule&&metrics.cssLoaded&&metrics.background.includes('gradient')&&
-      (path!=='/'||metrics.mobileBusinessBlur==='blur(40px)'),
+      (path!=='/'||(metrics.mobileBusinessBlur==='blur(40px)'&&metrics.mobileHeroNameFilter!=='none'&&
+          metrics.mobileHeroCaptionBackdrop!=='none'&&metrics.mobileBusinessCaptionBackdrop!=='none')),
       'WebKit mobile baseline is not overridden '+path,metrics);
     await context.close();
   }
-  console.log('L1.65 MACOS WEBKIT QA PASS: '+cases+' desktop routes + 2 hover + 2 mobile guards');
+  console.log('L1.66 MACOS WEBKIT QA PASS: '+cases+' desktop routes + 2 hover + 2 mobile guards');
  }finally{await browser.close()}
 })().catch(e=>{console.error(e.stack||String(e));process.exitCode=1});

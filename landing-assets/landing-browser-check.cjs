@@ -75,28 +75,41 @@ async function load(page,route,failures){
          window.scrollTo({left:900,top:y,behavior:'instant'});
          const sideways=scrollX;
          window.scrollTo({left:0,top:y,behavior:'instant'});
-         return {mobile,hasStylesheet:!!cs&&cs.href.includes('?v=l165'),
+         return {mobile,hasStylesheet:!!cs&&cs.href.includes('?v=l169'),
            standardBackdrop:computed.backdropFilter,
            webkitBackdrop:computed.webkitBackdropFilter,
            background:computed.backgroundImage,
            stickyOff:off,sideways,
            cardCount:cards.length,
            cardsCheap:cards.every(el=>getComputedStyle(el).backdropFilter==='none'),
-           ambienceCheap:!isLanding||getComputedStyle(document.querySelector('.ambient')).filter==='none'};
+           ambienceCheap:!isLanding||getComputedStyle(document.querySelector('.ambient')).filter==='none',
+           heroHaloCheap:!isLanding||getComputedStyle(document.querySelector('.hero-halo')).filter==='none',
+           heroCopyFilter:isLanding?getComputedStyle(document.querySelector('.hero-copy')).filter:null,
+           heroNameFilter:isLanding?getComputedStyle(document.querySelector('.hero .hero-name')).filter:null,
+           heroCaptionBackdrop:isLanding?getComputedStyle(document.querySelector('.hero-art .demo-disclaimer')).backdropFilter:null,
+           businessCaptionBackdrop:isLanding?getComputedStyle(document.querySelector('#business .business-photo-caption')).backdropFilter:null};
        });
        const desktop=width>1024;
        ensure(response?.status()===200&&result.hasStylesheet&&result.stickyOff&&
          result.sideways<=2&&result.background.includes('gradient')&&
          (desktop?(result.standardBackdrop==='none'&&(!result.webkitBackdrop||result.webkitBackdrop==='none')&&
-           result.cardsCheap&&result.ambienceCheap):
-           result.mobile&&result.standardBackdrop!=='none')&&exceptions.length===0,
+           result.cardsCheap&&result.ambienceCheap&&result.heroHaloCheap&&
+           (result.heroCopyFilter===null||result.heroCopyFilter==='none')&&
+           (result.heroNameFilter===null||result.heroNameFilter==='none')&&
+           (result.heroCaptionBackdrop===null||result.heroCaptionBackdrop==='none')&&
+           (result.businessCaptionBackdrop===null||result.businessCaptionBackdrop==='none')):
+           result.mobile&&result.standardBackdrop!=='none'&&
+           (result.heroCopyFilter===null||result.heroCopyFilter!=='none')&&
+           (result.heroNameFilter===null||result.heroNameFilter!=='none')&&
+           (result.heroCaptionBackdrop===null||result.heroCaptionBackdrop!=='none')&&
+           (result.businessCaptionBackdrop===null||result.businessCaptionBackdrop!=='none'))&&exceptions.length===0,
          'L1.64 Chromium desktop compositor / mobile glass parity '+route+
            ' '+width+'px '+JSON.stringify({...result,exceptions}));
        await ctx.close();
      }
    }
    console.log('L1.64 desktop compositing and mobile glass parity PASS');
-   // L1.65: desktop hover shadows paint once while transform/border
+   // L1.66: desktop hover shadows paint once while transform/border
    // animation remains smooth; the phone/tablet animation is untouched.
    for(const width of [390,1280,1440]){
      const ctx=await browser.newContext({viewport:{width,height:850},
@@ -131,7 +144,7 @@ async function load(page,route,failures){
          transform:css.transform,border:css.borderColor};
      });
      const tokens=before.transition.split(',').map(x=>x.trim());
-     ensure(before.version==='l165' && errors.length===0 &&
+     ensure(before.version==='l169' && errors.length===0 &&
        (width>=1025
          ?(!tokens.includes('box-shadow') &&
            before.businessBlur==='none' &&
@@ -141,11 +154,11 @@ async function load(page,route,failures){
            tokens.includes('border-color'))
          :(before.businessBlur==='blur(40px)' &&
            before.shadow!==after.shadow && tokens.includes('transform'))),
-       'L1.65 desktop hover paint and mobile animation parity '+
+       'L1.66 desktop hover paint and mobile animation parity '+
          width+'px '+JSON.stringify({before,after,errors}));
      await ctx.close();
    }
-   console.log('L1.65 Chromium desktop hover paint and mobile animation parity PASS');
+   console.log('L1.66 Chromium desktop hover paint and mobile animation parity PASS');
    // L1.63: tap targets and long translated footer labels on public pages.
    // Responsive-only; verify original tablet footer and all destinations.
    for(const route of publicRoutes.slice(1)){
@@ -1733,14 +1746,14 @@ async function load(page,route,failures){
        layout.styles.filter(v=>v==='l145').length===1 &&
        layout.styles.filter(v=>v==='l146').length===2 &&
        layout.styles.filter(v=>v==='l147').length===1 &&
-       layout.styles.filter(v=>v==='l165').length===1 &&
+       layout.styles.filter(v=>v==='l169').length===1 &&
        layout.styles.filter(v=>v==='l141').length===2 &&
        layout.scripts.includes('l161') && layout.scripts.includes('l159') &&
        loaded.length===9 && loaded.every(r=>r.status===200&&
          r.version===(r.path==='/landing-assets/landing.min.css'?'l145':
            ['/landing-assets/cinematic.min.css','/landing-assets/premium-l131.min.css'].includes(r.path)?'l146':
            r.path==='/landing-assets/header-explore-l147.min.css'?'l147':
-           r.path==='/landing-assets/safari-performance-l164.css'?'l165':
+           r.path==='/landing-assets/safari-performance-l164.css'?'l169':
             r.path==='/landing-assets/landing.js'?'l161':
               r.path==='/landing-assets/motion-l132.js'?'l159':'l141')) &&
        new Set(loaded.map(r=>r.path)).size===9 && failures.length===0,
