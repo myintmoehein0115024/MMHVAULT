@@ -24,6 +24,9 @@ exclude:
   - username-staging.html
   - js/mmhvault-n10-a7-53-qa.js
   - README.md
+  - landing-assets/landing-browser-check.cjs
+  - landing-assets/landing-release-check.cjs
+  - landing-assets/landing-webkit-check.cjs
   - landing-qa-screenshots
   - test-results
   - playwright-report
