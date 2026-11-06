@@ -42,6 +42,8 @@ jobs:
           node --test security/n10-main-compat/test-login-my-locale.mjs
       - name: N10 offline single-request Auth metadata escrow (no deployment)
         run: node --test security/n10-low-privilege-review/test-atomic-auth-escrow.mjs
+      - name: N10 offline create-readback workflow and failure reconciliation
+        run: node --test security/n10-low-privilege-review/test-offline-enrollment.mjs
       - name: Run synthetic security and MFA regressions
         run: node security/n10-main-compat/test-ui-secret-guards.mjs
       - name: Parse isolated recovery integration modules
