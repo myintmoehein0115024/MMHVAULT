@@ -1,0 +1,16 @@
+.is-hidden{display:none!important}
+#loginPanel,#mfaPanel{margin-top:20px}#owner{display:block;width:100%;min-height:48px;border:1px solid rgba(174,191,208,.35);border-radius:11px;padding:12px 15px;color:#f7f1e6;background:#0b1929;font:inherit;outline:none}
+#owner:focus{border-color:var(--gold);box-shadow:0 0 0 3px rgba(205,166,100,.14)}
+#factorStatus{padding:13px 15px;background:rgba(209,171,103,.07);border:1px solid rgba(207,181,138,.22);border-radius:10px}
+#result{padding:14px;color:#def7e5;background:rgba(42,133,99,.15);border:1px solid rgba(122,207,147,.42);border-radius:11px;font-size:14px;font-weight:750;text-align:center;margin:18px 0}
+#verifyBox{margin-top:17px}
+#logout{margin-top:19px}
+.qrwrap{display:grid;place-items:center;background:#fff;border-radius:16px;margin:19px auto 12px;padding:18px;width:min(100%,265px);min-height:245px}
+.qrwrap img{display:block;max-width:100%;height:auto}
+#qrModal .dialog{max-width:510px}
+#qrDone{margin-top:12px}
+@media(max-width:570px){#owner{font-size:15px}.qrwrap{width:240px;min-height:230px}}
+
+.manual-key[hidden],#qrWrap[hidden]{display:none!important}.manual-key{padding:15px;margin-top:12px;border:1px solid rgba(219,185,132,.35);border-radius:11px;background:rgba(4,13,28,.8)}.secret-value{display:block;overflow-wrap:anywhere;user-select:text;letter-spacing:.08em;color:#f2d59c;font-size:14px;line-height:1.8;text-align:center}.manual-key .small{margin:0 0 10px}#manualToggle{margin-top:10px}
+
+#vaultPanel .outline{margin:13px 0}#vaultRevealBox{margin:16px 0;padding:12px 0}#vaultMessage{border:1px solid rgba(213,174,113,.3);border-radius:11px;padding:14px;background:rgba(206,169,109,.07);line-height:1.7}#vaultWords{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin:18px 0}#vaultWords .word{border:1px solid rgba(221,180,120,.33);background:rgba(7,17,32,.75);padding:12px;border-radius:10px;overflow-wrap:anywhere;font-size:14px}#vaultWords .word b{margin-right:10px;color:#e6bd88;font-size:11px}#vaultTimer{text-align:center;font-size:12px;color:#d5b181;margin:13px 0}@media(max-width:570px){#vaultWords .word{font-size:13px;padding:9px}}
