@@ -35292,5 +35292,23 @@ html body #settings.page.active #stPage_security #mmhA783SecurityCenter .mmh-a78
 <script type="module" src="js/mmhvault-v11-manage-hierarchy-live.mjs?v=0.7.0"></script>
 <link rel="stylesheet" href="css/mmhvault-transaction-onboarding-v1.css?v=1.0.0">
 <script type="module" src="js/mmhvault-transaction-onboarding-live-v1.mjs?v=1.0.0"></script>
+<!-- APP V11.7 mobile PWA status-bar safe-area hotfix: visual-only, no auth/data logic. -->
+<style id="mmhvault-app-v117-mobile-statusbar-safe-area">
+/* iOS standalone with black-translucent system bar and viewport-fit=cover:
+   place the APP document below the native clock/signal/battery region.
+   In ordinary browsers env(safe-area-inset-top) is zero; do not add a fake gap. */
+@media (max-width: 820px) {
+  @supports (padding-top: env(safe-area-inset-top)) {
+    html body.mmh-workspace-active {
+      padding-top: env(safe-area-inset-top, 0px) !important;
+    }
+    /* Sticky header must never climb into the system status area while scrolling.
+       Keep existing phone/tablet header sizing and all financial page spacing. */
+    html body.mmh-workspace-active header#header {
+      top: env(safe-area-inset-top, 0px) !important;
+    }
+  }
+}
+</style>
 </body>
 </html>
