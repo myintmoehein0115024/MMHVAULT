@@ -111,6 +111,8 @@ async function inspect(browser,engine,spec){
     emojiFormGrowth:Math.abs(heightBefore-heightAfter),composerHasHeight:form.clientHeight>0
    };
   },{selectors,width:spec.width});
+  console.log('METRICS',id,JSON.stringify(result));
+  await page.screenshot({path:path.join(root,'admin-chat-premium-v11-'+id+'.png'),fullPage:false});
   assert.ok(result.panel.height>480,id+': panel must be usable');
   assert.ok(result.shell.bottom<=result.panel.bottom+3,id+': shell stays inside panel');
   assert.ok(result.scrollable&&result.scrollT>80,id+': long message timeline scrolls inside shell');
@@ -124,7 +126,6 @@ async function inspect(browser,engine,spec){
   console.log('PASS',id,JSON.stringify({panelHeight:Math.round(result.panel.height),
    threadHeight:Math.round(result.threadBox.height),formHeight:Math.round(result.formBox.height),
    scrollT:result.scrollT,scrollM:result.scrollM}));
-  await page.screenshot({path:path.join(root,'admin-chat-premium-v11-'+id+'.png'),fullPage:false});
  }finally{await page.close()}
 }
 (async()=>{
