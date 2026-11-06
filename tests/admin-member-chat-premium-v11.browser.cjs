@@ -93,6 +93,9 @@ async function inspect(browser,engine,spec){
    const thread=get('thread'),members=get('members'),form=get('form');
    const panel=box('panel'),shell=box('shell'),threadBox=box('thread'),formBox=box('form'),send=box('send');
    const dockY=formBox.y,prevThreadScroll=thread.scrollTop;
+   // Legacy chat CSS uses smooth scroll; disable animation only in this synthetic
+   // geometry probe so scrollTop can be asserted immediately and deterministically.
+   thread.style.scrollBehavior='auto';
    thread.scrollTop=850;
    const scrollT=thread.scrollTop;
    if(width>720)members.scrollTop=400;else members.scrollLeft=150;
