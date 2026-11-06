@@ -170,11 +170,11 @@ body.admin-premium-v1 #adminChatView #acEmojiPanelV1518:not([hidden]){
   height:clamp(575px,calc(100dvh - 218px),830px)!important;border-radius:15px!important
  }
  body.admin-premium-v1 #adminChatView .admin-chat-toolbar-v1518{
-  min-height:55px!important;padding:10px 13px!important
+  min-height:50px!important;padding:9px 13px!important
  }
  body.admin-premium-v1 #adminChatView .admin-chat-shell-v1517{
   grid-template-columns:minmax(0,1fr)!important;
-  grid-template-rows:132px minmax(0,1fr)!important
+  grid-template-rows:108px minmax(0,1fr)!important
  }
  body.admin-premium-v1 #adminChatView .admin-chat-members-v1517{
   grid-template-columns:minmax(0,1fr)!important;grid-template-rows:35px minmax(0,1fr)!important;
@@ -220,8 +220,11 @@ body.admin-premium-v1 #adminChatView #acEmojiPanelV1518:not([hidden]){
  body.admin-premium-v1 #adminChatView .admin-chat-hint-v1518{font-size:9px!important}
 }
 @media(max-width:390px){
+ body.admin-premium-v1 #adminChatView .admin-chat-panel-v1518{
+  height:clamp(595px,calc(100dvh - 218px),830px)!important
+ }
  body.admin-premium-v1 #adminChatView .admin-chat-tools-v1518{
-  grid-template-columns:repeat(2,minmax(0,1fr))!important
+  grid-template-columns:repeat(4,minmax(0,1fr))!important
  }
  body.admin-premium-v1 #adminChatView #acReplyFormV1517{
   max-height:min(320px,58dvh)!important
