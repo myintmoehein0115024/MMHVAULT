@@ -33,7 +33,7 @@ jobs:
               exit 1
             fi
           done
-          for p in analytics-worker/src analytics-worker/test analytics-worker/README.md analytics-worker/wrangler.toml docs email-templates security tests tools pwa-icon-diagnostic-20261030 n10-a7-53-qa.html n10-qa.html username-preview.html username-staging.html js/mmhvault-n10-a7-53-qa.js; do
+          for p in analytics-worker/src analytics-worker/test analytics-worker/README.md analytics-worker/wrangler.toml docs email-templates security tests tools pwa-icon-diagnostic-20261030 n10-a7-53-qa.html n10-qa.html username-preview.html username-staging.html js/mmhvault-n10-a7-53-qa.js landing-assets/landing-browser-check.cjs landing-assets/landing-release-check.cjs landing-assets/landing-webkit-check.cjs; do
             if test -e "_site/$p"; then
               echo "::error::Internal artifact unexpectedly present: $p"
               exit 1
