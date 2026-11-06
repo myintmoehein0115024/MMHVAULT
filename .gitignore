@@ -1,0 +1,27 @@
+# MMHVAULT: local development / QA artifacts only.
+# This file does not remove anything already tracked by Git.
+
+# Local OS/editor artifacts
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+
+# Local dependency installations and tool caches
+node_modules/
+.npm/
+.playwright/
+.cache/
+
+# Generated, untracked browser QA artifacts
+/landing-qa-screenshots/
+/test-results/
+/playwright-report/
+
+# Local diagnostic output
+*.log
+
+# Local credentials (do not ignore committed configuration templates)
+.env
+.env.local
+.env.*.local
