@@ -1,0 +1,71 @@
+// N10 MFA assurance evaluator — review-only Edge candidate; NOT deployed.
+// Invoke only after Supabase Auth verifies the provided access token.
+// Supabase's JWT-aware MFA API returns a nextLevel based on verified factors.
+// Both current and next assurance levels must be explicit for recovery-key access.
+export function evaluateMfaAssurance(assurance, authHasVerifiedFactor = false) {
+  if (!assurance || typeof assurance !== "object") return "unavailable";
+  const { currentLevel, nextLevel } = assurance;
+  if (currentLevel !== "aal1" && currentLevel !== "aal2")
+    return "unavailable";
+  // Missing, unknown or null nextLevel is NOT proof there is no MFA.
+  if (nextLevel !== "aal1" && nextLevel !== "aal2") return "unavailable";
+
+  // Auth's verified-factor list is a defense-in-depth cross-check when present.
+  if (authHasVerifiedFactor === true && nextLevel !== "aal2") return "unavailable";
+  // AAL2 disclosure requires a server-confirmed verified factor, not only level claims.
+  if (nextLevel === "aal2" && authHasVerifiedFactor !== true) return "unavailable";
+  if (nextLevel === "aal2") {
+    return currentLevel === "aal2" ? "allowed" : "required";
+  }
+  // No verified MFA factor: accept only a fresh AAL1-level session.
+  // A stale AAL2 JWT following factor removal must not be reused for
+  // sensitive recovery-key disclosure; ask the user to reauthenticate.
+  return currentLevel === "aal1" ? "allowed" : "unavailable";
+}
+
+
+/**
+ * Only call AFTER /auth/v1/user or auth.getUser(jwt) has validated this
+ * exact JWT. JWT payload decoding here is NOT signature verification.
+ * Factors are from that Auth-validated user, not client-supplied metadata.
+ * The separate SDK assurance API may report missing/stale nextLevel in
+ * Edge/no-persist sessions; never use that as the source of enrollment truth.
+ */
+export function evaluateVerifiedAuthUserMfa(jwt, verifiedUser, supabaseBase) {
+  if (typeof jwt !== "string" || jwt.length > 8192 ||
+      typeof verifiedUser?.id !== "string" ||
+      verifiedUser.is_anonymous === true ||
+      !Array.isArray(verifiedUser.factors) ||
+      typeof supabaseBase !== "string") return "unavailable";
+  const segments = jwt.split(".");
+  if (segments.length !== 3 || !segments[1] || segments[1].length > 8192)
+    return "unavailable";
+  try {
+    const input = segments[1].replace(/-/g, "+").replace(/_/g, "/");
+    const raw = atob(input + "=".repeat((4 - input.length % 4) % 4));
+    const payload = JSON.parse(new TextDecoder().decode(
+      Uint8Array.from(raw, c => c.charCodeAt(0))
+    ));
+    if (!payload || typeof payload !== "object" ||
+        payload.sub !== verifiedUser.id ||
+        payload.iss !== supabaseBase.replace(/\/$/, "") + "/auth/v1" ||
+        !Number.isSafeInteger(payload.exp) ||
+        payload.exp <= Math.floor(Date.now() / 1000)) return "unavailable";
+    // Supabase Auth treats a legacy JWT with *no* aal claim as AAL1.
+    // This payload is used only AFTER getUser(exactBearer) validates it,
+    // and server-owned verified factors are fetched. Never infer AAL2.
+    // Explicit null/garbled aal is invalid, not the same as an absent claim.
+    const current = Object.prototype.hasOwnProperty.call(payload, "aal")
+      ? payload.aal : "aal1";
+    if (current !== "aal1" && current !== "aal2") return "unavailable";
+    const hasVerified = verifiedUser.factors.some(
+      f => f?.status === "verified"
+    );
+    return evaluateMfaAssurance({
+      currentLevel: current,
+      nextLevel: hasVerified ? "aal2" : "aal1"
+    }, hasVerified);
+  } catch (_) {
+    return "unavailable";
+  }
+}

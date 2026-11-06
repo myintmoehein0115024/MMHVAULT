@@ -1,0 +1,49 @@
+name: N10 recovery phrase final Auth review (NO DEPLOY)
+on:
+  push:
+    branches:
+      - review/n10-phrase-final-auth-20261102
+  pull_request:
+    branches:
+      - main
+    paths:
+      - security/n10-phrase-verify-candidate/**
+      - docs/N10_PHRASE_VERIFY_REVIEW_20261102.md
+      - .github/workflows/n10-phrase-final-auth-review.yml
+permissions:
+  contents: read
+jobs:
+  offline-phrase-review:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - name: Checkout complete Git history for isolated diff guard
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Node 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Check real MFA helper syntax
+        run: node --check security/n10-phrase-verify-candidate/mfa-assurance.mjs
+      - name: Review real handler via synthetic VM and verify scope
+        run: node security/n10-phrase-verify-candidate/test-phrase-guard.mjs
+      - name: Set up Deno type checker
+        uses: denoland/setup-deno@v2
+        with:
+          deno-version: v2.x
+      - name: Type-check disabled Edge candidate without deployment
+        shell: bash
+        run: |
+          set -euo pipefail
+          cat > /tmp/n10-phrase-tsconfig.json <<'CONFIG'
+          {
+            "compilerOptions": {
+              "strict": false,
+              "noImplicitAny": false
+            }
+          }
+          CONFIG
+          deno check --config /tmp/n10-phrase-tsconfig.json security/n10-phrase-verify-candidate/index.ts
+# No secrets, production deployment, Supabase access, SQL or live accounts.
