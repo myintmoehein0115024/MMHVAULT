@@ -9,7 +9,10 @@ const forbidden = [
   'docs', 'email-templates', 'security', 'tests', 'tools',
   'pwa-icon-diagnostic-20261030', 'n10-a7-53-qa.html',
   'n10-qa.html', 'username-preview.html', 'username-staging.html',
-  'js/mmhvault-n10-a7-53-qa.js'
+  'js/mmhvault-n10-a7-53-qa.js',
+  'landing-assets/landing-browser-check.cjs',
+  'landing-assets/landing-release-check.cjs',
+  'landing-assets/landing-webkit-check.cjs'
 ];
 const essential = [
   'index.html', 'login.html', 'app.html', 'admin.html', 'admin-analytics.html',
