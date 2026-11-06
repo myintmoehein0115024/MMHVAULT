@@ -16,7 +16,31 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
-      - name: Validate required security excludes and essential public routes
+      - name: Validate security exclusions and essential source paths
         run: node tests/pages-publish-exclusions.test.cjs
       - name: Validate Jekyll YAML syntax with Ruby standard library
         run: ruby -ryaml -e 'c=YAML.load_file("_config.yml"); abort "missing exclude" unless c["exclude"].is_a?(Array)'
+      - name: Build with the production GitHub Pages Jekyll action (NO DEPLOY)
+        uses: actions/jekyll-build-pages@v1
+        with:
+          source: .
+          destination: ./_site
+      - name: Inspect actual Jekyll output against internal paths and required routes
+        run: |
+          test -f _site/index.html
+          test -f _site/login.html
+          test -f _site/app.html
+          test -f _site/admin.html
+          test -f _site/admin-analytics.html
+          test -f _site/sitemap.xml
+          test -f _site/robots.txt
+          test -f _site/mmh-manifest-v2.webmanifest
+          test -f _site/sw.js
+          test -f _site/mmh-push-sw.js
+          for p in analytics-worker docs email-templates security tests tools pwa-icon-diagnostic-20261030 n10-a7-53-qa.html n10-qa.html username-preview.html username-staging.html js/mmhvault-n10-a7-53-qa.js; do
+            if test -e "_site/$p"; then
+              echo "::error::Sensitive build artifact unexpectedly present: $p"
+              exit 1
+            fi
+          done
+          echo "Jekyll output isolation PASS; no deploy performed"
