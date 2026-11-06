@@ -23,6 +23,9 @@ let blobs=0,scanned=0,skippedLarge=0,skippedBinary=0,errors=0,matchedObjects=0,m
 const counts=Object.fromEntries(rules.map(([n])=>[n,0]));
 const fingerprints=new Set();
 const categories={frontend:0,server:0,tests:0,docs:0,workflow:0,other:0};
+const assignmentNames={};
+const assignmentKinds={fixtureMarkers:0,noFixtureMarkers:0,structuredJwt:0,longOpaque:0};
+const uniqueAssignments=new Map();
 for(const line of metadata.trim().split('\n')) {
  const [id,type,sizeStr]=line.split(' ');
  if(type!=='blob')continue;
@@ -39,7 +42,20 @@ for(const line of metadata.trim().split('\n')) {
  for(const [name,pattern] of rules) {
   pattern.lastIndex=0;
   const matches=[...body.matchAll(pattern)];
-  if(matches.length){counts[name]++;found=true;for(const m of matches)fingerprints.add(createHash('sha256').update(m[0]).digest('hex'));}
+  if(matches.length){
+   counts[name]++;found=true;
+   for(const m of matches){
+    const digest=createHash('sha256').update(m[0]).digest('hex');
+    fingerprints.add(digest);
+    if(name==='credential-assignment'){
+     const label=(m[0].match(/^[A-Za-z_]+/)||['unknown'])[0];
+     const v=(m[0].match(/['"]([^'"]+)['"]$/)||[])[1]||'';
+     const context=body.slice(Math.max(0,m.index-180),Math.min(body.length,m.index+m[0].length+180));
+     const fixture=/(?:fake|mock|dummy|fixture|test[-_ ]|sample|example|placeholder|testonly)/i.test(context);
+     if(!uniqueAssignments.has(digest))uniqueAssignments.set(digest,{label,fixture,length:v.length,jwt:/^eyJ[a-zA-Z0-9_-]+\./.test(v),opaque:/^[a-zA-Z0-9_-]{32,}$/.test(v)});
+    }
+   }
+  }
  }
  if(found){
   matchedObjects++;
@@ -53,6 +69,12 @@ for(const line of metadata.trim().split('\n')) {
   categories[group]++;
  }
 }
-console.log(JSON.stringify({reachableObjects:ids.length,blobObjects:blobs,scannedTextBlobs:scanned,skippedBinary,skippedLarge,errors,matchedObjects,mainMatches,historicalOnlyMatches,distinctMatchedPatterns:fingerprints.size,matchObjectCategories:categories,matchedRuleCounts:counts},null,2));
+for(const item of uniqueAssignments.values()){
+ assignmentNames[item.label]=(assignmentNames[item.label]||0)+1;
+ assignmentKinds[item.fixture?'fixtureMarkers':'noFixtureMarkers']++;
+ if(item.jwt)assignmentKinds.structuredJwt++;
+ if(item.opaque)assignmentKinds.longOpaque++;
+}
+console.log(JSON.stringify({reachableObjects:ids.length,blobObjects:blobs,scannedTextBlobs:scanned,skippedBinary,skippedLarge,errors,matchedObjects,mainMatches,historicalOnlyMatches,distinctMatchedPatterns:fingerprints.size,matchObjectCategories:categories,assignmentNames,assignmentKinds,matchedRuleCounts:counts},null,2));
 // Intentionally omit paths, object IDs, matched lines and secret values from public logs.
 if(matchedObjects||skippedLarge||errors)process.exitCode=1;
