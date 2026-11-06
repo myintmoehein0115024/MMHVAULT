@@ -1,0 +1,124 @@
+name: N10 isolated main compatibility (no deployment)
+on:
+  push:
+    branches:
+      - 'review/n10-main-compat-20261103-r3'
+  workflow_dispatch:
+  # Pull request CI for this isolated review candidate; never deploy.
+  pull_request:
+    paths:
+      - 'login.html'
+      - 'js/mmhvault-n10-a7-69-username.js'
+      - 'js/mmhvault-n10-auth-my.js'
+      - 'js/mmhvault-n10-a7-83-security-center.js'
+      - 'security/n10-main-compat/**'
+      - 'security/n10-signup-escrow-review/**'
+      - 'security/n10-recovery-view/**'
+      - 'security/n10-integration-review/**'
+      - 'security/n10-username-escrow-candidate/**'
+      - 'security/n10-production-vault-review/**'
+      - 'security/n10-v2-qa/**'
+      - '.github/workflows/n10-main-compat-review.yml'
+permissions:
+  contents: read
+jobs:
+  offline-account-security:
+    name: N10 Account Security static and synthetic regression
+    runs-on: ubuntu-latest
+    timeout-minutes: 18
+    steps:
+      - name: Checkout isolated review branch
+        uses: actions/checkout@v4
+      - name: Set up Node 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Parse account security JavaScript
+        run: node --check js/mmhvault-n10-a7-83-security-center.js
+      - name: Check trilingual login with offline locale regression
+        run: |
+          node --check js/mmhvault-n10-auth-my.js
+          node --check js/mmhvault-n10-a7-69-username.js
+          node --test security/n10-main-compat/test-login-my-locale.mjs
+      - name: N10 offline single-request Auth metadata escrow (no deployment)
+        run: node --test security/n10-low-privilege-review/test-atomic-auth-escrow.mjs
+      - name: N10 offline create-readback workflow and failure reconciliation
+        run: node --test security/n10-low-privilege-review/test-offline-enrollment.mjs
+      - name: Run synthetic security and MFA regressions
+        run: node security/n10-main-compat/test-ui-secret-guards.mjs
+      - name: Parse isolated recovery integration modules
+        run: |
+          node --check security/n10-signup-escrow-review/immutable-signup-escrow.mjs
+          node --check security/n10-recovery-view/recovery-transport.mjs
+          node --check security/n10-recovery-view/recovery-view-controller.mjs
+          node --check security/n10-recovery-view/recovery-view-lifecycle.mjs
+          node --check security/n10-integration-review/test-fixed-key-signup-to-reveal.mjs
+      - name: Test signup escrow, private viewer, lifecycle, transport and integration
+        run: |
+          node --test security/n10-signup-escrow-review/test-immutable-signup-escrow.mjs
+          node --test security/n10-recovery-view/test-recovery-transport.mjs security/n10-recovery-view/test-recovery-view-controller.mjs security/n10-recovery-view/test-recovery-view-lifecycle.mjs
+          node --test security/n10-integration-review/test-fixed-key-signup-to-reveal.mjs
+          node --test security/n10-integration-review/test-security-center-vault-transport.mjs
+          node --test security/n10-integration-review/test-recovery-render-fail-close.mjs
+          node --test security/n10-integration-review/test-recovery-i18n.mjs
+          node --test security/n10-integration-review/test-recovery-legacy-failclosed.mjs
+      - name: Verify hard-OFF username Edge candidate and failure paths
+        run: |
+          node --check --input-type=module < security/n10-username-escrow-candidate/username-edge-REVIEW-ONLY.ts
+          node --test security/n10-username-escrow-candidate/test-username-edge-contract.mjs
+          node --test security/n10-username-escrow-candidate/test-build-review-bundle.mjs
+          node --test security/n10-username-escrow-candidate/test-staging-schema-gates.mjs
+          node --test security/n10-username-escrow-candidate/test-staging-bundle.mjs
+          node --test security/n10-username-escrow-candidate/test-staging-live-qa.mjs
+      - name: Package review Edge in ephemeral temp directory (never deploy)
+        run: |
+          node security/n10-username-escrow-candidate/build-review-bundle.mjs /tmp/mmhvault-n10-review-bundle
+          node security/n10-username-escrow-candidate/build-staging-bundle.mjs /tmp/mmhvault-n10-staging-bundle
+          node security/n10-username-escrow-candidate/build-staging-live-qa.mjs /tmp/mmhvault-n10-temporary-qa-bundle
+      - name: Install Deno 2 for Edge typecheck only
+        uses: denoland/setup-deno@v2
+        with:
+          deno-version: v2.x
+      - name: Deno static-check the self-contained review Edge
+        run: |
+          deno check --config security/n10-username-escrow-candidate/deno-review.json /tmp/mmhvault-n10-review-bundle/index.ts
+          deno check --config security/n10-username-escrow-candidate/deno-review.json /tmp/mmhvault-n10-staging-bundle/index.ts
+          deno check --config security/n10-username-escrow-candidate/deno-review.json /tmp/mmhvault-n10-temporary-qa-bundle/index.ts
+      - name: Check inert Production Vault contract (no network)
+        run: node --test security/n10-production-vault-review/test-contract.mjs
+      - name: Check blocked Production private Vault schema (offline only)
+        run: node --test security/n10-production-vault-review/test-schema-contract.mjs
+      - name: Validate isolated V2 E/F rehearsal SQL (offline only)
+        run: node --test security/n10-v2-qa/test-staging-contract.mjs
+      - name: Validate real E/F Staging preparation contract (offline only)
+        run: node --test security/n10-v2-qa/test-real-ef-preparation-contract.mjs
+      - name: Enforce real E/F Staging Auth backend isolation (offline only)
+        run: node --test security/n10-v2-qa/test-real-ef-backend-contract.mjs
+      - name: Parse and test isolated real E/F Staging Auth Edges (offline)
+        run: |
+          node --check --input-type=module < security/n10-v2-qa/staging_real_ef_signup_REVIEW_ONLY.ts
+          node --check --input-type=module < security/n10-v2-qa/staging_real_ef_viewer_REVIEW_ONLY.ts
+          node --test security/n10-v2-qa/test-real-ef-signup-edge.mjs security/n10-v2-qa/test-real-ef-viewer-edge.mjs
+      - name: Exercise hard-OFF real E/F handlers at runtime (offline; no Auth or secrets)
+        run: node --test security/n10-v2-qa/test-real-ef-hardoff-runtime.mjs
+      - name: Exercise synthetic activated E/F Auth, MFA and Vault lifecycle (offline, no real secrets)
+        run: node --test security/n10-v2-qa/test-real-ef-activated-synthetic-flow.mjs
+      - name: Deno type-check real E/F Staging candidates (never deploy)
+        run: |
+          deno check --config security/n10-username-escrow-candidate/deno-review.json security/n10-v2-qa/staging_real_ef_signup_REVIEW_ONLY.ts
+          deno check --config security/n10-username-escrow-candidate/deno-review.json security/n10-v2-qa/staging_real_ef_viewer_REVIEW_ONLY.ts
+      - name: Deno type-check read-only Production Vault review
+        run: deno check --config security/n10-username-escrow-candidate/deno-review.json security/n10-production-vault-review/index.ts
+      - name: Live Staging Edge rejection smoke (no credentials or writes)
+        run: node --test security/n10-username-escrow-candidate/test-staging-live-locked.mjs
+      - name: Verify deployed E/F V1 real HTTP rejection (no credentials or writes)
+        run: node --test security/n10-v2-qa/test-real-ef-staging-live-locked.mjs
+      - name: Install Playwright browser test runtime
+        run: |
+          npm install --no-save playwright@1.56.1
+          npx playwright install --with-deps chromium webkit
+      - name: Run synthetic browser smoke in Chromium and WebKit
+        run: |
+          node security/n10-main-compat/test-browser-mfa-smoke.mjs
+          node security/n10-main-compat/test-login-my-browser.mjs
+# Does not deploy, access secrets, create users, modify database, or call Vault.
