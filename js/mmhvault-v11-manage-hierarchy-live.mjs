@@ -54,6 +54,9 @@ const uid=()=>typeof crypto!=='undefined'&&crypto.randomUUID?
 let loadedOwner='',historyReady=false,overlay=null,modalField='',selection={type:'',transaction:'',category:''};
 // UI direction filter only; never a persisted Type or financial ledger value.
 let directionFilter='';
+// Await only explicit missing-level additions for this owner/path; never replace
+// an archived or manually changed selection with another existing category.
+let awaitingMissing={owner:'',direction:'',typeMissing:false,transactionType:'',categoryTransaction:''};
 let pendingSave=null,rendering=false,queued=false,returnFocus=null;
 let linkSync=null,checkingCloud=false,cloudCheckOwner='',cloudCheckGeneration=0,cloudConflict=false;
 const host={
@@ -116,6 +119,24 @@ function style(){
   body.light #txForm #mmhHierarchyDirection .mmh-direction-help{color:#526a84}
   #txForm #mmhHierarchyEntryGuide{grid-column:1/-1;margin:0;padding:10px 13px;border:1px solid rgba(215,184,121,.27);border-radius:11px;background:rgba(24,42,61,.75);color:#e9d5ab;font-size:12px;line-height:1.6}
   #txForm #mmhHierarchyEntryGuide[hidden]{display:none!important}
+  /* Narrow-screen native DATE controls can retain an intrinsic width on
+     Safari with localized dates. Constrain only Transactions; do not clip
+     the native calendar picker or change stored ISO date values. */
+  #txForm label:has(> #txDate){min-width:0;max-width:100%;box-sizing:border-box;overflow:hidden}
+  #txForm #txDate{display:block!important;inline-size:100%!important;width:100%!important;
+    min-inline-size:0!important;min-width:0!important;max-inline-size:100%!important;
+    max-width:100%!important;box-sizing:border-box!important;overflow:hidden}
+  #txForm #txDate::-webkit-date-and-time-value{min-width:0;max-width:100%;overflow:hidden;text-align:left}
+  #txForm #txDate::-webkit-datetime-edit{min-width:0;overflow:hidden}
+  @media(max-width:700px){
+    #txForm .formgrid{min-width:0;max-width:100%}
+    #txForm .formgrid > label:has(> #txDate){grid-column:1/-1;width:100%;max-width:100%}
+    #txForm #txDate{font-size:16px!important;line-height:1.3!important}
+  }
+  #txForm #mmhHierarchyEntryGuide .mmh-hier-entry-action-v117{display:inline-flex;align-items:center;justify-content:center;min-height:34px;margin-left:10px;padding:7px 11px;border-radius:9px;border:1px solid rgba(224,182,95,.6);background:rgba(206,160,78,.15);color:#ffe5ac;font:700 12px/1.4 system-ui,sans-serif;cursor:pointer}
+  #txForm #mmhHierarchyEntryGuide .mmh-hier-entry-action-v117:focus-visible{outline:2px solid #e6c174;outline-offset:2px}
+  #txForm #mmhHierarchyEntryGuide .mmh-hier-entry-action-v117:disabled{opacity:.5;cursor:not-allowed}
+  @media(max-width:520px){#txForm #mmhHierarchyEntryGuide .mmh-hier-entry-action-v117{display:flex;width:100%;margin:9px 0 0}}
   .mmh-hier-summary{padding:18px;border:1px solid rgba(208,175,117,.25);border-radius:17px;background:linear-gradient(130deg,rgba(18,37,57,.75),rgba(17,27,44,.48));color:#f4eedf;box-shadow:0 16px 38px rgba(0,0,0,.12)}
   .mmh-hier-top{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
   .mmh-hier-top h3{margin:0 0 4px;font-size:16px}
@@ -131,7 +152,23 @@ function style(){
   .mmh-hier-empty{font-size:12px;color:#b6bfd0;margin:13px 0}
   .mmh-hier-overlay{position:fixed;inset:0;z-index:2147482500;background:rgba(3,9,19,.8);display:flex;align-items:center;justify-content:center;padding:max(16px,env(safe-area-inset-top)) 14px max(16px,env(safe-area-inset-bottom));backdrop-filter:blur(14px)}
   .mmh-hier-dialog{width:min(520px,100%);max-height:calc(100dvh - 32px);overflow:auto;border:1px solid rgba(224,181,104,.3);border-radius:22px;background:linear-gradient(150deg,#17283d,#101927);color:#f2eadc;padding:22px;box-shadow:0 24px 85px rgba(0,0,0,.5)}
-  .mmh-hier-dialog header{display:flex;align-items:center;justify-content:space-between;gap:10px}
+  /* Override global APP header chrome; this heading is a liquid-glass
+     modal subheader, never a flat black navbar on iOS Safari. */
+  .mmh-hier-overlay .mmh-hier-dialog > header{
+    display:flex!important;align-items:center!important;justify-content:space-between!important;
+    gap:12px!important;box-sizing:border-box!important;position:static!important;
+    width:100%!important;min-height:62px!important;margin:0 0 16px!important;
+    padding:11px 13px!important;background:linear-gradient(120deg,rgba(48,76,102,.86),rgba(23,44,65,.78))!important;
+    border:1px solid rgba(227,189,119,.27)!important;border-radius:15px!important;
+    box-shadow:inset 0 1px 0 rgba(255,255,255,.10),0 8px 22px rgba(0,0,0,.10)!important;
+    color:#f3ead8!important;backdrop-filter:blur(14px)
+  }
+  .mmh-hier-overlay .mmh-hier-dialog > header h3{font-size:18px;line-height:1.3;margin:0;color:inherit}
+  .mmh-hier-overlay .mmh-hier-dialog > header .mmh-hier-close{font-size:23px;min-width:40px;min-height:40px;flex-shrink:0;background:rgba(255,255,255,.07)}
+  .mmh-hier-dialog > .mmh-hier-btn{display:inline-flex;align-items:center;justify-content:center;
+    margin-top:21px;min-height:43px;padding:10px 15px;border-radius:12px;
+    background:linear-gradient(120deg,rgba(219,169,83,.21),rgba(216,163,79,.07));
+    box-shadow:inset 0 1px 0 rgba(255,224,174,.12)}
   .mmh-hier-dialog h3{font-size:18px;margin:0}
   .mmh-hier-close{font-size:23px;min-width:36px;min-height:36px}
   .mmh-hier-row{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:12px 0;border-bottom:1px solid rgba(207,214,225,.12)}
@@ -469,29 +506,45 @@ function manager(){
 }
 const selected=(el)=>el?.selectedOptions?.[0]?.dataset?.mmhChoiceId||'';
 const labels=()=>({type:$('txType')?.closest('label'),transaction:$('txGroup')?.closest('label'),category:$('txCategory')?.closest('label')});
-// Never silently substitute the first remaining Category/Transaction if
-// another device or Archive invalidates a previously chosen path. An explicit
-// choice is required at every level before the native ledger form can save.
-const choicePrompt=field=>tr('Select '+label(field)+'…','请选择 '+label(field)+'…',
-  label(field)+' ကို ရွေးပါ…');
-const optionSig=(el,items,prompt)=>el&&el.options.length===items.length+1&&
-  el.options[0].value===''&&el.options[0].disabled&&el.options[0].textContent===prompt&&
+// Preserve deliberate manual choices across ordinary UI refresh. A direction
+// click may fill existing active owner choices progressively, but must never
+// generate missing options or revive archived items after a change.
+// Native Add Transaction selectors show only actual owner-authored choices.
+// No 'Select Type…' pseudo-options in the iOS wheel or Safari/Chrome list.
+// A missing or archived choice stays selectedIndex=-1 (not the first item):
+// validation still blocks Save until the user explicitly chooses again.
+const optionSig=(el,items)=>el&&el.options.length===items.length&&
   items.every((item,i)=>{
-    const x=el.options[i+1];
+    const x=el.options[i];
     return x.value===item.value&&x.textContent===item.text&&x.dataset.mmhChoiceId===item.id;
   });
-function put(el,items,pick,field){
+function put(el,items,pick,_field){
   if(!el)return;
   if(!items.length){if(el.options.length)el.replaceChildren();return;}
-  const prompt=choicePrompt(field);
-  if(!optionSig(el,items,prompt)){
-    const placeholder=makeOption('',prompt);
-    placeholder.disabled=true;
-    el.replaceChildren(placeholder,...items.map(x=>makeOption(x.value,x.text,x.id)));
-  }
+  if(!optionSig(el,items))
+    el.replaceChildren(...items.map(x=>makeOption(x.value,x.text,x.id)));
   const index=pick?[...el.options].findIndex(x=>x.dataset.mmhChoiceId===pick):-1;
-  // index 0 is the disabled placeholder, never an inferred financial choice.
-  el.selectedIndex=index>0?index:0;
+  el.selectedIndex=index;
+}
+// Prefer a complete owner-authored path, else the deepest available active
+// chain: Type + Transaction, then Type alone. An empty direction stays selected
+// and offers a Manage action instead of seeding fictitious ledger categories.
+function firstLinkedPath(direction,typeId='',transactionId=''){
+  const types=controller.list('type').filter(type=>
+    (!direction||type.ledgerType===direction)&&(!typeId||type.id===typeId));
+  let firstType=null,firstTransaction=null;
+  for(const type of types){
+    if(!firstType)firstType={type:type.id,transaction:'',category:''};
+    for(const txn of controller.list('transaction',type.id)){
+      if(transactionId&&txn.id!==transactionId)continue;
+      if(!ledgerKind(txn.kindId)?.group)continue;
+      const candidate={type:type.id,transaction:txn.id,category:''};
+      if(!firstTransaction)firstTransaction=candidate;
+      const cat=controller.list('category',txn.id)[0];
+      if(cat)return {...candidate,category:cat.id};
+    }
+  }
+  return firstTransaction||firstType;
 }
 // Fixed directions only filter the current owner's active Manage Type list.
 // No seed choices, ledger changes, implicit Type selection or cloud writes.
@@ -528,13 +581,17 @@ function ensureDirectionButtons(f,t){
         // Clicking again clears the filter; it never creates a Type.
         const next=directionFilter===direction?'':direction;
         directionFilter=next;
-        if(selection.type){
+        if(next){
+          selection=firstLinkedPath(next)||{type:'',transaction:'',category:''};
+        }else if(selection.type){
           const chosen=controller.list('type').find(x=>x.id===selection.type);
-          if(!chosen||(next&&chosen.ledgerType!==next))
-            selection={type:'',transaction:'',category:''};
+          if(!chosen)selection={type:'',transaction:'',category:''};
         }
+        // Do not programmatically focus a native SELECT or CTA here:
+        // Safari iOS opens the Type picker as though it were tapped.
+        // Keep focus on the clicked direction button; users may tap a
+        // field or the missing-field action when they choose.
         form();
-        $('txType')?.focus({preventScroll:true});
       });
       button.dataset.mmhDirection=direction;button.setAttribute('aria-pressed','false');
       bar.append(button);
@@ -562,6 +619,7 @@ function form(){
       t.closest('label')?.before(guide);
     }
     if(!ready()){
+      awaitingMissing={owner:'',direction:'',typeMissing:false,transactionType:'',categoryTransaction:''};
       guide.hidden=false;
       guide.textContent=tr('Loading your saved transaction settings…',
         '正在加载您的记账设置…','သင့်ငွေစာရင်း ရွေးချယ်မှုများ ဖတ်နေပါသည်…');
@@ -570,27 +628,63 @@ function form(){
       return;
     }
     const activeTypes=controller.list('type').filter(x=>!directionFilter||x.ledgerType===directionFilter);
-    // Only a complete, unarchived owner-authored path can become a new
-    // entry. Historical archived choices remain in the ledger untouched.
-    const hasCompletePath=activeTypes.some(type=>
-      controller.list('transaction',type.id).some(tx=>
-        controller.list('category',tx.id).length>0));
-    guide.hidden=hasCompletePath;
-    guide.textContent=hasCompletePath?'':directionFilter?tr(
-      'No active linked Type → Transaction → Category for this direction. Set up or restore your own choices in Manage.',
-      '这个资金方向没有可用的 Type → Transaction → Category 关联，请到 Manage 新增或恢复。',
-      'ဤငွေလမ်းကြောင်းအတွက် Type → Transaction → Category မရှိသေးပါ။ Manage တွင် သတ်မှတ်ပါ။'):tr(
-      'No active Type → Transaction → Category setup. Open Manage to add or restore your own choices; no preset transaction types will be added.',
-      '目前没有可用的 Type → Transaction → Category 关联。请在 Manage 新增或恢复您自己的分类；系统不会自动添加预设类型。',
-      'အသုံးပြုနိုင်သော Type → Transaction → Category မရှိသေးပါ။ Manage တွင် ကိုယ်ပိုင်အမျိုးအစားများ ထည့်ပါ သို့မဟုတ် ပြန်ဖွင့်ပါ။');
+    const awaiting=!cloudConflict&&awaitingMissing.owner===owner()&&
+      awaitingMissing.direction===directionFilter?awaitingMissing:null;
+    // A newly added Type may complete a previously empty direction, but
+    // ordinary refreshes must not change the owner's manual selection.
+    if(directionFilter&&!selection.type&&awaiting?.typeMissing&&activeTypes.length)
+      selection=firstLinkedPath(directionFilter)||selection;
     const types=activeTypes.map(x=>({id:x.id,value:x.ledgerType,text:x.label}));
     put(t,types,selection.type,'type');selection.type=selected(t);
     const txns=selection.type?controller.list('transaction',selection.type).map(x=>({
       id:x.id,value:ledgerKind(x.kindId)?.group||'',text:x.label})).filter(x=>x.value):[];
+    if(selection.type&&!selection.transaction&&txns.length&&
+      awaiting?.transactionType===selection.type)
+      selection=firstLinkedPath(directionFilter,selection.type)||selection;
     put(g,txns,selection.transaction,'transaction');selection.transaction=selected(g);
     const cats=selection.transaction?controller.list('category',selection.transaction)
       .map(x=>({id:x.id,value:x.label,text:x.label})):[];
+    if(selection.transaction&&!selection.category&&cats.length&&
+      awaiting?.categoryTransaction===selection.transaction)
+      selection.category=cats[0].id;
     put(c,cats,selection.category,'category');selection.category=selected(c);
+    awaitingMissing={owner:owner(),direction:directionFilter,
+      typeMissing:!!directionFilter&&!activeTypes.length,
+      transactionType:selection.type&&!txns.length?selection.type:'',
+      categoryTransaction:selection.transaction&&!cats.length?selection.transaction:''};
+    // The direction itself is always selectable. Only existing unarchived
+    // choices may fill fields; guide the owner to add whichever level is absent.
+    const missingField=!selection.type?'type':!selection.transaction?'transaction':
+      !selection.category?'category':'';
+    // A missing *selection* is not necessarily a missing *option*: if the
+    // chosen Category was archived and others remain, require a conscious
+    // manual choice instead of suggesting another needless Manage entry.
+    const needsSetup=missingField==='type'?!types.length:
+      missingField==='transaction'?!txns.length:
+      missingField==='category'?!cats.length:false;
+    guide.replaceChildren();
+    guide.hidden=!needsSetup;
+    if(needsSetup){
+      const chosenType=controller.list('type').find(x=>x.id===selection.type);
+      const chosenTx=selection.type?controller.list('transaction',selection.type)
+        .find(x=>x.id===selection.transaction):null;
+      const prompt=missingField==='type'?tr(
+        'No active Type for this direction. Add a Type in Manage and assign its money direction.',
+        '这个资金方向没有可用 Type。请到 Manage 添加 Type 并设置资金方向。',
+        'ဤငွေလမ်းကြောင်းအတွက် Type မရှိသေးပါ။ Manage တွင် Type ထည့်ပါ။'):
+        missingField==='transaction'?tr(
+          'No linked Transaction under '+(chosenType?.label||'Type')+'. Add one in Manage.',
+          (chosenType?.label||'Type')+' 下没有 Transaction，请到 Manage 添加。',
+          'ဤ Type အောက်တွင် Transaction မရှိသေးပါ။ Manage တွင် ထည့်ပါ။'):tr(
+          'No linked Category under '+(chosenTx?.label||'Transaction')+'. Add or restore it in Manage.',
+          (chosenTx?.label||'Transaction')+' 下没有 Category，请到 Manage 添加或恢复。',
+          'ဤ Transaction အောက်တွင် Category မရှိသေးပါ။ Manage တွင် ထည့်ပါ သို့မဟုတ် ပြန်ယူပါ။');
+      guide.append(elt('span','',prompt));
+      const action=btn(tr('Add / Restore '+label(missingField),'添加/恢复 '+label(missingField),
+        label(missingField)+' ထည့်ရန်'),()=>open(missingField),'mmh-hier-entry-action-v117');
+      action.disabled=cloudConflict;
+      guide.append(action);
+    }
     // A user-configured hierarchy has no default Category, including
     // Transfer. Explain the missing prerequisite instead of leaving an
     // apparently broken empty dropdown or silently adding preset data.
@@ -793,15 +887,34 @@ function boot(){
   const f=$('txForm');
   style();
   if(f){
+    // Native label activation opens a SELECT even when the user taps its
+    // caption or an adjacent hint. Require a direct tap on the control
+    // itself. This applies equally to mobile, tablet and desktop browsers.
+    for(const id of ['txType','txGroup','txCategory']){
+      const control=$(id),caption=control?.closest('label');
+      if(!caption||caption.dataset.mmhSelectTapBound==='1')continue;
+      caption.dataset.mmhSelectTapBound='1';
+      caption.addEventListener('click',event=>{
+        if(event.target===control||
+          (event.target instanceof Element&&event.target.closest('select')===control))return;
+        event.preventDefault();
+      });
+    }
     f.addEventListener('change',e=>{
       if(rendering||![ $('txType'),$('txGroup'),$('txCategory') ].includes(e.target))return;
       e.stopImmediatePropagation();
       if(e.target===$('txType')){
-        selection.type=selected(e.target);selection.transaction='';selection.category='';
-        const picked=controller.list('type').find(x=>x.id===selection.type);
+        const id=selected(e.target);
+        const picked=controller.list('type').find(x=>x.id===id);
         if(picked)directionFilter=picked.ledgerType;
+        selection=firstLinkedPath(picked?.ledgerType||'',id)||
+          {type:id,transaction:'',category:''};
       }
-      else if(e.target===$('txGroup')){selection.transaction=selected(e.target);selection.category='';}
+      else if(e.target===$('txGroup')){
+        const id=selected(e.target);
+        selection=firstLinkedPath(directionFilter,selection.type,id)||
+          {type:selection.type,transaction:id,category:''};
+      }
       else selection.category=selected(e.target);
       form();
     },true);
@@ -843,11 +956,13 @@ function boot(){
       loadedOwner=historyReady?current:'';
     }else if(e?.type==='mmhvault:config-owner-changed'){
       historyReady=false;loadedOwner='';selection={type:'',transaction:'',category:''};directionFilter='';
+      awaitingMissing={owner:'',direction:'',typeMissing:false,transactionType:'',categoryTransaction:''};
       pendingSave=null;linkSync=null;cloudConflict=false;
       checkingCloud=false;cloudCheckOwner='';cloudCheckGeneration++;
       ledgerRefreshOwner='';ledgerRefreshQueue=Promise.resolve();close();
     }else if(current!==loadedOwner){
       historyReady=false;loadedOwner='';selection={type:'',transaction:'',category:''};directionFilter='';
+      awaitingMissing={owner:'',direction:'',typeMissing:false,transactionType:'',categoryTransaction:''};
       pendingSave=null;linkSync=null;cloudConflict=false;
       checkingCloud=false;cloudCheckOwner='';cloudCheckGeneration++;
       ledgerRefreshOwner='';ledgerRefreshQueue=Promise.resolve();close();

@@ -12950,6 +12950,17 @@ function mmhP947GuardV947(phase='switch'){
 }
 function mmhP947UnlockV947(){const layer=document.getElementById('mmhP947AccountGuard');if(layer){layer.hidden=true;layer.style.display='none';}}
 let mmhvaultAuthRedirectingV1239=false;
+// Routine same-owner tab resumption may verify quietly only while a recent,
+// owner-verified cloud snapshot is present. Otherwise keep the privacy guard.
+function mmhVaultCanQuietVerifyV1239(owner){
+  const cloudAt=Number(window.__mmhLastCloudLoadAtV1235||0),age=Date.now()-cloudAt;
+  const layer=document.getElementById('mmhP947AccountGuard');
+  return !!owner&&currentSessionUser?.id===owner&&MMHVAULT_CONFIG_OWNER===owner&&
+    window.mmhWalletDataOwnerV191===owner&&Array.isArray(window.transactions)&&
+    window.transactions.every(row=>row?.user_id===owner)&&
+    cloudAt>0&&age>=0&&age<15*60*1000&&navigator.onLine!==false&&
+    (!layer||layer.hidden||layer.style.display==='none');
+}
 // Keep the callback synchronous; all subsequent Auth RPCs run in a macrotask.
 // Masking and ticket invalidation above remain immediate.
 db.auth.onAuthStateChange((event,session)=>{
@@ -12979,9 +12990,12 @@ db.auth.onAuthStateChange((event,session)=>{
       // look like a pre-existing account/data failure.
       const existingMask=document.getElementById('mmhP947AccountGuard');
       const wasAlreadyMasked=!!existingMask&&!existingMask.hidden&&existingMask.style.display!=='none';
-      // Lock synchronously and invalidate older work before rechecking this session.
+      // SIGNED_IN can occur on tab focus. Verify the same recent owner quietly.
+      // Account change, stale data or MFA failures still show the privacy guard.
+      const quietRefresh=(event==='SIGNED_IN'||event==='TOKEN_REFRESHED')&&
+        mmhVaultCanQuietVerifyV1239(nextOwner);
       const authTicket=++mmhP947AuthGateTicket;
-      mmhP947GuardV947('switch');
+      if(!quietRefresh)mmhP947GuardV947('switch');
       setTimeout(()=>{
         Promise.resolve().then(async()=>{
         const pending=mmhVaultSessionCheckPromiseV1239;
@@ -14608,7 +14622,7 @@ async function mmhVaultReconcileSessionV1239(reason='resume',opts={}){
       if(needsCloud){
         const cloud=await window.loadAll?.({force:true});
         if(startTicket!==mmhP947AuthGateTicket||startEpoch!==(Number(window.__mmhSessionEpochV1239)||0)||currentSessionUser?.id!==owner)return {ok:false,superseded:true};
-        if(cloud?.ok!==true){if(masked)mmhP947GuardV947('error');return {ok:false,cloudUnavailable:true};}
+        if(cloud?.ok!==true){mmhP947GuardV947('error');return {ok:false,cloudUnavailable:true};}
       }
       applyUserProfile(verified.user);
       if(navigator.onLine!==false&&(opts.forceRealtime||!realtimeReady||realtimeChannelOwnerV1235!==owner))subscribeRealtime({force:true,reason});
@@ -14631,8 +14645,11 @@ function mmhVaultResumeLifecycleV1239(reason){
   mmhVaultLastSessionCheckV1239=now;
   const staleFor=now-Number(window.__mmhLastCloudLoadAtV1235||0);
   const reenterAfterLongPause=reason==='focus'||reason==='visible';
+  const stale=!Number.isFinite(staleFor)||staleFor>120000;
+  const quietResume=!fromBackForwardCache&&reenterAfterLongPause&&stale&&
+    mmhVaultCanQuietVerifyV1239(currentSessionUser?.id);
   const requiresFreshMask=fromBackForwardCache||
-    (reenterAfterLongPause&&(!Number.isFinite(staleFor)||staleFor>120000));
+    (reenterAfterLongPause&&stale&&!quietResume);
   if(requiresFreshMask&&currentSessionUser?.id){
     // BFCache and stale tab returns can expose cached private DOM before Auth resolves.
     // Mask synchronously, invalidate pending checks, and reverify owner + MFA.
@@ -14652,7 +14669,13 @@ function mmhVaultResumeLifecycleV1239(reason){
     });
     return;
   }
-  mmhVaultReconcileSessionV1239(reason,{forceRealtime:!realtimeReady,refreshData:staleFor>120000});
+  const reconcile=mmhVaultReconcileSessionV1239(reason,{
+    forceRealtime:!realtimeReady,refreshData:staleFor>120000
+  });
+  if(quietResume)Promise.resolve(reconcile).then(result=>{
+    if(result?.ok!==true&&!result?.superseded&&!result?.mfaRequired)
+      mmhP947GuardV947('error');
+  }).catch(()=>mmhP947GuardV947('error'));
 }
 document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')mmhVaultResumeLifecycleV1239('visible');});
 window.addEventListener('focus',()=>mmhVaultResumeLifecycleV1239('focus'));
@@ -35267,5 +35290,7 @@ html body #settings.page.active #stPage_security #mmhA783SecurityCenter .mmh-a78
 <!-- APP V11.7: owner-linked Manage replaces the former field-layout loader.
      The original V11 script remains in Git history for rollback; no DB migration. -->
 <script type="module" src="js/mmhvault-v11-manage-hierarchy-live.mjs?v=0.7.0"></script>
+<link rel="stylesheet" href="css/mmhvault-transaction-onboarding-v1.css?v=1.0.0">
+<script type="module" src="js/mmhvault-transaction-onboarding-live-v1.mjs?v=1.0.0"></script>
 </body>
 </html>

@@ -1,0 +1,24 @@
+name: APP V11.7 UX stability — owner privacy and linked choice (NO DEPLOY)
+on:
+  pull_request:
+    paths:
+      - 'app.html'
+      - 'js/mmhvault-v11-manage-hierarchy-live.mjs'
+      - 'tests/app-v117-ux-stability-v1.test.cjs'
+      - 'tests/app-v11-manage-hierarchy-browser-check.cjs'
+      - '.github/workflows/app-v117-ux-stability-v1-review.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  privacy-contract:
+    name: Quiet focus privacy and no-finance-write contracts
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: node --check js/mmhvault-v11-manage-hierarchy-live.mjs
+      - run: node --test tests/app-v117-ux-stability-v1.test.cjs
+      - run: node tests/app-v117-native-transaction-integration-review.cjs > /dev/null
