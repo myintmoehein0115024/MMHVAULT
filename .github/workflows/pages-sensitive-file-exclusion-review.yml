@@ -1,0 +1,42 @@
+name: MMHVAULT Pages sensitive-file exclusion review (NO DEPLOY)
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - '_config.yml'
+      - 'tests/pages-publish-exclusions.test.cjs'
+      - '.github/workflows/pages-sensitive-file-exclusion-review.yml'
+permissions:
+  contents: read
+jobs:
+  review:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Validate exclusions and production Analytics source dependencies
+        run: node tests/pages-publish-exclusions.test.cjs
+      - name: Validate YAML syntax
+        run: ruby -ryaml -e 'c=YAML.load_file("_config.yml"); abort "missing exclude" unless c["exclude"].is_a?(Array)'
+      - name: Build with production GitHub Pages Jekyll action (NO DEPLOY)
+        uses: actions/jekyll-build-pages@v1
+        with:
+          source: .
+          destination: ./_site
+      - name: Verify actual Pages output keeps Analytics JS while excluding internal files
+        run: |
+          for p in index.html login.html app.html admin.html admin-analytics.html sitemap.xml robots.txt mmh-manifest-v2.webmanifest sw.js mmh-push-sw.js analytics-worker/ui/trend-chart.js analytics-worker/ui/breakdowns.js; do
+            if ! test -f "_site/$p"; then
+              echo "::error::Essential published asset absent: $p"
+              exit 1
+            fi
+          done
+          for p in analytics-worker/src analytics-worker/test analytics-worker/README.md analytics-worker/wrangler.toml docs email-templates security tests tools pwa-icon-diagnostic-20261030 n10-a7-53-qa.html n10-qa.html username-preview.html username-staging.html js/mmhvault-n10-a7-53-qa.js landing-assets/landing-browser-check.cjs landing-assets/landing-release-check.cjs landing-assets/landing-webkit-check.cjs; do
+            if test -e "_site/$p"; then
+              echo "::error::Internal artifact unexpectedly present: $p"
+              exit 1
+            fi
+          done
+          echo "Pages output verified: internal source excluded; Admin Analytics runtime scripts preserved."
