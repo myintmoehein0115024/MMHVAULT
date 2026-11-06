@@ -1,0 +1,27 @@
+# MMHVAULT GitHub Pages Jekyll publish exclusions — security candidate.
+# Draft review only. Does NOT remove files from GitHub or change live deployment.
+# GitHub Pages uses Jekyll 3: explicit exclude overrides Jekyll's default excludes.
+exclude:
+  - Gemfile
+  - Gemfile.lock
+  - node_modules
+  - vendor/bundle
+  - vendor/cache
+  - vendor/gems
+  - vendor/ruby
+  - analytics-worker
+  - docs
+  - email-templates
+  - security
+  - tests
+  - tools
+  - pwa-icon-diagnostic-20261030
+  - n10-a7-53-qa.html
+  - n10-qa.html
+  - username-preview.html
+  - username-staging.html
+  - js/mmhvault-n10-a7-53-qa.js
+  - README.md
+  - landing-qa-screenshots
+  - test-results
+  - playwright-report
