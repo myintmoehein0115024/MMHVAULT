@@ -1,6 +1,5 @@
-# MMHVAULT GitHub Pages Jekyll publish exclusions — security candidate.
-# Draft review only. Does NOT remove files from GitHub or change live deployment.
-# GitHub Pages uses Jekyll 3: explicit exclude overrides Jekyll's default excludes.
+# MMHVAULT GitHub Pages Jekyll exclusions — security review, NO DEPLOY.
+# Keep analytics-worker/ui/ because the production admin-analytics.html loads it.
 exclude:
   - Gemfile
   - Gemfile.lock
@@ -9,7 +8,10 @@ exclude:
   - vendor/cache
   - vendor/gems
   - vendor/ruby
-  - analytics-worker
+  - analytics-worker/src
+  - analytics-worker/test
+  - analytics-worker/README.md
+  - analytics-worker/wrangler.toml
   - docs
   - email-templates
   - security
