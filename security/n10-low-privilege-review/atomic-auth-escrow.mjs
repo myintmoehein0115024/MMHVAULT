@@ -10,6 +10,7 @@ export const RELEASE_ENABLED = false;
 export const OFFLINE_REVIEW_MARKER = 'N10_SYNTHETIC_REVIEW_ONLY';
 const PROJECT = 'ldivswlhtgmznzwhzsoi';
 const USERNAME = /^[a-z][a-z0-9_]{3,19}$/;
+const RESERVED = new Set(['admin', 'root', 'administrator', 'support', 'system', 'mmhvault', 'vault', 'official', 'security', 'help', 'staff', 'team', 'customer_service']);
 const KID = /^[a-zA-Z0-9_-]{3,48}$/;
 const WORDS = /^([a-z]{2,13} ){9}[a-z]{2,13}$/;
 const encoder = new TextEncoder();
@@ -30,7 +31,7 @@ function from64url(value) {
   return Uint8Array.from(atob(standard.padEnd(Math.ceil(standard.length / 4) * 4, '=')), c => c.charCodeAt(0));
 }
 function identity(name) {
-  if (typeof name !== 'string' || !USERNAME.test(name))
+  if (typeof name !== 'string' || !USERNAME.test(name) || RESERVED.has(name))
     throw Error('invalid_review_username');
   return {name, alias: name + '@no-mail.mmhvault.invalid'};
 }
