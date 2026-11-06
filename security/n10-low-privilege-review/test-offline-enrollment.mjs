@@ -22,14 +22,14 @@ function fixture({legacyNameFree,aliasFree,simulateCreate,simulateReadById,...ch
     keyId:'review-test-key-1',
     rawEncryptionKey:encryptionKey,
     verifyWordlist:w=>vocabulary.has(w),
-    legacyNameFree:legacyNameFree||async()=>{calls.preflight++;return true;},
-    aliasFree:aliasFree||async()=>{calls.preflight++;return true;},
-    simulateCreate:simulateCreate||async attributes=>{
+    legacyNameFree:legacyNameFree||(async()=>{calls.preflight++;return true;}),
+    aliasFree:aliasFree||(async()=>{calls.preflight++;return true;}),
+    simulateCreate:simulateCreate||(async attributes=>{
       calls.create++;
       stored={id:UUID,email:attributes.email,app_metadata:attributes.app_metadata};
       return {newlyCreated:true,id:UUID};
-    },
-    simulateReadById:simulateReadById||async id=>{calls.read++;return id===UUID?stored:null;},
+    }),
+    simulateReadById:simulateReadById||(async id=>{calls.read++;return id===UUID?stored:null;}),
     ...changes
   };
   return {calls,run:()=>simulateInitialEscrowEnrollment(input)};
