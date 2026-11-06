@@ -6,6 +6,7 @@ on:
       - 'css/mmhvault-admin-feedback-premium-v1.css'
       - 'js/mmhvault-admin-feedback-premium-v1.js'
       - 'tests/admin-feedback-premium-v1.test.mjs'
+      - 'tests/admin-feedback-premium-v11.browser.cjs'
       - '.github/workflows/admin-feedback-premium-v1-review.yml'
   push:
     branches:
@@ -15,7 +16,7 @@ permissions:
 jobs:
   feedback-regression:
     runs-on: ubuntu-latest
-    timeout-minutes: 8
+    timeout-minutes: 18
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -29,3 +30,17 @@ jobs:
         run: node --test tests/admin-premium-workspace-v1.test.mjs tests/app-v11-admin-member-activity.test.mjs
       - name: Verify Analytics V2 security and isolation
         run: node --test analytics-worker/test/*.test.mjs
+      - name: Install isolated browser QA driver
+        run: npm install --no-save --no-package-lock playwright-core@1.56.1
+      - name: Install WebKit browser and Linux dependencies for Safari-engine QA
+        run: npx playwright-core install --with-deps webkit
+      - name: Verify feedback viewport geometry in Chrome and WebKit
+        run: node tests/admin-feedback-premium-v11.browser.cjs
+      - name: Attach synthetic feedback layout screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: admin-feedback-premium-v11-browser
+          path: feedback-v11-*.png
+          if-no-files-found: ignore
+          retention-days: 7
