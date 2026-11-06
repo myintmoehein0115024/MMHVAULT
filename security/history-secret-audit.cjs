@@ -1,9 +1,11 @@
 'use strict';
 // Read-only scan of all fetched, reachable Git blobs. Never prints secret values.
 const {execFileSync} = require('node:child_process');
+const {createHash} = require('node:crypto');
 function git(args,options={}) {return execFileSync('git',args,{encoding:'utf8',maxBuffer:128*1024*1024,...options});}
 const entries=git(['rev-list','--objects','--all']).trim().split('\n').filter(Boolean);
 const ids=[...new Set(entries.map(line=>line.split(' ')[0]))];
+const blobPaths=new Map(entries.map(line=>[line.split(' ')[0],line.slice(41)]));
 const metadata=git(['cat-file','--batch-check=%(objectname) %(objecttype) %(objectsize)'],{input:ids.join('\n')+'\n'});
 const mainBlobs=new Set(git(['ls-tree','-r','origin/main']).split('\n').map(s=>s.match(/^\d+ blob ([a-f0-9]{40})\t/)).filter(Boolean).map(m=>m[1]));
 const rules=[
@@ -19,6 +21,8 @@ const rules=[
 const maxBytes=8*1024*1024;
 let blobs=0,scanned=0,skippedLarge=0,skippedBinary=0,errors=0,matchedObjects=0,mainMatches=0,historicalOnlyMatches=0;
 const counts=Object.fromEntries(rules.map(([n])=>[n,0]));
+const fingerprints=new Set();
+const categories={frontend:0,server:0,tests:0,docs:0,workflow:0,other:0};
 for(const line of metadata.trim().split('\n')) {
  const [id,type,sizeStr]=line.split(' ');
  if(type!=='blob')continue;
@@ -32,9 +36,23 @@ for(const line of metadata.trim().split('\n')) {
  scanned++;
  const body=buf.toString('utf8');
  let found=false;
- for(const [name,pattern] of rules) {pattern.lastIndex=0;if(pattern.test(body)){counts[name]++;found=true;}}
- if(found){matchedObjects++;if(mainBlobs.has(id))mainMatches++;else historicalOnlyMatches++;}
+ for(const [name,pattern] of rules) {
+  pattern.lastIndex=0;
+  const matches=[...body.matchAll(pattern)];
+  if(matches.length){counts[name]++;found=true;for(const m of matches)fingerprints.add(createHash('sha256').update(m[0]).digest('hex'));}
+ }
+ if(found){
+  matchedObjects++;
+  if(mainBlobs.has(id))mainMatches++;else historicalOnlyMatches++;
+  const p=blobPaths.get(id)||'';
+  const group=/^(?:tests\/|security\/|landing-assets\/.*(?:check|test)\.cjs)/.test(p)?'tests':
+   /^(?:docs\/|email-templates\/)/.test(p)?'docs':
+   /^\.github\//.test(p)?'workflow':
+   /^analytics-worker\/src\//.test(p)?'server':
+   /^(?:js\/|app\.html$|login\.html$|admin\.html$|index\.html$)/.test(p)?'frontend':'other';
+  categories[group]++;
+ }
 }
-console.log(JSON.stringify({reachableObjects:ids.length,blobObjects:blobs,scannedTextBlobs:scanned,skippedBinary,skippedLarge,errors,matchedObjects,mainMatches,historicalOnlyMatches,matchedRuleCounts:counts},null,2));
+console.log(JSON.stringify({reachableObjects:ids.length,blobObjects:blobs,scannedTextBlobs:scanned,skippedBinary,skippedLarge,errors,matchedObjects,mainMatches,historicalOnlyMatches,distinctMatchedPatterns:fingerprints.size,matchObjectCategories:categories,matchedRuleCounts:counts},null,2));
 // Intentionally omit paths, object IDs, matched lines and secret values from public logs.
 if(matchedObjects||skippedLarge||errors)process.exitCode=1;
