@@ -1,0 +1,22 @@
+name: MMHVAULT Pages sensitive-file exclusion review (NO DEPLOY)
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - '_config.yml'
+      - 'tests/pages-publish-exclusions.test.cjs'
+      - '.github/workflows/pages-sensitive-file-exclusion-review.yml'
+permissions:
+  contents: read
+jobs:
+  review:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Validate required security excludes and essential public routes
+        run: node tests/pages-publish-exclusions.test.cjs
+      - name: Validate Jekyll YAML syntax with Ruby standard library
+        run: ruby -ryaml -e 'c=YAML.load_file("_config.yml"); abort "missing exclude" unless c["exclude"].is_a?(Array)'
