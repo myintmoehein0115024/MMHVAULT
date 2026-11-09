@@ -22666,6 +22666,100 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
       {detail:{userId:owner}}));
     return false;
   }
+  // V11.7: Chrome incognito and other independent browser profiles can each
+  // add a different transaction link. Reconcile ONLY disjoint links that
+  // belong to confirmed ledger rows and share the exact same Manage schema.
+  // This never writes, deletes or retries a financial transaction.
+  async function mmhVaultReconcileDisjointLinksV117(owner,localSource,cloud,localStamp,cloudStamp){
+    // PostgreSQL jsonb reorders object keys. Compare structure without relying
+    // on serialization order, but keep array order (account and Manage order).
+    const stable=v=>JSON.stringify(v,(_key,value)=>{
+      if(!value||typeof value!=='object'||Array.isArray(value))return value;
+      return Object.fromEntries(Object.keys(value).sort().map(k=>[k,value[k]]));
+    });
+    const local=safeConfig(localSource),remote=safeConfig(cloud?.config);
+    // Do not replace edits that exist only in this browser's live memory:
+    // the persisted envelope must still represent the active owner config.
+    if(stable(safeConfig(MMHVAULT_CONFIG))!==stable(local))return false;
+    const a=local.txHierarchyV11,b=remote.txHierarchyV11;
+    if(!a||!b||a.version!==1||b.version!==1||
+      a.ownerId!==owner||b.ownerId!==owner)return false;
+    // Never overwrite account/category/Manage changes made by another browser.
+    // This fast path applies only if the exact same graph differs in links.
+    const withoutLinks=cfg=>stable({...cfg,
+      txHierarchyV11:{...cfg.txHierarchyV11,links:{}}});
+    if(withoutLinks(local)!==withoutLinks(remote))return false;
+    const links=Object.assign(Object.create(null),b.links||{});
+    let localOnly=false,remoteOnly=false;
+    const same=(x,y)=>['type','transaction','category'].every(k=>
+      x?.choiceIds?.[k]===y?.choiceIds?.[k])&&
+      ['type','group','category'].every(k=>x?.canonical?.[k]===y?.canonical?.[k]);
+    for(const [id,link] of Object.entries(a.links||{})){
+      if(Object.hasOwn(links,id)){
+        if(!same(links[id],link))return false; // Same ledger ID: never rebind.
+      }else{links[id]=link;localOnly=true;}
+    }
+    for(const id of Object.keys(b.links||{}))
+      if(!Object.hasOwn(a.links||{},id))remoteOnly=true;
+    const ids=Object.keys(links);
+    if((!localOnly&&!remoteOnly)||ids.length>500)return false;
+    const kindMap={
+      'Income|Income':['Income','Income','Income'],
+      'Expense|Expense':['Expense','Expense','Expense'],
+      'Expense|Personal':['Expense','Personal','Personal'],
+      'Income|Loans':['Income','Loans','LoanIncome'],
+      'Expense|Loans':['Expense','Loans','LoanExpense'],
+      'Transfer|Transfer':['Transfer','Transfer','Transfer'],
+      'Income|Data Adjustment':['Income','Data Adjustment','Data Adjustment'],
+      'Expense|Data Adjustment':['Expense','Data Adjustment','Data Adjustment']
+    };
+    const nodes=(field,id)=>b[field].find(x=>x.id===id);
+    const isValid=(id,row)=>{
+      const link=links[id],v=link?.choiceIds,c=link?.canonical;
+      const type=nodes('types',v?.type),transaction=nodes('transactions',v?.transaction);
+      const category=nodes('categories',v?.category);
+      const kind=kindMap[transaction?.kindId];
+      return !!row&&String(row.id)===id&&row.user_id===owner&&
+        !!type&&!!transaction&&!!category&&!!kind&&
+        transaction.parentId===type.id&&category.parentId===transaction.id&&
+        type.ledgerType===kind[0]&&category.ledgerGroup===kind[2]&&
+        c?.type===kind[0]&&c?.group===kind[1]&&
+        String(row.type)===kind[0]&&String(row.category)===c.category;
+    };
+    // A concurrent edit in this browser invalidates the reconciliation.
+    const snapshot=stable(safeConfig(MMHVAULT_CONFIG));
+    for(let start=0;start<ids.length;start+=50){
+      if(uid()!==owner||MMHVAULT_CONFIG_OWNER!==owner)return false;
+      const batch=ids.slice(start,start+50);
+      const {data,error}=await db.from('transactions')
+        .select('id,user_id,type,category').eq('user_id',owner).in('id',batch);
+      if(error||!Array.isArray(data)||data.length!==batch.length)return false;
+      const verified=new Map();
+      for(const row of data){
+        const id=String(row?.id??'');
+        if(verified.has(id)||!batch.includes(id))return false;
+        verified.set(id,row);
+      }
+      if(!batch.every(id=>isValid(id,verified.get(id))))return false;
+    }
+    if(uid()!==owner||MMHVAULT_CONFIG_OWNER!==owner||
+      stable(safeConfig(MMHVAULT_CONFIG))!==snapshot)return false;
+    const merged={...remote,txHierarchyV11:{...b,links}};
+    const updatedAt=new Date(Math.max(Date.now(),localStamp+1,cloudStamp+1)).toISOString();
+    // Owner + last-seen timestamp CAS: a third device wins instead of us
+    // overwriting newly committed settings or disjoint links.
+    const {data,error}=await db.from('personal_configuration')
+      .update({user_id:owner,config:merged,language:lang(),timezone:tz(),updated_at:updatedAt})
+      .eq('user_id',owner).eq('updated_at',cloud.updated_at)
+      .select('updated_at').maybeSingle();
+    if(error)throw error;
+    if(!data){pending=true;return false;}
+    if(uid()!==owner||MMHVAULT_CONFIG_OWNER!==owner||
+      stable(safeConfig(MMHVAULT_CONFIG))!==snapshot){
+      pending=true;return false;
+    }
+    return applyCloud(owner,merged,updatedAt);
+  }
   async function upload(owner,stamp,cloud=null){
     if(uid()!==owner||MMHVAULT_CONFIG_OWNER!==owner)return false;
     const config=safeConfig(MMHVAULT_CONFIG),updatedAt=stamp||new Date().toISOString();
@@ -22690,22 +22784,34 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
       if(!cloud)return await upload(owner,new Date().toISOString());
       const cloudStamp=parseTime(cloud.updated_at);
       const sidecar=mmhVaultHierarchySidecarGateV117(owner,local,cloud.config);
-      if(!sidecar.safe)return mmhVaultBlockedHierarchySyncV117(owner);
+      if(!sidecar.safe){
+        if(await mmhVaultReconcileDisjointLinksV117(owner,local,cloud,localStamp,cloudStamp))
+          return true;
+        return mmhVaultBlockedHierarchySyncV117(owner);
+      }
       if(forceUpload||localStamp>cloudStamp){
         // Local time alone never authorizes deletion of a remote immutable
         // ledger link. A multi-device conflict needs explicit reconciliation.
-        if(sidecar.remoteOnly)return mmhVaultBlockedHierarchySyncV117(owner);
+        if(sidecar.remoteOnly){
+          if(await mmhVaultReconcileDisjointLinksV117(owner,local,cloud,localStamp,cloudStamp))return true;
+          return mmhVaultBlockedHierarchySyncV117(owner);
+        }
         if(!(await preserveUsedCloudAccounts(owner,cloud)))return false;
         return await upload(owner,local?.updatedAt||new Date().toISOString(),cloud);
       }
       if(cloudStamp>localStamp&&cloud.config&&typeof cloud.config==='object'){
         // Likewise, a newer cloud setting must not erase a local saved link.
-        if(sidecar.localOnly)return mmhVaultBlockedHierarchySyncV117(owner);
+        if(sidecar.localOnly){
+          if(await mmhVaultReconcileDisjointLinksV117(owner,local,cloud,localStamp,cloudStamp))return true;
+          return mmhVaultBlockedHierarchySyncV117(owner);
+        }
         applyCloud(owner,cloud.config,cloud.updated_at);return true;
       }
       // Same timestamp but different sidecar: don't pretend sync succeeded.
-      if(sidecar.localOnly||sidecar.remoteOnly)
+      if(sidecar.localOnly||sidecar.remoteOnly){
+        if(await mmhVaultReconcileDisjointLinksV117(owner,local,cloud,localStamp,cloudStamp))return true;
         return mmhVaultBlockedHierarchySyncV117(owner);
+      }
       // Equal timestamps still require the remote account list to be complete on this device.
       const remote=safeConfig(cloud.config),onDevice=safeConfig(local);
       if(remote.accounts.some(a=>!onDevice.accounts.some(b=>sameAccount(a,b)))&&cloudStamp>=localStamp){applyCloud(owner,cloud.config,cloud.updated_at);return true}
