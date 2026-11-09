@@ -56,7 +56,7 @@ def self_test() -> None:
     assert "supabase_secret_key" in classify_blob(b"sb_secret_" + b"X" * 25)
     assert "resend_api_key" in classify_blob(b"re_" + b"R" * 30)
     assert "github_access_token" in classify_blob(b"ghp_" + b"A" * 36)
-    assert "private_key_block" in classify_blob(b"-----BEGIN PRIVATE KEY-----\nTEST-ONLY")
+    assert "private_key_block" in classify_blob(b"-----BEGIN " + b"PRIVATE KEY-----\nTEST-ONLY")
     assert DANGEROUS_NAME.search("a/.env.production")
     assert not DANGEROUS_NAME.search("analytics-worker/wrangler.toml")
     print("PASS: history scanner synthetic detections and public-key exclusions")
@@ -136,6 +136,8 @@ def scan() -> dict:
     print("AUDIT: sensitive_filename_flags=", results["sensitive_filename_flags"],
           "potential_history_matches=", sum(kinds.values()),
           "potential_current_matches=", sum(current_kinds.values()))
+    print("AUDIT: potential_history_categories=", dict(sorted(kinds.items())),
+          "potential_current_categories=", dict(sorted(current_kinds.items())))
     if kinds or suspicious_paths or oversize:
         print("::warning::Historical audit found potential patterns or coverage gaps. Review privately; NO secret values logged.")
     if current_kinds:
