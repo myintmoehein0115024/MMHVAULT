@@ -23,8 +23,9 @@ const essential = [
   'register', 'security.html', 'privacy.html', 'terms.html', 'username-setup.html'
 ];
 assert.match(config, /^exclude:\s*$/m);
-// Retired QA assets must stay absent from the Public repository.
-const retiredPublicQA = new Set([
+// Retired QA and email template assets must stay absent from the Public repository.
+const retiredPublicArtifacts = new Set([
+  'email-templates',
   'pwa-icon-diagnostic-20261030',
   'n10-a7-53-qa.html',
   'n10-qa.html',
@@ -34,11 +35,30 @@ const retiredPublicQA = new Set([
 ]);
 for (const path of forbidden) {
   assert(excludes.has(path), 'Missing internal publish exclusion: ' + path);
-  if (retiredPublicQA.has(path)) {
-    assert(!fs.existsSync(path), 'Retired public QA artifact was reintroduced: ' + path);
+  if (retiredPublicArtifacts.has(path)) {
+    assert(!fs.existsSync(path), 'Retired public internal artifact was reintroduced: ' + path);
   } else {
     assert(fs.existsSync(path), 'Missing source path, review exclusion: ' + path);
   }
+}
+// Audit-only Markdown was migrated to the Private source repository.
+// Keep docs/sql files that are still named in APP financial CI path filters.
+const retiredPublicDocs = [
+  'docs/APP_V11_FINANCE_LINK_AUDIT_20261102.md',
+  'docs/N10-A7.90-MFA-SERVER-READINESS.md',
+  'docs/N10_ACCOUNT_SECURITY_STATUS_HOTFIX_20261031.md',
+  'docs/N10_PRODUCTION_RELEASE_20261031.md',
+  'docs/website-analytics-v2.md'
+];
+for (const path of retiredPublicDocs) {
+  assert(!fs.existsSync(path), 'Retired public internal document was reintroduced: ' + path);
+}
+for (const path of [
+  'docs/sql/app-v11-account-images-PRIVATE-REVIEW-ONLY.sql',
+  'docs/sql/app-v11-account-link-audit-readonly.sql',
+  'docs/sql/app-v11-admin-member-transaction-activity-REVIEW-ONLY.sql'
+]) {
+  assert(fs.existsSync(path), 'Required financial review SQL path missing: ' + path);
 }
 for (const path of essential) {
   assert(fs.existsSync(path), 'Essential production path missing: ' + path);

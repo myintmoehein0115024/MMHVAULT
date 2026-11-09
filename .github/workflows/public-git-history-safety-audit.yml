@@ -1,0 +1,37 @@
+name: Public MMHVAULT Git history security audit (READ ONLY, NO DEPLOY)
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'tools/audit-public-git-history.py'
+      - '.github/workflows/public-git-history-safety-audit.yml'
+      - 'docs/**'
+      - 'email-templates/**'
+      - 'tests/pages-publish-exclusions.test.cjs'
+permissions:
+  contents: read
+jobs:
+  full-public-history-scan:
+    if: github.head_ref == 'chore/public-internal-docs-history-audit-20261109'
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - name: Checkout full Public Git history (read-only)
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Self-test no-secret-output scanner
+        run: python3 tools/audit-public-git-history.py --self-test
+      - name: Scan all reachable Git history blobs (never log actual secret values)
+        run: python3 tools/audit-public-git-history.py --output public-git-safety-summary.json
+      - name: Validate Public Pages exclusions and core production asset dependency contract
+        run: node tests/pages-publish-exclusions.test.cjs
+      - name: Archive safe aggregate report only
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: public-git-history-safety-summary
+          path: public-git-safety-summary.json
+          retention-days: 7
+          if-no-files-found: ignore
