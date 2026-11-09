@@ -22570,7 +22570,7 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
 <script id="mmhvault-config-cloud-sync-v122">
 (()=>{'use strict';
   if(window.__MMHVAULT_CONFIG_CLOUD_SYNC_V122)return;window.__MMHVAULT_CONFIG_CLOUD_SYNC_V122=true;
-  let busy=false,pending=false,timer=0,lastOwner='';
+  let busy=false,pending=false,timer=0,lastOwner='',lastReconcileStatus='not-attempted';
   const uid=()=>typeof currentSessionUser!=='undefined'?(currentSessionUser?.id||''):'';
   const tz=()=>{try{return Intl.DateTimeFormat().resolvedOptions().timeZone||'UTC'}catch(_){return'UTC'}};
   const lang=()=>localStorage.getItem('mmhvault_language_v3363')||'en';
@@ -22671,6 +22671,8 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
   // belong to confirmed ledger rows and share the exact same Manage schema.
   // This never writes, deletes or retries a financial transaction.
   async function mmhVaultReconcileDisjointLinksV117(owner,localSource,cloud,localStamp,cloudStamp){
+    lastReconcileStatus='checking';
+    const stop=code=>{lastReconcileStatus=code;return false};
     // PostgreSQL jsonb reorders object keys. Compare structure without relying
     // on serialization order, but keep array order (account and Manage order).
     const stable=v=>JSON.stringify(v,(_key,value)=>{
@@ -22680,15 +22682,15 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
     const local=safeConfig(localSource),remote=safeConfig(cloud?.config);
     // Do not replace edits that exist only in this browser's live memory:
     // the persisted envelope must still represent the active owner config.
-    if(stable(safeConfig(MMHVAULT_CONFIG))!==stable(local))return false;
+    if(stable(safeConfig(MMHVAULT_CONFIG))!==stable(local))return stop('unsaved-local-config');
     const a=local.txHierarchyV11,b=remote.txHierarchyV11;
     if(!a||!b||a.version!==1||b.version!==1||
-      a.ownerId!==owner||b.ownerId!==owner)return false;
+      a.ownerId!==owner||b.ownerId!==owner)return stop('invalid-owner-graph');
     // Never overwrite account/category/Manage changes made by another browser.
     // This fast path applies only if the exact same graph differs in links.
     const withoutLinks=cfg=>stable({...cfg,
       txHierarchyV11:{...cfg.txHierarchyV11,links:{}}});
-    if(withoutLinks(local)!==withoutLinks(remote))return false;
+    if(withoutLinks(local)!==withoutLinks(remote))return stop('different-manage-or-accounts');
     const links=Object.assign(Object.create(null),b.links||{});
     let localOnly=false,remoteOnly=false;
     const same=(x,y)=>['type','transaction','category'].every(k=>
@@ -22696,13 +22698,25 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
       ['type','group','category'].every(k=>x?.canonical?.[k]===y?.canonical?.[k]);
     for(const [id,link] of Object.entries(a.links||{})){
       if(Object.hasOwn(links,id)){
-        if(!same(links[id],link))return false; // Same ledger ID: never rebind.
+        if(!same(links[id],link))return stop('same-ledger-id-conflict'); // Never rebind.
       }else{links[id]=link;localOnly=true;}
     }
     for(const id of Object.keys(b.links||{}))
       if(!Object.hasOwn(a.links||{},id))remoteOnly=true;
     const ids=Object.keys(links);
-    if((!localOnly&&!remoteOnly)||ids.length>500)return false;
+    if((!localOnly&&!remoteOnly)||ids.length>500)return stop('unchanged-or-exceeds-limit');
+    // Remote-only links are already stored under this owner. A strict
+    // cloud superset can be adopted without writing the cloud or checking
+    // legacy links whose ledger rows may have been intentionally removed.
+    if(!localOnly&&remoteOnly){
+      const applied=applyCloud(owner,cloud.config,cloud.updated_at);
+      lastReconcileStatus=applied?'remote-only-fast-forward':'owner-changed';
+      return applied;
+    }
+    // Verify all present ledger rows and EACH novel local-only link.
+    // Missing remote-existing rows are legacy tombstone links: preserve
+    // them byte-for-byte, never invent, rebind, delete or count as new rows.
+    const storedRemoteIds=new Set(Object.keys(b.links||{}));
     const kindMap={
       'Income|Income':['Income','Income','Income'],
       'Expense|Expense':['Expense','Expense','Expense'],
@@ -22729,21 +22743,23 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
     // A concurrent edit in this browser invalidates the reconciliation.
     const snapshot=stable(safeConfig(MMHVAULT_CONFIG));
     for(let start=0;start<ids.length;start+=50){
-      if(uid()!==owner||MMHVAULT_CONFIG_OWNER!==owner)return false;
+      if(uid()!==owner||MMHVAULT_CONFIG_OWNER!==owner)return stop('owner-changed');
       const batch=ids.slice(start,start+50);
       const {data,error}=await db.from('transactions')
         .select('id,user_id,type,category').eq('user_id',owner).in('id',batch);
-      if(error||!Array.isArray(data)||data.length!==batch.length)return false;
+      if(error||!Array.isArray(data)||data.length>batch.length)return stop('ledger-read-failed');
       const verified=new Map();
       for(const row of data){
         const id=String(row?.id??'');
-        if(verified.has(id)||!batch.includes(id))return false;
+        if(verified.has(id)||!batch.includes(id))return stop('ledger-duplicate-or-unexpected-id');
         verified.set(id,row);
       }
-      if(!batch.every(id=>isValid(id,verified.get(id))))return false;
+      if(!batch.every(id=>verified.has(id)
+        ?isValid(id,verified.get(id))
+        :storedRemoteIds.has(id)))return stop('new-link-missing-or-ledger-mismatch');
     }
     if(uid()!==owner||MMHVAULT_CONFIG_OWNER!==owner||
-      stable(safeConfig(MMHVAULT_CONFIG))!==snapshot)return false;
+      stable(safeConfig(MMHVAULT_CONFIG))!==snapshot)return stop('owner-or-local-edits-changed');
     const merged={...remote,txHierarchyV11:{...b,links}};
     const updatedAt=new Date(Math.max(Date.now(),localStamp+1,cloudStamp+1)).toISOString();
     // Owner + last-seen timestamp CAS: a third device wins instead of us
@@ -22753,12 +22769,14 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
       .eq('user_id',owner).eq('updated_at',cloud.updated_at)
       .select('updated_at').maybeSingle();
     if(error)throw error;
-    if(!data){pending=true;return false;}
+    if(!data){pending=true;return stop('cloud-cas-lost');}
     if(uid()!==owner||MMHVAULT_CONFIG_OWNER!==owner||
       stable(safeConfig(MMHVAULT_CONFIG))!==snapshot){
-      pending=true;return false;
+      pending=true;return stop('owner-or-local-edits-changed');
     }
-    return applyCloud(owner,merged,updatedAt);
+    const applied=applyCloud(owner,merged,updatedAt);
+    lastReconcileStatus=applied?'verified-union-merged':'cloud-apply-failed';
+    return applied;
   }
   async function upload(owner,stamp,cloud=null){
     if(uid()!==owner||MMHVAULT_CONFIG_OWNER!==owner)return false;
@@ -22821,7 +22839,7 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
     finally{busy=false;if(pending){pending=false;queueMicrotask(()=>syncNow(false))}}
   }
   function queue(owner=uid()){if(!owner||owner!==uid())return;clearTimeout(timer);timer=setTimeout(()=>{timer=0;syncNow(false)},450)}
-  window.MMHConfigCloudSyncV122={syncNow,queue,version:'1.12.2'};
+  window.MMHConfigCloudSyncV122={syncNow,queue,version:'1.12.3',get lastReconcileStatus(){return lastReconcileStatus}};
   window.addEventListener('mmhvault:config-owner-changed',()=>{clearTimeout(timer);timer=0;const owner=uid();lastOwner=owner;if(owner)setTimeout(()=>syncNow(false),40)},{passive:true});
   window.addEventListener('mmhvault-language-change',()=>queue(),{passive:true});window.addEventListener('languagechange',()=>queue(),{passive:true});
   window.addEventListener('mmhvault:data-loaded',()=>{if(uid()&&uid()!==lastOwner){lastOwner=uid();syncNow(false)}},{passive:true});
