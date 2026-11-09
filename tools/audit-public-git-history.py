@@ -19,7 +19,7 @@ from pathlib import Path
 
 MAX_BLOB_BYTES = 8 * 1024 * 1024
 PATTERNS = {
-    "private_key_block": re.compile(rb"-----BEGIN ((?:RSA |EC |OPENSSH |DSA |ENCRYPTED )?)PRIVATE KEY-----[\\s\\S]{32,16384}?-----END \\1PRIVATE KEY-----"),
+    "private_key_block": re.compile(rb"-----BEGIN ((?:RSA |EC |OPENSSH |DSA |ENCRYPTED )?)PRIVATE KEY-----[\s\S]{32,16384}?-----END \1PRIVATE KEY-----"),
     "supabase_secret_key": re.compile(rb"\bsb_secret_[A-Za-z0-9_-]{16,}"),
     "payment_secret_key": re.compile(rb"\bsk_(?:live|test)_[A-Za-z0-9]{16,}"),
     "resend_api_key": re.compile(rb"\bre_[A-Za-z0-9]{24,}"),
