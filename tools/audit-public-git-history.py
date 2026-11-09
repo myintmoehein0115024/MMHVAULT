@@ -19,7 +19,7 @@ from pathlib import Path
 
 MAX_BLOB_BYTES = 8 * 1024 * 1024
 PATTERNS = {
-    "private_key_block": re.compile(rb"-----BEGIN (?:RSA |EC |OPENSSH |DSA |ENCRYPTED )?PRIVATE KEY-----"),
+    "private_key_block": re.compile(rb"-----BEGIN ((?:RSA |EC |OPENSSH |DSA |ENCRYPTED )?)PRIVATE KEY-----[\\s\\S]{32,16384}?-----END \\1PRIVATE KEY-----"),
     "supabase_secret_key": re.compile(rb"\bsb_secret_[A-Za-z0-9_-]{16,}"),
     "payment_secret_key": re.compile(rb"\bsk_(?:live|test)_[A-Za-z0-9]{16,}"),
     "resend_api_key": re.compile(rb"\bre_[A-Za-z0-9]{24,}"),
@@ -56,7 +56,7 @@ def self_test() -> None:
     assert "supabase_secret_key" in classify_blob(b"sb_secret_" + b"X" * 25)
     assert "resend_api_key" in classify_blob(b"re_" + b"R" * 30)
     assert "github_access_token" in classify_blob(b"ghp_" + b"A" * 36)
-    assert "private_key_block" in classify_blob(b"-----BEGIN " + b"PRIVATE KEY-----\nTEST-ONLY")
+    assert "private_key_block" in classify_blob(b"-----BEGIN " + b"PRIVATE KEY-----\n" + b"A" * 64 + b"\n-----END " + b"PRIVATE KEY-----")
     assert DANGEROUS_NAME.search("a/.env.production")
     assert not DANGEROUS_NAME.search("analytics-worker/wrangler.toml")
     print("PASS: history scanner synthetic detections and public-key exclusions")
