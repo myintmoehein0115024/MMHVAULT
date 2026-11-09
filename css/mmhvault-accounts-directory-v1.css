@@ -724,3 +724,58 @@ html body.mmh-workspace-active:not(.light) #accounts-page .am-directory-ready-v1
     }
   }
 }
+
+
+/* Accounts Premium V1.0.1: owner-requested UI-only cleanup and collapsible
+ * currency navigation. Original FX conversion and transaction logic remain live. */
+@layer mmhAccountsDirectoryShellOverride {
+  html body.mmh-workspace-active #accounts-page .am-directory-ready-v1 .am-summary > .am-help {
+    display:none!important;
+  }
+  html body.mmh-workspace-active #accounts-page .am-directory-layout-v1.am-directory-collapsed-v1 {
+    grid-template-columns:minmax(0,1fr)!important;
+  }
+  html body.mmh-workspace-active #accounts-page .am-directory-layout-v1.am-directory-collapsed-v1 > .am-directory-sidebar-v1 {
+    display:none!important;
+  }
+  html body.mmh-workspace-active #accounts-page .am-directory-toggle-v1 {
+    display:inline-flex!important;
+    align-items:center!important;
+    justify-content:center!important;
+    flex:0 0 auto;
+    min-height:40px!important;
+    padding:7px 13px!important;
+    border:1px solid rgba(231,193,121,.38)!important;
+    border-radius:10px!important;
+    background:linear-gradient(145deg,rgba(46,77,99,.60),rgba(10,34,55,.86))!important;
+    color:#efcf95!important;
+    font-size:11px!important;
+    font-weight:700!important;
+    white-space:nowrap;
+    cursor:pointer;
+  }
+  html body.mmh-workspace-active #accounts-page .am-directory-toggle-v1:focus-visible {
+    outline:2px solid #f6d28d!important;
+    outline-offset:3px!important;
+  }
+  html body.mmh-workspace-active.light #accounts-page .am-directory-toggle-v1 {
+    background:#fff7e8!important;
+    border-color:#bd9451!important;
+    color:#594126!important;
+  }
+  @media(max-width:760px) {
+    html body.mmh-workspace-active #accounts-page .am-directory-head-v1 .am-directory-toolbar-v1 {
+      width:100%!important;
+      min-width:0!important;
+      display:flex!important;
+      align-items:center!important;
+      justify-content:space-between!important;
+      gap:8px!important;
+    }
+    html body.mmh-workspace-active #accounts-page .am-directory-head-v1 .am-directory-toolbar-v1 #amFilter {
+      flex:1 1 auto!important;
+      min-width:0!important;
+      max-width:190px!important;
+    }
+  }
+}

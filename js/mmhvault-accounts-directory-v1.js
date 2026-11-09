@@ -33,9 +33,12 @@
     accounts:['accounts','个账户',' အကောင့်'],
     units:['currencies','种货币',' ငွေကြေး'],
     noMatch:['No accounts in this currency or search.','此币种或搜索条件下没有账户。','ဤငွေကြေးတွင် အကောင့်မရှိပါ။'],
-    choose:['All currencies','全部货币','ငွေကြေးအားလုံး']
+    choose:['All currencies','全部货币','ငွေကြေးအားလုံး'],
+    hideCurrencies:['Hide currencies','隐藏币种','ငွေကြေးများ ဖျောက်ရန်'],
+    showCurrencies:['Show currencies','显示币种','ငွေကြေးများ ပြရန်']
   };
   let currency = 'ALL', listObserver = null, currentShell = null, scheduled = false;
+  let currencyPanelHidden = false; // UI-only, never saved to user finance settings or browser storage.
   const $ = id => document.getElementById(id);
   function language() {
     const s = String(document.documentElement.lang || 'en').toLowerCase();
@@ -103,6 +106,25 @@
     currency = next;
     sync();
   }
+  function applyCurrencyPanelState() {
+    const layout = document.querySelector('#' + ROOT + ' .am-directory-layout-v1');
+    if (!layout) return;
+    layout.classList.toggle('am-directory-collapsed-v1', currencyPanelHidden);
+    const sidebar = layout.querySelector('.am-directory-sidebar-v1');
+    if (sidebar) sidebar.hidden = currencyPanelHidden;
+    const toggle = layout.querySelector('.am-directory-toggle-v1');
+    if (toggle) {
+      toggle.textContent = t(currencyPanelHidden ? 'showCurrencies' : 'hideCurrencies');
+      toggle.setAttribute('aria-expanded', String(!currencyPanelHidden));
+    }
+  }
+  function toggleCurrencyPanel() {
+    currencyPanelHidden = !currencyPanelHidden;
+    // An invisible currency filter must never hide other financial accounts.
+    if (currencyPanelHidden) currency = 'ALL';
+    applyCurrencyPanelState();
+    sync();
+  }
   function build() {
     const shell = $('amShell'), home = $('amHome'), heading = document.querySelector('#' + ROOT + ' .ap-heading');
     if (!shell || !home || !heading || !$('amList') || !$('amAdd')) return false;
@@ -129,6 +151,7 @@
     const directory = el('div','am-directory-layout-v1');
     const sidebar = el('aside','am-directory-sidebar-v1');
     sidebar.setAttribute('aria-label',t('currencies'));
+    sidebar.id = 'amDirectoryCurrenciesV1';
     sidebar.append(el('h2','am-directory-sidebar-title-v1',t('currencies')));
     const menu = el('nav','am-directory-menu-v1');
     menu.setAttribute('aria-label',t('currencies'));
@@ -139,13 +162,19 @@
     const headText = el('div','am-directory-head-text-v1');
     headText.append(el('h2','am-directory-title-v1',t('directory')),el('p','am-directory-visible-v1',''));
     const toolbar = el('div','am-directory-toolbar-v1');
-    toolbar.append($('amFilter'));
+    const toggle = el('button','am-directory-toggle-v1',t('hideCurrencies'));
+    toggle.type = 'button';
+    toggle.setAttribute('aria-controls','amDirectoryCurrenciesV1');
+    toggle.setAttribute('aria-expanded',String(!currencyPanelHidden));
+    toggle.addEventListener('click',toggleCurrencyPanel);
+    toolbar.append(toggle,$('amFilter'));
     head.append(headText,toolbar);
     const columns = el('div','am-directory-columns-v1');
     [t('account'),t('type'),t('currency'),t('balance')].forEach(v => columns.append(el('span','',v)));
     main.append(head,find,columns,count,list);
     directory.append(sidebar,main);
     home.append(directory);
+    applyCurrencyPanelState();
     oldTop.classList.add('am-directory-original-top-v1');
     listObserver = new MutationObserver(() => schedule());
     listObserver.observe(list,{childList:true});
@@ -193,6 +222,7 @@
   }
   function sync() {
     if (!currentShell?.isConnected) return;
+    applyCurrencyPanelState();
     const list = $('amList');
     if (!list) return;
     const accounts = liveAccounts(), byId = new Map(accounts.map(a => [String(a.id),a]));
