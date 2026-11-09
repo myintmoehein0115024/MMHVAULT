@@ -23,9 +23,22 @@ const essential = [
   'register', 'security.html', 'privacy.html', 'terms.html', 'username-setup.html'
 ];
 assert.match(config, /^exclude:\s*$/m);
+// Retired QA assets must stay absent from the Public repository.
+const retiredPublicQA = new Set([
+  'pwa-icon-diagnostic-20261030',
+  'n10-a7-53-qa.html',
+  'n10-qa.html',
+  'username-preview.html',
+  'username-staging.html',
+  'js/mmhvault-n10-a7-53-qa.js'
+]);
 for (const path of forbidden) {
   assert(excludes.has(path), 'Missing internal publish exclusion: ' + path);
-  assert(fs.existsSync(path), 'Missing source path, review exclusion: ' + path);
+  if (retiredPublicQA.has(path)) {
+    assert(!fs.existsSync(path), 'Retired public QA artifact was reintroduced: ' + path);
+  } else {
+    assert(fs.existsSync(path), 'Missing source path, review exclusion: ' + path);
+  }
 }
 for (const path of essential) {
   assert(fs.existsSync(path), 'Essential production path missing: ' + path);
