@@ -1,0 +1,267 @@
+// MFA-only isolated source contracts: no network, production auth or Vault calls.
+import assert from 'node:assert/strict';
+import {readFileSync} from 'node:fs';
+import {runInNewContext} from 'node:vm';
+const src=readFileSync('js/mmhvault-n10-a7-83-security-center.js','utf8');
+const between=(a,b)=>{const i=src.indexOf(a),j=src.indexOf(b,i+a.length);assert.ok(i>=0&&j>i,'Missing section '+a);return src.slice(i,j)};
+const ordered=(s,parts)=>{let old=-1;for(const p of parts){let i=s.indexOf(p,old+1);assert.ok(i>old,'Missing/out of order: '+p);old=i}};
+const tests=[
+ ['no unreleased Vault integration',()=>{
+  assert.doesNotMatch(src,/N10_FIXED_VAULT_UI_RELEASED|VAULT_API|vaultApi\(|mmhN10VaultRecoveryControls|mmhN10VaultPassword|loadVaultMode\(/);
+  assert.match(src,/const N10A790_TOTP_ENROLLMENT_RELEASED=true;/);
+ }],
+ ['existing 60-second recovery view preserved, now with request invalidation',()=>{
+  assert.match(src,/clearTimer=setTimeout\(hideKey,60000\)/);
+  assert.doesNotMatch(src,/clearTimer=setTimeout\(hideKey,45000\)/);
+  assert.match(src,/function hideKey\(\)\{recoveryEpoch\+=1;verifiedPhrase='';/);
+ }],
+ ['60-second recovery window expires on focus/resume and before QR export',()=>{
+  assert.match(src,/let recoveryVisibleUntil=0;/);
+  assert.match(src,/function hideKey\(\)\{recoveryEpoch\+=1;verifiedPhrase='';recoveryVisibleUntil=0;/);
+  assert.match(src,/recoveryVisibleUntil=Date\.now\(\)\+60000;/);
+  assert.match(src,/clearTimer=setTimeout\(hideKey,60000\)/);
+  assert.match(src,/window\.addEventListener\('focus',enforceRecoveryExpiry\)/);
+  assert.match(src,/window\.addEventListener\('pageshow',enforceRecoveryExpiry\)/);
+  assert.match(src,/else enforceRecoveryExpiry\(\);\}\);/);
+  const save=between("$('mmhA783KeySaveQr').addEventListener('click',()=>{","$('mmhA783TotpStart').addEventListener('click',async()=>{");
+  ordered(save,['enforceRecoveryExpiry();','if(!verifiedPhrase||!recoveryVisibleUntil)return;']);
+  const code=src.match(/function enforceRecoveryExpiry\(\)\{[^\n]*\}/)?.[0];
+  assert.ok(code,'missing wall-clock guard');
+  let wipes=0;
+  const env={recoveryVisibleUntil:60000,Date:{now:()=>59999},hideKey:()=>{wipes++}};
+  const check=runInNewContext('('+code+')',env);
+  check();assert.equal(wipes,0);
+  env.Date.now=()=>60001;check();assert.equal(wipes,1);
+  env.recoveryVisibleUntil=0;check();assert.equal(wipes,1);
+ }],
+ ['totp inventory detects unverified, verified and unknown in all',()=>{
+  const code=src.match(/function inspectTotpFactors\(data\)\{[\s\S]*?\n\}/)?.[0];
+  assert.ok(code,'missing helper');
+  const inspect=runInNewContext('('+code+')');
+  const factors=[{id:'a',factor_type:'totp',status:'unverified'},
+                 {id:'b',factor_type:'totp',status:'verified'},
+                 {id:'c',factor_type:'totp',status:'other'},
+                 {id:'d',factor_type:'phone',status:'verified'}];
+  const result=inspect({all:factors,totp:[factors[1]]});
+  assert.equal(result.pending[0].id,'a');assert.equal(result.verified[0].id,'b');
+  assert.equal(result.unknown[0].id,'c');assert.equal(result.allTotp.length,3);
+  assert.throws(()=>inspect({totp:[]}),/factor_inventory_unavailable/);
+ }],
+ ['discard prior MFA consent and remove confirmation when closing or switching accounts',()=>{
+  const source=src.match(/function clearMfa\(\)\{[^\n]*\}/)?.[0];
+  assert.ok(source,'missing synchronous sensitive MFA cleanup');
+  const element=(extra={})=>({hidden:false,checked:false,value:'',textContent:'',replaceChildren(){this.wiped=true},...extra});
+  const nodes={
+   mmhA783TotpConsent:element({checked:true}),
+   mmhA783TotpRemoveText:element({value:'REMOVE'}),
+   mmhA783TotpRemoveConfirm:element({hidden:false}),
+   mmhA783TotpBackupConfirmed:element({checked:true}),
+   mmhA783TotpSetup:element({hidden:false}),
+   mmhA783TotpQr:element(),mmhA783TotpSecret:element({textContent:'temporary'}),
+   mmhA783TotpCode:element({value:'123456'}),mmhA783KeyReveal:element()
+  };
+  const env={mfaEpoch:7,pendingSecret:'temporary secret',pendingFactor:'temp-factor',
+    pendingFactorOwner:'owner-A',$:id=>nodes[id]||null,a783Action:()=>{}};
+  const clear=runInNewContext('('+source+')',env);
+  clear();
+  assert.equal(env.mfaEpoch,8);
+  assert.equal(env.pendingSecret,'');assert.equal(env.pendingFactor,'');
+  assert.equal(env.pendingFactorOwner,'');
+  assert.equal(nodes.mmhA783TotpConsent.checked,false);
+  assert.equal(nodes.mmhA783TotpRemoveText.value,'');
+  assert.equal(nodes.mmhA783TotpRemoveConfirm.hidden,true);
+  assert.equal(nodes.mmhA783TotpBackupConfirmed.checked,false);
+  assert.equal(nodes.mmhA783TotpSetup.hidden,true);
+  assert.equal(nodes.mmhA783TotpSecret.textContent,'');
+  assert.equal(nodes.mmhA783TotpCode.value,'');
+  assert.equal(nodes.mmhA783TotpQr.wiped,true);
+ }],
+ ['lost-phone recovery guidance requires an existing authenticator backup',()=>{
+  // A recovery phrase is a separate credential; it must never be presented
+  // as a way to skip the authenticator challenge after device loss.
+  const statements=[
+   'Before enabling, set up the authenticator on a second trusted device or safely back up its setup key. Your ten-word key cannot replace the six-digit code.',
+   'Two-step verification is active. Keep an authenticator backup; the ten-word key cannot replace a six-digit code.',
+   'Verify your six-digit code to manage this authenticator. If your phone is lost, use your saved authenticator backup; ten words cannot unlock this step.',
+   'Scan this QR on your authenticator and, if possible, a second trusted device. Back up the setup key safely before confirming; ten words cannot replace the six-digit code.'
+  ];
+  for(const line of statements)assert.ok(src.includes(line),'missing fail-closed backup guidance');
+  for(const translated of ['十词密钥不能代替六位验证码','十词密钥不能跳过这一步',
+                           '十词不能代替六位验证码'])
+   assert.ok(src.includes(translated),'missing Chinese backup warning: '+translated);
+  const refresh=between("label('mmhA783TotpHelp',verified", "if(!ar||ar.error)incomplete=true;");
+  assert.match(refresh,/level==='aal2'/);
+  assert.match(refresh,/ten-word key cannot replace a six-digit code/);
+  assert.match(refresh,/ten words cannot unlock this step/);
+  const enroll=between("$('mmhA783TotpStart').addEventListener('click',async()=>{", "$('mmhA783TotpConfirm').addEventListener('click',async()=>{");
+  assert.match(enroll,/second trusted device/);
+  assert.match(enroll,/ten words cannot replace/);
+  // No shortcut that silently unenrolls the factor on password or words.
+  assert.doesNotMatch(src,/mfa\.unenroll\(\{factorId:\s*(?:body|words|phrase)/);
+ }],
+ ['Google identity linking rejects uncertain MFA or stale owner',()=>{
+  const source=src.match(/function googleIdentityLinkAllowed\(assurance,inventory\)\{[\s\S]*?\n\}/)?.[0];
+  assert.ok(source,'missing MFA identity-linking approval helper');
+  const allowed=runInNewContext('('+source+')');
+  const factors=(list=[])=>({data:{all:list},error:null});
+  const assurance=(currentLevel,nextLevel)=>({data:{currentLevel,nextLevel},error:null});
+  const valid={id:'factor-01',factor_type:'totp',status:'verified'};
+  assert.equal(allowed(assurance('aal1','aal1'),factors([])),true);
+  assert.equal(allowed(assurance('aal2','aal2'),factors([valid])),true);
+  assert.equal(allowed(assurance('aal1','aal2'),factors([valid])),false);
+  assert.equal(allowed(assurance('aal1','aal1'),factors([valid])),false);
+  assert.equal(allowed(assurance('aal2','aal1'),factors([])),false);
+  assert.equal(allowed(assurance('aal1','aal2'),factors([])),false);
+  assert.equal(allowed(assurance('aal1',null),factors([])),false);
+  assert.equal(allowed(assurance(null,'aal1'),factors([])),false);
+  assert.equal(allowed({error:new Error('offline'),data:{}},factors([])),false);
+  assert.equal(allowed(assurance('aal1','aal1'),{data:{totp:[]},error:null}),false);
+  assert.equal(allowed(assurance('aal1','aal1'),{error:new Error('timeout')}),false);
+  const link=between("$('mmhA783LinkGoogle').addEventListener('click',async()=>{",
+                     "$('mmhA783PhraseToggle').addEventListener('click',()=>{");
+  ordered(link,[
+   'const epoch=authEpoch;',
+   'const {user}=await verifiedUser();',
+   'if(epoch!==authEpoch||owner!==user.id)',
+   'const existing=await client().auth.getUserIdentities();',
+   'const aal=await client().auth.mfa.getAuthenticatorAssuranceLevel();',
+   'const factors=await client().auth.mfa.listFactors();',
+   'if(!googleIdentityLinkAllowed(aal,factors))',
+   'const confirmed=await verifiedUser();',
+   'confirmed.user.id!==user.id',
+   "sessionStorage.setItem('mmh_a783_google_link_expected_uid',user.id);",
+   'client().auth.linkIdentity('
+  ]);
+  assert.match(src,/关联 Google 前，请先完成当前身份验证器验证/);
+ }],
+ ['pending owner and epoch cleared synchronously',()=>{
+  assert.match(src,/pendingFactorOwner='',pendingSecret=''/);
+  assert.match(src,/function clearMfa\(\)\{mfaEpoch\+=1;pendingSecret='';pendingFactor='';pendingFactorOwner='';/);
+  assert.match(src,/pendingFactor=data\.id;pendingFactorOwner=user\.id;/);
+ }],
+ ['stale epochs, owners or hidden modals are refused',()=>{
+  const code=src.match(/function mfaFlowActive\(epoch,userId\)\{[\s\S]*?\n\}/)?.[0];
+  assert.ok(code);
+  const env={owner:'A',mfaEpoch:2,document:{hidden:false},$:()=>({closest:()=>({hidden:false})})};
+  const fn=runInNewContext('('+code+')',env);
+  assert.equal(fn(2,'A'),true);assert.equal(fn(1,'A'),false);
+  assert.equal(fn(2,'B'),false);env.document.hidden=true;assert.equal(fn(2,'A'),false);
+  env.document.hidden=false;env.$=()=>({closest:()=>({hidden:true})});
+  assert.equal(fn(2,'A'),false);
+ }],
+ ['enrollment rechecks cleaned factors and same owner',()=>{
+  const s=between("$('mmhA783TotpStart').addEventListener('click',async()=>{","$('mmhA783TotpConfirm').addEventListener('click',async()=>{");
+  ordered(s,['const epoch=mfaEpoch;','const {user}=await verifiedUser();',
+   'const existing=await client().auth.mfa.listFactors();','const before=inspectTotpFactors(existing.data);',
+   'for(const factor of before.pending){','client().auth.mfa.unenroll({factorId:factor.id})',
+   'const checked=await client().auth.mfa.listFactors();','const afterOwner=await verifiedUser();',
+   'crypto.randomUUID().slice(0,8)','client().auth.mfa.enroll({factorType:']);
+  assert.match(s,/if\(before\.verified\.length\|\|before\.unknown\.length\)/);
+ }],
+ ['late QR response refuses account switch, only same owner orphan cleanup',()=>{
+  const s=between("$('mmhA783TotpStart').addEventListener('click',async()=>{","$('mmhA783TotpConfirm').addEventListener('click',async()=>{");
+  ordered(s,['if(!mfaFlowActive(epoch,user.id)){','const now=await verifiedUser();',
+   'if(now.user.id===user.id)','client().auth.mfa.unenroll({factorId:data.id});',
+   'return;','pendingFactor=data.id;']);
+ }],
+ ['success requires server AAL2 and exact verified factor',()=>{
+  const s=between("$('mmhA783TotpConfirm').addEventListener('click',async()=>{","$('mmhA783KeyReveal').addEventListener('click',()=>{");
+  ordered(s,['const epoch=mfaEpoch,userId=owner;','const id=pendingFactor;',
+   'client().auth.mfa.challenge({factorId:id})','client().auth.mfa.verify({factorId:id',
+   'getAuthenticatorAssuranceLevel()',"assurance.data?.currentLevel!=='aal2'",
+   'client().auth.mfa.listFactors()','inspectTotpFactors(checked.data).verified.some(x=>x.id===id)',
+   "status('Authenticator enabled. Verified by Auth (AAL2)."]);
+  assert.match(s,/if\(!mfaFlowActive\(epoch,userId\)\)return;/);
+ }],
+ ['cancel only removes same owner unverified factor',()=>{
+  const s=between('async function cancelPendingMfa(){','function displayTotpQr(');
+  ordered(s,['const targetFactor=pendingFactor,targetOwner=pendingFactorOwner;','clearMfa();',
+   'const before=await verifiedUser();','const found=await client().auth.mfa.listFactors();',
+   'inspectTotpFactors(found.data).pending.some(f=>f.id===targetFactor)',
+   'const current=await verifiedUser();','client().auth.mfa.unenroll({factorId:targetFactor})']);
+ }],
+ ['verified factor removal is owner/target/AAL2 scoped',()=>{
+  const s=between("$('mmhA783TotpRemoveNow').addEventListener('click',async()=>{","document.addEventListener('visibilitychange'");
+  ordered(s,['const epoch=mfaEpoch,userId=owner,targetFactor=factorId;',
+   'const before=await verifiedUser();','getAuthenticatorAssuranceLevel()',
+   "aal.data?.currentLevel!=='aal2'",'const factors=await client().auth.mfa.listFactors();',
+   'inspectTotpFactors(factors.data).verified.some(f=>f.id===targetFactor)',
+   'const current=await verifiedUser();','client().auth.mfa.unenroll({factorId:targetFactor})',
+   "status('Authenticator removed.')"]);
+ }],
+ ['verified-factor removal refreshes only after busy is released',()=>{
+  const s=between("$('mmhA783TotpRemoveNow').addEventListener('click',async()=>{","document.addEventListener('visibilitychange'");
+  assert.match(s,/status\('Authenticator removed\.'\);\s*\/\/ Run after the finally block releases busy; otherwise refresh\(\) exits\.\s*setTimeout\(\(\)=>void refresh\(\),0\);/);
+  assert.doesNotMatch(s,/status\('Authenticator removed\.'\);\s*void refresh\(\);/);
+  assert.match(src,/async function refresh\(\)\{\s*if\(busy\)\{refreshPending=true;return;\}/);
+ }],
+ ['background and modal close invalidate pending enrollment without ID',()=>{
+  assert.match(src,/document\.addEventListener\('visibilitychange',\(\)=>\{if\(document\.hidden\)\{hideKey\(\);if\(pendingFactor\)void cancelPendingMfa\(\);else clearMfa\(\);/);
+  const s=between('function collapse(section){','sections.forEach(section=>{');
+  assert.match(s,/if\(info\?\.overlay\.querySelector\('#mmhA783TotpSetup'\)\)\{/);
+  assert.match(s,/if\(pendingFactor\)void cancelPendingMfa\(\);else clearMfa\(\);/);
+ }],
+ ['recovery request requires unchanged owner, foreground modal and epoch',()=>{
+  const code=src.match(/function recoveryRequestActive\(epoch,userId\)\{[\s\S]*?\n\}/)?.[0];
+  assert.ok(code,'missing recovery async guard');
+  const overlay={hidden:false},panel={classList:{contains:x=>x==='mmh-a785-open'}};
+  const env={owner:'A',recoveryEpoch:5,document:{hidden:false},
+   $:id=>id==='mmhA783Recovery'?panel:{closest:()=>overlay}};
+  const fn=runInNewContext('('+code+')',env);
+  assert.equal(fn(5,'A'),true);
+  assert.equal(fn(4,'A'),false);
+  assert.equal(fn(5,'B'),false);
+  env.document.hidden=true;assert.equal(fn(5,'A'),false);
+  env.document.hidden=false;overlay.hidden=true;assert.equal(fn(5,'A'),false);
+  overlay.hidden=false;env.$=id=>id==='mmhA783Recovery'?panel:{closest:()=>null};
+  assert.equal(fn(5,'A'),false,'missing portal must fail closed');
+  env.$=id=>id==='mmhA783Recovery'?panel:{closest:()=>overlay};
+  env.owner='B';assert.equal(fn(5,'A'),false);
+ }],
+ ['original key verification rejects stale response before revealing words',()=>{
+  const s=between("$('mmhA783KeyVerify').addEventListener('click',async()=>{","$('mmhA783KeyHide').addEventListener('click',hideKey);");
+  ordered(s,['if(busy||!owner||!recoveryRequestActive(recoveryEpoch,owner))return;',
+   'hideKey();','const epoch=recoveryEpoch,userId=owner;',
+   "const r=await api('verify_saved_phrase',{phrase:raw});",
+   'if(!recoveryRequestActive(epoch,userId))return;',
+   "if(!r.ok||r.body?.verified!==true)throw Error('invalid');",
+   'verifiedPhrase=raw;',
+   "$('mmhA783KeyDisplay').hidden=false;",
+   'clearTimer=setTimeout(hideKey,60000);']);
+  assert.match(s,/catch\(_\)\{if\(recoveryRequestActive\(epoch,userId\)\)\{/);
+  assert.match(src,/function hideKey\(\)\{recoveryEpoch\+=1;verifiedPhrase='';/);
+  assert.doesNotMatch(s,/verifiedPhrase=raw;hideKey\(\);verifiedPhrase=raw;/);
+ }],
+ ['stale refresh blocked and busy Auth change queued until action finishes',()=>{
+  const refresh=between('async function refresh(){',"$('mmhA783Refresh').addEventListener");
+  ordered(refresh,["if(busy){refreshPending=true;return;}","const requestId=++refreshNonce,sessionEpoch=authEpoch;",
+   "const {user}=await verifiedUser();","if(requestId!==refreshNonce||sessionEpoch!==authEpoch)return;",
+   "const results=await Promise.allSettled([",
+   "if(requestId!==refreshNonce||sessionEpoch!==authEpoch||owner!==user.id)return;"]);
+  assert.match(refresh,/catch\(_\)\{\s*if\(requestId!==refreshNonce\|\|sessionEpoch!==authEpoch\)return;/);
+  const release=between('function releaseBusy(){','async function refresh(){');
+  assert.match(release,/busy=false;/);
+  assert.match(release,/if\(refreshPending\)\{refreshPending=false;void refresh\(\);\}/);
+  const callback=between('client().auth.onAuthStateChange((event,session)=>{','setTimeout(refresh,400);');
+  ordered(callback,["authEpoch+=1;refreshNonce+=1;","hideKey();clearMfa();resetSensitiveState();sections.forEach(collapse);"]);
+  assert.equal((src.match(/finally\{releaseBusy\(\)/g)||[]).length,5);
+ }],
+ ['same-owner new sign-in or JWT refresh invalidates sensitive UI before refresh',()=>{
+  const callback=between('client().auth.onAuthStateChange((event,session)=>{','setTimeout(refresh,400);');
+  ordered(callback,['authEpoch+=1;refreshNonce+=1;',
+   "if(event==='SIGNED_OUT'||(owner&&['SIGNED_IN','TOKEN_REFRESHED'].includes(event)))",
+   'hideKey();clearMfa();resetSensitiveState();sections.forEach(collapse);',
+   "owner='';", 'else void refresh();']);
+  assert.match(callback,/if\(\['SIGNED_IN','SIGNED_OUT','TOKEN_REFRESHED'\]\.includes\(event\)\)/);
+  assert.doesNotMatch(callback,/session\?\.user\?\.id!==owner/);
+ }],
+ ['logout and owner change clean sensitive data synchronously',()=>{
+  const s=between('client().auth.onAuthStateChange((event,session)=>{','setTimeout(refresh,400)');
+  ordered(s,["if(event==='SIGNED_OUT'||(owner&&['SIGNED_IN','TOKEN_REFRESHED'].includes(event)))",
+   'hideKey();clearMfa();resetSensitiveState();sections.forEach(collapse);',
+   "owner='';",'setTimeout(()=>{']);
+ }]
+];
+let failed=0;for(const [name,test] of tests){try{test();console.log('PASS',name)}catch(err){failed++;console.error('FAIL',name,err.message)}}
+console.log((tests.length-failed)+'/'+tests.length+' MFA-only static and synthetic checks');
+if(failed)process.exitCode=1;
