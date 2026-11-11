@@ -1,0 +1,21 @@
+name: APP V11 orphan currency guard (NO DEPLOY)
+on:
+  pull_request:
+    paths:
+      - 'app.html'
+      - 'tests/app-v11-orphan-currency-guard.test.mjs'
+      - '.github/workflows/app-v11-orphan-currency-guard.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  orphan-currency:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Historical currency and existing finance regressions
+        run: node --test tests/app-v11-orphan-currency-guard.test.mjs tests/data-integrity-v1.test.mjs tests/account-auto-fx-v1.test.mjs tests/app-v11-account-identity-guard.test.mjs tests/app-v11-account-native-balance-refresh.test.mjs tests/app-v11-transaction-field-layout.test.mjs
