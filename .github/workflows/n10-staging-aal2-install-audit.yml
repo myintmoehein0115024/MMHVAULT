@@ -1,0 +1,44 @@
+name: N10 Staging AAL2 install audit (NO DEPLOY)
+on:
+  push:
+    branches:
+      - feature/n10-staging-aal2-install-20261102
+  pull_request:
+    branches: [main]
+    paths:
+      - 'docs/sql/n10_staging_aal_v2_APPROVED_INSTALL_20261102.sql'
+      - 'docs/sql/n10_staging_aal_v2_POSTCHECK_READ_ONLY_20261102.sql'
+      - 'docs/N10_STAGING_AAL_V2_INSTALL_REPORT_20261102.md'
+      - 'security/n10-staging-aal2-install/**'
+      - '.github/workflows/n10-staging-aal2-install-audit.yml'
+permissions:
+  contents: read
+jobs:
+  offline-audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Enforce exact N10-only five-file change scope
+        shell: bash
+        run: |
+          set -euo pipefail
+          git fetch origin main --depth=1 || git fetch origin main
+          git diff --name-only --no-renames origin/main...HEAD > /tmp/n10-staging-changes
+          test -s /tmp/n10-staging-changes
+          while IFS= read -r path; do
+            case "$path" in
+              docs/sql/n10_staging_aal_v2_APPROVED_INSTALL_20261102.sql|docs/sql/n10_staging_aal_v2_POSTCHECK_READ_ONLY_20261102.sql|docs/N10_STAGING_AAL_V2_INSTALL_REPORT_20261102.md|security/n10-staging-aal2-install/test-staging-migration.mjs|.github/workflows/n10-staging-aal2-install-audit.yml) ;;
+              *) echo "BLOCKED shared/production file in Staging-only N10 PR: $path"; exit 1;;
+            esac
+          done < /tmp/n10-staging-changes
+      - name: Check static test syntax
+        run: node --check security/n10-staging-aal2-install/test-staging-migration.mjs
+      - name: Audit original migration and post-install checks without DB access
+        run: node --test security/n10-staging-aal2-install/test-staging-migration.mjs
+# This GitHub workflow has NO credentials, no SQL execution and no deployment.
