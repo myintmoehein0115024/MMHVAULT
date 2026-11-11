@@ -1,0 +1,28 @@
+name: Static release review (no deploy)
+on:
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  review:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+      - name: Export only approved static files
+        run: python3 tools/build-static-release.py "$RUNNER_TEMP/mmhvault-static"
+      - name: Verify production entry points and protected paths
+        working-directory: ${{ runner.temp }}/mmhvault-static
+        run: |
+          set -eu
+          for path in index.html login.html app.html admin.html admin-analytics.html \
+            sitemap.xml robots.txt sw.js mmh-push-sw.js mmh-manifest.webmanifest \
+            mmh-manifest-v2.webmanifest apple-touch-icon.png \
+            analytics-worker/ui/trend-chart.js analytics-worker/ui/breakdowns.js; do
+            test -s "$path"
+          done
+          for path in .git .github CNAME docs security tests tools email-templates \
+            n10-qa.html username-staging.html analytics-worker/src; do
+            test ! -e "$path"
+          done
