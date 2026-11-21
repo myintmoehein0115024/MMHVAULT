@@ -1,0 +1,45 @@
+name: N10 Staging AAL V2 schema review (NO DEPLOY)
+on:
+  push:
+    branches:
+      - feature/n10-staging-aal-guard-review-20261102
+  pull_request:
+    branches: [main]
+    paths:
+      - 'security/n10-staging-aal-review/**'
+      - 'docs/sql/n10_staging_aal_v2_*_20261102.sql'
+      - 'docs/N10_STAGING_AAL_V2_READONLY_REVIEW_20261102.md'
+      - '.github/workflows/n10-staging-aal-v2-review.yml'
+permissions:
+  contents: read
+jobs:
+  static-offline-review:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Only six independent N10 review files may change
+        shell: bash
+        run: |
+          set -euo pipefail
+          git fetch origin main --depth=1 || git fetch origin main
+          git diff --name-only --no-renames origin/main...HEAD > /tmp/n10-staging-aal-paths
+          test -s /tmp/n10-staging-aal-paths
+          while IFS= read -r path; do
+            case "$path" in
+              docs/sql/n10_staging_aal_v2_READ_ONLY_PREFLIGHT_20261102.sql|docs/sql/n10_staging_aal_v2_BLOCKED_REVIEW_20261102.sql|security/n10-staging-aal-review/synthetic-aal-guard.mjs|security/n10-staging-aal-review/test-synthetic-aal-guard.mjs|docs/N10_STAGING_AAL_V2_READONLY_REVIEW_20261102.md|.github/workflows/n10-staging-aal-v2-review.yml) ;;
+              *) echo "BLOCKED: not an approved N10 source-review file: $path"; exit 1;;
+            esac
+          done < /tmp/n10-staging-aal-paths
+      - name: Syntax check
+        run: |
+          node --check security/n10-staging-aal-review/synthetic-aal-guard.mjs
+          node --check security/n10-staging-aal-review/test-synthetic-aal-guard.mjs
+      - name: Synthetic AAL & SQL hard-off safety tests
+        run: node --test security/n10-staging-aal-review/test-synthetic-aal-guard.mjs
+# No database credentials, no SQL application, no Edge or Auth changes, no deployment.
