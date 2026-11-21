@@ -1,0 +1,49 @@
+name: N10 fixed Recovery Key view review (NO DEPLOY)
+on:
+  push:
+    branches:
+      - feature/n10-fixed-recovery-view-20261102
+  pull_request:
+    branches: [main]
+    paths:
+      - 'security/n10-recovery-view/**'
+      - 'docs/N10_FIXED_RECOVERY_VIEW_ISOLATED_REVIEW_20261102.md'
+      - '.github/workflows/n10-recovery-view-review.yml'
+permissions:
+  contents: read
+jobs:
+  isolated-review:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Reject shared App, Landing, login, DB and finance edits
+        shell: bash
+        run: |
+          set -euo pipefail
+          git fetch origin main --depth=1 || git fetch origin main
+          git diff --name-only --no-renames origin/main...HEAD > /tmp/n10-paths
+          test -s /tmp/n10-paths
+          while IFS= read -r path; do
+            case "$path" in
+              security/n10-recovery-view/recovery-view-controller.mjs|security/n10-recovery-view/test-recovery-view-controller.mjs|security/n10-recovery-view/recovery-transport.mjs|security/n10-recovery-view/test-recovery-transport.mjs|security/n10-recovery-view/recovery-view-lifecycle.mjs|security/n10-recovery-view/test-recovery-view-lifecycle.mjs|docs/N10_FIXED_RECOVERY_VIEW_ISOLATED_REVIEW_20261102.md|.github/workflows/n10-recovery-view-review.yml) ;;
+              *) echo "BLOCKED: unapproved changed file: $path"; exit 1;;
+            esac
+          done < /tmp/n10-paths
+          echo "PASS: exact N10-only changed-file allowlist"
+      - name: Syntax check
+        run: |
+          node --check security/n10-recovery-view/recovery-view-controller.mjs
+          node --check security/n10-recovery-view/test-recovery-view-controller.mjs
+          node --check security/n10-recovery-view/recovery-transport.mjs
+          node --check security/n10-recovery-view/test-recovery-transport.mjs
+          node --check security/n10-recovery-view/recovery-view-lifecycle.mjs
+          node --check security/n10-recovery-view/test-recovery-view-lifecycle.mjs
+      - name: Pure offline security and privacy tests
+        run: node --test security/n10-recovery-view/test-recovery-view-controller.mjs security/n10-recovery-view/test-recovery-transport.mjs security/n10-recovery-view/test-recovery-view-lifecycle.mjs
+# No production execution, deployment, SQL, secrets, accounts or QA activation.
