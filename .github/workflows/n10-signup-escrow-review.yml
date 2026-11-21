@@ -1,0 +1,44 @@
+name: N10 username original-key escrow review (NO DEPLOY)
+on:
+  push:
+    branches:
+      - feature/n10-signup-escrow-review-20261102
+  pull_request:
+    branches: [main]
+    paths:
+      - 'security/n10-signup-escrow-review/**'
+      - 'docs/N10_SIGNUP_ESCROW_REVIEW_20261102.md'
+      - '.github/workflows/n10-signup-escrow-review.yml'
+permissions:
+  contents: read
+jobs:
+  synthetic-review:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Reject changes outside four N10-only review files
+        shell: bash
+        run: |
+          set -euo pipefail
+          git fetch origin main --depth=1 || git fetch origin main
+          git diff --name-only --no-renames origin/main...HEAD > /tmp/n10-signup-review-paths
+          test -s /tmp/n10-signup-review-paths
+          while IFS= read -r path; do
+            case "$path" in
+              security/n10-signup-escrow-review/immutable-signup-escrow.mjs|security/n10-signup-escrow-review/test-immutable-signup-escrow.mjs|docs/N10_SIGNUP_ESCROW_REVIEW_20261102.md|.github/workflows/n10-signup-escrow-review.yml) ;;
+              *) echo "BLOCKED: non-N10 scope $path"; exit 1;;
+            esac
+          done < /tmp/n10-signup-review-paths
+      - name: Syntax check
+        run: |
+          node --check security/n10-signup-escrow-review/immutable-signup-escrow.mjs
+          node --check security/n10-signup-escrow-review/test-immutable-signup-escrow.mjs
+      - name: Pure offline signup escrow safety checks
+        run: node --test security/n10-signup-escrow-review/test-immutable-signup-escrow.mjs
+# No secrets, database, Auth, Edge, user account or production deployment steps.
