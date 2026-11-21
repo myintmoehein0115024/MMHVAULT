@@ -12,7 +12,7 @@ const sbutton=$('mmhA756Submit'),sstatus=$('mmhA756Status'),uname=$('mmhA740User
 const backup=$('mmhA769Backup'),wordsPanel=$('mmhA769WordGrid'),qr=$('mmhA769Qr'),backupAgree=$('mmhA769BackupAgree'),captchaRegister=$('mmhA769Captcha'),captchaLogin=$('mmhA740Captcha'),smartCaptcha=$('smartCaptcha'),smartStatus=$('smartStatus'),smartInput=$('signinEmail'),smartPassword=$('signinPassword'),smartForm=$('signin');
 const modeButtons=[...document.querySelectorAll('[data-mmh-a769-login-mode]')],phraseArea=$('mmhA769PhraseArea'),passArea=$('mmhA769PassArea');
 if(!signup||!login||!backup||!sbutton||!ubutton||!captchaRegister||!captchaLogin)return;
-const tr=(zh,en)=>window.getMMHVAULTLanguage?.()==='zh'?zh:en;
+const tr=(zh,en)=>{const lang=window.getMMHVAULTLanguage?.();return lang==='zh'?zh:lang==='my'?(window.translateMMHVAULTMessage?.(en)||en):en;};
 let pilotOnly=false,enabled=false,loading=false,selected='password',prepared=null,accountCreated=false,signupOutcomeUncertain=false,captchaWidget=null,captchaArea=null,captchaAction='',captchaToken='';
 const inputWords=Array.from(phraseArea?.querySelectorAll('input[data-a769-word]')||[]);const smartRetry=$('mmhSmartCaptchaRetry');
 function showStatus(t,el){if(el)el.textContent=t;}

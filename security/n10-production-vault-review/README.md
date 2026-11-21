@@ -1,0 +1,42 @@
+# MMHVAULT N10 — Production Vault schema review
+
+STATUS: NOT AUTHORIZED. No Production database or Edge deployment is permitted by this draft.
+
+The proposed private schema uses Supabase Vault encrypted secrets and an owner-index table with row-level security, no public policies and only five narrowly scoped service_role RPCs. Its two explicit operator approval settings are NEVER set by the SQL itself. The current Production project has Vault available but does not have N10 private Vault objects.
+
+New username-only accounts must create a fixed verifier, encrypted original backup, read back the identical words, bind the username and only then grant their first login session. Every later request reads the same immutable backup. The database put operation refuses backfilling verifier-only historical accounts with arbitrary new words. For older accounts lacking encrypted originals, password-only recovery is impossible; do not falsely promise the words can be re-created.
+
+The SQL uses ON DELETE RESTRICT on owner backups so automated signup cleanup must never delete an account after Vault backup creation. Any failed signup at that stage requires owner-bound manual reconciliation. Deletion/account privacy policy needs separate approved design.
+
+Only the independently verified Edge may invoke service-role RPCs. Its two hard-OFF release flags, current password proof, server-verified MFA and JWT session revocation checks remain mandatory. Historical keys, finance data, APP V11, Landing, Auth settings and Production RLS are unchanged.
+
+Before any install: independently review the SQL and failed-signup cleanup, approve a scoped Production migration, prove the signed end-to-end Staging flow on isolated test fixtures, rerun cross-owner and revocation adversarial checks, confirm current main compatibility, then request separate merge and deployment approval. Synthetic CI alone is not sufficient.
+
+## Additional pre-enrollment guard (2026-11-04)
+
+The guarded `backup_put` first-install candidate also checks the stored verifier format/version, **no earlier Auth session**, and **no pre-existing username owner link** before writing a Vault secret. The original-word escrow therefore cannot be used as a silent post-login backfill for even a recently created account. A known limitation is that existing backups are not retryable by this registration RPC once the account has signed in; authenticated viewing uses the distinct read-only endpoint instead. The version/format check does not cryptographically bind the SQL parameter to the verifier: that binding must remain validated by the signed reservation protocol and immediately enforced by the service role handler. All changes remain unexecuted review source.
+
+## Banned and deleted users (2026-11-04)
+
+The read-only Edge candidate rejects Auth users with a deletion marker. Supabase Auth's User type does not expose the `banned_until` field, so the Edge must not trust a missing claim as proof of no ban. Instead, the `session_active` SQL candidate joins the authoritative Auth user row and refuses deleted, anonymous, or currently banned owners even if a previously issued JWT/session still exists. This is a review-only defense against quarantined-registration key disclosure; it has not been deployed or live-tested.
+
+
+## Owner-state defense in depth (2026-11-04, review only)
+
+The first immutable encrypted escrow now refuses deleted, anonymous and actively banned Auth users in addition to the existing no-prior-session/no-prior-link gates. The `backup_get` function independently joins the server-controlled Auth user record and denies deleted, anonymous, banned or non-username-only owners with the wrong production alias. This is a backup defense to the Edge's live JWT/password/MFA/session checks; service-role RPC access remains restricted. This change is a source-only SQL proposal and has **not** been executed in either environment.
+
+
+## Verifier-to-backup consistency (2026-11-04, review only)
+
+The **unexecuted** Production `backup_put` proposal now accepts the enrolled owner HMAC as a third `p_verifier` argument. It requires a 64-character hex value that **exactly matches** the version-1 verifier already stored for that owner. The signup Edge passes the same trusted server-generated HMAC that it successfully inserted; the browser does not supply this verifier. New synthetic regression requires a changed verifier to quarantine the user without granting a session or persisting a new backup.
+
+**Limit:** Matching an Edge-supplied digest to the stored digest does not independently prove that plaintext words generated it; the trusted keyed HMAC construction, signed reservation, and service-role-only privilege are still required. This change is a defense against mismatched enrollment state, not a defense against compromised service-role credentials.
+
+**Compatibility:** The proposed Production RPC is now `mmh_n10_recovery_backup_put(uuid,text,text)` and is **not** the same API as the old two-argument hard-OFF Staging-only QA RPC. No existing QA Edge was updated or activated. A new, separately authorized Staging rehearsal of the revised Production-equivalent contract is necessary before any release.
+
+
+## Fresh-signup serialization (2026-11-04, review only)
+
+The **unexecuted** Production SQL now acquires an owner-scoped advisory transaction lock and an `auth.users FOR UPDATE` row lock **before** evaluating whether any prior login session or username link exists. Read-only Staging catalog inspection confirmed `auth.sessions.user_id` and `public.mmh_n10a740_username_links.user_id` both have foreign keys referencing `auth.users(id)`. Their FK key-share checks therefore serialize against the owner row's exclusive lock during a concurrent session/link creation. After the lock, the SQL reevaluates the account state and verifier, then creates and indexes the original encrypted Vault secret in the same transaction. Offline contract tests explicitly assert this order. This is **not** proof that all Auth or network races have been covered; a separately authorized concurrent Staging rehearsal remains required.
+
+Staging still has the old `mmh_n10_recovery_backup_put(uuid,text)`; the proposed Production signature is `mmh_n10_recovery_backup_put(uuid,text,text)`. Do not replace or upgrade the active Staging functions in place or invoke the guarded Production migration against Staging.
