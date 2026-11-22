@@ -407,3 +407,55 @@ html body.mmh-workspace-active #forecast .fc-month summary > *{
 html body.mmh-workspace-active #dashboard #mmhPremiumDashboardV500 > .pf-hero-v500{order:-30!important}
 html body.mmh-workspace-active #dashboard #mmhPremiumDashboardV500 > .pf-kpis-v500{order:-29!important}
 html body.mmh-workspace-active #dashboard #mmhPremiumDashboardV500 > #mmhDailyDashboardV13.mmh-daily-mini-v13{order:-28!important}
+
+
+/* Future V1.5 — editable regular income/expense items, savings target, explicit save */
+#forecast .fc-regular-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));align-items:start;gap:14px;margin-top:16px}
+#forecast .fc-regular-group{min-width:0;padding:14px;background:linear-gradient(145deg,rgba(24,61,85,.50),rgba(9,31,49,.56));border:1px solid rgba(86,137,167,.34);border-radius:13px}
+#forecast .fc-regular-heading{display:flex;align-items:center;justify-content:space-between;gap:9px;margin-bottom:12px}
+#forecast .fc-regular-heading strong{font-size:13px;color:#f3d18a}
+#forecast .fc-regular-heading small{font-size:10px;color:#82a3b9}
+#forecast .fc-regular-list{display:grid;gap:8px}
+#forecast .fc-regular-item{position:relative;display:grid;grid-template-columns:minmax(0,1fr) minmax(135px,1.25fr) 31px;gap:9px;align-items:center;min-width:0;padding:9px;background:rgba(6,25,43,.50);border:1px solid rgba(91,142,173,.21);border-radius:10px}
+#forecast .fc-regular-title{font-size:11px;font-weight:740;line-height:1.5;color:#d9eaf5;overflow-wrap:anywhere}
+#forecast input.fc-regular-name{width:100%;min-width:0;min-height:37px;padding:7px 9px;border-radius:8px;border:1px solid rgba(92,147,180,.40);background:rgba(18,51,75,.75);color:#e6f4fd;font:inherit;font-size:11px}
+#forecast input.fc-regular-name:focus-visible{outline:2px solid #86d4f4;outline-offset:1px}
+#forecast .fc-regular-entry{min-width:0}
+#forecast .fc-regular-entry .fc-field>label{display:none}
+#forecast .fc-regular-entry .fc-money-pair{height:40px}
+#forecast .fc-regular-entry input[type=number]{font-size:12px!important}
+#forecast .fc-remove-item{display:grid;place-items:center;width:31px;height:34px;border:1px solid rgba(244,139,143,.34);border-radius:8px;background:rgba(129,46,59,.12);color:#ffb2b8;font-size:20px;line-height:1;cursor:pointer}
+#forecast .fc-remove-item:hover{background:rgba(169,56,73,.32);color:#fff}
+#forecast .fc-regular-empty{margin:0;padding:18px 8px;color:#8aa9bd;text-align:center;font-size:11px}
+#forecast .fc-add-item{margin-top:11px;width:100%;min-height:37px;border:1px dashed rgba(218,174,101,.6);border-radius:9px;background:rgba(184,143,66,.09);color:#eed095;font:inherit;font-size:11px;font-weight:760;cursor:pointer}
+#forecast .fc-add-item:hover{background:rgba(200,155,73,.19)}
+#forecast .fc-regular-item:has(.fc-picker-open){z-index:11}
+#forecast .fc-regular-group:has(.fc-picker-open){position:relative;z-index:12}
+#forecast .fc-savings-goal{display:grid;grid-template-columns:minmax(0,1fr) 170px;align-items:center;gap:12px 22px;margin-top:14px;padding:15px 17px;border-radius:13px;background:linear-gradient(110deg,rgba(39,74,90,.53),rgba(43,57,61,.43));border:1px solid rgba(221,181,98,.36)}
+#forecast .fc-rate-heading{display:flex;flex-wrap:wrap;align-items:baseline;gap:7px 14px}
+#forecast .fc-rate-heading span{font-size:11px;font-weight:780;color:#c9d8e3}
+#forecast .fc-rate-heading strong{font-size:25px;line-height:1.2;font-weight:850;color:#f2d184;font-variant-numeric:tabular-nums}
+#forecast .fc-rate-heading small{font-size:10px;color:#91b6c7}
+#forecast .fc-rate-target{display:flex;flex-direction:column;gap:5px}
+#forecast .fc-rate-target label{font-size:10px;font-weight:730;color:#afc4d1}
+#forecast .fc-rate-target input{height:39px;min-height:39px;width:100%;padding:7px 10px}
+#forecast .fc-rate-track{grid-column:1/-1;height:7px;background:rgba(64,105,128,.48);border-radius:99px;overflow:hidden}
+#forecast .fc-rate-track i{display:block;width:0%;height:100%;background:linear-gradient(90deg,#b78d46,#f3d083);border-radius:99px;transition:width .18s}
+#forecast .fc-save-bar{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-top:18px;padding:13px 0 0;border-top:1px solid rgba(118,159,182,.27)}
+#forecast .fc-save-bar #fc-save-status{font-size:11px;color:#a6c2d0;line-height:1.6}
+#forecast .fc-save-actions{display:flex;flex-wrap:wrap;gap:8px}
+#forecast .fc-save-primary{background:linear-gradient(125deg,#b68b43,#efd08d);border-color:#eac781;color:#182738;font-size:12px;font-weight:850;min-width:136px}
+#forecast .fc-save-primary:hover{background:linear-gradient(125deg,#c89e56,#ffdfa1)}
+#forecast .fc-save-primary:disabled{opacity:.48;cursor:default}
+#forecast .fc-save-primary:disabled:hover{background:linear-gradient(125deg,#b68b43,#efd08d)}
+body.light #forecast .fc-regular-group,body.light #forecast .fc-regular-item{background:#eef7fc;border-color:#cadeea}
+body.light #forecast .fc-regular-title,body.light #forecast .fc-regular-heading strong{color:#214e69}
+body.light #forecast input.fc-regular-name{background:#fff;color:#214e69;border-color:#b7d0df}
+body.light #forecast .fc-remove-item{background:#fff1f2;color:#ae4051}
+body.light #forecast .fc-add-item{background:#fcf4e7;color:#806027;border-color:#c7a266}
+body.light #forecast .fc-savings-goal{background:#fff9ed;border-color:#e1ca9b}
+body.light #forecast .fc-rate-heading span,body.light #forecast .fc-rate-target label{color:#43657b}
+body.light #forecast .fc-rate-heading strong{color:#9b6f27}
+body.light #forecast .fc-save-primary{background:#d8ae62;border-color:#c79a50;color:#1d3545}
+@media(max-width:900px){#forecast .fc-regular-grid{grid-template-columns:1fr}#forecast .fc-regular-item{grid-template-columns:minmax(150px,1fr) minmax(160px,1.3fr) 31px}}
+@media(max-width:520px){#forecast .fc-regular-group{padding:10px}#forecast .fc-regular-item{grid-template-columns:minmax(0,1fr) 31px;gap:7px}#forecast .fc-regular-title,#forecast input.fc-regular-name{grid-column:1/-1}#forecast .fc-regular-entry{grid-column:1;grid-row:2}#forecast .fc-remove-item{grid-column:2;grid-row:2}#forecast .fc-savings-goal{grid-template-columns:1fr}#forecast .fc-rate-track{grid-column:1}#forecast .fc-save-bar{align-items:stretch}#forecast .fc-save-actions{width:100%}#forecast .fc-save-actions .fc-btn{flex:1}}
