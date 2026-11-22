@@ -34,10 +34,14 @@
  const fmt=n=>Number(n).toLocaleString(isZh()?'zh-CN':'en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
  const usd=n=>`${fmt(n)} U`;
  const signed=n=>`${n>=0?'+':'−'}${usd(Math.abs(n))}`;
+ const displayRate=fx=>{const c=state?.viewCurrency||'USD';return c==='USD'?1:Number(fx?.[c])};
+ const validDisplayRate=fx=>{const n=displayRate(fx);return Number.isFinite(n)&&n>0};
+ const displayMoney=(n,fx)=>{const c=state?.viewCurrency||'USD',rate=displayRate(fx);return Number.isFinite(n)&&validDisplayRate(fx)?`${fmt(n*rate)} ${c==='USD'?'U':c}`:'—'};
+ const displaySigned=(n,fx)=>{const value=displayMoney(Math.abs(n),fx);return Number.isFinite(n)&&value!=='—'?`${n>=0?'+':'−'}${value}`:'—'};
  const unitName=c=>isZh()?({USD:'美元 / U',CNY:'人民币 CNY',THB:'泰铢 THB',MMK:'缅币 MMK'}[c]||c):c;
  const owner=()=>{try{return typeof currentSessionUser!=='undefined'?String(currentSessionUser?.id||''):''}catch(_){return ''}};
  const localKey=id=>STORAGE+id;
- const defaultState=()=>({base:Object.fromEntries(FIELDS.filter(f=>f.base).map(f=>[f.key,f.def])),baseCurrencies:Object.fromEntries(FIELDS.filter(f=>f.base).map(f=>[f.key,f.ccy])),months:{},monthCurrencies:{},end:'',dailyMonth:'',rate:null,fxOverrides:{},salaryConfigured:false});
+ const defaultState=()=>({base:Object.fromEntries(FIELDS.filter(f=>f.base).map(f=>[f.key,f.def])),baseCurrencies:Object.fromEntries(FIELDS.filter(f=>f.base).map(f=>[f.key,f.ccy])),months:{},monthCurrencies:{},end:'',dailyMonth:'',rate:null,fxOverrides:{},viewCurrency:'USD',salaryConfigured:false});
  const validCcy=c=>CURRENCIES.includes(c);
  function getState(id){
   if(!id)return defaultState();
@@ -45,6 +49,7 @@
    const raw=JSON.parse(localStorage.getItem(localKey(id))||'null');
    if(!raw||typeof raw!=='object'||![1,2].includes(raw.version))return defaultState();
    const next=defaultState();
+   next.viewCurrency=validCcy(raw.viewCurrency)?raw.viewCurrency:'USD';
    // V1.3 and earlier stored a salary with every saved plan; migrate a saved plan as configured.
    // Fresh defaults and an explicit Reset scenario remain NOT configured.
    next.salaryConfigured=typeof raw.salaryConfigured==='boolean'?raw.salaryConfigured:
@@ -168,17 +173,18 @@
    <div class="fc-day-milestones" id="fc-day-milestones"></div>
    <div class="fc-day-edit"><div class="fc-day-edit-copy"><strong>${tr('Salary for the selected month','所选月份工资')}</strong><small>${tr('Edit just this month, or leave it matching your regular salary. Future forecast months are unchanged.','可单独修改本月工资；未设置时沿用常规工资，不改其他月份。')}</small></div>
    <div class="fc-day-edit-control">${pairField(tr('Monthly salary','本月工资'),'salary',d.amount,d.currency,'month',d.selected,d.amount)}<button class="fc-btn alt fc-day-reset" type="button" data-fc-action="reset-day-salary">${tr('Use regular salary','恢复常规工资')}</button></div></div>
-   <p class="fc-day-disclaimer">${tr('Progress uses the device’s local calendar and counts completed days only. Historic months without saved salary overrides use your current regular salary. USD equivalents use current scenario FX; this estimate never modifies Dashboard assets, transactions or Supabase.','进度按设备当地日历计算，只计已经完整结束的日期。未单独保存工资的历史月份按当前常规工资估算；U 换算使用当前模拟汇率。本卡片不会修改 Dashboard 总资产、Transactions 或 Supabase。')}</p>
+   <p class="fc-day-disclaimer">${tr('Progress uses the device’s local calendar and counts completed days only. Historic months without saved salary overrides use your current regular salary. Display equivalents use current scenario FX; this estimate never modifies Dashboard assets, transactions or Supabase.','进度按设备当地日历计算，只计已经完整结束的日期。未单独保存工资的历史月份按当前常规工资估算；显示币种的换算使用当前模拟汇率。本卡片不会修改 Dashboard 总资产、Transactions 或 Supabase。')}</p>
   </section>`;
  }
  function setText(id,value){const e=el(id);if(e)e.textContent=value}
  function updateDailyPanel(){
   const root=el('fc-day-panel');if(!root||!state)return;
-  const d=dailyInfo(state.dailyMonth),p=Number.isFinite(d.pct)?d.pct:0;
+  const d=dailyInfo(state.dailyMonth),fx=exchangeRates(),p=Number.isFinite(d.pct)?d.pct:0;
   const gauge=el('fc-day-gauge');if(gauge){gauge.style.setProperty('--fc-day-progress',`${p}%`);gauge.setAttribute('aria-valuenow',String(Math.round(p)))}
   setText('fc-day-pct',`${p.toFixed(1)}%`);
   setText('fc-day-earned',dailyMoney(d.earned,d.currency));
-  setText('fc-day-earned-u',d.valid?tr('Approx. ','约 ')+usd(d.earnedU):tr('Exchange rate unavailable','汇率暂不可用'));
+  const dayEquivalent=d.valid?displayMoney(d.earnedU,fx):'—';
+  setText('fc-day-earned-u',dayEquivalent!=='—'?tr('Approx. ','约 ')+dayEquivalent:tr('Exchange rate unavailable','汇率暂不可用'));
   setText('fc-day-monthly',dailyMoney(d.amount,d.currency));
   setText('fc-day-length',`${d.count} ${tr('days','天')}`);
   setText('fc-day-days',`${d.completed} / ${d.count}`);
@@ -259,6 +265,7 @@
   const oldCards=!!root.querySelector('.fc-month');
   root.innerHTML=`<div class="fc-wrap">
     <header class="fc-head"><div><div class="fc-eyebrow">MMHVAULT · ${tr('FUTURE WEALTH PLANNER','未来资产预测')}</div><h1>${tr('Future Asset Forecast','未来资产预测')}</h1><p class="fc-muted">${tr('Forecast from next month, based on your current Dashboard assets.','从下个月起，使用 Dashboard 实时总资产逐月预测。')}</p></div><button type="button" class="fc-btn alt" data-fc-action="refresh">↻ ${tr('Refresh assets','刷新资产')}</button></header>
+    <div class="fc-display-bar"><label for="fc-display-currency">${tr('Display amounts in','金额显示币种')}</label><select id="fc-display-currency" aria-label="${esc(tr('Forecast display currency','预测显示币种'))}">${[['USD',tr('USD · US Dollar','USD · 美元')],['THB',tr('THB · Thai Baht','THB · 泰铢')],['CNY',tr('CNY · Chinese Yuan','CNY · 人民币')],['MMK',tr('MMK · Myanmar Kyat','MMK · 缅币')]].map(([c,label])=>`<option value="${c}"${state.viewCurrency===c?' selected':''}>${label}</option>`).join('')}</select></div>
     <div class="fc-stats"><div class="fc-stat"><span>${tr('Current total assets','当前总资产')}</span><strong id="fc-start">—</strong><small>${tr('Dashboard value, including receivables','Dashboard 实时资产，含应收款')}</small></div><div class="fc-stat good"><span>${tr('Regular monthly savings','每月常规净储蓄')}</span><strong id="fc-saving">—</strong><small>${tr('Before bonus and extra spending','未计奖金与额外消费')}</small></div><div class="fc-stat"><span>${tr('Forecast end assets','预测期末总资产')}</span><strong id="fc-result">—</strong><small id="fc-result-date">—</small></div><div class="fc-stat"><span>${tr('Projected gain','预计增长')}</span><strong id="fc-gain">—</strong><small id="fc-count">—</small></div></div>
     ${salaryIsConfigured(state.dailyMonth)?dailyPanelHTML():''}
     <section class="fc-panel"><h2>${tr('Regular monthly income & spending','设置每月常规收支')}</h2><p class="fc-muted">${tr('Choose a currency for each amount. Changes affect only this forecast, not your actual accounts.','每项金额可以分别选择币种；这里只计算预算，不修改真实账户记录。')}</p>
@@ -285,18 +292,18 @@
   if(!active()||!state)return;
   const out=calculate();
   const set=(id,s)=>{const x=el(id);if(x)x.textContent=s};
-  const note=out.end<out.first?tr('The selected end month is in the past. Select a later month.','结束月份已经早于预测开始月，请重新选择。'):out.tooLong?tr('Maximum forecast length: 240 months.','最长只能预测240个月。'):!activeOwner?tr('Sign in to see your assets.','请先登录后查看资产。'):!out.worth.ready?tr('Dashboard assets are not ready; refresh financial data.','Dashboard 资产尚未准备好，请刷新财务数据。'):out.invalidCcy?tr('Enter a positive saved or scenario rate for ','请设置有效的已保存或模拟汇率：')+out.invalidCcy:'';
+  const note=out.end<out.first?tr('The selected end month is in the past. Select a later month.','结束月份已经早于预测开始月，请重新选择。'):out.tooLong?tr('Maximum forecast length: 240 months.','最长只能预测240个月。'):!activeOwner?tr('Sign in to see your assets.','请先登录后查看资产。'):!out.worth.ready?tr('Dashboard assets are not ready; refresh financial data.','Dashboard 资产尚未准备好，请刷新财务数据。'):out.invalidCcy?tr('Enter a positive saved or scenario rate for ','请设置有效的已保存或模拟汇率：')+out.invalidCcy:!validDisplayRate(out.fx)?tr('Enter a valid display exchange rate for ','请设置有效的显示汇率：')+state.viewCurrency:'';
   showWarning(note);
-  set('fc-start',out.worth.ready?usd(out.worth.total):'—');
-  set('fc-saving',!out.invalidCcy?signed(out.normal.net):'—');
-  set('fc-result',out.valid?usd(out.rows.at(-1).total):'—');
+  set('fc-start',out.worth.ready?displayMoney(out.worth.total,out.fx):'—');
+  set('fc-saving',!out.invalidCcy?displaySigned(out.normal.net,out.fx):'—');
+  set('fc-result',out.valid?displayMoney(out.rows.at(-1).total,out.fx):'—');
   set('fc-result-date',out.rows.length?monthLabel(out.end):'—');
-  set('fc-gain',out.valid?signed(out.rows.at(-1).total-out.worth.total):'—');
+  set('fc-gain',out.valid?displaySigned(out.rows.at(-1).total-out.worth.total,out.fx):'—');
   set('fc-count',tr('Forecast months: ','预测月数：')+out.rows.length);
   set('fc-range-label',monthLabel(out.first)+' → '+monthLabel(out.end)+' · '+['THB','CNY','MMK'].map(c=>`1 U = ${out.fx[c]>0?fmt(out.fx[c]):'—'} ${c}`).join(' · '));
-  set('fc-base-income',!out.invalidCcy?usd(out.normal.incomeU):'—');
-  set('fc-summary-personal',!out.invalidCcy?usd(out.normal.personalU):'—');
-  set('fc-summary-family',!out.invalidCcy?usd(out.normal.familyU):'—');
+  set('fc-base-income',!out.invalidCcy?displayMoney(out.normal.incomeU,out.fx):'—');
+  set('fc-summary-personal',!out.invalidCcy?displayMoney(out.normal.personalU,out.fx):'—');
+  set('fc-summary-family',!out.invalidCcy?displayMoney(out.normal.familyU,out.fx):'—');
   for(const k of ['salary','allowance','personal','family']){
    const node=el('fc-base-'+k);if(node&&document.activeElement!==node)node.value=state.base[k];
   }
@@ -309,15 +316,15 @@
    const date=card.dataset.fcCard,row=byDate.get(date);
    if(!row)return;
    const fill=(key,str,cls)=>{const node=card.querySelector(`[data-fc-${key}]`);if(node){node.textContent=out.valid?str:'—';if(cls)node.className=cls}};
-   fill('income',usd(row.incomeU));
-   fill('personal',usd(row.personalU));
-   fill('family',usd(row.familyU));
+   fill('income',displayMoney(row.incomeU,out.fx));
+   fill('personal',displayMoney(row.personalU,out.fx));
+   fill('family',displayMoney(row.familyU,out.fx));
    fill('personal-native',fmt(row.v.personal.amount)+' '+row.v.personal.currency);
    fill('family-native',fmt(row.v.family.amount)+' '+row.v.family.currency);
-   fill('net',signed(row.net),row.net>=0?'fc-positive':'fc-negative');
-   fill('total',usd(row.total));
+   fill('net',displaySigned(row.net,out.fx),row.net>=0?'fc-positive':'fc-negative');
+   fill('total',displayMoney(row.total,out.fx));
    const ext=card.querySelector('[data-fc-extra-note]');
-   if(ext)ext.textContent=out.valid?tr('Extra spending: ','额外支出：')+usd(row.extraU)+' · '+tr('All spending: ','支出合计：')+usd(row.expenseU):'—';
+   if(ext)ext.textContent=out.valid?tr('Extra spending: ','额外支出：')+displayMoney(row.extraU,out.fx)+' · '+tr('All spending: ','支出合计：')+displayMoney(row.expenseU,out.fx):'—';
    card.querySelectorAll('input[data-fc-field]').forEach(input=>{
     const f=FIELD[input.dataset.fcField];let placeholder=f.base?state.base[f.key]:0;
     const currency=card.querySelector(`[data-fc-ccy-field="${f.key}"]`)?.dataset.fcCurrency || card.querySelector(`[data-fc-ccy-field="${f.key}"]`)?.querySelector('.fc-currency-trigger')?.title;
@@ -333,16 +340,19 @@
  }
  function drawChart(out){
   const host=el('fc-chart');if(!host)return;
-  if(!out.valid){host.textContent=tr('Waiting for valid assets, rates and date.','请确认资产、汇率和结束年月有效。');return}
-  const data=[{date:monthKey(),total:out.worth.total},...out.rows],W=900,H=205,L=72,R=18,T=18,B=33;
+  if(!out.valid||!validDisplayRate(out.fx)){host.textContent=tr('Waiting for valid assets, rates and date.','请确认资产、汇率和结束年月有效。');return}
+  const data=[{date:monthKey(),total:out.worth.total},...out.rows],W=900,H=205,R=18,T=18,B=33;
+  let L=72;
   let lo=Math.min(...data.map(x=>x.total)),hi=Math.max(...data.map(x=>x.total));
   if(hi===lo){hi+=1;lo-=1}const gap=(hi-lo)*.07;lo-=gap;hi+=gap;
+  const factor=displayRate(out.fx),ticks=Array.from({length:4},(_,i)=>Math.round((hi-(hi-lo)*i/3)*factor).toLocaleString('en-US'));
+  L=Math.min(190,Math.max(72,Math.ceil(Math.max(...ticks.map(t=>t.length))*6.8+18)));
   const x=i=>L+(W-L-R)*i/Math.max(1,data.length-1),y=v=>T+(H-T-B)*(hi-v)/(hi-lo);
   const points=data.map((v,i)=>`${x(i).toFixed(2)},${y(v.total).toFixed(2)}`),poly=points.join(' '),area=`${L},${H-B} ${poly} ${x(data.length-1).toFixed(2)},${H-B}`;
   const every=Math.max(1,Math.ceil((data.length-1)/6));
   const labels=data.map((d,i)=>(i%every===0||i===data.length-1)?`<text x="${x(i)}" y="${H-8}" text-anchor="middle">${esc(d.date.slice(2))}</text>`:'').join('');
-  const grid=Array.from({length:4},(_,i)=>{const yy=T+(H-T-B)*i/3,amount=hi-(hi-lo)*i/3;return `<line class="fc-gridline" x1="${L}" x2="${W-R}" y1="${yy}" y2="${yy}"/><text x="${L-7}" y="${yy+3}" text-anchor="end">${esc(Math.round(amount).toLocaleString('en-US'))}</text>`}).join('');
-  host.innerHTML=`<svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" role="img" aria-label="${esc(tr('Forecast through ','资产预测截至 ')+monthLabel(out.end)+': '+usd(out.rows.at(-1).total))}">${grid}<polygon class="fc-fill" points="${area}"/><polyline class="fc-plot" points="${poly}"/><circle cx="${x(data.length-1)}" cy="${y(data.at(-1).total)}" r="4" fill="#f3cf78"/>${labels}</svg>`;
+  const grid=Array.from({length:4},(_,i)=>{const yy=T+(H-T-B)*i/3,amount=hi-(hi-lo)*i/3;return `<line class="fc-gridline" x1="${L}" x2="${W-R}" y1="${yy}" y2="${yy}"/><text x="${L-7}" y="${yy+3}" text-anchor="end">${esc(Math.round(amount*factor).toLocaleString('en-US'))}</text>`}).join('');
+  host.innerHTML=`<svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" role="img" aria-label="${esc(tr('Forecast through ','资产预测截至 ')+monthLabel(out.end)+': '+displayMoney(out.rows.at(-1).total,out.fx))}">${grid}<polygon class="fc-fill" points="${area}"/><polyline class="fc-plot" points="${poly}"/><circle cx="${x(data.length-1)}" cy="${y(data.at(-1).total)}" r="4" fill="#f3cf78"/>${labels}</svg>`;
  }
  function exportCSV(){
   const out=calculate();if(!out.valid)return;
@@ -372,6 +382,10 @@
  }
  function onChange(e){
   const node=e.target;
+  if(node instanceof HTMLSelectElement&&node.id==='fc-display-currency'){
+   if(!validCcy(node.value))return;
+   state.viewCurrency=node.value;save();updateOutputs();return;
+  }
   if(node instanceof HTMLInputElement&&node.id==='fc-day-month'){
    if(!validMonth(node.value)||node.value>monthKey()||node.value<'2020-01'){node.value=state.dailyMonth||monthKey();return}
    state.dailyMonth=node.value;save();layout();return;
@@ -440,7 +454,7 @@
   if(action==='export'){exportCSV();return}
   if(action==='reset'){
    if(typeof window.mmhVaultConfirmV740!=='function'||!(await window.mmhVaultConfirmV740(tr('Reset local forecast settings for this account? Real transactions remain unchanged.','确定重置当前账户在本浏览器的预测设置吗？不会改变真实交易。'),tr('Reset forecast','重置资产预测'))))return;
-   state=defaultState();save();layout();
+   const previousCurrency=state.viewCurrency;state=defaultState();state.viewCurrency=previousCurrency;save();layout();
   }
  }
  function resetDailyMonthOnCalendarChange(){const today=monthKey();if(lastDailyCalendar&&today!==lastDailyCalendar&&state)state.dailyMonth='';lastDailyCalendar=today}

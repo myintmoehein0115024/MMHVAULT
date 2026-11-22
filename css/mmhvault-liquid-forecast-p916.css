@@ -175,3 +175,36 @@ html body.mmh-workspace-active.light #forecast .fc-field>span{color:#345e75!impo
 @media(prefers-reduced-motion:reduce){
  html body.mmh-workspace-active #forecast .fc-money-pair{transition:none!important}
 }
+
+/* Forecast view currency: premium glass control, isolated to this page. */
+html body.mmh-workspace-active #forecast .fc-display-bar{
+  display:flex;align-items:center;justify-content:flex-end;flex-wrap:wrap;
+  gap:10px;padding:0 3px;margin:0 0 2px;min-width:0;
+}
+html body.mmh-workspace-active #forecast .fc-display-bar label{
+  font-size:12px;font-weight:650;letter-spacing:.015em;color:#b9d3e4;
+}
+html body.mmh-workspace-active #forecast .fc-display-bar select{
+  width:auto;min-width:186px;max-width:100%;min-height:39px;
+  padding:8px 13px;border:1px solid rgba(231,192,115,.57);
+  border-radius:12px;outline:none;font:inherit;font-size:12px;
+  background:linear-gradient(125deg,#173d58,#092236);
+  color:#f5d48a;box-shadow:inset 0 1px 0 rgba(255,255,255,.13);
+  cursor:pointer;
+}
+html body.mmh-workspace-active #forecast .fc-display-bar select:focus-visible{
+  outline:2px solid #f1cb78;outline-offset:2px;
+}
+html body.mmh-workspace-active.light #forecast .fc-display-bar label{color:#31556c}
+html body.mmh-workspace-active.light #forecast .fc-display-bar select{
+  color:#765015;background:linear-gradient(135deg,#ffffff,#e8f3f9);
+  border-color:rgba(144,110,52,.55);
+}
+@media(max-width:560px){
+  html body.mmh-workspace-active #forecast .fc-display-bar{justify-content:space-between;gap:8px}
+  html body.mmh-workspace-active #forecast .fc-display-bar select{min-width:155px}
+}
+@media(max-width:350px){
+  html body.mmh-workspace-active #forecast .fc-display-bar label{width:100%}
+  html body.mmh-workspace-active #forecast .fc-display-bar select{width:100%;min-width:0}
+}
