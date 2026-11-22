@@ -12808,18 +12808,18 @@ html.mmh-desktop-compact-v11110 body.mmh-workspace-active #moreNavMenu.more-nav-
       <div class="cfa-card cfa-income"><span>INCOME</span><strong id="cfaIncome">$ 0.00</strong><small>Ordinary income</small></div>
       <div class="cfa-card cfa-expense"><span>INDIVIDUAL EXPENSE</span><strong id="cfaIndividual">$ 0.00</strong><small>Everyday Expense transactions</small></div>
       <div class="cfa-card cfa-personal"><span>PERSONAL</span><strong id="cfaPersonal">$ 0.00</strong><small>Personal and family spending</small></div>
-      <div class="cfa-card cfa-remaining"><span>CURRENT ACCOUNT BALANCE</span><strong id="cfaRemaining">—</strong><small>Live · matches Accounts Net Assets</small></div>
+      <div class="cfa-card cfa-remaining"><span id="cfaRemainingLabelV203">CURRENT ACCOUNT BALANCE</span><strong id="cfaRemaining">—</strong><small id="cfaRemainingNoteV203">Live · matches Accounts Net Assets</small></div>
     </div>
     <div class="cfa-efficiency-kpis" aria-live="polite">
       <div class="cfa-mini-card cfa-savings-rate"><span>SAVINGS RATE</span><strong id="cfaSavingsRate">—</strong><small>Period net savings ÷ income</small></div>
       <div class="cfa-mini-card cfa-daily-spend"><span>AVG DAILY SPEND</span><strong id="cfaDailySpend">$ 0.00</strong><small id="cfaDailySpendMeta">Average across the selected period</small></div>
     </div>
-    <section class="cfa-panel cfa-reconcile-v202"><div class="cfa-panel-head"><div><h2>Period savings &amp; balance movements</h2><p>Visible in your data, excluded from ordinary income/expense and savings rate.</p></div></div><div class="cfa-reconcile-grid-v202">
-      <div><span>Period Net Savings</span><strong id="cfaPeriodSavingsV202">—</strong></div>
+    <section class="cfa-panel cfa-reconcile-v202"><div class="cfa-panel-head"><div><h2>Period savings &amp; balance movements</h2><p>Monthly savings and live assets are shown separately; adjustments, transfers and loans do not enter the savings rate.</p></div></div><div class="cfa-reconcile-grid-v202">
+      <div><span id="cfaSecondaryLabelV203">Period Net Savings</span><strong id="cfaPeriodSavingsV202">—</strong><small id="cfaSecondaryNoteV203">Ordinary income − spending</small></div>
       <div><span>Data Adjustment</span><strong id="cfaAdjustV202">—</strong><small id="cfaAdjustRecordsV202"></small></div>
       <div><span>Transfer Difference</span><strong id="cfaTransferV202">—</strong><small id="cfaTransferRecordsV202"></small></div>
       <div><span>Loan Cash Movement</span><strong id="cfaLoanV202">—</strong><small id="cfaLoanRecordsV202"></small></div>
-    </div><p class="cfa-method">Transfer differences use saved reference exchange rates and are not necessarily realized losses. The live balance is always your current Accounts net assets, not a historical month/year balance.</p></section>
+    </div><p class="cfa-method">Transfer differences use saved reference exchange rates and are not necessarily realized losses. Current Account Balance is a live Accounts net-assets snapshot; Monthly Remaining and Annual Net Savings reflect the selected period.</p></section>
     <div class="cfa-detail-grid">
       <section class="cfa-panel cfa-cloud-budget-v112" aria-labelledby="cfaBudgetTitle">
         <div class="cfa-panel-head"><div><h2 id="cfaBudgetTitle" class="mmh-hint-anchor-v195 mmh-context-title-v199" data-mmh-hint-source="next" tabindex="0">Individual Expense Budget</h2><p class="mmh-context-desc-v199">Cloud Budget from Budget Center for the selected period.</p></div><span class="cfa-badge" id="cfaBudgetSourceV112">Cloud synced</span></div>
@@ -27780,6 +27780,19 @@ html,body{max-width:100%;overflow-x:clip}
     return result;
   }
   function periodRows(){const key=context().key;return (Array.isArray(transactions)?transactions:[]).filter(t=>String(t.tx_date||'').startsWith(key))}
+  function balanceCardsV203(mode,savings,live){
+    const monthly=mode==='month';
+    const current=live?.ready&&Number.isFinite(Number(live.total))?Number(live.total):null;
+    return {
+      primaryLabel:monthly?'MONTHLY REMAINING':'CURRENT ACCOUNT BALANCE',
+      primaryNote:monthly?'Income − Individual Expense − Personal':'Live · matches Accounts Net Assets',
+      primaryValue:monthly?savings:current,
+      secondaryLabel:monthly?'Current Account Balance':'Annual Net Savings',
+      secondaryNote:monthly?'Live · Accounts Net Assets':'Ordinary income − Individual Expense − Personal',
+      secondaryValue:monthly?current:savings
+    };
+  }
+
   function periodDayCount(){
     const now=new Date(),todayYear=now.getFullYear(),todayMonth=now.getMonth()+1;
     if(state.mode==='month'){
@@ -27835,12 +27848,17 @@ html,body{max-width:100%;overflow-x:clip}
     $('cfaPeriodLabel').textContent=state.mode==='month'?new Date(state.month+'-01T12:00:00').toLocaleDateString((localStorage.getItem('mmhvault_language_v3363')==='zh'?'zh-CN':'en-US'),{month:'long',year:'numeric'}):String(state.year);
     const live=window.MMHBalanceBridgeV202?.current?.()||{ready:false};
     const movement=window.MMHBalanceBridgeV202?.movements?.(periodRows());
-    $('cfaPeriodSavingsV202').textContent=money(result.remaining);
+    const card=balanceCardsV203(state.mode,result.remaining,live);
+    $('cfaRemainingLabelV203').textContent=card.primaryLabel;
+    $('cfaRemainingNoteV203').textContent=card.primaryNote;
+    $('cfaSecondaryLabelV203').textContent=card.secondaryLabel;
+    $('cfaSecondaryNoteV203').textContent=card.secondaryNote;
+    $('cfaPeriodSavingsV202').textContent=Number.isFinite(card.secondaryValue)?money(card.secondaryValue):'—';
     for(const [key,valueId,noteId] of [['adjustments','cfaAdjustV202','cfaAdjustRecordsV202'],['transfers','cfaTransferV202','cfaTransferRecordsV202'],['loans','cfaLoanV202','cfaLoanRecordsV202']]){
       const item=movement?.[key];$(valueId).textContent=item?.valid?money(item.usd):'—';
       $(noteId).textContent=(item?.count||0)+' record(s) · not in savings rate'+(item?.valid?'':' · FX missing');
     }
-    $('cfaIncome').textContent=money(result.income);$('cfaIndividual').textContent=money(result.individual);$('cfaPersonal').textContent=money(result.personal);$('cfaRemaining').textContent=live.ready?money(live.total):'—';$('cfaRemaining').classList.toggle('negative',live.ready&&live.total<0);
+    $('cfaIncome').textContent=money(result.income);$('cfaIndividual').textContent=money(result.individual);$('cfaPersonal').textContent=money(result.personal);$('cfaRemaining').textContent=Number.isFinite(card.primaryValue)?money(card.primaryValue):'—';$('cfaRemaining').classList.toggle('negative',Number.isFinite(card.primaryValue)&&card.primaryValue<0);
     const totalSpend=result.individual+result.personal,savingsRate=result.income>0?(result.remaining/result.income*100):null,days=periodDayCount(),dailySpend=days>0?result.individual/days:0;
     const savingsEl=$('cfaSavingsRate');savingsEl.textContent=savingsRate===null?'—':savingsRate.toFixed(2)+'%';savingsEl.classList.toggle('positive',savingsRate!==null&&savingsRate>=0);savingsEl.classList.toggle('negative',savingsRate!==null&&savingsRate<0);
     $('cfaDailySpend').textContent=money(dailySpend);$('cfaDailySpendMeta').textContent=`Individual expense ${money(result.individual)} ÷ ${days} day${days===1?'':'s'}`;
