@@ -173,7 +173,7 @@ html body.mmh-workspace-active:not(.light) #settings #stPage_feedback .mmh-fb65-
 html body.mmh-workspace-active:not(.light) #settings #stPage_feedback .mmh-fb65-art{
  height:185px;background:
  linear-gradient(180deg,transparent 67%,rgba(5,25,45,.88)),
- url('../assets/feedback-glass-art-p65.webp') center/cover no-repeat;
+ url('../images/feedback-glass-art-p65.webp') center/cover no-repeat;
  border-bottom:1px solid rgba(138,202,239,.20);}
 html body.mmh-workspace-active:not(.light) #settings #stPage_feedback .mmh-fb65-aside-inner{padding:17px 18px 19px}
 html body.mmh-workspace-active:not(.light) #settings #stPage_feedback .mmh-fb65-aside-title{font-size:16px!important;line-height:1.32;margin:0 0 7px;color:#f3f9ff}

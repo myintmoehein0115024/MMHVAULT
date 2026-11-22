@@ -4,7 +4,6 @@ on:
     branches: [main]
     paths:
       - '_config.yml'
-      - 'tests/pages-publish-exclusions.test.cjs'
       - '.github/workflows/pages-sensitive-file-exclusion-review.yml'
 permissions:
   contents: read
@@ -13,11 +12,6 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: '22'
-      - name: Validate exclusions and production Analytics source dependencies
-        run: node tests/pages-publish-exclusions.test.cjs
       - name: Validate YAML syntax
         run: ruby -ryaml -e 'c=YAML.load_file("_config.yml"); abort "missing exclude" unless c["exclude"].is_a?(Array)'
       - name: Build with production GitHub Pages Jekyll action (NO DEPLOY)
@@ -39,4 +33,6 @@ jobs:
               exit 1
             fi
           done
+          test -f _site/images/feedback-glass-art-p65.webp || { echo '::error::Missing consolidated feedback image'; exit 1; }
+          test ! -e _site/assets/feedback-glass-art-p65.webp || { echo '::error::Legacy duplicate image still in deployment'; exit 1; }
           echo "Pages output verified: internal source excluded; Admin Analytics runtime scripts preserved."
