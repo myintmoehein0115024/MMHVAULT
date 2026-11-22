@@ -1,4 +1,4 @@
-/* MMHVAULT · Future Asset Forecast v1.6 · Premium regular and monthly editor
+/* MMHVAULT · Future Asset Forecast v1.7 · Compact extras and mobile month layout
  * Owner-scoped, locally stored what-if estimates. Never writes ledger, investments, FX or Supabase.
  */
 (()=>{'use strict';
@@ -300,7 +300,7 @@
   const hasExtraChanges=FIELDS.some(f=>!f.base&&(Object.prototype.hasOwnProperty.call(overrides,f.key)||Object.prototype.hasOwnProperty.call(ccys,f.key)));
   return `<details class="fc-month" data-fc-card="${date}"><summary><div class="fc-month-name">${esc(monthLabel(date))}<small>${tr('Month ','第')}${i+1}${tr(' · tap to edit','个月 · 点击调整')}</small></div><div class="fc-month-data"><small>${tr('Total income','总收入')}</small><strong data-fc-income="${date}">—</strong></div><div class="fc-month-data"><small>${tr('Personal spending','个人支出')}</small><strong class="fc-cost" data-fc-personal="${date}">—</strong><em class="fc-native" data-fc-personal-native="${date}">—</em></div><div class="fc-month-data"><small>${tr('Family transfers','家庭支出')}</small><strong class="fc-cost" data-fc-family="${date}">—</strong><em class="fc-native" data-fc-family-native="${date}">—</em></div><div class="fc-month-net"><small>${tr('Monthly change','当月净变化')}</small><strong data-fc-net="${date}">—</strong><em class="fc-native" data-fc-month-rate="${date}">—</em></div><div class="fc-month-total"><small>${tr('Month-end assets','月末总资产')}</small><strong data-fc-total="${date}">—</strong></div><span class="fc-chevron" aria-hidden="true">›</span></summary><div class="fc-month-fields"><div class="fc-month-hint">${tr('Changes here apply to this month only. Leave a value blank to use the regular amount.','这里的调整仅用于本月，留空将沿用常规金额。')}</div>
      <div class="fc-month-category-grid">${regularInputs}</div>
-     <details class="fc-month-additional"${hasExtraChanges?' open':''}><summary><span class="fc-additional-icon">＋</span><span>${tr('One-time bonuses & extra spending','一次性奖金与额外支出')}</span><span class="fc-additional-hint">${tr('Optional adjustments','可选调整')}</span><span class="fc-additional-chevron">⌄</span></summary><div class="fc-month-additional-fields">${extraInputs}</div></details>
+     <details class="fc-month-additional"${hasExtraChanges?' open':''}><summary><span class="fc-additional-icon" aria-hidden="true">＋</span><span class="fc-additional-title">${tr('Bonuses & extra spending','奖金与额外支出')}</span><span class="fc-additional-hint">${tr('Optional','可选')}</span><span class="fc-additional-chevron" aria-hidden="true">⌄</span></summary><div class="fc-month-additional-fields">${extraInputs}</div></details>
      <div class="fc-month-extra" data-fc-extra-note="${date}">—</div><div class="fc-month-actions"><button type="button" class="fc-btn alt" data-fc-clear-month="${date}">${tr('Clear month changes','清除本月调整')}</button></div></div></details>`;
  }
  function regularEditorHTML(group){
