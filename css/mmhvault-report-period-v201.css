@@ -1,0 +1,91 @@
+/* MMHVAULT Report Period / Annual V2.01 · additive, read-only presentation. */
+#reports .report-period-toolbar-v201{
+  display:flex;align-items:end;justify-content:space-between;gap:12px;flex-wrap:wrap;
+  margin:0;padding:9px 12px;border:1px solid rgba(134,192,223,.33);
+  border-radius:15px;background:linear-gradient(130deg,rgba(33,73,99,.67),rgba(4,25,46,.86));
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.09);min-width:0;
+}
+#reports .report-period-switch-v201{display:inline-flex;gap:4px;align-items:center;padding:4px;border-radius:12px;background:rgba(5,25,43,.68);border:1px solid rgba(137,190,222,.24)}
+#reports .report-period-switch-v201 button{
+  font:inherit;font-size:12px;font-weight:750;color:#a5c4d7;border:0;
+  border-radius:9px;padding:10px 17px;background:transparent;cursor:pointer;white-space:nowrap
+}
+#reports .report-period-switch-v201 button.is-active{color:#ffe5ab;background:linear-gradient(125deg,rgba(196,154,77,.45),rgba(50,97,126,.55));box-shadow:inset 0 0 0 1px rgba(246,197,111,.33)}
+#reports .report-period-range-v201{display:flex;align-items:end;gap:7px;min-width:0;flex-wrap:wrap}
+#reports .report-period-range-v201 label{display:grid;gap:4px;color:#aec7d7;font-size:10px;line-height:1.3;font-weight:750}
+#reports .report-period-range-v201 :is(select,button){
+  height:39px;border:1px solid rgba(120,175,207,.45);border-radius:10px;
+  color:#e9f5ff;background:linear-gradient(130deg,rgba(38,82,112,.80),rgba(6,34,56,.94));
+  font:inherit;font-size:12px;cursor:pointer
+}
+#reports .report-period-range-v201 select{min-width:168px;padding:7px 10px}
+#reports .report-period-range-v201 button{min-width:36px;padding:0 12px;font-size:22px;line-height:1}
+#reports .report-period-range-v201 button.report-today-v201{font-size:11px;min-width:0;color:#f7dca2;padding:0 13px}
+#reports .report-period-range-v201 :is(select,button):focus-visible,
+#reports .report-period-switch-v201 button:focus-visible,
+#reports .report-annual-cell-v201:focus-visible{outline:2px solid #e5bc70;outline-offset:2px}
+#reports .report-period-range-v201 .report-quick-year-v201{display:none}
+#reports.report-year-v201 .report-period-range-v201 .report-quick-month-v201{display:none}
+#reports.report-year-v201 .report-period-range-v201 .report-quick-year-v201{display:grid}
+#reports.report-year-v201 .report-controls-v115>label:first-child{display:none!important}
+#reports .report-period-toolbar-v201 button[hidden]{display:none!important}
+#reports .report-annual-view-v201[hidden]{display:none!important}
+#reports.report-year-v201 .report-shell-v115 > :not(.report-head-v115):not(.report-period-toolbar-v201):not(.report-annual-view-v201){display:none!important}
+#reports .report-annual-view-v201{display:grid;gap:13px;min-width:0;width:100%;grid-column:1/-1}
+#reports .report-annual-title-v201{
+  display:flex;align-items:center;justify-content:space-between;gap:16px;padding:15px 18px;
+  border:1px solid rgba(210,172,103,.4);border-radius:17px;
+  background:linear-gradient(125deg,rgba(40,80,108,.7),rgba(4,27,47,.9))
+}
+#reports .report-annual-title-v201 span{color:#e8be6d;letter-spacing:.14em;font-size:11px;font-weight:800}
+#reports .report-annual-title-v201 h2{margin:3px 0 2px;color:#f3f8fc;font-size:24px}
+#reports .report-annual-title-v201 p{margin:0;color:#a9c6d8;font-size:11px}
+#reports .report-annual-title-v201>small{color:#eac67f;font-size:12px;font-weight:800}
+#reports .report-annual-kpis-v201{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;min-width:0}
+#reports .report-annual-kpis-v201 .report-kpi-v115{min-width:0;overflow:hidden}
+#reports .report-annual-kpis-v201 .report-kpi-v115 strong{overflow-wrap:anywhere}
+#reports .report-annual-panels-v201{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:13px;min-width:0}
+#reports .report-annual-panel-v201{min-width:0;padding:16px;border-radius:17px}
+#reports .report-annual-panel-v201 h2{font-size:17px;margin:0 0 12px;color:#f2f8ff}
+#reports .report-annual-muted-v201{color:#9abbd0;font-size:11px;line-height:1.6;margin:6px 0 11px}
+#reports .report-annual-compare-v201{display:grid;gap:10px}
+#reports .report-annual-compare-v201>div{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:4px;border-bottom:1px solid rgba(123,171,199,.16);padding-bottom:8px;min-width:0}
+#reports .report-annual-compare-v201>div span{color:#aac9dc;font-size:12px}
+#reports .report-annual-compare-v201>div b{font-size:15px;color:#eff7fe;overflow-wrap:anywhere}
+#reports .report-annual-compare-v201>div small{grid-column:1/-1;font-size:10px;color:#8eb7d1}
+#reports .report-annual-live-grid-v201{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+#reports .report-annual-live-grid-v201 span{display:flex;flex-direction:column;gap:5px;padding:11px;background:rgba(2,22,41,.48);border-radius:11px;color:#8fb2c8;font-size:11px;min-width:0}
+#reports .report-annual-live-grid-v201 b{color:#eaf7ff;font-size:16px;overflow-wrap:anywhere}
+#reports .report-annual-months-v201{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:9px}
+#reports .report-annual-cell-v201{
+  cursor:pointer;display:flex;flex-direction:column;align-items:stretch;gap:5px;text-align:left;min-width:0;
+  border:1px solid rgba(115,171,208,.3);border-radius:12px;padding:11px;
+  color:#daeefa;background:linear-gradient(145deg,rgba(38,79,109,.49),rgba(4,26,46,.69))
+}
+#reports .report-annual-cell-v201:hover{border-color:rgba(232,191,107,.75);transform:translateY(-1px)}
+#reports .report-annual-cell-v201 strong{font-size:13px;color:#f0d4a0}
+#reports .report-annual-cell-v201 span,#reports .report-annual-cell-v201 em{font-size:11px;white-space:normal;overflow-wrap:anywhere;font-style:normal}
+#reports .report-annual-cell-v201 .plus{color:#69e2ab}
+#reports .report-annual-cell-v201 .minus{color:#ff97a8}
+#reports .report-annual-bars-v201{display:grid;gap:3px;width:100%;height:13px;align-content:center}
+#reports .report-annual-bars-v201 i{display:block;min-height:4px;border-radius:10px}
+#reports .report-annual-bars-v201 i.income{background:linear-gradient(90deg,#25aa7c,#6ae8b4)}
+#reports .report-annual-bars-v201 i.expense{background:linear-gradient(90deg,#b96a8a,#ff91b3)}
+#reports .report-annual-category-v201{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:11px 0;border-bottom:1px solid rgba(139,186,216,.17);font-size:12px;min-width:0}
+#reports .report-annual-category-v201 strong{overflow-wrap:anywhere}
+#reports .report-annual-category-v201 span{color:#b6d5e8;text-align:right;overflow-wrap:anywhere}
+#reports .report-annual-budget-metrics-v201{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+#reports .report-annual-budget-metrics-v201>div{display:grid;gap:5px;border:1px solid rgba(130,182,207,.22);border-radius:9px;padding:10px;min-width:0}
+#reports .report-annual-budget-metrics-v201 span{font-size:11px;color:#9ebed1}
+#reports .report-annual-budget-metrics-v201 b{font-size:15px;overflow-wrap:anywhere}
+#reports .report-annual-disclaimer-v201{font-size:11px;color:#9bb8cc;line-height:1.7;margin:1px 3px 9px}
+#reports .report-annual-warning-v201{font-size:12px;color:#ffe2a2;padding:10px;border:1px solid #ac8555;border-radius:9px}
+body.light #reports .report-period-toolbar-v201,body.light #reports .report-annual-title-v201,body.light #reports .report-annual-cell-v201{background:linear-gradient(135deg,#e9f4fa,#d8e8f1);border-color:#b7d3e2}
+body.light #reports .report-period-toolbar-v201 :is(label,button,select),body.light #reports .report-annual-title-v201 :is(h2,p),body.light #reports .report-annual-cell-v201 :is(span,strong,em){color:#27485d}
+body.light #reports .report-period-range-v201 :is(button,select){background:#fff;color:#27485d}
+body.light #reports .report-period-switch-v201 button.is-active{background:#d1b17f;color:#39270e}
+body.light #reports .report-annual-panel-v201 h2,body.light #reports .report-annual-live-grid-v201 b{color:#1b4058}
+@media(max-width:1060px){#reports .report-annual-months-v201{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media(max-width:780px){#reports .report-period-toolbar-v201{align-items:stretch}#reports .report-period-range-v201{width:100%;justify-content:flex-start}#reports .report-annual-kpis-v201{grid-template-columns:repeat(2,minmax(0,1fr))}#reports .report-annual-months-v201{grid-template-columns:repeat(2,minmax(0,1fr))}#reports .report-annual-panels-v201{grid-template-columns:1fr}}
+@media(max-width:480px){#reports .report-period-switch-v201{width:100%}#reports .report-period-switch-v201 button{flex:1}#reports .report-period-range-v201{display:grid;grid-template-columns:36px minmax(0,1fr) 36px;gap:7px}#reports .report-period-range-v201 label{min-width:0}#reports .report-period-range-v201 select{width:100%;min-width:0}#reports .report-period-range-v201 .report-today-v201{grid-column:1/-1;height:34px}#reports .report-annual-cell-v201{padding:9px}#reports .report-annual-cell-v201 span{font-size:10px}#reports .report-annual-live-grid-v201{grid-template-columns:repeat(2,minmax(0,1fr))}#reports .report-annual-kpis-v201 .report-kpi-v115 strong{font-size:clamp(14px,4vw,21px)!important}}
+@media(max-width:340px){#reports .report-annual-months-v201{grid-template-columns:1fr}#reports .report-annual-budget-metrics-v201{grid-template-columns:1fr}}

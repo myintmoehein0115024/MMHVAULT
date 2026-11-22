@@ -10901,6 +10901,7 @@ html.mmh-desktop-compact-v11110 body.mmh-workspace-active #moreNavMenu.more-nav-
 <link rel="stylesheet" href="css/mmhvault-invest-auto-pnl-v110.css?v=1.10.0">
 <link rel="stylesheet" href="css/mmhvault-invest-auto-pnl-v111.css?v=1.11.0">
 <link rel="stylesheet" href="css/mmhvault-invest-workspace-v2.css?v=2.0.0">
+<link rel="stylesheet" href="css/mmhvault-report-period-v201.css?v=2.01.0" />
 </head>
 <!-- MMHVAULT V4.3.6 · iOS JSON import bridge + V4.3.0 Dashboard report relocation + Transaction receipt center + Invest Add precision -->
 <body>
@@ -31526,9 +31527,10 @@ html body.mmh-workspace-active main.wrap .page.active :is(.empty,.mmh-ui-empty,.
   const $=id=>document.getElementById(id);
   const sleep=ms=>new Promise(r=>setTimeout(r,ms));
   let exportBusy=false;
-  function monthLabel(){const v=$('reportMonthV115')?.value||new Date().toISOString().slice(0,7);try{const [y,m]=v.split('-').map(Number);return new Date(y,m-1,1).toLocaleDateString((localStorage.getItem('mmhvault_language_v3363')==='zh'?'zh-CN':'en-US'),{year:'numeric',month:'long'})}catch(_){return v}}
+  function annualV201(){return window.MMHReportPeriodV201?.get()?.mode==='year'}
+  function monthLabel(){if(annualV201())return (window.MMHReportPeriodV201.get().year||new Date().getFullYear())+' '+(localStorage.getItem('mmhvault_language_v3363')==='zh'?'年度报告':'Annual Report');const v=$('reportMonthV115')?.value||new Date().toISOString().slice(0,7);try{const [y,m]=v.split('-').map(Number);return new Date(y,m-1,1).toLocaleDateString((localStorage.getItem('mmhvault_language_v3363')==='zh'?'zh-CN':'en-US'),{year:'numeric',month:'long'})}catch(_){return v}}
   function currency(){return $('reportCurrencyV115')?.value||'USD'}
-  function fileMonth(){return ($('reportMonthV115')?.value||new Date().toISOString().slice(0,7)).replace(/[^0-9-]/g,'')}
+  function fileMonth(){if(annualV201())return (window.MMHReportPeriodV201.get().year||new Date().getFullYear())+'-Annual';return ($('reportMonthV115')?.value||new Date().toISOString().slice(0,7)).replace(/[^0-9-]/g,'')}
   function generatedLabel(){try{return new Date().toLocaleString()}catch(_){return new Date().toISOString()}}
   function toast(msg,type='success'){try{window.MMHUI?.toast?.(msg,{title:'Financial Report',type})}catch(_){}}
   function message(msg,type='error'){if(window.MMHUI?.message)return window.MMHUI.message(msg,'Financial Report',{type});console.warn('[MMHVAULT]',msg)}
@@ -31536,7 +31538,7 @@ html body.mmh-workspace-active main.wrap .page.active :is(.empty,.mmh-ui-empty,.
   async function ensureCanvas(){await loadScript('https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js',()=>typeof window.html2canvas==='function')}
   async function ensurePdf(){await Promise.all([ensureCanvas(),loadScript('https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js',()=>!!window.jspdf?.jsPDF)])}
   function stripIds(root){root.querySelectorAll('[id]').forEach(el=>el.removeAttribute('id'))}
-  function makeStage(){const page=$('reports'),shell=page?.querySelector('.report-shell-v115');if(!page||!shell)throw new Error('Financial Report is not ready.');const stage=document.createElement('div');stage.className='report-export-stage-v116';stage.setAttribute('aria-hidden','true');const clone=shell.cloneNode(true);stripIds(clone);const brand=document.createElement('div');brand.className='report-export-brand-v116';brand.innerHTML='<div><b>MMHVAULT</b><small>MONTHLY FINANCIAL REPORT</small></div><span>'+monthLabel()+' · '+currency()+'<br>Generated '+generatedLabel()+'</span>';clone.prepend(brand);const footer=document.createElement('div');footer.className='report-export-footer-v116';footer.innerHTML='<span>MMHVAULT · Personal Finance & Wealth Management</span><span>Private financial report · generated from your signed-in workspace</span>';clone.append(footer);stage.append(clone);page.append(stage);return stage}
+  function makeStage(){const page=$('reports'),shell=page?.querySelector('.report-shell-v115');if(!page||!shell)throw new Error('Financial Report is not ready.');const stage=document.createElement('div');stage.className='report-export-stage-v116';stage.setAttribute('aria-hidden','true');const clone=shell.cloneNode(true);stripIds(clone);const brand=document.createElement('div');brand.className='report-export-brand-v116';brand.innerHTML='<div><b>MMHVAULT</b><small>'+(annualV201()?'ANNUAL FINANCIAL REPORT':'MONTHLY FINANCIAL REPORT')+'</small></div><span>'+monthLabel()+' · '+currency()+'<br>Generated '+generatedLabel()+'</span>';clone.prepend(brand);const footer=document.createElement('div');footer.className='report-export-footer-v116';footer.innerHTML='<span>MMHVAULT · Personal Finance & Wealth Management</span><span>Private financial report · generated from your signed-in workspace</span>';clone.append(footer);stage.append(clone);page.append(stage);return stage}
   async function capture(){await ensureCanvas();const stage=makeStage();try{await sleep(80);if(document.fonts?.ready)await Promise.race([document.fonts.ready,sleep(1500)]);const canvas=await window.html2canvas(stage,{backgroundColor:'#06111f',scale:2,useCORS:true,logging:false,removeContainer:false,windowWidth:1180,scrollX:0,scrollY:0});return canvas}finally{stage.remove()}}
   function downloadBlob(blob,name){const url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download=name;a.rel='noopener';document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),3000)}
   async function exportImage(){if(exportBusy)return;exportBusy=true;const btn=$('reportExportImageV116'),old=btn?.textContent;if(btn){btn.disabled=true;btn.textContent='Rendering…'}try{const canvas=await capture();const blob=await new Promise((resolve,reject)=>canvas.toBlob(b=>b?resolve(b):reject(new Error('Unable to create image.')),'image/png',1));downloadBlob(blob,`MMHVAULT-Report-${fileMonth()}-${currency()}.png`);toast('Report image exported.')}catch(err){console.warn('[MMHVAULT] report image export failed',err);message(err?.message||'Unable to export the report image.')}finally{exportBusy=false;if(btn){btn.disabled=false;btn.textContent=old||'Export Image'}}}
@@ -35420,5 +35422,6 @@ html body #settings.page.active #stPage_security #mmhA783SecurityCenter .mmh-a78
 <!-- Accounts Premium Directory V1: presentation-only, late cascade, isolated from finance/auth. -->
 <link rel="stylesheet" href="css/mmhvault-accounts-directory-v1.css?v=1.0.1" data-mmh-accounts-directory="v1">
 <script defer src="js/mmhvault-accounts-directory-v1.js?v=1.0.1"></script>
+<script defer src="js/mmhvault-report-period-v201.js?v=2.01.0"></script>
 </body>
 </html>
