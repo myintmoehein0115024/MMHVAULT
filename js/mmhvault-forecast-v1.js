@@ -1,4 +1,4 @@
-/* MMHVAULT · Future Asset Forecast v1.4.1 · Dashboard Order Guard
+/* MMHVAULT · Future Asset Forecast v1.5 · Regular editor, savings rate, explicit save
  * Owner-scoped, locally stored what-if estimates. Never writes ledger, investments, FX or Supabase.
  */
 (()=>{'use strict';
@@ -19,7 +19,7 @@
   {key:'extraU',en:'Extra spending B',zh:'额外支出 B',def:0,ccy:'USD',type:'extra'}
  ];
  const FIELD=Object.fromEntries(FIELDS.map(x=>[x.key,x]));
- let activeOwner='',state=null,lastFirst='',midnightTimer=0,lastDailyCalendar='';
+ let activeOwner='',state=null,lastFirst='',midnightTimer=0,lastDailyCalendar='',dirty=false,customSequence=0;
  const el=id=>document.getElementById(id);
  const isZh=()=>{try{return(localStorage.getItem('mmhvault_language_v3363')||'en')==='zh'}catch(_){return false}};
  const tr=(en,zh)=>isZh()?zh:en;
@@ -41,15 +41,30 @@
  const unitName=c=>isZh()?({USD:'美元 / U',CNY:'人民币 CNY',THB:'泰铢 THB',MMK:'缅币 MMK'}[c]||c):c;
  const owner=()=>{try{return typeof currentSessionUser!=='undefined'?String(currentSessionUser?.id||''):''}catch(_){return ''}};
  const localKey=id=>STORAGE+id;
- const defaultState=()=>({base:Object.fromEntries(FIELDS.filter(f=>f.base).map(f=>[f.key,f.def])),baseCurrencies:Object.fromEntries(FIELDS.filter(f=>f.base).map(f=>[f.key,f.ccy])),months:{},monthCurrencies:{},end:'',dailyMonth:'',rate:null,fxOverrides:{},viewCurrency:'USD',salaryConfigured:false});
+ const defaultState=()=>({base:Object.fromEntries(FIELDS.filter(f=>f.base).map(f=>[f.key,f.def])),baseCurrencies:Object.fromEntries(FIELDS.filter(f=>f.base).map(f=>[f.key,f.ccy])),disabledBase:[],customItems:[],targetSavingsRate:60,months:{},monthCurrencies:{},end:'',dailyMonth:'',rate:null,fxOverrides:{},viewCurrency:'USD',salaryConfigured:false});
  const validCcy=c=>CURRENCIES.includes(c);
+  const customToField=item=>({key:item.key,en:item.label,zh:item.label,def:0,ccy:item.currency,type:item.type,base:true});
+  const allFields=()=>FIELDS.filter(f=>!f.base||!state.disabledBase.includes(f.key)).concat(state.customItems.map(customToField));
+  const regularFields=()=>allFields().filter(f=>f.base);
+  const fieldByKey=k=>FIELD[k]||(state.customItems.find(x=>x.key===k)?customToField(state.customItems.find(x=>x.key===k)):null);
+  const baseAmount=f=>FIELD[f.key]?state.base[f.key]:(state.customItems.find(x=>x.key===f.key)?.amount??0);
+  const baseCurrency=f=>FIELD[f.key]?state.baseCurrencies[f.key]:(state.customItems.find(x=>x.key===f.key)?.currency||'USD');
+  const savingRate=(income,net)=>Number.isFinite(income)&&income>0&&Number.isFinite(net)?net/income*100:null;
+  const savingsRateText=r=>r===null?'—':r.toFixed(1)+'%';
  function getState(id){
   if(!id)return defaultState();
   try{
    const raw=JSON.parse(localStorage.getItem(localKey(id))||'null');
-   if(!raw||typeof raw!=='object'||![1,2].includes(raw.version))return defaultState();
+   if(!raw||typeof raw!=='object'||![1,2,3].includes(raw.version))return defaultState();
    const next=defaultState();
    next.viewCurrency=validCcy(raw.viewCurrency)?raw.viewCurrency:'USD';
+    next.disabledBase=Array.isArray(raw.disabledBase)?[...new Set(raw.disabledBase.filter(k=>FIELD[k]?.base))]:[];
+    if(Array.isArray(raw.customItems))for(const item of raw.customItems.slice(0,40)){
+      if(!item||!/^custom_[a-z0-9_]{1,70}$/.test(String(item.key||''))||next.customItems.some(x=>x.key===item.key))continue;
+      const amount=val(item.amount);
+      next.customItems.push({key:item.key,label:String(item.label||'').trim().slice(0,48)||'Other',type:item.type==='income'?'income':'personal',amount:amount===null?0:amount,currency:validCcy(item.currency)?item.currency:'USD'});
+    }
+    if(Number.isFinite(+raw.targetSavingsRate)&&raw.targetSavingsRate!==null&&raw.targetSavingsRate!==''&&+raw.targetSavingsRate>=0&&+raw.targetSavingsRate<=100)next.targetSavingsRate=+raw.targetSavingsRate;
    // V1.3 and earlier stored a salary with every saved plan; migrate a saved plan as configured.
    // Fresh defaults and an explicit Reset scenario remain NOT configured.
    next.salaryConfigured=typeof raw.salaryConfigured==='boolean'?raw.salaryConfigured:
@@ -67,20 +82,30 @@
    if(raw.months&&typeof raw.months==='object'){
     for(const [date,fields] of Object.entries(raw.months)){
      if(!validMonth(date)||!fields||typeof fields!=='object')continue;
-     const clean={};for(const f of FIELDS)if(fields[f.key]!==''&&fields[f.key]!=null&&val(fields[f.key])!==null)clean[f.key]=+fields[f.key];
+     const clean={};for(const f of [...FIELDS,...next.customItems.map(customToField)])if(fields[f.key]!==''&&fields[f.key]!=null&&val(fields[f.key])!==null)clean[f.key]=+fields[f.key];
      if(Object.keys(clean).length)next.months[date]=clean;
     }
    }
    if(raw.monthCurrencies&&typeof raw.monthCurrencies==='object')for(const [date,fields] of Object.entries(raw.monthCurrencies)){
     if(!validMonth(date)||!fields||typeof fields!=='object')continue;
-    const clean={};for(const f of FIELDS)if(validCcy(fields[f.key]))clean[f.key]=fields[f.key];
+    const clean={};for(const f of [...FIELDS,...next.customItems.map(customToField)])if(validCcy(fields[f.key]))clean[f.key]=fields[f.key];
     if(Object.keys(clean).length)next.monthCurrencies[date]=clean;
    }
    return next;
   }catch(_){return defaultState()}
  }
- function save(){if(!activeOwner||!state)return;try{localStorage.setItem(localKey(activeOwner),JSON.stringify({...state,version:2}))}catch(e){console.warn('[MMHVAULT Forecast] Storage unavailable',e)}}
- function syncOwner(){const id=owner();if(id!==activeOwner){activeOwner=id;state=getState(id);lastFirst='';if(!id)el('mmhDailyDashboardV13')?.remove()}}
+ function updateSaveStatus(){
+    const status=el('fc-save-status'),button=el('fc-save-btn');
+    if(status)status.textContent=dirty?tr('Unsaved changes · click Save settings to keep them after refresh','有尚未保存的修改 · 请点击保存设置'):tr('Settings saved on this device','设置已保存到当前设备');
+    if(button)button.disabled=!dirty||!activeOwner;
+  }
+  function save(){dirty=true;updateSaveStatus()}
+  function persist(){
+    if(!activeOwner||!state)return false;
+    try{localStorage.setItem(localKey(activeOwner),JSON.stringify({...state,version:3}));dirty=false;updateSaveStatus();return true}
+    catch(e){console.warn('[MMHVAULT Forecast] Storage unavailable',e);showWarning(tr('Could not save settings on this device. Check browser storage.','保存失败，请检查浏览器存储是否可用。'));return false}
+  }
+ function syncOwner(){const id=owner();if(id!==activeOwner){activeOwner=id;state=getState(id);dirty=false;lastFirst='';if(!id)el('mmhDailyDashboardV13')?.remove()}}
  function active(){return !!el(PAGE)?.classList.contains('active')}
  function ratesNow(){
   const obj=window.rates||(typeof rates!=='undefined'?rates:null);
@@ -106,22 +131,33 @@
  const effectiveEnd=first=>state.end||shift(first,21);
  function range(first,end){if(!validMonth(first)||!validMonth(end)||end<first)return [];const out=[];let d=first;for(let i=0;i<240&&d<=end;i++){out.push(d);d=shift(d,1)}return out}
  function monthlyValues(date){
-  const amounts=state.months[date]||{},currencies=state.monthCurrencies[date]||{};
-  const result={};for(const f of FIELDS){
-   const amount=Object.prototype.hasOwnProperty.call(amounts,f.key)?amounts[f.key]:(f.base?state.base[f.key]:0);
-   const currency=currencies[f.key]||(f.base?state.baseCurrencies[f.key]:f.ccy);
-   result[f.key]={amount,currency};
-  }return result;
- }
- function calcBreakdown(values,fx){
-  const usdValues={};let invalidCcy='';
-  for(const f of FIELDS){const v=values[f.key];usdValues[f.key]=toUSD(v.amount,v.currency,fx);if(!Number.isFinite(usdValues[f.key]))invalidCcy=v.currency}
-  const incomeU=usdValues.salary+usdValues.allowance+usdValues.bonus+usdValues.otherU+usdValues.otherTHB;
-  const personalU=usdValues.personal,familyU=usdValues.family,extraU=usdValues.extraTHB+usdValues.extraU;
-  const expenseU=personalU+familyU+extraU;
-  return {incomeU,personalU,familyU,extraU,expenseU,net:incomeU-expenseU,invalidCcy};
- }
- function calculate(){
+   const amounts=state.months[date]||{},currencies=state.monthCurrencies[date]||{},result={};
+   for(const f of FIELDS){
+    const enabled=!f.base||!state.disabledBase.includes(f.key);
+    const amount=enabled?(Object.prototype.hasOwnProperty.call(amounts,f.key)?amounts[f.key]:(f.base?state.base[f.key]:0)):0;
+    const currency=currencies[f.key]||(f.base?state.baseCurrencies[f.key]:f.ccy);
+    result[f.key]={amount,currency};
+   }
+   for(const item of state.customItems)result[item.key]={
+    amount:Object.prototype.hasOwnProperty.call(amounts,item.key)?amounts[item.key]:item.amount,
+    currency:currencies[item.key]||item.currency
+   };
+   return result;
+  }
+  function calcBreakdown(values,fx){
+   let invalidCcy='',incomeU=0,personalU=0,familyU=0,extraU=0;
+   for(const f of allFields()){
+    const v=values[f.key],amount=toUSD(Number(v?.amount),v?.currency,fx);
+    if(!Number.isFinite(amount)){invalidCcy=v?.currency||f.ccy;continue}
+    if(f.type==='income')incomeU+=amount;
+    else if(f.type==='personal')personalU+=amount;
+    else if(f.type==='family')familyU+=amount;
+    else extraU+=amount;
+   }
+   const expenseU=personalU+familyU+extraU;
+   return {incomeU,personalU,familyU,extraU,expenseU,net:incomeU-expenseU,invalidCcy};
+  }
+  function calculate(){
   const first=startKey(),end=effectiveEnd(first),marketRates=ratesNow(),fx=exchangeRates(),worth=assets(),dates=range(first,end);
   let total=worth.total,invalidCcy='';
   const rows=worth.ready?dates.map(date=>{
@@ -144,7 +180,7 @@
   const completed=selected<current?count:Math.max(0,Math.min(count,today.getDate()-1));
   const overrides=state?.months?.[selected]||{},ccyOverrides=state?.monthCurrencies?.[selected]||{};
   const hasOwn=Object.prototype.hasOwnProperty.call(overrides,'salary');
-  const amount=hasOwn?Number(overrides.salary):Number(state?.base?.salary||0);
+  const amount=state.disabledBase.includes('salary')?0:(hasOwn?Number(overrides.salary):Number(state?.base?.salary||0));
   const currency=ccyOverrides.salary||state?.baseCurrencies?.salary||'USD';
   const fx=exchangeRates(),salaryU=toUSD(amount,currency,fx);
   return {selected,current,count,completed,amount,currency,salaryU,
@@ -153,7 +189,7 @@
  }
  function dailyMoney(n,c){return `${CURRENCY_MARKS[c]||c}${fmt(n)}`}
  function salaryIsConfigured(month=''){
-  if(!activeOwner||!state?.salaryConfigured)return false;
+  if(!activeOwner||!state?.salaryConfigured||state.disabledBase.includes('salary'))return false;
   const d=dailyInfo(month);return Number.isFinite(d.amount)&&d.amount>0;
  }
  function syncDailyPanelVisibility(){
@@ -247,18 +283,29 @@
  }
  function rowField(date,f,over,ccyOver){
   const own=Object.prototype.hasOwnProperty.call(over,f.key);
-  const ccy=ccyOver[f.key]||(f.base?state.baseCurrencies[f.key]:f.ccy);
-  let ph=f.base?state.base[f.key]:0;
-  const orig=f.base?state.baseCurrencies[f.key]:f.ccy;
+  const ccy=ccyOver[f.key]||(f.base?baseCurrency(f):f.ccy);
+  let ph=f.base?baseAmount(f):0;
+  const orig=f.base?baseCurrency(f):f.ccy;
   if(ccy!==orig){const converted=convert(ph,orig,ccy,exchangeRates());if(Number.isFinite(converted))ph=Number(converted.toFixed(2))}
   return pairField(tr(f.en,f.zh),f.key,own?over[f.key]:'',ccy,'month',date,ph);
  }
  function monthHtml(date,i){
   const overrides=state.months[date]||{},ccys=state.monthCurrencies[date]||{};
-  const inputs=FIELDS.map(f=>rowField(date,f,overrides,ccys)).join('');
-  return `<details class="fc-month" data-fc-card="${date}"><summary><div class="fc-month-name">${esc(monthLabel(date))}<small>${tr('Month ','第')}${i+1}${tr(' · tap to edit','个月 · 点击调整')}</small></div><div class="fc-month-data"><small>${tr('Total income','总收入')}</small><strong data-fc-income="${date}">—</strong></div><div class="fc-month-data"><small>${tr('Personal spending','个人支出')}</small><strong class="fc-cost" data-fc-personal="${date}">—</strong><em class="fc-native" data-fc-personal-native="${date}">—</em></div><div class="fc-month-data"><small>${tr('Family transfers','家庭支出')}</small><strong class="fc-cost" data-fc-family="${date}">—</strong><em class="fc-native" data-fc-family-native="${date}">—</em></div><div class="fc-month-net"><small>${tr('Monthly change','当月净变化')}</small><strong data-fc-net="${date}">—</strong></div><div class="fc-month-total"><small>${tr('Month-end assets','月末总资产')}</small><strong data-fc-total="${date}">—</strong></div><span class="fc-chevron" aria-hidden="true">›</span></summary><div class="fc-month-fields"><div class="fc-month-hint">${tr('Change this month only. Each amount has its own currency. Blank fields inherit the regular amount (or 0 for bonuses and extras).','仅调整本月。每项金额可单独选择币种；留空表示沿用常规金额，奖金和额外收支留空为0。')}</div>${inputs}<div class="fc-month-extra" data-fc-extra-note="${date}">—</div><div class="fc-month-actions"><button type="button" class="fc-btn alt" data-fc-clear-month="${date}">${tr('Clear month changes','清除本月调整')}</button></div></div></details>`;
+  const inputs=allFields().map(f=>rowField(date,f,overrides,ccys)).join('');
+  return `<details class="fc-month" data-fc-card="${date}"><summary><div class="fc-month-name">${esc(monthLabel(date))}<small>${tr('Month ','第')}${i+1}${tr(' · tap to edit','个月 · 点击调整')}</small></div><div class="fc-month-data"><small>${tr('Total income','总收入')}</small><strong data-fc-income="${date}">—</strong></div><div class="fc-month-data"><small>${tr('Personal spending','个人支出')}</small><strong class="fc-cost" data-fc-personal="${date}">—</strong><em class="fc-native" data-fc-personal-native="${date}">—</em></div><div class="fc-month-data"><small>${tr('Family transfers','家庭支出')}</small><strong class="fc-cost" data-fc-family="${date}">—</strong><em class="fc-native" data-fc-family-native="${date}">—</em></div><div class="fc-month-net"><small>${tr('Monthly change','当月净变化')}</small><strong data-fc-net="${date}">—</strong><em class="fc-native" data-fc-month-rate="${date}">—</em></div><div class="fc-month-total"><small>${tr('Month-end assets','月末总资产')}</small><strong data-fc-total="${date}">—</strong></div><span class="fc-chevron" aria-hidden="true">›</span></summary><div class="fc-month-fields"><div class="fc-month-hint">${tr('Change this month only. Each amount has its own currency. Blank fields inherit the regular amount (or 0 for bonuses and extras).','仅调整本月。每项金额可单独选择币种；留空表示沿用常规金额，奖金和额外收支留空为0。')}</div>${inputs}<div class="fc-month-extra" data-fc-extra-note="${date}">—</div><div class="fc-month-actions"><button type="button" class="fc-btn alt" data-fc-clear-month="${date}">${tr('Clear month changes','清除本月调整')}</button></div></div></details>`;
  }
- function layout(){
+ function regularEditorHTML(group){
+   const income=group==='income',items=regularFields().filter(f=>income?f.type==='income':f.type!=='income');
+   const title=income?tr('Income','收入'):tr('Expenses & transfers','支出与转账');
+   return `<div class="fc-regular-group"><div class="fc-regular-heading"><strong>${title}</strong><small>${items.length} ${tr('items','项')}</small></div>
+    <div class="fc-regular-list">${items.length?items.map(f=>{
+     const custom=!FIELD[f.key],label=tr(f.en,f.zh);
+     const heading=custom?`<input type="text" maxlength="48" class="fc-regular-name" data-fc-label="${esc(f.key)}" aria-label="${esc(tr('Item name','项目名称'))}" value="${esc(label)}">`:`<span class="fc-regular-title">${esc(label)}</span>`;
+     return `<div class="fc-regular-item" data-fc-regular-item="${esc(f.key)}">${heading}<div class="fc-regular-entry">${pairField(label,f.key,baseAmount(f),baseCurrency(f),'base')}</div><button type="button" class="fc-remove-item" data-fc-remove="${esc(f.key)}" aria-label="${esc(tr('Remove ','删除')+label)}" title="${esc(tr('Remove item','删除项目'))}">×</button></div>`;
+    }).join(''):`<p class="fc-regular-empty">${tr('No items yet. Add one below.','暂无项目，可点击下方添加。')}</p>`}</div>
+    <button type="button" class="fc-add-item" data-fc-add="${group}">＋ ${income?tr('Add income','添加收入'):tr('Add expense','添加支出')}</button></div>`;
+  }
+  function layout(){
   const root=el(ROOT);if(!root)return;
   const first=startKey(),end=effectiveEnd(first),max=shift(first,239),dates=range(first,end);
   const open=new Set([...root.querySelectorAll('details.fc-month[open]')].map(e=>e.dataset.fcCard));
@@ -269,23 +316,25 @@
     <div class="fc-stats"><div class="fc-stat"><span>${tr('Current total assets','当前总资产')}</span><strong id="fc-start">—</strong><small>${tr('Dashboard value, including receivables','Dashboard 实时资产，含应收款')}</small></div><div class="fc-stat good"><span>${tr('Regular monthly savings','每月常规净储蓄')}</span><strong id="fc-saving">—</strong><small>${tr('Before bonus and extra spending','未计奖金与额外消费')}</small></div><div class="fc-stat"><span>${tr('Forecast end assets','预测期末总资产')}</span><strong id="fc-result">—</strong><small id="fc-result-date">—</small></div><div class="fc-stat"><span>${tr('Projected gain','预计增长')}</span><strong id="fc-gain">—</strong><small id="fc-count">—</small></div></div>
     ${salaryIsConfigured(state.dailyMonth)?dailyPanelHTML():''}
     <section class="fc-panel"><h2>${tr('Regular monthly income & spending','设置每月常规收支')}</h2><p class="fc-muted">${tr('Choose a currency for each amount. Changes affect only this forecast, not your actual accounts.','每项金额可以分别选择币种；这里只计算预算，不修改真实账户记录。')}</p>
-      <div class="fc-controls" style="margin-top:13px">${FIELDS.filter(f=>f.base).map(f=>pairField(tr(f.en,f.zh),f.key,state.base[f.key],state.baseCurrencies[f.key],'base')).join('')}</div>
+      <div class="fc-regular-grid">${regularEditorHTML('income')}${regularEditorHTML('expense')}</div>
       <div class="fc-breakdown" aria-label="${esc(tr('Regular monthly cash-flow breakdown','每月常规现金流明细'))}">
        <div><small>${tr('Regular income','每月收入合计')}</small><strong id="fc-base-income">—</strong><em id="fc-base-income-detail">—</em></div>
        <div><small>${tr('Personal spending','个人支出')}</small><strong id="fc-summary-personal">—</strong><em id="fc-base-personal-detail">—</em></div>
        <div><small>${tr('Family + Special transfer','家庭 + Special Transfer')}</small><strong id="fc-summary-family">—</strong><em id="fc-base-family-detail">—</em></div>
       </div>
+      <div class="fc-savings-goal"><div class="fc-rate-heading"><span>${tr('Regular savings rate','常规储蓄率')}</span><strong id="fc-savings-rate">—</strong><small id="fc-rate-difference">—</small></div><div class="fc-rate-target"><label for="fc-savings-target">${tr('Savings rate target (%)','目标储蓄率 (%)')}</label><input id="fc-savings-target" type="number" min="0" max="100" step="0.1" inputmode="decimal" value="${state.targetSavingsRate}"></div><div class="fc-rate-track" role="progressbar" aria-label="${esc(tr('Progress toward target','储蓄率目标进度'))}" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" id="fc-savings-progress"><i id="fc-savings-progress-fill"></i></div></div>
       <h3 class="fc-subhead">${tr('Forecast exchange rates','预测换算汇率')}</h3><p class="fc-muted">${tr('1 USD/U equals the currency shown. Empty = your saved Exchange rate. These are local simulation rates only.','每个汇率表示 1 U 兑换多少该币种；留空则使用 Exchange 已保存的记账汇率，修改仅影响预测。')}</p>
       <div class="fc-fx-grid">${['THB','CNY','MMK'].map(c=>`<label class="fc-field"><span>1 U = ${c}</span><input type="number" data-fc-rate="${c}" min="0.000001" max="100000000" step="any" inputmode="decimal" placeholder="${esc(ratesNow()[c]||'—')}" value="${esc(state.fxOverrides[c]??(c==='THB'?state.rate:null)??'')}"></label>`).join('')}</div>
       <div class="fc-end-row"><label class="fc-field fc-end-control"><span>${tr('Forecast through (year / month)','预测结束年月（自定义）')}</span><input id="fc-end" type="month" min="${first}" max="${max}" value="${end}"></label><div class="fc-bar"><span class="fc-range-note" id="fc-range-label">—</span><div class="fc-btns"><button class="fc-btn" type="button" data-fc-action="export">↓ ${tr('Export CSV','导出 CSV')}</button><button class="fc-btn alt" type="button" data-fc-action="reset">${tr('Reset scenario','恢复默认方案')}</button></div></div></div>
       <p class="fc-warning" id="fc-warning" hidden></p>
+      <div class="fc-save-bar"><span id="fc-save-status" role="status"></span><div class="fc-save-actions"><button type="button" class="fc-btn alt" data-fc-action="discard">${tr('Discard changes','撤销未保存修改')}</button><button id="fc-save-btn" type="button" class="fc-btn fc-save-primary" data-fc-action="save">✓ ${tr('Save settings','保存设置')}</button></div></div>
     </section>
     <section class="fc-panel"><h2>${tr('Projected asset growth','预计资产增长曲线')}</h2><p class="fc-muted">${tr('Monthly cash-flow estimates; no assumed investment gains.','按每月现金流计算；不预设投资收益。')}</p><div class="fc-chart" id="fc-chart" style="margin-top:8px"></div></section>
     <section class="fc-panel"><div class="fc-monthhead"><div><h2>${tr('Month-by-month forecast','逐月资产变化与调整')}</h2><p>${tr('Each month shows total income, personal expenses, family transfers, net change and month-end assets. Click to edit amounts and currencies.','每个月直接显示总收入、个人支出、家庭汇款、净变化与月底资产；点击可修改各项金额和币种。')}</p></div><span class="fc-legend">▾ ${tr('Expand to edit','展开编辑')}</span></div><div id="fc-month-list" class="fc-months">${dates.map(monthHtml).join('')}</div></section>
     <p class="fc-footer">${tr('Forecast settings are stored locally for each user, not in Supabase or cloud backup. Changing a currency automatically converts the current number to preserve its estimated USD value; you can then edit it. Real income/expenses and exchange rates are never changed. Current Dashboard assets, saved exchange rates, and the current month are re-read whenever this forecast refreshes. Future crypto/gold prices are assumed unchanged.','所有预测设置仅存于当前浏览器，按用户分别保存，不写入 Supabase 或云端备份。切换币种时会自动换算原金额以维持其美元估值，随后可修改数字；不影响任何真实收支或正式汇率。刷新时重新读取 Dashboard 资产、已保存汇率和当前月份。未来加密货币及黄金价格暂视为不变。')}</p>
   </div>`;
   if(oldCards){root.querySelectorAll('.fc-month').forEach((card,i)=>{card.open=open.has(card.dataset.fcCard)})}
-  lastFirst=first;updateOutputs();
+  lastFirst=first;updateOutputs();updateSaveStatus();
  }
  function showWarning(message){const node=el('fc-warning');if(node){node.hidden=!message;node.textContent=message||''}}
  function updateOutputs(){
@@ -296,6 +345,13 @@
   showWarning(note);
   set('fc-start',out.worth.ready?displayMoney(out.worth.total,out.fx):'—');
   set('fc-saving',!out.invalidCcy?displaySigned(out.normal.net,out.fx):'—');
+  const rate=out.invalidCcy?null:savingRate(out.normal.incomeU,out.normal.net);
+  set('fc-savings-rate',savingsRateText(rate));
+  const diff=rate===null?null:rate-state.targetSavingsRate;
+  set('fc-rate-difference',diff===null?tr('Add income to calculate the rate','添加收入后可计算储蓄率'):diff>=0?tr('Above target by ','高于目标 ')+diff.toFixed(1)+tr(' percentage points',' 个百分点'):tr('Below target by ','低于目标 ')+Math.abs(diff).toFixed(1)+tr(' percentage points',' 个百分点'));
+  const bar=el('fc-savings-progress-fill');if(bar)bar.style.width=rate===null?'0%':Math.max(0,Math.min(100,rate)).toFixed(1)+'%';
+  const progress=el('fc-savings-progress');if(progress)progress.setAttribute('aria-valuenow',String(rate===null?0:Math.max(0,Math.min(100,rate))));
+  const targetInput=el('fc-savings-target');if(targetInput&&document.activeElement!==targetInput)targetInput.value=state.targetSavingsRate;
   set('fc-result',out.valid?displayMoney(out.rows.at(-1).total,out.fx):'—');
   set('fc-result-date',out.rows.length?monthLabel(out.end):'—');
   set('fc-gain',out.valid?displaySigned(out.rows.at(-1).total-out.worth.total,out.fx):'—');
@@ -304,13 +360,13 @@
   set('fc-base-income',!out.invalidCcy?displayMoney(out.normal.incomeU,out.fx):'—');
   set('fc-summary-personal',!out.invalidCcy?displayMoney(out.normal.personalU,out.fx):'—');
   set('fc-summary-family',!out.invalidCcy?displayMoney(out.normal.familyU,out.fx):'—');
-  for(const k of ['salary','allowance','personal','family']){
-   const node=el('fc-base-'+k);if(node&&document.activeElement!==node)node.value=state.base[k];
+  for(const f of regularFields()){
+   const node=el('fc-base-'+f.key);if(node&&document.activeElement!==node)node.value=baseAmount(f);
   }
-  const amountLabel=k=>`${fmt(state.base[k])} ${state.baseCurrencies[k]}`;
-  set('fc-base-income-detail',amountLabel('salary')+' + '+amountLabel('allowance'));
-  set('fc-base-personal-detail',amountLabel('personal'));
-  set('fc-base-family-detail',amountLabel('family'));
+  const groupAmounts=type=>regularFields().filter(f=>f.type===type).map(f=>fmt(baseAmount(f))+' '+baseCurrency(f)).join(' + ')||'—';
+  set('fc-base-income-detail',groupAmounts('income'));
+  set('fc-base-personal-detail',groupAmounts('personal'));
+  set('fc-base-family-detail',groupAmounts('family'));
   const byDate=new Map(out.rows.map(r=>[r.date,r]));
   el('fc-month-list')?.querySelectorAll('[data-fc-card]').forEach(card=>{
    const date=card.dataset.fcCard,row=byDate.get(date);
@@ -322,13 +378,14 @@
    fill('personal-native',fmt(row.v.personal.amount)+' '+row.v.personal.currency);
    fill('family-native',fmt(row.v.family.amount)+' '+row.v.family.currency);
    fill('net',displaySigned(row.net,out.fx),row.net>=0?'fc-positive':'fc-negative');
+   fill('month-rate',tr('Savings rate: ','储蓄率：')+savingsRateText(savingRate(row.incomeU,row.net)));
    fill('total',displayMoney(row.total,out.fx));
    const ext=card.querySelector('[data-fc-extra-note]');
    if(ext)ext.textContent=out.valid?tr('Extra spending: ','额外支出：')+displayMoney(row.extraU,out.fx)+' · '+tr('All spending: ','支出合计：')+displayMoney(row.expenseU,out.fx):'—';
    card.querySelectorAll('input[data-fc-field]').forEach(input=>{
-    const f=FIELD[input.dataset.fcField];let placeholder=f.base?state.base[f.key]:0;
+    const f=fieldByKey(input.dataset.fcField);if(!f)return;let placeholder=f.base?baseAmount(f):0;
     const currency=card.querySelector(`[data-fc-ccy-field="${f.key}"]`)?.dataset.fcCurrency || card.querySelector(`[data-fc-ccy-field="${f.key}"]`)?.querySelector('.fc-currency-trigger')?.title;
-    const orig=f.base?state.baseCurrencies[f.key]:f.ccy;
+    const orig=f.base?baseCurrency(f):f.ccy;
     if(orig!==currency){const v=convert(placeholder,orig,currency,out.fx);if(Number.isFinite(v))placeholder=Number(v.toFixed(2))}
     input.placeholder=String(placeholder);
    });
@@ -356,23 +413,45 @@
  }
  function exportCSV(){
   const out=calculate();if(!out.valid)return;
-  const head=['Month',...FIELDS.flatMap(f=>[f.key+' amount',f.key+' currency']), 'Total Income U','Personal Expenses U','Family Transfers U','Extra Spending U','Total Expenses U','Monthly Net U','Month-end Assets U'];
-  const rows=out.rows.map(r=>[r.date,...FIELDS.flatMap(f=>[r.v[f.key].amount,r.v[f.key].currency]),r.incomeU,r.personalU,r.familyU,r.extraU,r.expenseU,r.net,r.total]);
+  const head=['Month',...allFields().flatMap(f=>[f.key+' amount',f.key+' currency']), 'Total Income U','Personal Expenses U','Family Transfers U','Extra Spending U','Total Expenses U','Monthly Net U','Savings Rate %','Month-end Assets U'];
+  const rows=out.rows.map(r=>[r.date,...allFields().flatMap(f=>[r.v[f.key].amount,r.v[f.key].currency]),r.incomeU,r.personalU,r.familyU,r.extraU,r.expenseU,r.net,savingRate(r.incomeU,r.net)??'',r.total]);
   const line=arr=>arr.map(v=>`"${String(v).replace(/"/g,'""')}"`).join(',');
   const blob=new Blob(['\ufeff',line(head)+'\r\n',...rows.map(x=>line(x)+'\r\n')],{type:'text/csv;charset=utf-8;'});
   const url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download=`MMHVAULT-Forecast-${out.first}-to-${out.end}.csv`;document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1000);
  }
  function numericInput(input){
-  const raw=input.value.trim(),num=val(raw);
-  if(raw!==''&&num===null){input.setCustomValidity(tr('Enter a valid nonnegative number.','请输入有效的非负数字。'));input.focus({preventScroll:true});window.mmhVaultMessageV740?.(tr('Enter a valid nonnegative number.','请输入有效的非负数字。'),tr('Invalid amount','金额有误'));return}
-  input.setCustomValidity('');
-  if(input.dataset.fcBase){const k=input.dataset.fcBase;if(!FIELD[k]?.base)return;state.base[k]=raw===''?FIELD[k].def:num;if(k==='salary')state.salaryConfigured=raw!==''&&num>0}
-  else if(input.dataset.fcMonth){const d=input.dataset.fcMonth,k=input.dataset.fcField;if(!validMonth(d)||!FIELD[k])return;const m=state.months[d]||(state.months[d]={});if(raw==='')delete m[k];else m[k]=num;if(!Object.keys(m).length)delete state.months[d];if(k==='salary'&&raw!==''&&num>0)state.salaryConfigured=true}
-  save();syncDailyPanelVisibility();updateOutputs();mountDashboardDaily();
- }
- function onInput(e){
+   if(input.validity.badInput)return;
+   const raw=input.value.trim(),num=val(raw);
+   if(raw!==''&&num===null){input.setCustomValidity(tr('Enter a valid nonnegative number.','请输入有效的非负数字。'));return}
+   input.setCustomValidity('');
+   if(input.dataset.fcBase){
+    const k=input.dataset.fcBase,f=fieldByKey(k);if(!f?.base)return;
+    if(FIELD[k]){state.base[k]=raw===''?0:num;if(k==='salary')state.salaryConfigured=num>0}
+    else {const item=state.customItems.find(x=>x.key===k);if(item)item.amount=raw===''?0:num}
+   }else if(input.dataset.fcMonth){
+    const d=input.dataset.fcMonth,k=input.dataset.fcField;
+    if(!validMonth(d)||!fieldByKey(k))return;
+    const m=state.months[d]||(state.months[d]={});
+    if(raw==='')delete m[k];else m[k]=num;
+    if(!Object.keys(m).length)delete state.months[d];
+    if(k==='salary'&&raw!==''&&num>0)state.salaryConfigured=true;
+   }
+   save();syncDailyPanelVisibility();updateOutputs();mountDashboardDaily();
+  }
+  function onInput(e){
   const input=e.target;if(!(input instanceof HTMLInputElement))return;
-  if(input.dataset.fcBase||input.dataset.fcMonth){numericInput(input);return}
+  if(input.dataset.fcLabel){
+    const item=state.customItems.find(x=>x.key===input.dataset.fcLabel);
+    if(item){item.label=input.value.slice(0,48);save()}
+    return;
+   }
+   if(input.id==='fc-savings-target'){
+    if(input.validity.badInput)return;
+    const n=Number(input.value);if(input.value!==''&&Number.isFinite(n)&&n>=0&&n<=100){state.targetSavingsRate=n;input.setCustomValidity('');save();updateOutputs()}
+    else input.setCustomValidity(tr('Enter a rate from 0 to 100.','请输入 0 至 100 之间的百分比。'));
+    return;
+   }
+   if(input.dataset.fcBase||input.dataset.fcMonth){numericInput(input);return}
   if(input.dataset.fcRate){const c=input.dataset.fcRate,raw=input.value.trim(),n=val(raw);if(!['THB','CNY','MMK'].includes(c))return;
    if(raw!==''&&(!(n>0)||n>1e8)){input.setCustomValidity(tr('Use a positive valid exchange rate.','请输入有效的正数汇率。'));return}
    input.setCustomValidity('');if(raw==='')delete state.fxOverrides[c];else state.fxOverrides[c]=n;
@@ -406,22 +485,22 @@
  }
  function chooseCurrency(group,to){
   const baseKey=group.dataset.fcBaseCcy,monthDate=group.dataset.fcMonthCcy,monthKeyField=group.dataset.fcCcyField;
-  const key=baseKey||monthKeyField,f=FIELD[key];
+  const key=baseKey||monthKeyField,f=fieldByKey(key);
   if(!f||!validCcy(to))return;
   const before=exchangeRates();
   if(baseKey){
-   const from=state.baseCurrencies[key],old=state.base[key];
+   const from=baseCurrency(f),old=baseAmount(f);
    if(from===to){closeCurrencyMenus();return}
    const next=convert(old,from,to,before);
    if(!Number.isFinite(next)){closeCurrencyMenus();window.mmhVaultMessageV740?.(tr('Set valid currency rates before switching.','切换币种之前，请先填写有效汇率。'),tr('Currency rates','汇率提示'));return}
-   state.base[key]=Number(next.toFixed(2));state.baseCurrencies[key]=to;
+   if(FIELD[key]){state.base[key]=Number(next.toFixed(2));state.baseCurrencies[key]=to}else{const item=state.customItems.find(x=>x.key===key);item.amount=Number(next.toFixed(2));item.currency=to}
   }else{
    if(!validMonth(monthDate))return;
    const ccys=state.monthCurrencies[monthDate]||(state.monthCurrencies[monthDate]={});
-   const oldCcy=ccys[key]||(f.base?state.baseCurrencies[key]:f.ccy);
+   const oldCcy=ccys[key]||(f.base?baseCurrency(f):f.ccy);
    if(oldCcy===to){closeCurrencyMenus();return}
    const own=state.months[monthDate]||{};
-   const old=Object.prototype.hasOwnProperty.call(own,key)?own[key]:(f.base?state.base[key]:0);
+   const old=Object.prototype.hasOwnProperty.call(own,key)?own[key]:(f.base?baseAmount(f):0);
    const next=convert(old,oldCcy,to,before);
    if(!Number.isFinite(next)){closeCurrencyMenus();window.mmhVaultMessageV740?.(tr('Set valid currency rates before switching.','切换币种之前，请先填写有效汇率。'),tr('Currency rates','汇率提示'));return}
    const m=state.months[monthDate]||(state.months[monthDate]={});m[key]=Number(next.toFixed(2));
@@ -442,6 +521,25 @@
    return;
   }
   if(btn.dataset.fcPickCurrency){const group=btn.closest('.fc-money-pair');if(group)chooseCurrency(group,btn.dataset.fcPickCurrency);return}
+  if(btn.dataset.fcAdd){
+   const type=btn.dataset.fcAdd;if(!['income','expense'].includes(type)||state.customItems.length>=40)return;
+   let key;do{key='custom_'+Date.now().toString(36)+'_'+(++customSequence).toString(36)}while(state.customItems.some(x=>x.key===key));
+   const count=state.customItems.filter(x=>x.type===(type==='income'?'income':'personal')).length+1;
+   state.customItems.push({key,label:(type==='income'?tr('Other income ','其他收入 '):tr('Other expense ','其他支出 '))+count,type:type==='income'?'income':'personal',amount:0,currency:'USD'});
+   save();layout();
+   el(ROOT)?.querySelector('[data-fc-label="'+key+'"]')?.focus({preventScroll:true});
+   return;
+  }
+  if(btn.dataset.fcRemove){
+   const key=btn.dataset.fcRemove;
+   if(FIELD[key]?.base){if(!state.disabledBase.includes(key))state.disabledBase.push(key)}
+   else{
+    state.customItems=state.customItems.filter(x=>x.key!==key);
+    for(const store of [state.months,state.monthCurrencies])for(const d of Object.keys(store)){delete store[d][key];if(!Object.keys(store[d]).length)delete store[d]}
+   }
+   if(key==='salary')state.salaryConfigured=false;
+   save();layout();return;
+  }
   if(btn.dataset.fcClearMonth){const date=btn.dataset.fcClearMonth;delete state.months[date];delete state.monthCurrencies[date];save();layout();return}
   const action=btn.dataset.fcAction;
   if(action==='reset-day-salary'){
@@ -450,11 +548,20 @@
    if(cc){delete cc.salary;if(!Object.keys(cc).length)delete state.monthCurrencies[d]}
    save();layout();return;
   }
+  if(action==='save'){
+   const bad=el(ROOT)?.querySelector('input:invalid');if(bad){bad.reportValidity?.();bad.focus?.({preventScroll:true});return}
+   for(const item of state.customItems)if(!item.label.trim()){const input=el(ROOT)?.querySelector('[data-fc-label="'+item.key+'"]');input?.focus();window.mmhVaultMessageV740?.(tr('Enter a name for every custom item.','请为每个自定义项目填写名称。'),tr('Name required','请填写名称'));return}
+   if(persist())window.mmhVaultMessageV740?.(tr('Forecast settings saved on this device.','预测设置已保存到当前设备。'),tr('Saved','保存成功'));
+   return;
+  }
+  if(action==='discard'){
+   state=getState(activeOwner);dirty=false;layout();return;
+  }
   if(action==='refresh'){updateOutputs();return}
   if(action==='export'){exportCSV();return}
   if(action==='reset'){
    if(typeof window.mmhVaultConfirmV740!=='function'||!(await window.mmhVaultConfirmV740(tr('Reset local forecast settings for this account? Real transactions remain unchanged.','确定重置当前账户在本浏览器的预测设置吗？不会改变真实交易。'),tr('Reset forecast','重置资产预测'))))return;
-   const previousCurrency=state.viewCurrency;state=defaultState();state.viewCurrency=previousCurrency;save();layout();
+   const previousCurrency=state.viewCurrency;state=defaultState();state.viewCurrency=previousCurrency;persist();layout();
   }
  }
  function resetDailyMonthOnCalendarChange(){const today=monthKey();if(lastDailyCalendar&&today!==lastDailyCalendar&&state)state.dailyMonth='';lastDailyCalendar=today}
@@ -472,6 +579,7 @@
    window.addEventListener(name,()=>{if(active()){if(['mmhvault-language-change','languagechange','mmhvault:config-owner-changed'].includes(name))onVisible();else dateChanged()}else{if(name==='mmhvault:config-owner-changed')syncOwner();if(el('dashboard')?.classList.contains('active')){if(['mmhvault-language-change','languagechange'].includes(name)){el('mmhDailyDashboardV13')?.remove()}watchDashboard();scheduleMidnight()}}},{passive:true});
   }
   document.addEventListener('visibilitychange',()=>{if(document.hidden)stopMidnight();else onVisible()},{passive:true});
+  window.addEventListener('beforeunload',e=>{if(dirty){e.preventDefault();e.returnValue=''}});
   window.addEventListener('pageshow',onVisible,{passive:true});window.addEventListener('focus',()=>{dateChanged();scheduleMidnight()},{passive:true});
   document.addEventListener('click',e=>{if(e.target.closest('#mmhDailyDashboardV13 [data-mmh-open-daily]')){e.preventDefault();window.setPage?.('forecast')}});
   syncOwner();onVisible();
