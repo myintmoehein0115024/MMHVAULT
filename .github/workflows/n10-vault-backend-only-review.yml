@@ -1,0 +1,53 @@
+name: N10 Vault backend-only review (NO DEPLOYMENT)
+on:
+  push:
+    branches:
+      - 'review/n10-vault-backend-only-20261101'
+  workflow_dispatch:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - '.github/workflows/n10-vault-backend-only-review.yml'
+      - 'security/n10-fixed-recovery-vault-candidate/**'
+      - 'docs/sql/n10_fixed_recovery_*'
+      - 'docs/sql/n10_staging_session_guard_*'
+      - 'docs/sql/n10_installed_staging_vault_*'
+permissions:
+  contents: read
+jobs:
+  offline-vault-review:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - name: Checkout isolated review branch
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Node 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Fail closed if PR includes main App, Landing, Auth UI or finance edits
+        run: node security/n10-fixed-recovery-vault-candidate/test-isolated-scope.mjs
+      - name: Signed assurance helper synthetic matrix
+        run: node security/n10-fixed-recovery-vault-candidate/test-mfa-assurance.mjs
+      - name: Session guard synthetic matrix
+        run: node security/n10-fixed-recovery-vault-candidate/test-session-guard.mjs
+      - name: Backend release-off, RLS, Vault and read-only preflight contracts
+        run: node security/n10-fixed-recovery-vault-candidate/test-backend-only-review.mjs
+      - name: Bounded recovery request, malformed JSON and 10-word offline tests
+        run: node security/n10-fixed-recovery-vault-candidate/test-recovery-request.mjs
+      - name: V2 Staging session guard migration and emergency disable offline contracts
+        run: node security/n10-fixed-recovery-vault-candidate/test-session-upgrade-review.mjs
+      - name: Disabled joint QA retirement stub checks (NO DEPLOY)
+        run: node security/n10-fixed-recovery-vault-candidate/test-retired-joint-qa-stub.mjs
+      - name: Set up Deno type checker
+        uses: denoland/setup-deno@v2
+        with:
+          deno-version: v2.x
+      - name: Type check disabled Vault Edge candidate, do not execute
+        run: deno check security/n10-fixed-recovery-vault-candidate/index.ts
+      - name: Type check inert joint QA retirement candidate, do not deploy
+        run: deno check security/n10-fixed-recovery-vault-candidate/retire-joint-qa-edge-REVIEW_ONLY.ts
+# No deployment, no SQL execution, no Supabase tools, no secrets and no QA unlock.
