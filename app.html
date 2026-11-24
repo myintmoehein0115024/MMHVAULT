@@ -11395,6 +11395,7 @@ html.mmh-desktop-compact-v11110 body.mmh-workspace-active #moreNavMenu.more-nav-
 <section class="page" id="exchange">
 <div class="ex-template-head"><div class="ex-brand"><img src="data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs=" data-mmh-brand-v11="true" alt="MMHVAULT" width="42" height="42"><div><div class="ex-eyebrow">MMHVAULT</div><h1 data-en="Currency Exchange" data-zh="货币换算" class="mmh-hint-anchor-v195 mmh-context-title-v199" data-mmh-hint-source="next" tabindex="0">Currency Exchange</h1><p data-en="Convert currencies using your saved rates." data-zh="使用您已保存的汇率换算货币。" class="mmh-context-desc-v199">Convert currencies using your saved rates.</p></div></div><span class="ex-source" data-en="Saved account rates" data-zh="已保存的账户汇率">Saved account rates</span></div>
 <div id="exCurrencyCardsV7" class="ex-currency-cards"></div>
+<div id="mmhExchangeV2StagingRoot" hidden></div>
 <div class="panel exchange-converter-panel"><div class="toolbar"><h2 data-en="Currency Converter" data-zh="货币换算" class="mmh-hint-anchor-v195 mmh-context-title-v199" data-mmh-hint-source="next" tabindex="0">Currency Converter</h2><span class="small mmh-context-desc-v199" data-en="Calculation preview" data-zh="换算预览">Calculation preview</span></div>
 <div class="exchange-converter-grid">
 <div class="ex-convert-side"><label><span data-en="From" data-zh="从">From</span><select id="exchangeFrom" onchange="renderExchangeConverter()"><option value="USD">USD · $</option><option value="MMK">MMK · K</option><option value="THB">THB · ฿</option><option value="CNY">RMB · ￥</option></select></label><label class="ex-amount-label"><span data-en="Amount" data-zh="金额">Amount</span><input id="exchangeAmount" min="0" oninput="renderExchangeConverter()" step="0.01" type="number" value="1"/></label></div>
@@ -13064,6 +13065,7 @@ function mmhVaultUsdRateForAccountV140(name){
   if(manual)return manual;
   // Missing custom-currency rates may use the same public, daily FX feed as Asia Currency Rates.
   // Never overwrite the user's financial records or currency selection.
+  if(window.MMHExchangeEffectiveFXV2)return window.MMHExchangeEffectiveFXV2.getUsdRate(String(a.currency||'').toUpperCase());
   return window.MMHAccountReferenceFXV1?.getRate?.(String(a.currency||'').toUpperCase())||null;
 }
 function mmhVaultAccountsMissingFxV140(){
@@ -14096,7 +14098,7 @@ function applyUserProfile(user){
   if(MMHVAULT_CONFIG_OWNER!==nextOwner){
     MMHVAULT_CONFIG_OWNER=nextOwner;MMHVAULT_CONFIG=mmhVaultReadConfig(nextOwner);
     MMHVAULT_CONFIG.archivedCategories=MMHVAULT_CONFIG.archivedCategories||{};
-    if(priorOwner!==nextOwner){transactions=[];investments=[];window.transactions=[];window.investments=[];window.__mmhTransactionsMirror=[];window.__mmhInvestmentsMirror=[];window.mmhCustomInvestRecords=[];currentCustomerId='';rates={usd_mmk:4400,usd_thb:31.5,usd_cny:7.18};window.rates=rates;}
+    if(priorOwner!==nextOwner){transactions=[];investments=[];window.transactions=[];window.investments=[];window.__mmhTransactionsMirror=[];window.__mmhInvestmentsMirror=[];window.mmhCustomInvestRecords=[];currentCustomerId='';rates={usd_mmk:4400,usd_thb:31.5,usd_cny:7.18};window.rates=rates;window.__mmhExchangeRawRatesV2=null;}
     mmhVaultRebuildConfigArrays();
     try{mmhVaultCloseDialogV449();window.mmhCloseManagerV1?.();mmhVaultRefreshAccountSelectors();mmhVaultRenderManager();}catch(_){ }
     window.dispatchEvent(new CustomEvent('mmhvault:config-owner-changed',{detail:{userId:nextOwner}}));
@@ -14424,6 +14426,7 @@ async function loadAll(opts={}){
       mmhVaultRestoreReferencedBuiltinAccountsV1(loadOwner);
       window.mmhGoldFxReadyV1=!r.error&&!!r.data;
       if(r.error){console.warn("Exchange rates load skipped",r.error);optionalErrors.push("Exchange Rates: "+r.error.message);}else if(r.data)rates=r.data;window.rates=rates;
+      if(!r.error){window.__mmhExchangeRawRatesV2={owner:loadOwner,row:r.data||null};try{window.MMHExchangeEffectiveFXV2?.recompute(false);}catch(_){}}
       try{loadRateInputs();}catch(e){console.warn("Rate input render skipped",e);}
       try{render();}catch(e){console.error("MMHVAULT render failed after cloud load",e);}
       if(optionalErrors.length)console.warn("Optional cloud data warning",optionalErrors);
@@ -16148,7 +16151,7 @@ function clearTxFilters(){
   renderTransactionsV28();
 }
 const _renderDashboardV27=renderDashboard;
-function toUSD(a){const mmk=Number(rates?.usd_mmk)||0,factor=toMMK(a);return mmk>0&&factor>0?factor/mmk:0;}
+function toUSD(a){if(window.MMHExchangeEffectiveFXV2&&a)return mmhvaultAmountUSD(a,1);const mmk=Number(rates?.usd_mmk)||0,factor=toMMK(a);return mmk>0&&factor>0?factor/mmk:0;}
 function usd(v){return '$ '+(window.mmhSettingsNumberV2?window.mmhSettingsNumberV2(v):fmt(v));}
 function renderDashboardV29(){
   const cashAccounts=ACC;
@@ -17350,6 +17353,7 @@ async function exportMyFinanceBackupV380(){
     const tables=['transactions','investments','crypto_wallet_movements','exchange_rates','budgets','financial_goals','recurring_transactions','custom_investments'];
     const datasets=await Promise.all(tables.map(table=>mmhPersonalReadAllV191(table,u.id)));
     const out={schema_version:2,scope:'personal',version:'Personal AI Candidate 1.10.0',exported_at:new Date().toISOString(),customer_id:$('accountUserIdV372')?.textContent||'',user_id:u.id,transactions:datasets[0],investments:datasets[1],wallet_movements:datasets[2],rates:datasets[3][0]||{},configuration,budgets:datasets[4],goals:datasets[5],recurring:datasets[6],custom_investments:datasets[7],settings:mmhPersonalPreferencesV191()};
+    if(window.MMHExchangeBackupRequiredV2){if(!window.MMHExchangeBackupV2)throw Error('Personal rates backup is not ready.');out.manual_fx_pairs=await window.MMHExchangeBackupV2.read(u.id);}
     if(currentSessionUser?.id!==u.id)throw Error('Account session changed. Backup export stopped.');
     const blob=new Blob([JSON.stringify(out,null,2)],{type:'application/json'});
     const url=URL.createObjectURL(blob),a=document.createElement('a');const filename=`MMHVAULT_Backup_${today()}.json`;a.href=url;a.download=filename;a.click();URL.revokeObjectURL(url);
@@ -17732,6 +17736,7 @@ function loadRateInputs(){
   if(cny)cny.value=Number(rates?.usd_cny||0);
 }
 async function saveRates(){
+  if(window.MMHExchangeEffectiveFXV2)throw new Error('Use Saved Rates to save an explicit personal pair.');
   const authResult=await db.auth.getUser();if(authResult?.error)throw authResult.error;
   const u=authResult?.data?.user;
   if(!u)throw new Error('Please sign in again.');
@@ -18573,7 +18578,7 @@ window.mmHVaultOpenManagedReceiptV3309 = async function(id,kind){
   function safeRead(){try{const id=owner();if(!id)return null;const raw=localStorage.getItem(KEY+'_'+id);if(raw)return JSON.parse(raw);const legacy=localStorage.getItem(KEY);if(!legacy)return null;const snap=JSON.parse(legacy);if(!ownRows(snap.transactions,id)||!ownRows(snap.investments,id)||!(snap.transactions.length+snap.investments.length))return null;return {...snap,userId:id};}catch(e){return null;}}
   function safeWrite(){try{
     const id=owner();if(!id||!ownRows(window.transactions,id)||!ownRows(window.investments,id))return;
-    const payload={userId:id,savedAt:Date.now(),transactions:window.transactions,investments:window.investments,rates:window.rates||{}};
+    const payload={userId:id,savedAt:Date.now(),transactions:window.transactions,investments:window.investments,rates:(window.MMHExchangeEffectiveFXV2?(window.__mmhExchangeRawRatesV2?.owner===id?window.__mmhExchangeRawRatesV2.row:null):window.rates)||{}};
     localStorage.setItem(KEY+'_'+id,JSON.stringify(payload));
   }catch(e){console.warn('MMHVAULT cache write skipped:',e);}}
   function setNet(){document.documentElement.dataset.network=navigator.onLine?'online':'offline';}
@@ -18586,7 +18591,7 @@ window.mmHVaultOpenManagedReceiptV3309 = async function(id,kind){
     try{
       window.transactions=snap.transactions;
       window.investments=snap.investments;
-      if(snap.rates&&typeof snap.rates==='object')window.rates=Object.assign({},window.rates||{},snap.rates);
+      if(!window.MMHExchangeEffectiveFXV2&&snap.rates&&typeof snap.rates==='object')window.rates=Object.assign({},window.rates||{},snap.rates);
       dispatch('mmhvault:cache-restored',{savedAt:snap.savedAt});
       return true;
     }catch(e){console.warn('MMHVAULT cache restore failed:',e);return false;}
@@ -29230,7 +29235,7 @@ html body.light:not(#mmh-install-layout-a):not(#mmh-install-layout-b) #stInstall
 <script id="mmhvault-exchange-currency-logos-v7">
 (function(){
 const specs=[['USD','$','#76bde4','US Dollar','美元'],['THB','฿','#92cab5','Thai Baht','泰铢'],['MMK','K','#c9b084','Myanmar Kyat','缅币'],['CNY','￥','#c2afe2','Chinese Yuan','人民币']];
-window.mmhExchangeCurrencyCardsV7=function(){const host=document.getElementById('exCurrencyCardsV7');if(!host)return;const zh=(localStorage.getItem('mmhvault_language_v3363')||'en')==='zh';host.replaceChildren();for(const [code,symbol,color,en,cn] of specs){const value=code==='USD'?1:Number(rates?.[{THB:'usd_thb',MMK:'usd_mmk',CNY:'usd_cny'}[code]]);const card=document.createElement('div');card.className='ex-currency-card';const icon=document.createElement('span');icon.className='ex-currency-logo';icon.style.setProperty('--ex-logo-color',color);icon.textContent=symbol;icon.setAttribute('aria-hidden','true');const content=document.createElement('div');const title=document.createElement('b');title.textContent=code==='CNY'?'RMB':code;const amount=document.createElement('strong');amount.textContent=Number.isFinite(value)&&value>0?value.toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2}):'—';const name=document.createElement('small');name.textContent=(zh?cn:en)+' · '+(zh?'每 1 美元':'per 1 USD');content.append(title,amount,name);card.append(icon,content);host.append(card)}};
+window.mmhExchangeCurrencyCardsV7=function(){const host=document.getElementById('exCurrencyCardsV7');if(!host)return;const zh=(localStorage.getItem('mmhvault_language_v3363')||'en')==='zh';host.replaceChildren();for(const [code,symbol,color,en,cn] of specs){const value=code==='USD'?1:Number(rates?.[{THB:'usd_thb',MMK:'usd_mmk',CNY:'usd_cny'}[code]]);const card=document.createElement('div');card.className='ex-currency-card';const icon=document.createElement('span');icon.className='ex-currency-logo';icon.style.setProperty('--ex-logo-color',color);icon.textContent=symbol;icon.setAttribute('aria-hidden','true');const content=document.createElement('div');const title=document.createElement('b');title.textContent=code==='CNY'?'RMB':code;const amount=document.createElement('strong');amount.textContent=Number.isFinite(value)&&value>0?value.toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2}):'—';const name=document.createElement('small');const src=rates?.fxSources?.[code];const label=({manual:zh?'个人汇率':'Personal rate',market:zh?'市场参考':'Market reference',legacy:zh?'旧记账参考':'Prior accounting reference',unavailable:zh?'暂无报价':'Unavailable'})[src];name.textContent=(zh?cn:en)+' · '+(zh?'每 1 美元':'per 1 USD')+(label?' · '+label:'');content.append(title,amount,name);card.append(icon,content);host.append(card)}};
 window.addEventListener('languagechange',()=>window.mmhExchangeCurrencyCardsV7());window.addEventListener('mmhvault:config-owner-changed',()=>window.mmhExchangeCurrencyCardsV7());window.mmhExchangeCurrencyCardsV7();
 })();
 </script>
@@ -29425,12 +29430,12 @@ const $=id=>document.getElementById(id),base=$('asiaBaseV10'),list=$('asiaListV1
 const valid=d=>d&&d.result==='success'&&d.base_code==='USD'&&d.rates&&d.rates.USD===1&&Number.isFinite(d.time_last_update_unix)&&d.time_last_update_unix>0&&Number.isFinite(d.time_next_update_unix);
 try{const d=JSON.parse(localStorage.getItem(cacheKey));if(valid(d))data=d}catch(_){}
 function options(){const value=base.value||local;base.replaceChildren();for(const e of entries.filter(e=>e[0]!=='TLS')){const o=document.createElement('option');o.value=e[0];o.textContent=e[0]+' · '+name(e);base.append(o)}base.value=value;const quick=$('asiaQuickV10');quick.replaceChildren();for(const c of [...new Set([local,'USD','CNY','MMK'])]){const b=document.createElement('button');b.type='button';b.textContent=c==='CNY'?'RMB':c;b.setAttribute('aria-pressed',String(base.value===c));if(c===local)b.title=tr('Suggested from your device time zone; choose another currency above','按设备时区建议，可在上方更换货币');b.onclick=()=>{base.value=c;draw()};quick.append(b)}}
-function draw(){options();list.replaceChildren();const query=$('asiaSearchV10').value.toLowerCase().trim();const rows=entries.filter(e=>e.join(' ').toLowerCase().includes(query));for(const e of rows){const row=document.createElement('div');row.className='asia-row';const f=document.createElement('span');f.className='asia-flag';f.textContent=e[3];f.setAttribute('aria-hidden','true');const n=document.createElement('div');n.className='asia-name';const b=document.createElement('b');b.textContent=code(e)==='CNY'?'RMB · CNY':code(e);const small=document.createElement('small');small.textContent=name(e);n.append(b,small);const v=document.createElement('div');v.className='asia-value';const amount=document.createElement('strong');const r=data?.rates[code(e)],br=data?.rates[base.value];const available=Number.isFinite(r)&&r>0&&Number.isFinite(br)&&br>0;amount.textContent=available?new Intl.NumberFormat(zh()?'zh-CN':'en-US',{maximumSignificantDigits:7}).format(r/br):'—';const unit=document.createElement('small');unit.textContent=available?'1 '+(base.value==='CNY'?'RMB':base.value)+' = '+code(e):tr('Rate unavailable','暂无行情');v.append(amount,unit);row.append(f,n,v);list.append(row)}if(!rows.length){const p=document.createElement('p');p.textContent=tr('No matching currencies','没有匹配的货币');list.append(p)}status.textContent=data?(error?tr('Connection unavailable · showing cached reference rates. ','连接暂不可用 · 显示缓存参考行情。 '):'')+tr('Updated: ','更新时间：')+new Date(data.time_last_update_unix*1000).toLocaleString(zh()?'zh-CN':'en-US')+(Date.now()>data.time_next_update_unix*1000?tr(' · Update pending',' · 待更新'):''):tr(error?'Unable to load rates. Please try again later.':'Loading reference rates…',error?'无法获取行情，请稍后再试。':'正在获取参考行情…')}
-const exchangePage=document.getElementById('exchange');const active=()=>!document.hidden&&!!(exchangePage?.classList.contains('active')||root.classList.contains('active'));
+function draw(){options();list.replaceChildren();const query=$('asiaSearchV10').value.toLowerCase().trim();const rows=entries.filter(e=>e.join(' ').toLowerCase().includes(query));for(const e of rows){const row=document.createElement('div');row.className='asia-row';const f=document.createElement('span');f.className='asia-flag';f.textContent=e[3];f.setAttribute('aria-hidden','true');const n=document.createElement('div');n.className='asia-name';const b=document.createElement('b');b.textContent=code(e)==='CNY'?'RMB · CNY':code(e);const small=document.createElement('small');small.textContent=name(e);n.append(b,small);const v=document.createElement('div');v.className='asia-value';const amount=document.createElement('strong');const marketRate=c=>window.MMHExchangeMarketReferenceV2?window.MMHExchangeMarketReferenceV2.getRate(c):data?.rates[c];const r=marketRate(code(e)),br=marketRate(base.value);const available=Number.isFinite(r)&&r>0&&Number.isFinite(br)&&br>0;amount.textContent=available?new Intl.NumberFormat(zh()?'zh-CN':'en-US',{maximumSignificantDigits:7}).format(r/br):'—';const unit=document.createElement('small');unit.textContent=available?'1 '+(base.value==='CNY'?'RMB':base.value)+' = '+code(e):tr('Rate unavailable','暂无行情');v.append(amount,unit);row.append(f,n,v);list.append(row)}if(!rows.length){const p=document.createElement('p');p.textContent=tr('No matching currencies','没有匹配的货币');list.append(p)}status.textContent=data?(error?tr('Connection unavailable · showing cached reference rates. ','连接暂不可用 · 显示缓存参考行情。 '):'')+tr('Updated: ','更新时间：')+new Date(data.time_last_update_unix*1000).toLocaleString(zh()?'zh-CN':'en-US')+(Date.now()>data.time_next_update_unix*1000?tr(' · Update pending',' · 待更新'):''):tr(error?'Unable to load rates. Please try again later.':'Loading reference rates…',error?'无法获取行情，请稍后再试。':'正在获取参考行情…')}
+const exchangePage=document.getElementById('exchange');const active=()=>!document.hidden&&!!(exchangePage?.classList.contains('active')||root.classList.contains('active')||(window.MMHExchangeMarketReferenceV2?.allowPublic&&currentSessionUser?.id));
 function stop(){clearTimeout(timer);timer=null;if(controller){controller.abort();controller=null}refresh.disabled=false}
 function schedule(){clearTimeout(timer);if(active())timer=setTimeout(()=>{load(false)},3600000)}
 async function load(manual){if(!active()||controller)return;if(lastAttempt&&Date.now()-lastAttempt<3600000){if(manual)status.textContent=tr('Rates update daily. Please allow one hour between requests.','行情每日更新，请间隔一小时后刷新。');schedule();return}if(!manual&&data&&Date.now()<data.time_next_update_unix*1000){draw();schedule();return}lastAttempt=Date.now();const ac=new AbortController();controller=ac;refresh.disabled=true;const timeout=setTimeout(()=>ac.abort(),12000);try{const res=await fetch('https://open.er-api.com/v6/latest/USD',{signal:ac.signal,cache:'no-store'});if(!res.ok)throw Error('HTTP');const d=await res.json();if(!valid(d))throw Error('Data');if(!active())return;data=d;error=false;try{localStorage.setItem(cacheKey,JSON.stringify(d))}catch(_){}window.dispatchEvent(new CustomEvent('mmhvault:asia-rates-updated'));draw()}catch(_){if(active()){error=true;draw()}}finally{clearTimeout(timeout);if(controller===ac){controller=null;refresh.disabled=false;schedule()}}}
-base.addEventListener('change',draw);$('asiaSearchV10').addEventListener('input',draw);refresh.onclick=()=>load(true);const syncActivity=()=>{if(active()){draw();load(false)}else stop()};window.addEventListener('mmhvault:page-visible',syncActivity,{passive:true});document.addEventListener('visibilitychange',()=>active()?load(false):stop());['mmhvault-language-change','languagechange'].forEach(name=>window.addEventListener(name,draw));window.addEventListener('pagehide',stop);draw();if(active())load(false);
+base.addEventListener('change',draw);$('asiaSearchV10').addEventListener('input',draw);refresh.onclick=()=>load(true);const syncActivity=()=>{if(active()){draw();load(false)}else stop()};window.addEventListener('mmhvault:page-visible',syncActivity,{passive:true});window.addEventListener('mmhvault:data-loaded',syncActivity);document.addEventListener('visibilitychange',()=>active()?load(false):stop());['mmhvault-language-change','languagechange'].forEach(name=>window.addEventListener(name,draw));window.addEventListener('pagehide',stop);window.addEventListener('mmhvault:exchange-reference-updated',draw);draw();if(active())load(false);
 })();
 </script>
 <script id="mmhvault-asia-compact-v131-script">
@@ -33784,6 +33789,9 @@ async function plan(data,u){
  const allTx=normalized.transactions||[],allInv=(normalized.investments||[]).map(normalizer),wallet=walletRows(data);
  const invalid=allInv.map(validateInvestmentImportV383).find(Boolean);if(invalid)throw Error(invalid);
  const [tx,inv,moves,rate,...planning]=await Promise.all(['transactions','investments','crypto_wallet_movements','exchange_rates',...specs.map(s=>s.table)].map(t=>mmhPersonalReadAllV191(t,u.id)));
+ const hasManual=Object.prototype.hasOwnProperty.call(data,'manual_fx_pairs');
+ if(hasManual&&!window.MMHExchangeBackupV2)throw Error('This backup contains Exchange V2 personal rates; enable Exchange V2 before restoring.');
+ const manual=hasManual?await window.MMHExchangeBackupV2.plan(data,u.id):[];
  const ntx=mmhVaultMissingRowsV1235(allTx,tx,txFp),ninv=mmhVaultMissingRowsV1235(allInv,inv,invFp),seen=new Set(moves.map(fp)),hashes=new Set(moves.map(x=>String(x.tx_hash||'').trim()).filter(Boolean)),nwallet=[];
  for(const row of wallet){const key=fp(row);if(seen.has(key))continue;if(row.tx_hash&&hashes.has(row.tx_hash))throw Error('Wallet hash conflicts with an existing or repeated backup record.');seen.add(key);if(row.tx_hash)hashes.add(row.tx_hash);nwallet.push(row)}
  // Refuse orphaned legacy generated entries rather than silently double-debiting them.
@@ -33794,7 +33802,7 @@ async function plan(data,u){
   const orphanFee=inv.some(x=>!linkedInvIds.has(String(x.id))&&x.inv_date===row.movement_date&&/^Wallet (?:Gas|Network) Fee:/i.test(x.note||'')&&eq(x.source_account,row.from_wallet)&&eq(x.symbol,row.fee_asset_symbol)&&Math.abs(number(x.quantity)+row.fee_quantity)<1e-8);
   if(orphanTx||orphanFee)throw Error('Existing Wallet-linked records need review before restoring this movement. No duplicate fee will be created.');
  }
- return {data:normalized,ntx,ninv,nwallet,planning:specs.map((spec,i)=>({...spec,rows:missingPlanning(spec,data[spec.key],planning[i],u)})),rate,duplicates:allTx.length-ntx.length+allInv.length-ninv.length+wallet.length-nwallet.length};
+ return {data:normalized,ntx,ninv,nwallet,manual,planning:specs.map((spec,i)=>({...spec,rows:missingPlanning(spec,data[spec.key],planning[i],u)})),rate,duplicates:allTx.length-ntx.length+allInv.length-ninv.length+wallet.length-nwallet.length};
 }
 const basePreview=window.previewMyFinanceBackupDataV444||window.previewMyFinanceBackupDataV434;
 let previewRequest=0,restoring=false;
@@ -33805,7 +33813,7 @@ const preview=async function(file,data){
  const result=await basePreview(file,normalized);const state=window.restorePreviewV383||(typeof restorePreviewV383!=='undefined'?restorePreviewV383:null);if(!state)return result;
  const button=document.getElementById('restoreConfirmV383');button.disabled=true;const p=await plan(normalized,u);if(request!==previewRequest||currentSessionUser?.id!==u.id||window.restorePreviewV383!==state)return;
  state.data=normalized;document.getElementById('restoreNewTxV383').textContent=p.ntx.length;document.getElementById('restoreNewInvV383').textContent=p.ninv.length;document.getElementById('restoreDuplicateV383').textContent=p.duplicates;
- document.getElementById('restoreConflictV383').textContent=`Wallet Activity: ${p.nwallet.length} new. Custom investments: ${p.planning[0].rows.length}; Budget: ${p.planning[1].rows.length}; Goals: ${p.planning[2].rows.length}; Recurring: ${p.planning[3].rows.length}. Existing records and rates are kept; only missing settings are merged. Customer ID and login identity stay unchanged.`;
+ document.getElementById('restoreConflictV383').textContent=`Wallet Activity: ${p.nwallet.length} new. Custom investments: ${p.planning[0].rows.length}; Budget: ${p.planning[1].rows.length}; Goals: ${p.planning[2].rows.length}; Recurring: ${p.planning[3].rows.length}. Personal rates: ${p.manual.length} new. Existing records and rates are kept; only missing settings are merged. Customer ID and login identity stay unchanged.`;
  button.disabled=false;setRestoreStatusV383('Preview ready. No data has been changed.','ok');return result;
  }catch(e){if(request!==previewRequest)return;window.restorePreviewV383=null;try{restorePreviewV383=null}catch(_){}document.getElementById('restoreConfirmV383').disabled=true;setRestoreStatusV383('Preview blocked: '+(e.message||e),'err');}
 };
@@ -33815,7 +33823,7 @@ window.confirmRestorePreviewV383=async function(){
  const button=document.getElementById('restoreConfirmV383');restoring=true;button.disabled=true;
  try{
  const u=(await db.auth.getUser()).data.user;if(!u)throw Error('Please sign in again.');mmhVaultValidateBackupOwnerV1235(state.data,u);const p=await plan(state.data,u);
- const total=p.ntx.length+p.ninv.length+p.nwallet.length+p.planning.reduce((s,x)=>s+x.rows.length,0);
+ const total=p.ntx.length+p.ninv.length+p.nwallet.length+p.manual.length+p.planning.reduce((s,x)=>s+x.rows.length,0);
  if(!await window.mmhVaultConfirmV740(`Restore ${total} missing records? ${p.duplicates} duplicates skipped. Existing records, rates and identity will be kept.`,'Review & restore'))return;
  if(window.restorePreviewV383!==state)throw Error('Backup preview was cancelled or replaced.');
  const assertOwner=()=>{if(currentSessionUser?.id!==u.id)throw Error('Account session changed. Restore stopped.');if(window.restorePreviewV383!==state)throw Error('Backup preview was cancelled or replaced. Restore stopped.');};assertOwner();setRestoreStatusV383('Restoring missing Personal records…');
@@ -33826,6 +33834,7 @@ window.confirmRestorePreviewV383=async function(){
  let pending=events;while(pending.length){const deferred=[];let progressed=0;for(const event of pending){try{await write(event);progressed++}catch(e){if(/insufficient|negative|余额不足/i.test(e.message||''))deferred.push(event);else throw e}}if(deferred.length&&progressed===0)throw Error('Remaining records require funds/holdings not present in this backup. No guard was bypassed.');pending=deferred;}
  for(const spec of p.planning){if(spec.key==='custom_investments'||!spec.rows.length)continue;assertOwner();const r=await db.from(spec.table).upsert(spec.rows,{onConflict:spec.key==='budgets'?'user_id,budget_month':'id',ignoreDuplicates:true,defaultToNull:false});if(r.error)throw r.error;}
  const rate=state.data.rates;if(!p.rate.length&&rate&&number(rate.usd_mmk)>0&&number(rate.usd_thb)>0){assertOwner();const safe={user_id:u.id,usd_mmk:number(rate.usd_mmk),usd_thb:number(rate.usd_thb),usd_cny:number(rate.usd_cny)};const r=await db.from('exchange_rates').upsert(safe,{onConflict:'user_id',ignoreDuplicates:true});if(r.error)throw r.error;}
+ if(p.manual.length)await window.MMHExchangeBackupV2.restore(p.manual,u.id,assertOwner);
  assertOwner();if(state.data.configuration)mmhVaultMergeBackupConfigV1236(state.data.configuration,u.id);
  for(const key of mmhPersonalPreferenceKeysV191){const value=state.data.settings?.[key];if(typeof value==='string'&&window.mmhVaultLocalGetV12310?.(key)==null)window.mmhVaultLocalSetV12310?.(key,value)}
  const display=state.data.settings?.display,displayKey='mmhvault_settings_display_v2_'+u.id;if(display&&typeof display==='object'&&!localStorage.getItem(displayKey)){const safe={};for(const key of ['theme','overview','budget','currency','decimals','round'])if(['string','boolean'].includes(typeof display[key]))safe[key]=display[key];localStorage.setItem(displayKey,JSON.stringify(safe));}
@@ -35506,6 +35515,7 @@ html body #settings.page.active #stPage_security #mmhA783SecurityCenter .mmh-a78
 </style>
 <script src="js/mmhvault-n10-a7-83-security-center.js?v=10.790.1"></script>
 <script src="js/mmhvault-account-reference-fx-v1.js?v=1.0.1"></script>
+<!-- Auto MMK is loaded only by the explicit release gate below. -->
 <!-- APP V11.7: owner-linked Manage replaces the former field-layout loader.
      The original V11 script remains in Git history for rollback; no DB migration. -->
 <script type="module" src="js/mmhvault-v11-manage-hierarchy-live.mjs?v=0.7.0"></script>
@@ -35516,5 +35526,75 @@ html body #settings.page.active #stPage_security #mmhA783SecurityCenter .mmh-a78
 <link rel="stylesheet" href="css/mmhvault-accounts-directory-v1.css?v=1.0.1" data-mmh-accounts-directory="v1">
 <script defer src="js/mmhvault-accounts-directory-v1.js?v=1.0.1"></script>
 <script defer src="js/mmhvault-report-period-v201.js?v=2.02.0"></script>
+<script type="module" id="mmh-exchange-v2-staging-loader">
+/* Release candidate: production flags remain OFF until explicit approval.
+   The isolated QA host may mount V2 only against Staging. */
+const release = Object.freeze({ exchangeV2: true, autoMmk: false });
+let supabaseHost = '';
+try { supabaseHost = new URL(SUPABASE_URL).hostname; } catch (_) {}
+const isProduction = location.hostname === 'mmhvault.com' &&
+  supabaseHost === 'vrypucmyrztxgiqhjspd.supabase.co';
+const isStaging = location.hostname === 'mmhvault-exchange-v2-staging-qa.pages.dev' &&
+  supabaseHost === 'ldivswlhtgmznzwhzsoi.supabase.co';
+if ((isStaging || (isProduction && release.exchangeV2)) && typeof db !== 'undefined') {
+  window.MMHExchangeBackupRequiredV2=true;
+  const root = document.getElementById('mmhExchangeV2StagingRoot');
+  const legacy = document.querySelector('#exchange > .exchange-converter-panel');
+  if (root && legacy) {
+    try {
+      const { mountExchangeV2V1 } = await import('./exchange-v2/exchange-v2-ui-v1.mjs?v=2.0.0-rc5-member');
+      const { effectiveCoreRates,createMarketReader } = await import('./exchange-v2/market-reference-v2.mjs?v=2.0.0-rc5-member');
+      const {createManualBackup}=await import('./exchange-v2/manual-fx-backup-v1.mjs?v=1.0.0');
+      let pairOwner='',pairs=[],effective=null,signature='';
+      const market=createMarketReader({allowPublic:isProduction,allowCash:isProduction&&release.autoMmk,getSession:async()=>{const r=await db.auth.getSession();return r.error?null:r.data?.session},onChange:()=>changed()});
+      function recompute(paint=true){
+        const uid=currentSessionUser?.id,raw=window.__mmhExchangeRawRatesV2;
+        if(!uid||pairOwner!==uid||raw?.owner!==uid){effective=null;signature='';return}
+        const next=effectiveCoreRates({uid,legacy:raw.row,pairs,market:market.getRates()});
+        const sig=JSON.stringify(next);
+        const changed=sig!==signature;
+        effective=next;signature=sig;
+        rates=next;window.rates=next;window.mmhGoldFxReadyV1=Number(next.usd_mmk)>0;
+        if(paint&&changed){
+          try{loadRateInputs();renderRates();render();}catch(_){}
+          try{window.mmhRefreshGoldSpotConversionV1?.();window.mmhAccountsRefreshV1?.();}catch(_){}
+          window.dispatchEvent(new CustomEvent('mmhvault:exchange-reference-updated'));
+        }
+      }
+      window.MMHExchangeMarketReferenceV2=market;
+      window.MMHExchangeEffectiveFXV2={recompute,getUsdRate:code=>effective?.user_id===currentSessionUser?.id&&Number(effective.fxUsdRates?.[code])>0?Number(effective.fxUsdRates[code]):null};
+      const getLegacyRates=()=>effective?.user_id===currentSessionUser?.id?effective:null;
+      const changed=()=>{recompute(true);window.dispatchEvent(new CustomEvent('mmhvault:exchange-reference-updated'));};
+      mountExchangeV2V1({root,db,getLegacyRates,getPreviousRates:()=>{const raw=window.__mmhExchangeRawRatesV2,uid=currentSessionUser?.id;return uid&&raw?.owner===uid&&pairOwner===uid?raw.row:null},getMarketRates:market.getRates,integrated:true,onPairsChanged:(uid,rows)=>{
+        pairOwner=uid;pairs=rows;
+        if(!uid&&currentSessionUser?.id===window.__mmhExchangeRawRatesV2?.owner){
+          const raw=window.__mmhExchangeRawRatesV2.row;
+          if(raw){rates=raw;window.rates=raw;window.mmhGoldFxReadyV1=Number(raw.usd_mmk)>0;try{loadRateInputs();renderRates();render();window.mmhAccountsRefreshV1?.();}catch(_){}}
+        }
+        recompute(true);
+      }});
+      window.MMHExchangeBackupV2=createManualBackup(db);
+      root.hidden = false;
+      legacy.style.setProperty('display', 'none', 'important');
+      document.querySelector('#exchange > .ex-rate-editor')?.style.setProperty('display','none','important');
+      const heading=document.querySelector('#exchange .ex-template-head p'),badge=document.querySelector('#exchange .ex-template-head .ex-source');
+      const label=(el,en,zh)=>{if(!el)return;el.dataset.en=en;el.dataset.zh=zh;el.textContent=document.documentElement.lang.startsWith('zh')?zh:en;};
+      label(heading,'Personal rates first, otherwise market references.','个人汇率优先，未设置时使用市场参考。');label(badge,'Effective exchange rates','当前有效汇率');
+      window.addEventListener('mmhvault:asia-rates-updated',changed);
+      window.addEventListener('mmhvault:account-reference-fx-updated',changed);
+      window.addEventListener('mmhvault:page-visible',()=>{changed();void market.refresh()});
+      window.addEventListener('focus',()=>{changed();void market.refresh()});
+      document.addEventListener('visibilitychange',()=>{if(!document.hidden){changed();void market.refresh()}});
+      if(isProduction){window.dispatchEvent(new CustomEvent('mmhvault:page-visible'));setInterval(()=>{if(!document.hidden&&currentSessionUser?.id){recompute(true);void market.refresh()}},300000);}
+      void market.refresh();
+    } catch (error) {
+      root.hidden = true;
+      root.replaceChildren();
+      legacy.style.removeProperty('display');
+      console.warn('Exchange V2 mount unavailable; legacy converter retained');
+    }
+  }
+}
+</script>
 </body>
 </html>
