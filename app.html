@@ -35845,8 +35845,8 @@ html body #settings.page.active #stPage_security #mmhA783SecurityCenter .mmh-a78
 <!-- APP V11.7: owner-linked Manage replaces the former field-layout loader.
      The original V11 script remains in Git history for rollback; no DB migration. -->
 <script type="module" src="js/mmhvault-v11-manage-hierarchy-live.mjs?v=0.16.0"></script>
-<link rel="stylesheet" href="css/mmhvault-transaction-onboarding-v1.css?v=1.0.0">
-<script type="module" src="js/mmhvault-transaction-onboarding-live-v1.mjs?v=1.0.0"></script>
+<link rel="stylesheet" href="css/mmhvault-transaction-onboarding-v1.css?v=2.0.0">
+<script type="module" src="js/mmhvault-transaction-onboarding-live-v1.mjs?v=2.0.0"></script>
 
 <!-- Accounts Premium Directory V1: presentation-only, late cascade, isolated from finance/auth. -->
 <link rel="stylesheet" href="css/mmhvault-accounts-directory-v1.css?v=1.0.1" data-mmh-accounts-directory="v1">
@@ -37398,7 +37398,7 @@ html body.mmh-workspace-active #transactions#transactions#transactions#transacti
 
 /* V2 unified transaction entry controls; original native selects retain values and locks. */
 @media(min-width:900px){
-html body.mmh-workspace-active:has(#transactions#transactions.active) main.wrap.wrap.wrap{padding-top:var(--wv-shell-top,var(--wv-top,60px))!important;padding-left:var(--wv-shell-rail,var(--wv-nav,240px))!important;padding-right:0!important;padding-bottom:0!important}
+html body.mmh-workspace-active:has(#transactions#transactions.active) main.wrap.wrap.wrap{padding-top:calc(var(--wv-shell-top,var(--wv-top,60px)) + var(--wv-shell-gap,22px))!important;padding-left:var(--wv-shell-rail,var(--wv-nav,240px))!important;padding-right:0!important;padding-bottom:0!important}
 }
 html body.mmh-workspace-active #transactions#transactions#transactions#transactions#transactions >.mmh-tx-entry-tools-v2{padding-block:6px!important}
 html body.mmh-workspace-active #transactions#transactions#transactions#transactions#transactions #txAddPanel>.panel{min-height:calc(100dvh - 112px)!important;padding:clamp(14px,2vw,26px)!important}
@@ -37791,5 +37791,80 @@ html body .mmh-hier-overlay .mmh-hier-dialog .mmh-hier-form input[type=checkbox]
 @media(max-width:700px){html body.mmh-workspace-active #transactions#transactions#transactions#transactions#transactions#transactions#transactions#transactions#transactions:has(#txManagePanel:not([hidden])) #mmhHierarchyManage#mmhHierarchyManage .mmh-hier-cards{grid-template-columns:minmax(0,1fr)!important}}
 @media(max-width:420px){html body .mmh-hier-overlay .mmh-hier-dialog .mmh-hier-head-actions-v2{gap:4px}html body .mmh-hier-overlay .mmh-hier-dialog .mmh-hier-add-top-v2{padding:5px 7px!important;font-size:11px!important}}
 </style>
+
+<style id="mmhTransactionReceiptAndSpacingV2">
+/* Shared top rhythm, preserve edge-to-edge Transaction workspace. */
+@media(min-width:900px){
+html body.mmh-workspace-active #transactions#transactions#transactions#transactions#transactions#transactions#transactions.active,
+html body.mmh-workspace-active #transactions#transactions#transactions#transactions#transactions#transactions#transactions:has(#txTabAdd.active) #txAddPanel>.panel{min-height:calc(100dvh - var(--wv-shell-top,var(--wv-top,64px)) - var(--wv-shell-gap,22px))!important}
+}
+@media(max-width:899px){
+html body.mmh-workspace-active #transactions#transactions#transactions#transactions#transactions#transactions#transactions.active{margin-top:12px!important}
+}
+html body #editModal#editModal#editModal#editModal #editTxForm #editReceiptManageV3309{padding:0!important;margin:8px 0 0!important;border:0!important;background:transparent!important;box-shadow:none!important}
+html body #editModal#editModal#editModal#editModal #editTxForm #editReceiptManageV3309:empty{display:none!important}
+html body #editModal#editModal#editModal#editModal #editTxForm .receipt-manage-empty-v3309{padding:8px 10px!important;border:0!important;border-radius:6px!important;background:var(--uv-raised)!important;background-image:none!important;color:var(--uv-muted)!important;box-shadow:none!important;text-align:left!important;font:400 12px/1.45 var(--mmh-notice-font,system-ui)!important}
+html body #editModal#editModal#editModal#editModal #editTxForm .receipt-manage-state-v3309{padding:8px 10px!important;gap:8px!important;border:1px solid var(--uv-line)!important;border-radius:7px!important;background:var(--uv-card)!important;background-image:none!important;box-shadow:none!important}
+html body #editModal#editModal#editModal#editModal #editTxForm .receipt-manage-icon-v3309{flex:none;border:1px solid var(--uv-line)!important;border-radius:6px!important;background:var(--uv-raised)!important;background-image:none!important;color:var(--uv-positive)!important;box-shadow:none!important}
+html body #editModal#editModal#editModal#editModal #editTxForm .receipt-manage-copy-v3309 strong{color:var(--uv-text)!important;font:600 12px/1.4 var(--mmh-notice-font,system-ui)!important}
+html body #editModal#editModal#editModal#editModal #editTxForm .receipt-manage-copy-v3309 span{color:var(--uv-muted)!important;font:400 11px/1.4 var(--mmh-notice-font,system-ui)!important}
+html body #editModal#editModal#editModal#editModal #editTxForm .receipt-manage-actions-v3309{gap:5px!important;flex-wrap:wrap!important}
+html body #editModal#editModal#editModal#editModal #editTxForm .receipt-manage-actions-v3309 .btn{min-height:34px!important;padding:5px 9px!important;font-size:12px!important}
+html body #editModal#editModal#editModal#editModal #editTxForm .receipt-manage-actions-v3309 .btn.danger{color:var(--uv-negative)!important}
+html body #receiptViewerModalV3297#receiptViewerModalV3297{position:fixed!important;inset:var(--rv-top,8px) var(--rv-right,8px) var(--rv-bottom,8px) var(--rv-left,8px)!important;z-index:2147483500!important;padding:0!important;margin:0!important;box-sizing:border-box!important;background:var(--mmh-notice-scrim)!important;background-image:none!important;backdrop-filter:none!important;-webkit-backdrop-filter:none!important}
+html body #receiptViewerModalV3297#receiptViewerModalV3297:not(.show){display:none!important}
+html body #receiptViewerModalV3297#receiptViewerModalV3297.show{display:flex!important;align-items:center!important;justify-content:center!important}
+html body #receiptViewerModalV3297#receiptViewerModalV3297 .receipt-viewer-dialog-v3297{box-sizing:border-box!important;width:min(1080px,100%)!important;height:min(780px,100%)!important;max-width:100%!important;max-height:100%!important;min-width:0!important;min-height:0!important;margin:0!important;display:flex!important;flex-direction:column!important;overflow:hidden!important;background:var(--uv-card)!important;background-image:none!important;border:1px solid var(--uv-line)!important;border-radius:10px!important;box-shadow:var(--mmh-notice-shadow)!important}
+html body #receiptViewerModalV3297#receiptViewerModalV3297 .receipt-viewer-head-v3297{flex:none!important;display:flex!important;flex-wrap:wrap!important;gap:8px!important;padding:10px 12px!important;background:var(--uv-card)!important;background-image:none!important;border-bottom:1px solid var(--uv-line)!important;box-shadow:none!important}
+html body #receiptViewerModalV3297#receiptViewerModalV3297 .receipt-viewer-title-v3297{font:600 15px/1.4 var(--mmh-notice-font,system-ui)!important;color:var(--uv-text)!important;text-shadow:none!important}
+html body #receiptViewerModalV3297#receiptViewerModalV3297 .receipt-viewer-actions-v3297{display:flex!important;gap:6px!important;flex-wrap:wrap!important;align-items:center!important;max-width:100%!important}
+html body #receiptViewerModalV3297#receiptViewerModalV3297 :is(.receipt-viewer-zoom-v3297,#receiptZoomFloatV3299){position:static!important;gap:4px!important;padding:2px!important;border:0!important;background:transparent!important;background-image:none!important;box-shadow:none!important;backdrop-filter:none!important;-webkit-backdrop-filter:none!important}
+html body #receiptViewerModalV3297#receiptViewerModalV3297 .receipt-viewer-actions-v3297 button{min-width:32px!important;min-height:32px!important;height:32px!important;padding:5px 8px!important;border:1px solid var(--uv-line)!important;border-radius:6px!important;background:var(--uv-raised)!important;background-image:none!important;color:var(--uv-text)!important;box-shadow:none!important;font:500 12px/1.4 var(--mmh-notice-font,system-ui)!important}
+html body #receiptViewerModalV3297#receiptViewerModalV3297 :is(#receiptZoomLabelV3297,#receiptZoomFloatLabelV3299,.receipt-viewer-loading-v3297){color:var(--uv-muted)!important;font:500 12px/1.4 var(--mmh-notice-font,system-ui)!important}
+html body #receiptViewerModalV3297#receiptViewerModalV3297 .receipt-viewer-body-v3297{flex:1 1 0!important;min-height:0!important;min-width:0!important;overflow:auto!important;overscroll-behavior:contain!important;background:var(--uv-raised)!important;background-image:none!important;box-shadow:none!important}
+@media(max-width:520px){
+html body #editModal#editModal#editModal#editModal #editTxForm .receipt-manage-state-v3309{flex-wrap:wrap!important}
+html body #editModal#editModal#editModal#editModal #editTxForm .receipt-manage-actions-v3309{width:100%!important}
+html body #receiptViewerModalV3297#receiptViewerModalV3297 .receipt-viewer-head-v3297{padding:8px!important;gap:6px!important}
+html body #receiptViewerModalV3297#receiptViewerModalV3297 .receipt-viewer-title-v3297{font-size:13px!important}
+}
+</style>
+<script id="mmhReceiptViewerWorkspaceV2">
+(()=>{
+'use strict';
+const viewer=document.getElementById('receiptViewerModalV3297');
+if(!viewer)return;
+let active=false,previousFocus=null,raf=0;
+const suspended=new Map();
+function update(){
+ raf=0;
+ const open=viewer.classList.contains('show');
+ if(!open){
+  if(active){active=false;for(const [el,was] of suspended)el.inert=was;suspended.clear();
+   if(previousFocus?.isConnected&&previousFocus.getClientRects().length)previousFocus.focus({preventScroll:true});previousFocus=null;}
+  return;
+ }
+ const b=window.MMHWorkspaceDialogBoundsV2?.(null),v=window.visualViewport;
+ const x=v?.offsetLeft||0,y=v?.offsetTop||0,w=v?.width||innerWidth,h=v?.height||innerHeight;
+ const left=Math.max(x+6,b?.left||0),top=Math.max(y+6,b?.top||0),right=Math.min(x+w-6,b?.right||innerWidth),bottom=Math.min(y+h-6,b?.bottom||innerHeight);
+ for(const [k,n] of Object.entries({left,top,right:innerWidth-Math.max(left+1,right),bottom:innerHeight-Math.max(top+1,bottom)}))viewer.style.setProperty('--rv-'+k,Math.max(0,Math.round(n))+'px');
+ if(!active){
+  active=true;previousFocus=document.activeElement;
+  viewer.querySelector('.receipt-viewer-close-v3297')?.focus({preventScroll:true});
+ }
+ for(const [id,cls] of [['editModal','open'],['mmhVaultDialogV449','show']]){
+  const el=document.getElementById(id);if(el?.classList.contains(cls)&&!suspended.has(el)){suspended.set(el,el.inert);el.inert=true;}
+ }
+}
+const schedule=()=>{if(!raf)raf=requestAnimationFrame(update)};
+new MutationObserver(schedule).observe(viewer,{attributes:true,attributeFilter:['class']});
+for(const id of ['editModal','mmhVaultDialogV449']){const el=document.getElementById(id);if(el)new MutationObserver(schedule).observe(el,{attributes:true,attributeFilter:['class']})}
+window.addEventListener('resize',schedule,{passive:true});window.visualViewport?.addEventListener('resize',schedule,{passive:true});window.visualViewport?.addEventListener('scroll',schedule,{passive:true});
+window.addEventListener('keydown',e=>{
+ if(e.key==='Escape'&&viewer.classList.contains('show')){e.preventDefault();e.stopImmediatePropagation();window.closeTransactionReceiptV3297?.();schedule()}
+},true);
+schedule();
+})();
+</script>
 </body>
 </html>
