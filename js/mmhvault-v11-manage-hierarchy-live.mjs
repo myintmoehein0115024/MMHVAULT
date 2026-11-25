@@ -553,6 +553,36 @@ const directions=[
   ['Expense','－',()=>tr('Money out','资金出','ငွေထွက်')],
   ['Transfer','⇄',()=>tr('Transfer','转账','ငွေလွှဲ')]
 ];
+// Browser-local defaults only; no database or network writes.
+const accountMemoryKey=(user,direction)=>'mmh_tx_last_account_v2:'+user+':'+direction;
+function rememberSavedAccounts(user,values){
+  if(!user||user!==owner()||user!==configOwner()||
+    !['Income','Expense','Transfer'].includes(values?.type))return;
+  const from=values.type==='Income'?'':String(values.fromAccount||'');
+  const to=values.type==='Expense'?'':String(values.toAccount||'');
+  if((values.type!=='Income'&&!from)||(values.type!=='Expense'&&!to)||
+    (values.type==='Transfer'&&from===to))return;
+  try{localStorage.setItem(accountMemoryKey(user,values.type),JSON.stringify({from,to}));}catch(_){}
+}
+function restoreSavedAccounts(direction){
+  if(!ready()||!owner()||owner()!==configOwner())return;
+  try{
+    const saved=JSON.parse(localStorage.getItem(accountMemoryKey(owner(),direction))||'null');
+    if(!saved)return;
+    const from=$('fromAccount'),to=$('toAccount');
+    const allowed=(select,value)=>!!value&&select&&!select.disabled&&
+      [...select.options].some(o=>o.value===value&&!o.disabled&&!o.closest('optgroup')?.disabled);
+    if(direction==='Transfer'){
+      if(!allowed(from,saved.from)||!allowed(to,saved.to)||saved.from===saved.to)return;
+    }
+    if(direction!=='Income'&&allowed(from,saved.from))from.value=saved.from;
+    if(direction!=='Expense'&&allowed(to,saved.to))to.value=saved.to;
+    window.mmhSyncTxAddV141?.();
+    // Refresh the enhanced picker and native balance guards after changing defaults.
+    for(const control of [from,to])if(control&&!control.disabled)
+      control.dispatchEvent(new Event('change',{bubbles:true}));
+  }catch(_){}
+}
 function syncDirectionButtons(){
   const panel=$('mmhHierarchyDirection');if(!panel)return;
   for(const node of panel.querySelectorAll('button[data-mmh-direction]')){
@@ -567,9 +597,9 @@ function syncDirectionButtons(){
   }
   const help=panel.querySelector('.mmh-direction-help');
   if(help)help.textContent=tr(
-    'Choose a direction, then choose your own linked Type, Transaction and Category. No presets are added.',
-    '先选资金方向，再选择您自行设置的 Type、Transaction、Category；不会自动添加预设分类。',
-    'ငွေဝင်၊ ငွေထွက် သို့မဟုတ် ငွေလွှဲ ကို ရွေးပြီး ကိုယ်တိုင်သတ်မှတ်ထားသော Type၊ Transaction၊ Category ကို ရွေးပါ။');
+    'Choose a direction, transaction and category.',
+    '选择资金方向、交易及分类。',
+    'ငွေလမ်းကြောင်း၊ မှတ်တမ်းနှင့် အမျိုးအစား ရွေးပါ။');
 }
 function ensureDirectionButtons(f,t){
   let panel=$('mmhHierarchyDirection');
@@ -583,7 +613,7 @@ function ensureDirectionButtons(f,t){
       const button=btn(sign+' '+caption(),()=>{
         if(!ready())return;
         // Clicking again clears the filter; it never creates a Type.
-        const next=directionFilter===direction?'':direction;
+        const next=direction;
         directionFilter=next;
         if(next){
           selection=firstLinkedPath(next)||{type:'',transaction:'',category:''};
@@ -596,6 +626,7 @@ function ensureDirectionButtons(f,t){
         // Keep focus on the clicked direction button; users may tap a
         // field or the missing-field action when they choose.
         form();
+        restoreSavedAccounts(direction);
       });
       button.dataset.mmhDirection=direction;button.setAttribute('aria-pressed','false');
       bar.append(button);
@@ -613,6 +644,7 @@ function form(){
   rendering=true;
   try{
     ensureDirectionButtons(f,t);
+    t.closest('label')?.setAttribute('data-mmh-compact-type','');
     const save=f.querySelector('.actions button:not([type="button"])');
     // Show an honest empty-state before any options exist. Do not infer
     // Income from legacy V141 shortcuts or re-seed archived options.
@@ -640,11 +672,20 @@ function form(){
       selection=firstLinkedPath(directionFilter)||selection;
     const types=activeTypes.map(x=>({id:x.id,value:x.ledgerType,text:x.label}));
     put(t,types,selection.type,'type');selection.type=selected(t);
-    const txns=selection.type?controller.list('transaction',selection.type).map(x=>({
-      id:x.id,value:ledgerKind(x.kindId)?.group||'',text:x.label})).filter(x=>x.value):[];
-    if(selection.type&&!selection.transaction&&txns.length&&
+    const txns=activeTypes.flatMap(type=>controller.list('transaction',type.id).map(x=>({
+      id:x.id,value:ledgerKind(x.kindId)?.group||'',text:x.label,
+      parentType:type.id}))).filter(x=>x.value);
+    if(new Set(txns.map(x=>x.text)).size!==txns.length){
+      for(const x of txns)if(txns.some(y=>y!==x&&y.text===x.text))
+        x.displayText=x.text+' · '+(activeTypes.find(t=>t.id===x.parentType)?.label||'');
+      for(const x of txns)if(x.displayText)x.text=x.displayText;
+    }
+    if(selection.type&&!selection.transaction&&txns.some(x=>x.parentType===selection.type)&&
       awaiting?.transactionType===selection.type)
       selection=firstLinkedPath(directionFilter,selection.type)||selection;
+    if(selection.transaction&&!txns.some(x=>x.id===selection.transaction&&x.parentType===selection.type)){
+      selection.transaction='';selection.category='';
+    }
     put(g,txns,selection.transaction,'transaction');selection.transaction=selected(g);
     const cats=selection.transaction?controller.list('category',selection.transaction)
       .map(x=>({id:x.id,value:x.label,text:x.label})):[];
@@ -654,7 +695,7 @@ function form(){
     put(c,cats,selection.category,'category');selection.category=selected(c);
     awaitingMissing={owner:owner(),direction:directionFilter,
       typeMissing:!!directionFilter&&!activeTypes.length,
-      transactionType:selection.type&&!txns.length?selection.type:'',
+      transactionType:selection.type&&!txns.some(x=>x.parentType===selection.type)?selection.type:'',
       categoryTransaction:selection.transaction&&!cats.length?selection.transaction:''};
     // The direction itself is always selectable. Only existing unarchived
     // choices may fill fields; guide the owner to add whichever level is absent.
@@ -866,6 +907,7 @@ function ledgerInserted(userId,id,values){
   // Do not hide an inserted financial row from Accounts/Analyze because the
   // separate JSON sidecar is pending or invalid.
   if(owner()!==userId||configOwner()!==userId||id==null||String(id)==='')return;
+  rememberSavedAccounts(userId,values);
   const recordId=String(id),current=pendingSave;
   pendingSave=null;
   if(!current||current.owner!==userId||!values||
@@ -895,6 +937,33 @@ function ledgerInserted(userId,id,values){
 function boot(){
   const f=$('txForm');
   style();
+  if(f&&!$('mmhCompactEntryV2')){
+    const compact=elt('style');compact.id='mmhCompactEntryV2';
+    const root='html body.mmh-workspace-active #transactions#transactions#transactions#transactions#transactions#transactions';
+    const form=root+' #txForm#txForm';
+    compact.textContent=`
+      ${form} .formgrid>label[data-mmh-compact-type]{display:none!important}
+      ${form} #mmhHierarchyBalanceHint,${form} #mmhHierarchyDirection .mmh-direction-help{display:none!important}
+      ${form} .formgrid>label:has(#txNote){grid-column:auto!important;order:9!important}
+      ${form} .formgrid>label:has(#fromAmount),${form} .formgrid>label:has(#toAmount){grid-column:auto!important}
+      ${form} #txNote,${form} #fromAmount,${form} #toAmount{min-height:44px!important;height:44px!important}
+      ${root}:has(#txTabAdd.active)>.mmh-tx-entry-tools-v2{padding:3px 12px!important;min-height:0!important}
+      ${root}:has(#txTabAdd.active) #txAddPanel>.panel{min-height:0!important;padding-top:10px!important}
+      ${form} #mmhHierarchyDirection{margin-top:0!important;margin-bottom:10px!important}
+      ${form}:has(#mmhHierarchyDirection [data-mmh-direction=Transfer][aria-pressed=true]) .formgrid>label:has(#txGroup){order:2!important}
+      ${form}:has(#mmhHierarchyDirection [data-mmh-direction=Transfer][aria-pressed=true]) .formgrid>label:has(#fromAccount){order:3!important}
+      ${form}:has(#mmhHierarchyDirection [data-mmh-direction=Transfer][aria-pressed=true]) .formgrid>label:has(#toAccount){order:4!important}
+      ${form}:has(#mmhHierarchyDirection [data-mmh-direction=Transfer][aria-pressed=true]) .formgrid>label:has(#fromAmount){order:5!important}
+      ${form}:has(#mmhHierarchyDirection [data-mmh-direction=Transfer][aria-pressed=true]) .formgrid>label:has(#toAmount){order:6!important}
+      ${form}:has(#mmhHierarchyDirection [data-mmh-direction=Transfer][aria-pressed=true]) .formgrid>label:has(#txCategory){order:7!important}
+      @media(max-width:480px){
+        ${form} .formgrid{grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:8px!important}
+        ${form} .formgrid>label{grid-column:auto!important}
+      }
+      @media(max-width:340px){${form} .formgrid{grid-template-columns:minmax(0,1fr)!important}}
+    `;
+    document.head.append(compact);
+  }
   if(f){
     // Native label activation opens a SELECT even when the user taps its
     // caption or an adjacent hint. Require a direct tap on the control
@@ -921,8 +990,14 @@ function boot(){
       }
       else if(e.target===$('txGroup')){
         const id=selected(e.target);
-        selection=firstLinkedPath(directionFilter,selection.type,id)||
-          {type:selection.type,transaction:id,category:''};
+        const parent=controller.list('type').find(type=>
+          (!directionFilter||type.ledgerType===directionFilter)&&
+          controller.list('transaction',type.id).some(tx=>tx.id===id));
+        if(parent){
+          directionFilter=parent.ledgerType;
+          selection=firstLinkedPath(directionFilter,parent.id,id)||
+            {type:parent.id,transaction:id,category:''};
+        }else selection={type:'',transaction:'',category:''};
       }
       else selection.category=selected(e.target);
       form();
@@ -995,7 +1070,7 @@ function boot(){
   }
   schedule();
 }
-window.MMHV11HierarchyLive={version:'0.7-draft',refresh:schedule,onLedgerInserted:ledgerInserted};
+window.MMHV11HierarchyLive={version:'0.8-compact',refresh:schedule,onLedgerInserted:ledgerInserted};
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot,{once:true});
 else boot();
 })();
