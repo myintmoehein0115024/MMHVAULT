@@ -38373,5 +38373,71 @@ html body.mmh-workspace-active #transactions#transactions#transactions#transacti
 }
 }
 </style>
+
+<style id="mmhIOSMobileViewportV2">
+/* iOS WebKit only. Avoid a fixed body containing fixed chrome, which can
+   produce divergent paint and touch geometry when the visual viewport changes.
+   Android, desktop, authentication, and existing overlay stacking stay intact. */
+@supports (-webkit-touch-callout:none){
+@media(max-width:899px),(max-width:1099px) and (hover:none),(max-width:1099px) and (pointer:coarse){
+html body.mmh-workspace-active:not(.auth-page-active){
+ --mmh-mobile-nav-pad:clamp(0px,calc(var(--mmh-mobile-safe-bottom) - 8px),26px);
+ position:relative!important;inset:auto!important;width:100%!important;
+ height:var(--mmh-ios-shell-height,100dvh)!important;min-height:0!important;
+ max-height:none!important;box-sizing:border-box!important;margin:0!important;padding:0!important;
+}
+html body.mmh-workspace-active:not(.auth-page-active) #header#header#header#header#header#header#header#header{
+ position:absolute!important;inset:0 0 auto 0!important;
+}
+html body.mmh-workspace-active:not(.auth-page-active) main.wrap.wrap.wrap.wrap.wrap.wrap.wrap{
+ position:absolute!important;inset:var(--mmh-mobile-header-total) 0 var(--mmh-mobile-nav-total) 0!important;
+ height:auto!important;min-height:0!important;
+}
+html body.mmh-workspace-active:not(.auth-page-active) #bottomNav#bottomNav#bottomNav#bottomNav#bottomNav#bottomNav#bottomNav.bottom-nav{
+ position:absolute!important;inset:auto 0 0 0!important;transform:none!important;
+}
+html body.mmh-workspace-active:not(.auth-page-active) #bottomNav#bottomNav#bottomNav#bottomNav#bottomNav#bottomNav>button{
+ touch-action:manipulation;
+}
+html body.mmh-workspace-active:not(.auth-page-active) #moreNavMenu#moreNavMenu#moreNavMenu#moreNavMenu.more-nav-menu{
+ position:absolute!important;inset:0!important;height:100%!important;
+}
+html body.mmh-workspace-active:not(.auth-page-active) #mmhContactLauncherV2#mmhContactLauncherV2{
+ position:absolute!important;top:auto!important;
+}
+}
+}
+</style>
+<script id="mmhIOSMobileViewportSyncV2">
+(()=>{
+'use strict';
+if(!window.CSS?.supports('-webkit-touch-callout','none'))return;
+const mq=matchMedia('(max-width:899px), (max-width:1099px) and (hover:none), (max-width:1099px) and (pointer:coarse)');
+const root=document.documentElement,vv=window.visualViewport;
+let frame=0,last='',timer=0;
+function sync(){
+ frame=0;
+ if(!mq.matches){if(last){root.style.removeProperty('--mmh-ios-shell-height');last=''}return;}
+ if(vv&&Math.abs(vv.scale-1)>.02)return;
+ // Height only: offsetTop is a pan, not additional usable height.
+ const height=Math.floor(vv?.height||window.innerHeight);
+ if(!Number.isFinite(height)||height<100)return;
+ const next=height+'px';
+ if(next!==last){root.style.setProperty('--mmh-ios-shell-height',next);last=next;}
+}
+function schedule(){if(!frame)frame=requestAnimationFrame(sync);}
+function settle(){schedule();clearTimeout(timer);timer=setTimeout(schedule,250);}
+window.addEventListener('resize',schedule,{passive:true});
+vv?.addEventListener('resize',schedule,{passive:true});
+vv?.addEventListener('scroll',schedule,{passive:true});
+window.addEventListener('orientationchange',settle,{passive:true});
+window.addEventListener('pageshow',settle);
+window.addEventListener('mmhvault:page-visible',settle);
+document.addEventListener('visibilitychange',()=>{if(!document.hidden)settle();});
+document.addEventListener('focusout',settle);
+mq.addEventListener?.('change',settle);
+sync();
+})();
+</script>
 </body>
 </html>
