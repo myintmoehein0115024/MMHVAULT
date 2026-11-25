@@ -938,6 +938,19 @@ button:focus-visible,a:focus-visible,#mmhV2Language:focus-visible{outline:2px so
 @media(max-width:360px){.shell>.site-header{padding:0 10px;gap:4px}.shell>.site-header .brand strong{font-size:13px}.mmh-v2-header-controls{gap:5px}#mmhV2Language{max-width:107px;font-size:11px}.mmh-v2-theme{width:32px;flex-basis:32px;height:32px}main{padding:20px 15px 30px}}
 @media(max-height:760px){main{align-items:start;padding-top:16px}}
 @media(prefers-reduced-motion:reduce){.form.active{animation:none!important}}
+
+/* V2 flag-only language picker, retaining the native select and existing language engine as fallback. */
+.shell>.site-header .mmh-lang-switcher{position:relative;order:2;flex:none;overflow:visible}
+.mmh-v2-header-controls>.mmh-v2-theme{order:1}
+#mmhV2LanguageTrigger{display:grid;place-items:center;width:36px;height:36px;min-width:36px;padding:0!important;border:1px solid var(--line)!important;border-radius:50%;background:var(--panel)!important;color:var(--text);font:22px/1 system-ui,sans-serif;cursor:pointer;box-shadow:none}
+#mmhV2LanguageTrigger:hover,#mmhV2LanguageTrigger[aria-expanded=true]{background:var(--panel2)!important;border-color:var(--gold2)!important}
+#mmhV2LanguageMenu{position:absolute;top:calc(100% + 8px);right:0;z-index:100;width:178px;max-width:calc(100vw - 24px);padding:5px;border:1px solid var(--line);border-radius:10px;background:var(--panel);box-shadow:0 8px 28px #0004;color:var(--text)}
+#mmhV2LanguageMenu[hidden],#mmhV2LanguageTrigger[hidden],#mmhV2Language[hidden]{display:none!important}
+.shell>.site-header #mmhV2LanguageMenu button{display:grid;grid-template-columns:26px minmax(0,1fr) 18px;align-items:center;gap:6px;text-align:left;width:100%;min-height:42px;padding:7px 8px;border:0;border-radius:6px;background:transparent;color:var(--text);font:500 13px/1.4 system-ui,sans-serif;white-space:nowrap;cursor:pointer}
+#mmhV2LanguageMenu button:hover,#mmhV2LanguageMenu button:focus-visible{background:var(--panel2)}
+#mmhV2LanguageMenu button .flag{font-size:20px;line-height:1}
+#mmhV2LanguageMenu button .check{color:var(--gold2);text-align:right}
+@media(max-width:360px){#mmhV2LanguageTrigger{width:32px;height:32px;min-width:32px;font-size:20px}}
 </style>
 <script id="mmh-v2-login-presentation">
 (function(){
@@ -946,6 +959,24 @@ button:focus-visible,a:focus-visible,#mmhV2Language:focus-visible{outline:2px so
  function setTheme(next){root.dataset.mmhLoginTheme=next;theme.setAttribute('aria-pressed',String(next==='light'));document.querySelector('meta[name="theme-color"]')?.setAttribute('content',next==='light'?'#f4f7fb':'#131923');try{localStorage.setItem('mmhvault-login-theme',next)}catch(_){}}
  setTheme(value);theme.addEventListener('click',()=>setTheme(root.dataset.mmhLoginTheme==='light'?'dark':'light'));
 
+})();
+</script>
+<script id="mmh-v2-language-picker">
+(function(){
+ const select=document.getElementById('mmhV2Language'),wrap=select?.closest('.mmh-lang-switcher');if(!wrap)return;
+ const langs=[['en','🇺🇸','English','Choose language'],['zh','🇨🇳','中文','选择语言'],['my','🇲🇲','မြန်မာ','ဘာသာစကား ရွေးချယ်ပါ']];
+ const trigger=document.createElement('button'),menu=document.createElement('div');trigger.id='mmhV2LanguageTrigger';trigger.type='button';trigger.hidden=true;trigger.setAttribute('aria-expanded','false');trigger.setAttribute('aria-controls','mmhV2LanguageMenu');menu.id='mmhV2LanguageMenu';menu.hidden=true;menu.setAttribute('role','group');const options=[];
+ function close(focus=false){menu.hidden=true;trigger.setAttribute('aria-expanded','false');if(focus)trigger.focus()}
+ function update(){const current=langs.find(x=>x[0]===select.value)||langs[0];trigger.textContent=current[1];trigger.title=current[2];trigger.setAttribute('aria-label',current[3]+' — '+current[2]);menu.setAttribute('aria-label',current[3]);options.forEach(([code,b,check])=>{b.setAttribute('aria-pressed',String(code===current[0]));check.textContent=code===current[0]?'✓':''})}
+ for(const [code,flag,name] of langs){const b=document.createElement('button'),f=document.createElement('span'),n=document.createElement('span'),c=document.createElement('span');b.type='button';f.className='flag';f.textContent=flag;f.setAttribute('aria-hidden','true');n.textContent=name;c.className='check';c.setAttribute('aria-hidden','true');b.append(f,n,c);b.addEventListener('click',()=>{select.value=code;select.dispatchEvent(new Event('change',{bubbles:true}));update();close(true)});options.push([code,b,c]);menu.append(b)}
+ function open(){menu.hidden=false;trigger.setAttribute('aria-expanded','true');(options.find(x=>x[0]===select.value)||options[0])[1].focus()}
+ trigger.addEventListener('click',()=>menu.hidden?open():close(true));
+ trigger.addEventListener('keydown',e=>{if(e.key==='ArrowDown'||e.key==='ArrowUp'){e.preventDefault();open()}});
+ menu.addEventListener('keydown',e=>{const i=options.findIndex(x=>x[1]===document.activeElement);if(['ArrowDown','ArrowUp','Home','End'].includes(e.key)){e.preventDefault();options[e.key==='Home'?0:e.key==='End'?2:(i+(e.key==='ArrowDown'?1:2))%3][1].focus()}});
+ document.addEventListener('click',e=>{if(!wrap.contains(e.target))close()});
+ wrap.addEventListener('focusout',e=>{if(e.relatedTarget&&!wrap.contains(e.relatedTarget))close()});
+ document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!menu.hidden){e.preventDefault();e.stopPropagation();close(true)}});
+ window.addEventListener('mmhvault-language-change',update);select.addEventListener('change',update);wrap.append(trigger,menu);update();trigger.hidden=false;select.hidden=true;
 })();
 </script>
 <script src="./js/vendor/qrcode-1.0.0.min.js"></script>
