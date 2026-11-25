@@ -120,6 +120,31 @@ const lang=()=>{
 const txPage=()=>!!$('transactions')?.classList.contains('active');
 const managerPage=()=>!!$('txManagePanel')&&!$('txManagePanel').hidden&&$('txManagePanel').style.display!=='none';
 const editorOpen=()=>!!doc.querySelector('.mmh-hier-overlay');
+const dialogNow=()=>doc.querySelector('.mmh-hier-overlay .mmh-hier-dialog');
+const coachWords={
+ en:{list:'Select + Add at the top to create an item, or continue with your existing setup.',name:'Enter a name for your item.',link:'Choose the linked Type or Transaction using the highlighted selector.',save:'Check the information and press Save only if you want to create this item.',review:'Review the list. Add another item or continue with your existing setup.',other:'Complete or cancel this operation to return to the guided setup.',blocked:'Complete the missing prerequisite in this window, then return to the guided setup.'},
+ zh:{list:'点击顶部新增按钮创建项目；已有合适的设置也可以直接继续。',name:'在高亮输入框填写项目名称。',link:'点击高亮选择器，选择关联的 Type 或 Transaction。',save:'确认信息无误后，仅在您确实需要创建该项目时点击保存。',review:'查看当前列表，可以继续新增，也可以使用已有设置进入下一步。',other:'请完成或取消当前操作，再返回引导设置。',blocked:'请先在本窗口完成缺少的前置设置，再返回教程。'},
+ my:{list:'အပေါ်ရှိ + ခလုတ်ဖြင့် အသစ်ထည့်ပါ။ ရှိပြီးသား အမျိုးအစားကိုလည်း သုံးနိုင်ပါသည်။',name:'မီးမောင်းထိုးထားသော အကွက်တွင် အမည် ထည့်ပါ။',link:'မီးမောင်းထိုးထားသော ရွေးချယ်စရာမှ ချိတ်ဆက်မည့် Type သို့မဟုတ် Transaction ကို ရွေးပါ။',save:'အချက်အလက်ကို စစ်ဆေးပြီး လိုအပ်မှသာ Save နှိပ်ပါ။',review:'စာရင်းကို စစ်ဆေးပါ။ အသစ်ထည့်နိုင်သလို ရှိပြီးသားကို သုံးနိုင်ပါသည်။',other:'လက်ရှိလုပ်ဆောင်မှုကို ပြီးဆုံးစေပါ သို့မဟုတ် ပယ်ဖျက်ပါ။',blocked:'လိုအပ်သော အခြေခံအဆင့်ကို ဦးစွာ ပြီးဆုံးစေပါ။'}
+};
+let visitedCoachStage='';
+function coachContext(stage){
+  const dialog=dialogNow();
+  if(!dialog)return null;
+  if(!['transaction','category'].includes(stage))return {dialog,key:'other',target:null};
+  const form=dialog.querySelector('.mmh-hier-form'),add=dialog.querySelector('.mmh-hier-add-top-v2');
+  if(dialog.dataset.mmhCoachField!==stage)return {dialog,key:'blocked',target:visibleTarget(add,dialog.querySelector('.mmh-hier-btn:not(.mmh-hier-close):not(:disabled)'))};
+  if(form&&dialog.dataset.mmhCoachMode==='add'){
+    visitedCoachStage=stage;
+    const name=form.querySelector('input[type=text]'),selects=[...form.querySelectorAll('select')].filter(n=>!n.disabled&&!n.closest('[hidden]'));
+    if(!name?.value.trim())return {dialog,key:'name',target:name};
+    const missing=selects.find(n=>n.required&&!n.value);
+    if(missing)return {dialog,key:'link',target:visibleTarget(missing.parentElement?.querySelector('.mmh-cat-trigger-v2'),missing)};
+    return {dialog,key:'save',target:form.querySelector('button[type=submit]')};
+  }
+  if(form||dialog.dataset.mmhCoachMode==='delete')return {dialog,key:'other',target:null};
+  if(add?.disabled)return {dialog,key:'blocked',target:visibleTarget(dialog.querySelector(':scope > button:not(:disabled)'))};
+  return {dialog,key:visitedCoachStage===stage?'review':'list',target:add};
+}
 const visibleTarget=(...nodes)=>nodes.find(n=>n?.isConnected&&n.getClientRects().length&&n.getBoundingClientRect().width>0)||null;
 const targetFor=(step)=>{
   const scope=$('mmhHierarchyManage');
@@ -180,7 +205,7 @@ function mountHelp(){
 function saveAndClose(status='paused'){
   if(state)persist(status==='skipped'?stop(state):pause(state));
   dismissedOwner=activeOwner;shown=false;beforeIds=null;submitOwner='';
-  root?.remove();root=null;card=null;halo=null;lastSig='';
+  card?.remove();root?.remove();root=null;card=null;halo=null;lastSig='';
   doc.body.classList.remove('mmh-onboarding-active-v1');
 }
 function openGuide(manual=false){
@@ -190,7 +215,7 @@ function openGuide(manual=false){
   state=manual?initialState():(read(activeOwner)||initialState());
   if(manual)persist(state);
   dismissedOwner='';
-  shown=true;lastSig='';
+  shown=true;lastSig='';visitedCoachStage='';
   mountHelp();renderGuide();
 }
 function localeText(){return words[lang()];}
@@ -204,22 +229,23 @@ function ensureStage(){
   halo=make('div','mmh-onboard-halo-v1');halo.hidden=true;root.append(halo);
   card=make('section','mmh-onboard-card-v1');card.tabIndex=-1;card.setAttribute('role','dialog');
   card.setAttribute('aria-label','Transactions onboarding');
-  card.addEventListener('keydown',e=>{if(e.key==='Escape'){e.preventDefault();saveAndClose();}});
+  card.addEventListener('keydown',e=>{if(e.key==='Escape'){e.preventDefault();e.stopPropagation();saveAndClose();}});
   root.append(card);doc.body.append(root);
   doc.body.classList.add('mmh-onboarding-active-v1');
 }
 function placement(){
   if(!shown||!card||!halo||root?.hidden)return;
-  const stage=STEPS[state?.step||0],target=targetFor(stage);
+  const stage=STEPS[state?.step||0],coach=coachContext(stage),target=coach?coach.target:targetFor(stage);
   const vv=window.visualViewport,vl=vv?.offsetLeft||0,vt=vv?.offsetTop||0,vr=vl+(vv?.width||innerWidth),vb=vt+(vv?.height||innerHeight);
   const b=window.MMHWorkspaceDialogBoundsV2?.(null);
   const left=Math.max(vl+8,b?.left||0),right=Math.min(vr-8,b?.right||vr),top=Math.max(vt+8,b?.top||0),bottom=Math.min(vb-8,b?.bottom||vb);
   if(right<=left||bottom<=top)return;
   const dim=root.querySelector('.mmh-onboard-dim-v1');
-  if(dim)Object.assign(dim.style,{left:left+'px',right:Math.max(0,innerWidth-right)+'px',top:top+'px',bottom:Math.max(0,innerHeight-bottom)+'px'});
-  const r=target?.getBoundingClientRect(),visible=!!(r&&target.isConnected&&target.getClientRects().length&&r.width>0&&r.height>0&&r.bottom>top&&r.top<bottom&&r.right>left&&r.left<right&&!editorOpen());
+  if(dim){dim.hidden=!!coach;Object.assign(dim.style,{left:left+'px',right:Math.max(0,innerWidth-right)+'px',top:top+'px',bottom:Math.max(0,innerHeight-bottom)+'px'});}
+  const r=target?.getBoundingClientRect(),visible=!!(r&&target.isConnected&&target.getClientRects().length&&r.width>0&&r.height>0&&r.bottom>top&&r.top<bottom&&r.right>left&&r.left<right&&(!coach||!doc.querySelector('#mmhCategoryPickerV2:not([hidden])'))&&(!coach||r.bottom>coach.dialog.getBoundingClientRect().top&&r.top<coach.dialog.getBoundingClientRect().bottom));
   halo.hidden=!visible;
   if(visible){const x=Math.max(left,r.left-4),y=Math.max(top,r.top-4);halo.style.width=Math.max(1,Math.min(right,r.right+4)-x)+'px';halo.style.height=Math.max(1,Math.min(bottom,r.bottom+4)-y)+'px';halo.style.transform='translate('+x+'px,'+y+'px)';}
+  if(coach)return;
   const width=Math.min(390,right-left),maxHeight=bottom-top;
   card.style.width=width+'px';card.style.maxHeight=maxHeight+'px';
   const height=card.offsetHeight,clamp=(v,min,max)=>Math.max(min,Math.min(max,v));
@@ -240,12 +266,12 @@ function action(caption,fn,primary=false,disabled=false){
 }
 function go(index){
   if(!shown||!state)return;
-  persist(advanceTo(state,index));lastSig='';renderGuide();
+  visitedCoachStage='';persist(advanceTo(state,index));lastSig='';renderGuide();
 }
 function end(){
   if(!state)return;
   persist(finish(state));
-  dismissedOwner=activeOwner;shown=false;root?.remove();root=null;card=null;halo=null;lastSig='';
+  dismissedOwner=activeOwner;shown=false;card?.remove();root?.remove();root=null;card=null;halo=null;lastSig='';
   doc.body.classList.remove('mmh-onboarding-active-v1');
 }
 function openAccounts(){
@@ -264,7 +290,7 @@ function renderGuide(){
   if(!shown||!state||!txPage())return;
   const d=snapshot();if(d.owner!==activeOwner||!d.loaded){saveAndClose();return;}
   const locale=lang(),t=localeText(),stage=STEPS[state.step];
-  if(editorOpen()){if(root)root.hidden=true;return;}
+  const coach=coachContext(stage);
   if(root)root.hidden=false;
   const manager=managerPage(),adding=!!$('txTabAdd')?.classList.contains('active');
   const hasPath=d.configured.type&&d.configured.transaction&&d.configured.category;
@@ -272,8 +298,12 @@ function renderGuide(){
   const ready=(stage==='type')||(stage==='transaction'&&d.configured.transaction)||
     (stage==='category'&&d.configured.category);
   const signature=[stage,locale,manager,adding,d.accounts,hasPath,d.configured.type,d.configured.transaction,d.configured.category,
-    state.hasSavedTransaction,mode].join('|');
+    state.hasSavedTransaction,mode,coach?.key||'',coach?.dialog.dataset.mmhCoachField||''].join('|');
   ensureStage();
+  if(coach){
+    if(card.parentNode!==coach.dialog){const header=coach.dialog.firstElementChild;if(header)header.after(card);else coach.dialog.prepend(card);}
+    card.classList.add('mmh-onboard-inline-v2');card.removeAttribute('style');
+  }else if(card.parentNode!==root){root.append(card);card.classList.remove('mmh-onboard-inline-v2');}
   if(signature===lastSig){placement();return;}
   lastSig=signature;card.replaceChildren();card.lang=locale;
   const header=make('div','mmh-onboard-head-v1');
@@ -290,7 +320,7 @@ function renderGuide(){
   const progress=make('div','mmh-onboard-step-v1');
   progress.append(make('span','',t.step+' '+(state.step+1)+' '+t.of+' '+STEPS.length),make('span','',Math.round((state.step+1)/STEPS.length*100)+'%'));card.append(progress);
   card.append(make('h2','mmh-onboard-title-v1',t[stage+'Title']));
-  card.append(make('p','mmh-onboard-copy-v1',t[stage+'Copy']));
+  card.append(make('p','mmh-onboard-copy-v1',coach?coachWords[locale][coach.key]:t[stage+'Copy']));
   let note='';
   if(stage==='type'&&!d.configured.type)note=t.noType;
   else if(stage==='transaction'&&!d.configured.transaction)note=t.noTransaction;
@@ -299,13 +329,19 @@ function renderGuide(){
   else if(stage==='first')note=mode==='account'?t.accountNeeded:mode==='manage'?t.pathNeeded:t.readyToSave;
   else if(stage==='complete')note=state.hasSavedTransaction?t.completeWithSave:t.noSave;
   else if(stage==='welcome')note=t.storageNotice;
-  if(note)card.append(make('div','mmh-onboard-note-v1',note));
+  if(note&&!coach)card.append(make('div','mmh-onboard-note-v1',note));
   const dots=make('div','mmh-onboard-dotrow-v1');
   for(let i=0;i<STEPS.length;i++)dots.append(make('span','mmh-onboard-dot-v1'+(i<=state.step?' is-done':'')));
   dots.setAttribute('aria-hidden','true');card.append(dots);
   const footer=make('div','mmh-onboard-actions-v1');
-  if(state.step>0)footer.append(action(locale==='zh'?'上一步':locale==='my'?'နောက်သို့':'Back',()=>go(state.step-1)));
-  if(stage==='welcome'){
+  if(!coach&&state.step>0)footer.append(action(locale==='zh'?'上一步':locale==='my'?'နောက်သို့':'Back',()=>go(state.step-1)));
+  if(coach){
+    if(['list','review'].includes(coach.key)){
+      const leave=()=>{coach.dialog.querySelector('.mmh-hier-close')?.click();go(state.step+1);};
+      footer.append(action(t.skipStep,leave));
+      footer.append(action(t.next,leave,true,!ready));
+    }
+  }else if(stage==='welcome'){
     footer.append(action(t.pause,()=>saveAndClose()));
     footer.append(action(t.start,()=>go(1),true));
   }else if(stage==='manage'){
@@ -332,7 +368,7 @@ function renderGuide(){
     footer.append(action(t.history,viewHistory));
     footer.append(action(t.finish,end,true));
   }
-  card.append(footer);
+  if(footer.childElementCount)card.append(footer);
   placement();
 }
 function checkSaved(){
@@ -376,6 +412,7 @@ function onOwnerChange(){
 function init(){
   mountHelp();
   doc.addEventListener('click',onClick,{capture:true});
+  for(const event of ['input','change'])doc.addEventListener(event,e=>{if(shown&&e.target instanceof Element&&e.target.closest('.mmh-hier-form'))schedule();},true);
   window.addEventListener('mmhvault:config-owner-changed',onOwnerChange);
   for(const type of ['mmhvault:rendered','mmhvault:data-loaded','mmhvault:category-config-changed',
     'mmhvault:config-cloud-synced','mmhvault:page-visible','languagechange','mmhvault-language-change']){
@@ -389,7 +426,7 @@ function init(){
   const section=$('mmhManagerCategoriesPanelV445');
   if(section)new MutationObserver(schedule).observe(section,{childList:true,subtree:false});
   new MutationObserver(schedule).observe(doc.documentElement,{attributes:true,attributeFilter:['lang']});
-  new MutationObserver(records=>{if(records.some(r=>[...r.addedNodes,...r.removedNodes].some(n=>n.nodeType===1&&n.matches?.('.mmh-hier-overlay'))))schedule()}).observe(doc.body,{childList:true});
+  new MutationObserver(records=>{if(records.some(r=>{const target=r.target;return (target instanceof Element&&target.matches('.mmh-hier-dialog'))||[...r.addedNodes,...r.removedNodes].some(n=>n.nodeType===1&&n.matches?.('.mmh-hier-overlay,.mmh-cat-trigger-v2'))}))schedule()}).observe(doc.body,{childList:true,subtree:true});
   window.visualViewport?.addEventListener('resize',()=>{if(shown)placement()},{passive:true});
   window.visualViewport?.addEventListener('scroll',()=>{if(shown)placement()},{passive:true});
   window.addEventListener('storage',e=>{
@@ -398,7 +435,7 @@ function init(){
   });
   schedule();
 }
-window.MMHTransactionsOnboardingV1=Object.freeze({version:'2.0.0',open:()=>openGuide(true),close:()=>saveAndClose(),
+window.MMHTransactionsOnboardingV1=Object.freeze({version:'2.1.0',open:()=>openGuide(true),close:()=>saveAndClose(),
   status:()=>({active:shown,step:shown?STEPS[state?.step||0]:null})});
 if(doc.readyState==='loading')doc.addEventListener('DOMContentLoaded',init,{once:true});else init();
 })();
