@@ -974,19 +974,32 @@ function boot(){
       html body.mmh-workspace-active:has(#transactions#transactions#transactions.active #txTabAdd.active) :is(.mmh-p24-account-menu,.mmh-p25-picker-menu){background:var(--tx-menu-surface)!important;background-image:none!important;border-color:var(--tx-menu-line)!important;color:var(--tx-menu-text)!important}
       html body.mmh-workspace-active:has(#transactions#transactions#transactions.active #txTabAdd.active) :is(.mmh-p24-account-menu,.mmh-p25-picker-menu)>button{color:var(--tx-menu-text)!important}
       html body.mmh-workspace-active:has(#transactions#transactions#transactions.active #txTabAdd.active) :is(.mmh-p24-account-menu,.mmh-p25-picker-menu)>button:is([aria-selected=true],:hover,:focus-visible){background:var(--tx-menu-selected)!important;color:var(--tx-menu-accent)!important}
-      @media(min-width:768px){
-        ${root}#transactions#transactions.active:has(#txTabAdd.active){display:flex!important;flex-direction:column!important;min-height:var(--tx-entry-height)!important;height:auto!important;max-height:none!important;overflow:visible!important;background:var(--tv-card)!important}
-        ${root}#transactions#transactions:has(#txTabAdd.active) #txAddPanel{display:flex!important;flex-direction:column!important;flex:1 1 auto!important;min-height:0!important;max-height:none!important;width:100%!important}
-        ${root}#transactions#transactions:has(#txTabAdd.active) #txAddPanel>.panel{display:flex!important;flex-direction:column!important;flex:1 1 auto!important;min-height:var(--tx-entry-height)!important;max-height:none!important;padding:clamp(16px,2vw,32px)!important}
-        ${form}:has(#mmhHierarchyDirection){display:flex!important;flex-direction:column!important;flex:1 1 auto!important;width:100%!important;max-width:none!important;min-width:0!important;margin:0!important}
-        ${form} .formgrid{flex:1 1 auto!important;align-content:space-between!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:clamp(14px,2vh,28px) clamp(16px,2vw,32px)!important}
-        ${form} .formgrid>label:not([hidden]):not(.tx-field-hidden-v141):not(.mmh-p24-side-inactive){font-size:clamp(13px,1vw,16px)!important}
-        ${form} .formgrid :is(input:not([type=file]):not([type=hidden]):not([type=checkbox]):not([type=radio]),textarea,button.mmh-p24-account-trigger,button.mmh-p25-picker-trigger,select:not(.mmh-p24-native):not(.mmh-p25-picker-source)){width:100%!important;min-height:clamp(46px,6vh,68px)!important;height:auto!important;font-size:clamp(14px,1vw,17px)!important}
-        ${form} #receiptDropzoneV3300{min-height:clamp(64px,10vh,120px)!important}
-        ${form} .actions{margin-top:clamp(16px,2vh,28px)!important}
+      /* One flexible canvas for all devices: grow actual controls and receipt,
+         not empty inter-row gaps. Natural scrolling remains on short screens. */
+      ${root}#transactions#transactions.active:has(#txTabAdd.active){display:flex!important;flex-direction:column!important;min-height:var(--tx-entry-height)!important;height:auto!important;max-height:none!important;overflow:visible!important;background:var(--tv-card)!important}
+      ${root}#transactions#transactions:has(#txTabAdd.active) #txAddPanel{display:flex!important;flex-direction:column!important;flex:1 1 auto!important;min-height:0!important;max-height:none!important;width:100%!important}
+      ${root}#transactions#transactions:has(#txTabAdd.active) #txAddPanel>.panel{display:flex!important;flex-direction:column!important;flex:1 1 auto!important;min-height:0!important;max-height:none!important;padding:clamp(14px,2vw,28px)!important}
+      ${form}:has(#mmhHierarchyDirection){display:flex!important;flex-direction:column!important;flex:1 1 auto!important;width:100%!important;max-width:none!important;min-width:0!important;margin:0!important}
+      ${form} .formgrid{flex:1 1 auto!important;align-content:stretch!important;align-items:stretch!important;grid-auto-rows:minmax(min-content,1fr)!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:clamp(12px,1.8vh,20px) clamp(12px,2vw,28px)!important}
+      ${form} .formgrid>label:not([hidden]):not(.tx-field-hidden-v141):not(.mmh-p24-side-inactive){align-self:stretch!important;min-width:0!important;flex-direction:column!important;justify-content:flex-start!important;font-size:clamp(13px,1.1vw,16px)!important;gap:6px!important}
+      ${form} .formgrid>label>span:is(.mmh-p24-account-wrap,.mmh-p25-picker-shell){display:flex!important;flex-direction:column!important;flex:1 1 auto!important;min-width:0!important;min-height:46px!important;height:auto!important}
+      ${form} .formgrid :is(input:not([type=file]):not([type=hidden]):not([type=checkbox]):not([type=radio]),textarea,button.mmh-p24-account-trigger,button.mmh-p25-picker-trigger,select:not(.mmh-p24-native):not(.mmh-p25-picker-source)){width:100%!important;min-height:clamp(46px,6vh,66px)!important;height:auto!important;flex:1 1 auto!important;font-size:clamp(14px,1.1vw,17px)!important}
+      ${form} .formgrid>label:has(:is(#txDate,#txGroup,#txCategory,#fromAccount,#toAccount,#fromAmount,#toAmount,#txNote)):not([hidden]):not(.tx-field-hidden-v141):not(.mmh-p24-side-inactive){display:flex!important}
+      ${form} .formgrid :is(#txDate,#fromAmount,#toAmount,#txNote){height:auto!important;min-height:clamp(48px,6vh,66px)!important;flex:1 1 auto!important}
+      ${form} .formgrid>#receiptUploadV3300{display:flex!important;flex-direction:column!important;align-self:stretch!important;grid-column:1/-1!important;min-height:0!important;gap:8px!important}
+      ${form} #receiptDropzoneV3300{flex:1 1 auto!important;min-height:clamp(64px,10vh,100px)!important;align-items:center!important}
+      ${form} .actions{flex:0 0 auto!important;margin-top:clamp(12px,1.8vh,20px)!important}
+      @media(max-width:767px){
+        ${root}:has(#txTabAdd.active){--tx-entry-height:calc(100dvh - var(--wv-shell-top,var(--wv-top,64px)) - 76px - env(safe-area-inset-bottom,0px))}
+        ${root}#transactions#transactions:has(#txTabAdd.active) #txAddPanel>.panel{padding:10px 14px 14px!important}
+        ${form} #mmhHierarchyDirection .mmh-direction-buttons>button{flex:1 1 0!important}
+        ${form} .formgrid{gap:12px 10px!important}
+        ${form} .formgrid :is(input:not([type=file]):not([type=hidden]):not([type=checkbox]):not([type=radio]),textarea,button.mmh-p24-account-trigger,button.mmh-p25-picker-trigger,select:not(.mmh-p24-native):not(.mmh-p25-picker-source)){min-height:48px!important;font-size:16px!important}
+        ${form} .actions{display:grid!important;grid-template-columns:2fr 3fr!important;gap:8px!important}
+        ${form} .actions>button{min-height:48px!important;width:100%!important}
       }
       @media(max-width:480px){
-        ${form} .formgrid{grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:8px!important}
+        ${form} .formgrid{grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:12px 10px!important}
         ${form} .formgrid>label{grid-column:auto!important}
       }
       @media(max-width:340px){${form} .formgrid{grid-template-columns:minmax(0,1fr)!important}}
@@ -1099,7 +1112,7 @@ function boot(){
   }
   schedule();
 }
-window.MMHV11HierarchyLive={version:'0.9-entry-fill',refresh:schedule,onLedgerInserted:ledgerInserted};
+window.MMHV11HierarchyLive={version:'0.9.1-responsive-fill',refresh:schedule,onLedgerInserted:ledgerInserted};
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot,{once:true});
 else boot();
 })();
