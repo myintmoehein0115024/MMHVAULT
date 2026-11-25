@@ -2,8 +2,8 @@
  * Draft integration candidate, requires cloud-config schema adapter + browser QA.
  * Preserves the canonical ledger values used by balance and Analyze calculations.
  */
-import {createHierarchyController} from './mmhvault-v11-manage-hierarchy-controller.mjs';
-import {ledgerKind,canAddItem,regularLedgerKind} from './mmhvault-v11-manage-hierarchy-model.mjs';
+import {createHierarchyController} from './mmhvault-v11-manage-hierarchy-controller.mjs?v=0.16.2';
+import {ledgerKind,canAddItem,regularLedgerKind} from './mmhvault-v11-manage-hierarchy-model.mjs?v=0.16.2';
 import {verifyStoredCloudLink} from './mmhvault-v11-manage-hierarchy-sync.mjs';
 (()=>{
 'use strict';
@@ -262,15 +262,15 @@ function drawModal(){
     ].filter(Boolean).join(' · ')));
     row.append(text);
     const actions=elt('div','mmh-hier-actions');
+    const used=controller.status(modalField,item.id);
+    const children=modalField==='transaction'?graph.categories.filter(c=>c.parentId===item.id):[];
     if(item.archived)actions.append(btn(tr('Restore','恢复','ပြန်ယူ'),()=>attempt(()=>controller.archive(modalField,item.id,false),drawModal),'mmh-hier-btn'));
     else{
-      const used=controller.status(modalField,item.id);
-      if(used==='unused'){
-        actions.append(btn(tr('Edit','编辑','ပြင်'),()=>drawEditor(item),'mmh-hier-btn'));
-        actions.append(btn(tr('Delete','删除','ဖျက်'),()=>drawDelete(item),'mmh-hier-btn mmh-hier-danger'));
-      }
+      if(used==='unused')actions.append(btn(tr('Edit','编辑','ပြင်'),()=>drawEditor(item),'mmh-hier-btn'));
       actions.append(btn(tr('Archive','归档','သိမ်း'),()=>attempt(()=>controller.archive(modalField,item.id,true),drawModal),'mmh-hier-btn'));
     }
+    if(used==='unused'&&!children.length)actions.append(btn(tr('Delete','删除','ဖျက်'),()=>drawDelete(item),'mmh-hier-btn mmh-hier-danger'));
+    if(used==='unused'&&children.length)text.append(elt('div','mmh-hier-muted',tr('Linked categories: ','关联分类：','ချိတ်ဆက်ထားသော Category: ')+children.length));
     row.append(actions);dialog.append(row);
   }
   if(modalField!=='type'&&!canAddItem(graph,owner(),modalField)){
@@ -295,7 +295,8 @@ function drawModal(){
   closeButton.focus();
 }
 function drawDelete(item){
-  if(!overlay)return;
+  if(!overlay||cloudConflict||!ready())return;
+  if(controller.status(modalField,item.id)!=='unused'||(modalField==='transaction'&&controller.read().categories.some(c=>c.parentId===item.id))){drawModal();return;}
   const dialog=overlay.querySelector('.mmh-hier-dialog');dialog.replaceChildren();
   dialog.dataset.mmhCoachMode='delete';
   const title=elt('h3','',tr('Delete unused item?','删除未使用的项目？','မသုံးရသေးသော အရာကိုဖျက်မလား'));
