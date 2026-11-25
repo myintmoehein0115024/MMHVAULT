@@ -15,6 +15,9 @@ const config=()=>{try{return MMHVAULT_CONFIG}catch(_){return null}};
 const language=()=>{try{return String(localStorage.getItem('mmhvault_language_v3363')||document.documentElement.lang||'en').toLowerCase()}catch(_){return'en'}};
 const tr=(en,zh,my)=>language().startsWith('zh')?zh:/^(my|mm|burmese)/.test(language())?my:en;
 const label=field=>field==='type'?'Type':field==='transaction'?'Transaction':'Category';
+const fixedDirections=['Income','Expense','Transfer'];
+const fixedDirectionName=d=>d==='Income'?tr('Income','收入','ဝင်ငွေ'):d==='Expense'?tr('Expense','支出','အသုံးစရိတ်'):tr('Transfer','转账','ငွေလွှဲ');
+const missingDirections=graph=>fixedDirections.filter(d=>!graph?.types.some(t=>!t.archived&&t.ledgerType===d));
 const directionLabel=type=>type==='Income'?tr('Money increases (+)','资金增加（+）','ငွေတိုး (+)'):
   type==='Expense'?tr('Money decreases (−)','资金减少（−）','ငွေလျော့ (−)'):
   type==='Transfer'?tr('Move between accounts (− / +)','账户之间转账（一减一加）',
@@ -210,15 +213,39 @@ function drawModal(){
   dialog.setAttribute('role','dialog');dialog.setAttribute('aria-modal','true');
   const head=elt('header'),title=elt('h3','',tr('Manage ','管理 ','စီမံရန် ')+label(modalField));
   title.id='mmhHierarchyDialogTitle';dialog.setAttribute('aria-labelledby',title.id);
-  head.append(title,btn('×',close,'mmh-hier-btn mmh-hier-close'));dialog.append(head);
+  const headActions=elt('div','mmh-hier-head-actions-v2');
+  const graph=controller.read();
+  if(modalField!=='type'){
+    const add=btn(tr('+ Add ','+ 添加 ','+ ထည့်ရန် ')+label(modalField),()=>drawEditor(null),'mmh-hier-btn mmh-hier-add-top-v2');
+    add.disabled=cloudConflict||!canAddItem(graph,owner(),modalField);headActions.append(add);
+  }
+  const closeButton=btn('×',close,'mmh-hier-btn mmh-hier-close');
+  closeButton.setAttribute('aria-label',tr('Close','关闭','ပိတ်ရန်'));
+  headActions.append(closeButton);head.append(title,headActions);dialog.append(head);
   const explain=elt('p','mmh-hier-muted',tr(
     'Used items can only be archived. Archiving hides future choices, not saved history.',
     '已有交易使用过的项目只能归档。归档只隐藏未来的选项，不影响历史记录。',
     'အသုံးပြုပြီးသော အရာများကို သိမ်းဆည်းနိုင်ပြီး မှတ်တမ်းဟောင်းများ မပြောင်းပါ။'));
-  dialog.append(explain);
-  const graph=controller.read();
-  const items=graph[modalField==='type'?'types':modalField==='transaction'?'transactions':'categories'];
-  if(!items.length)dialog.append(elt('p','mmh-hier-empty',tr('Nothing added yet','尚未添加项目','မထည့်ရသေးပါ')));
+  if(modalField==='type'){
+    title.textContent=tr('Fixed financial directions','固定财务方向','သတ်မှတ်ထားသော ငွေလမ်းကြောင်းများ');
+    dialog.append(elt('p','mmh-hier-muted',tr('Existing Type links are preserved. Set up a direction only if it is missing.','保留现有 Type 关联，仅在缺少方向时进行初始化。','ရှိပြီးသား Type များကို ထိန်းသိမ်းထားပြီး လိုအပ်သော ငွေလမ်းကြောင်းကိုသာ သတ်မှတ်ပါ။')));
+    for(const d of fixedDirections){
+      const row=elt('div','mmh-hier-row'),info=elt('div');
+      info.append(elt('strong','',fixedDirectionName(d)),elt('div','mmh-hier-muted',directionLabel(d)));row.append(info);
+      if(missingDirections(graph).includes(d)){
+        const archived=graph.types.find(t=>t.archived&&t.ledgerType===d);
+        const setup=btn(archived?tr('Restore','恢复','ပြန်ယူ'):tr('Set up','初始化','သတ်မှတ်ရန်'),()=>{
+          if(cloudConflict)return;
+          const fresh=controller.read();if(!missingDirections(fresh).includes(d)){drawModal();return;}
+          const saved=fresh.types.find(t=>t.archived&&t.ledgerType===d);
+          attempt(()=>saved?controller.archive('type',saved.id,false):controller.addType(d,d),drawModal);
+        },'mmh-hier-btn');setup.disabled=cloudConflict;row.append(setup);
+      }else row.append(elt('span','mmh-hier-muted',tr('Fixed','固定','သတ်မှတ်ပြီး')));
+      dialog.append(row);
+    }
+  }else dialog.append(explain);
+  const items=modalField==='type'?[]:graph[modalField==='transaction'?'transactions':'categories'];
+  if(modalField!=='type'&&!items.length)dialog.append(elt('p','mmh-hier-empty',tr('Nothing added yet','尚未添加项目','မထည့်ရသေးပါ')));
   for(const item of items){
     const row=elt('div','mmh-hier-row'),text=elt('div');
     text.append(elt('strong','',item.label));
@@ -245,20 +272,16 @@ function drawModal(){
     }
     row.append(actions);dialog.append(row);
   }
-  const add=btn(tr('+ Add ','+ 添加 ','+ ထည့်ရန် ')+label(modalField),()=>drawEditor(null),'mmh-hier-btn');
-  add.disabled=!canAddItem(graph,owner(),modalField);dialog.append(add);
-  if(add.disabled)dialog.append(elt('p','mmh-hier-muted',modalField==='transaction'?tr(
-    'Create a Type first to link this Transaction.',
-    '请先添加 Type，再关联 Transaction。',
-    'Transaction မထည့်မီ Type ကို ထည့်ပါ။'):tr(
-    'Create a Transaction first to link this Category.',
-    '请先添加 Transaction，再关联 Category。',
-    'Category မထည့်မီ Transaction ကို ထည့်ပါ။')));
+  if(modalField!=='type'&&!canAddItem(graph,owner(),modalField)){
+    const setup=btn(modalField==='transaction'?tr('Set up fixed directions','初始化固定方向','ငွေလမ်းကြောင်း သတ်မှတ်ရန်'):tr('Add a Transaction first','先添加 Transaction','Transaction အရင်ထည့်ပါ'),()=>{
+      modalField=modalField==='transaction'?'type':'transaction';drawModal();
+    },'mmh-hier-btn');setup.disabled=cloudConflict;explain.after(setup);
+  }
   overlayNode.addEventListener('click',e=>{if(e.target===overlayNode)close()});
   overlayNode.addEventListener('keydown',e=>{
     if(e.key==='Escape'){e.preventDefault();close();return;}
     if(e.key!=='Tab')return;
-    const focusable=[...dialog.querySelectorAll('button:not([disabled]),input:not([disabled]),select:not([disabled]),textarea:not([disabled]),a[href]')];
+    const focusable=[...dialog.querySelectorAll('button:not([disabled]),input:not([disabled]),select:not([disabled]),textarea:not([disabled]),a[href]')].filter(n=>n.tabIndex>=0&&n.getClientRects().length&&!n.closest('[hidden]'));
     if(!focusable.length){e.preventDefault();dialog.focus();return;}
     const first=focusable[0],last=focusable[focusable.length-1];
     if(e.shiftKey&&(document.activeElement===first||!dialog.contains(document.activeElement))){
@@ -268,7 +291,7 @@ function drawModal(){
     }
   });
   overlay=overlayNode;document.body.append(overlay);document.body.classList.add('mmh-hier-modal-open');
-  head.querySelector('button')?.focus();
+  closeButton.focus();
 }
 function drawDelete(item){
   if(!overlay)return;
@@ -282,7 +305,7 @@ function drawDelete(item){
   dialog.append(footer);footer.querySelector('button')?.focus();
 }
 function drawEditor(item){
-  if(!overlay)return;
+  if(!overlay||modalField==='type'||cloudConflict)return;
   const field=modalField,graph=controller.read();
   const dialog=overlay.querySelector('.mmh-hier-dialog');dialog.replaceChildren();
   const title=elt('h3','',tr(item?'Edit ':'Add ',item?'编辑 ':'添加 ',item?'ပြင်ရန် ':'အသစ်ထည့်ရန် ')+label(field));
@@ -448,9 +471,17 @@ function manager(){
     'Type → Transaction → Category')));
   top.append(heading,elt('span','mmh-hier-step',ready()?
     tr('Linked setup','关联管理','ချိတ်ဆက်စီမံ'):tr('Loading account','正在加载账号','အကောင့်ပြန်ရယူနေ')));root.append(top);
-  const cards=elt('div','mmh-hier-cards');root.append(cards);
   const graph=safe(()=>controller.read());
-  for(const field of ['type','transaction','category']){
+  const fixed=elt('div','mmh-hier-fixed-v2');
+  fixed.append(elt('strong','',tr('Fixed Type','固定 Type','သတ်မှတ်ထားသော Type')));
+  for(const d of fixedDirections)fixed.append(elt('span','mmh-hier-fixed-pill-v2',fixedDirectionName(d)+' '+(d==='Income'?'+':d==='Expense'?'−':'⇄')));
+  if(graph&&missingDirections(graph).length){
+    const setup=btn(tr('Set up missing directions','初始化缺少的方向','လိုအပ်သော ငွေလမ်းကြောင်း သတ်မှတ်ရန်'),()=>open('type'),'mmh-hier-btn');
+    setup.disabled=!ready()||cloudConflict;fixed.append(setup);
+  }
+  root.append(fixed);
+  const cards=elt('div','mmh-hier-cards');root.append(cards);
+  for(const field of ['transaction','category']){
     const card=elt('article','mmh-hier-card'),items=graph?.[field==='type'?'types':field==='transaction'?'transactions':'categories']||[];
     card.append(elt('h4','',label(field)+' · '+items.filter(x=>!x.archived).length));
     const snippets=items.filter(x=>!x.archived).slice(0,3).map(x=>
@@ -723,9 +754,9 @@ function form(){
       const chosenTx=selection.type?controller.list('transaction',selection.type)
         .find(x=>x.id===selection.transaction):null;
       const prompt=missingField==='type'?tr(
-        'No active Type for this direction. Add a Type in Manage and assign its money direction.',
-        '这个资金方向没有可用 Type。请到 Manage 添加 Type 并设置资金方向。',
-        'ဤငွေလမ်းကြောင်းအတွက် Type မရှိသေးပါ။ Manage တွင် Type ထည့်ပါ။'):
+        'Set up this fixed financial direction before adding transactions.',
+        '请先初始化这个固定财务方向，再添加记账。',
+        'ငွေစာရင်း မထည့်မီ ဤငွေလမ်းကြောင်းကို သတ်မှတ်ပါ။'):
         missingField==='transaction'?tr(
           'No linked Transaction under '+(chosenType?.label||'Type')+'. Add one in Manage.',
           (chosenType?.label||'Type')+' 下没有 Transaction，请到 Manage 添加。',
@@ -734,8 +765,7 @@ function form(){
           (chosenTx?.label||'Transaction')+' 下没有 Category，请到 Manage 添加或恢复。',
           'ဤ Transaction အောက်တွင် Category မရှိသေးပါ။ Manage တွင် ထည့်ပါ သို့မဟုတ် ပြန်ယူပါ။');
       guide.append(elt('span','',prompt));
-      const action=btn(tr('Add / Restore '+label(missingField),'添加/恢复 '+label(missingField),
-        label(missingField)+' ထည့်ရန်'),()=>open(missingField),'mmh-hier-entry-action-v117');
+      const action=btn(missingField==='type'?tr('Set up direction','初始化方向','ငွေလမ်းကြောင်း သတ်မှတ်ရန်'):tr('Add / Restore '+label(missingField),'添加/恢复 '+label(missingField),label(missingField)+' ထည့်ရန်'),()=>open(missingField),'mmh-hier-entry-action-v117');
       action.disabled=cloudConflict;
       guide.append(action);
     }
@@ -1676,7 +1706,7 @@ function boot(){
     window.addEventListener(event,renderRecentEntry);
   schedule();
 }
-window.MMHV11HierarchyLive={version:'0.15-history-unified',refresh:schedule,onLedgerInserted:ledgerInserted};
+window.MMHV11HierarchyLive={version:'0.16-fixed-type-manager',refresh:schedule,onLedgerInserted:ledgerInserted};
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot,{once:true});
 else boot();
 })();
