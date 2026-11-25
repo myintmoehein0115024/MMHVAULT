@@ -53,7 +53,7 @@ const uid=()=>typeof crypto!=='undefined'&&crypto.randomUUID?
   'hier_'+crypto.randomUUID():'hier_'+Date.now().toString(36)+'_'+Math.random().toString(36).slice(2);
 let loadedOwner='',historyReady=false,overlay=null,modalField='',selection={type:'',transaction:'',category:''};
 // UI direction filter only; never a persisted Type or financial ledger value.
-let directionFilter='';
+let directionFilter='Income', initializeEntry=true;
 // Await only explicit missing-level additions for this owner/path; never replace
 // an archived or manually changed selection with another existing category.
 let awaitingMissing={owner:'',direction:'',typeMissing:false,transactionType:'',categoryTransaction:''};
@@ -614,6 +614,7 @@ function ensureDirectionButtons(f,t){
         if(!ready())return;
         // Clicking again clears the filter; it never creates a Type.
         const next=direction;
+        initializeEntry=false;
         directionFilter=next;
         if(next){
           selection=firstLinkedPath(next)||{type:'',transaction:'',category:''};
@@ -662,6 +663,14 @@ function form(){
       for(const s of [t,g,c]){s.replaceChildren();s.disabled=true;}
       if(save)save.disabled=true;
       return;
+    }
+    const initialEntry=initializeEntry&&!cloudConflict;
+    if(initialEntry){
+      // Initialize only after the current owner's verified hierarchy is ready.
+      directionFilter='Income';
+      selection=firstLinkedPath('Income')||{type:'',transaction:'',category:''};
+      syncDirectionButtons();
+      initializeEntry=false;
     }
     const activeTypes=controller.list('type').filter(x=>!directionFilter||x.ledgerType===directionFilter);
     const awaiting=!cloudConflict&&awaitingMissing.owner===owner()&&
@@ -773,6 +782,7 @@ function form(){
       // Refresh the existing visual side/label state after the native locks.
       window.mmhSyncTxAddV141?.();
     }
+    if(initialEntry&&selection.type)restoreSavedAccounts('Income');
     // V321 native saving and V344 balance protection own separate locks.
     // Never re-enable their shared button while a transaction is in flight
     // or a funding account lacks enough money, even when Manage is valid.
@@ -956,6 +966,25 @@ function boot(){
       ${form}:has(#mmhHierarchyDirection [data-mmh-direction=Transfer][aria-pressed=true]) .formgrid>label:has(#fromAmount){order:5!important}
       ${form}:has(#mmhHierarchyDirection [data-mmh-direction=Transfer][aria-pressed=true]) .formgrid>label:has(#toAmount){order:6!important}
       ${form}:has(#mmhHierarchyDirection [data-mmh-direction=Transfer][aria-pressed=true]) .formgrid>label:has(#txCategory){order:7!important}
+      /* V2 entry canvas: the existing workspace owns scrolling and navigation. */
+      ${root}:has(#txTabAdd.active){--tx-entry-height:calc(100dvh - var(--wv-shell-top,var(--wv-top,64px))); }
+      html body.mmh-workspace-active:has(#transactions#transactions#transactions.active #txTabAdd.active){--tx-entry-surface:#1c2531;--tx-menu-surface:#273242;--tx-menu-line:#344052;--tx-menu-text:#edf0f6;--tx-menu-selected:#2b3850;--tx-menu-accent:#9bb7fb}
+      html body.light.mmh-workspace-active:has(#transactions#transactions#transactions.active #txTabAdd.active){--tx-entry-surface:#fff;--tx-menu-surface:#eef2f8;--tx-menu-line:#d8dfe9;--tx-menu-text:#202a3a;--tx-menu-selected:#e4ecfb;--tx-menu-accent:#365fae}
+      html body.mmh-workspace-active:has(#transactions#transactions#transactions.active #txTabAdd.active) main.wrap.wrap.wrap{background:var(--tx-entry-surface)!important;background-image:none!important;padding-bottom:0!important}
+      html body.mmh-workspace-active:has(#transactions#transactions#transactions.active #txTabAdd.active) :is(.mmh-p24-account-menu,.mmh-p25-picker-menu){background:var(--tx-menu-surface)!important;background-image:none!important;border-color:var(--tx-menu-line)!important;color:var(--tx-menu-text)!important}
+      html body.mmh-workspace-active:has(#transactions#transactions#transactions.active #txTabAdd.active) :is(.mmh-p24-account-menu,.mmh-p25-picker-menu)>button{color:var(--tx-menu-text)!important}
+      html body.mmh-workspace-active:has(#transactions#transactions#transactions.active #txTabAdd.active) :is(.mmh-p24-account-menu,.mmh-p25-picker-menu)>button:is([aria-selected=true],:hover,:focus-visible){background:var(--tx-menu-selected)!important;color:var(--tx-menu-accent)!important}
+      @media(min-width:768px){
+        ${root}#transactions#transactions.active:has(#txTabAdd.active){display:flex!important;flex-direction:column!important;min-height:var(--tx-entry-height)!important;height:auto!important;max-height:none!important;overflow:visible!important;background:var(--tv-card)!important}
+        ${root}#transactions#transactions:has(#txTabAdd.active) #txAddPanel{display:flex!important;flex-direction:column!important;flex:1 1 auto!important;min-height:0!important;max-height:none!important;width:100%!important}
+        ${root}#transactions#transactions:has(#txTabAdd.active) #txAddPanel>.panel{display:flex!important;flex-direction:column!important;flex:1 1 auto!important;min-height:var(--tx-entry-height)!important;max-height:none!important;padding:clamp(16px,2vw,32px)!important}
+        ${form}:has(#mmhHierarchyDirection){display:flex!important;flex-direction:column!important;flex:1 1 auto!important;width:100%!important;max-width:none!important;min-width:0!important;margin:0!important}
+        ${form} .formgrid{flex:1 1 auto!important;align-content:space-between!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:clamp(14px,2vh,28px) clamp(16px,2vw,32px)!important}
+        ${form} .formgrid>label:not([hidden]):not(.tx-field-hidden-v141):not(.mmh-p24-side-inactive){font-size:clamp(13px,1vw,16px)!important}
+        ${form} .formgrid :is(input:not([type=file]):not([type=hidden]):not([type=checkbox]):not([type=radio]),textarea,button.mmh-p24-account-trigger,button.mmh-p25-picker-trigger,select:not(.mmh-p24-native):not(.mmh-p25-picker-source)){width:100%!important;min-height:clamp(46px,6vh,68px)!important;height:auto!important;font-size:clamp(14px,1vw,17px)!important}
+        ${form} #receiptDropzoneV3300{min-height:clamp(64px,10vh,120px)!important}
+        ${form} .actions{margin-top:clamp(16px,2vh,28px)!important}
+      }
       @media(max-width:480px){
         ${form} .formgrid{grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:8px!important}
         ${form} .formgrid>label{grid-column:auto!important}
@@ -1039,13 +1068,13 @@ function boot(){
         (window.transactions||[]).every(row=>row?.user_id===current);
       loadedOwner=historyReady?current:'';
     }else if(e?.type==='mmhvault:config-owner-changed'){
-      historyReady=false;loadedOwner='';selection={type:'',transaction:'',category:''};directionFilter='';
+      historyReady=false;loadedOwner='';selection={type:'',transaction:'',category:''};directionFilter='Income';initializeEntry=true;
       awaitingMissing={owner:'',direction:'',typeMissing:false,transactionType:'',categoryTransaction:''};
       pendingSave=null;linkSync=null;cloudConflict=false;
       checkingCloud=false;cloudCheckOwner='';cloudCheckGeneration++;
       ledgerRefreshOwner='';ledgerRefreshQueue=Promise.resolve();close();
     }else if(current!==loadedOwner){
-      historyReady=false;loadedOwner='';selection={type:'',transaction:'',category:''};directionFilter='';
+      historyReady=false;loadedOwner='';selection={type:'',transaction:'',category:''};directionFilter='Income';initializeEntry=true;
       awaitingMissing={owner:'',direction:'',typeMissing:false,transactionType:'',categoryTransaction:''};
       pendingSave=null;linkSync=null;cloudConflict=false;
       checkingCloud=false;cloudCheckOwner='';cloudCheckGeneration++;
@@ -1070,7 +1099,7 @@ function boot(){
   }
   schedule();
 }
-window.MMHV11HierarchyLive={version:'0.8-compact',refresh:schedule,onLedgerInserted:ledgerInserted};
+window.MMHV11HierarchyLive={version:'0.9-entry-fill',refresh:schedule,onLedgerInserted:ledgerInserted};
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot,{once:true});
 else boot();
 })();
