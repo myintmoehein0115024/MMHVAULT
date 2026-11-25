@@ -165,6 +165,11 @@ export function entryUsage(graph,ownerId,field,id,history){
     // safely prove which sibling Transaction was used. Fail closed.
     const historicGroup=row.transaction_group||row.group;
     if(field==='transaction'){
+      // A non-legacy childless custom Transaction cannot form a valid saved path.
+      // Explicit historical IDs/sidecar links were checked above; legacy items
+      // and any item with active or archived children retain conservative locks.
+      if(node.legacy!==true&&!node.id.startsWith('legacy:')&&
+         !graph.categories.some(c=>c.parentId===id))continue;
       if(!historicGroup||historicGroup===kind.group)return 'used';
       continue;
     }
