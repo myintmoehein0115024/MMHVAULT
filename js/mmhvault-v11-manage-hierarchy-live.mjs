@@ -1255,12 +1255,162 @@ function installHistoryPresentation(){
     if(!calendar.hidden)toggle.click();
   }
   syncHistoryFilterLabel();
+  installHistoryControls(panel,grid,root);
+}
+function installHistoryControls(panel,grid,root){
+  const currency=$('hcCurrency'),calendar=$('hcCalendar'),calendarButton=$('hcToggle'),filterButton=$('mmhHistoryFilterV2');
+  if(!currency||!calendar||!calendarButton||!filterButton)return;
+  if(!grid.dataset.mmhControlsV3){
+    const search=$('txSearch'),searchLabel=search?.closest('label'),actions=panel.querySelector('.panel>.actions'),clear=actions?.querySelector('button[onclick*="clearTxFilters"]'),exportBtn=actions?.querySelector('button[onclick*="exportTransactionsCSV"]'),remove=$('mmhHistoryClearAllV2');
+    const fields=['txFilterType','txFilterAccount','txFilterGroup','txFilterCategory'].map(id=>$(id)).filter(Boolean);
+    if(!searchLabel||!clear||!exportBtn||!remove||fields.length!==4)return;
+    grid.dataset.mmhControlsV3='1';
+    const style=elt('style');style.id='mmhHistoryControlsV3';
+    style.textContent=[
+      root+' .filter-grid{display:flex!important;align-items:center!important;flex-wrap:wrap!important;gap:8px!important;position:relative!important;margin:0 0 10px!important}',
+      root+' .mh-controls-row{display:flex;align-items:center;gap:8px;flex:1 1 100%;min-width:0}',
+      root+' .mh-controls-row>label{flex:1 1 140px;min-width:80px!important;margin:0!important;display:block!important}',
+      root+' .filter-grid .mh-controls-row>label>input{width:100%!important;min-height:38px!important;height:38px!important;margin:0!important}',
+      root+' .filter-grid .mh-controls-row>button,'+root+' #mhCurrencyButtonV3{display:inline-flex!important;justify-content:center;align-items:center;gap:5px;flex:0 0 auto!important;width:auto!important;min-width:0!important;min-height:38px!important;height:38px!important;padding:5px 10px!important;margin:0!important;border:1px solid var(--tv-line)!important;border-radius:7px!important;background:var(--tv-raised)!important;color:var(--tv-text)!important;font:500 12px/1.3 system-ui,sans-serif!important;white-space:nowrap;box-shadow:none!important}',
+      root+' .filter-grid.mmh-history-filters-closed .mh-controls-row>#mmhHistoryClearAllV2,'+root+' .filter-grid .mh-controls-row>#mmhHistoryClearAllV2{display:inline-flex!important;color:var(--tv-negative)!important;padding:5px 10px!important}',
+      root+' .mh-controls-row>button[aria-expanded=true]{background:var(--tv-selected)!important;color:var(--tv-accent)!important}',
+      root+' .panel>.actions:empty{display:none!important}',
+      root+' #hcCurrency[hidden],'+root+' .mh-native-filter[hidden]{display:none!important}',
+      root+' .mh-popover[hidden]{display:none!important}',
+      root+' .mh-popover:not([hidden]){box-sizing:border-box!important;padding:12px!important;border:1px solid var(--tv-line)!important;border-radius:9px!important;background:var(--tv-raised)!important;color:var(--tv-text)!important;box-shadow:0 12px 36px #0004!important;max-height:min(65vh,420px);overflow:auto!important;overscroll-behavior:contain;margin:0!important}',
+      root+' .mh-popover:popover-open{position:fixed!important;inset:auto;max-width:calc(100vw - 24px)!important;z-index:2147483000!important}',
+      root+' #hcCalendar.mh-popover:not([hidden]){position:relative!important;top:auto;right:auto;width:min(100%,360px)!important;max-width:360px!important;margin:6px 0 0 auto!important;background:var(--tv-card)!important}',
+      root+' #hcCalendar.mh-popover:popover-open{position:fixed!important;right:auto!important;width:min(360px,calc(100vw - 24px))!important;margin:0!important}',
+      root+' #mhHistoryFilterMenuV3{width:min(100%,270px);max-width:270px;flex:0 0 100%;margin-left:auto!important}',
+      root+' #mhHistoryCurrencyMenuV3{width:min(100%,300px);max-width:300px;margin-left:auto!important}',
+      root+' .mh-popover:popover-open:is(#mhHistoryFilterMenuV3,#mhHistoryCurrencyMenuV3){margin:0!important}',
+      root+' .mh-filter-field{display:grid;gap:5px;margin:0 0 10px;min-width:0}',
+      root+' .mh-filter-field:last-child{margin:0}',
+      root+' .mh-filter-field>span{color:var(--tv-muted);font:600 12px/1.3 system-ui,sans-serif}',
+      root+' .mh-filter-field summary{list-style:none;display:flex;align-items:center;justify-content:space-between;gap:8px;padding:9px 10px;min-height:36px;box-sizing:border-box;border:1px solid var(--tv-line);border-radius:7px;background:var(--tv-card);color:var(--tv-text);font:500 12px/1.4 system-ui,sans-serif;cursor:pointer;overflow-wrap:anywhere}',
+      root+' .mh-filter-field summary::-webkit-details-marker{display:none}',
+      root+' .mh-filter-field summary::after{content:"⌄";flex:none;color:var(--tv-muted)}',
+      root+' .mh-filter-field details[open] summary::after{content:"⌃"}',
+      root+' .mh-choice-list{display:grid;gap:3px;padding:4px 0;max-height:190px;overflow:auto;overscroll-behavior:contain}',
+      root+' #mhHistoryCurrencyMenuV3 .mh-choice-list{max-height:270px}',
+      root+' .mh-choice-list button{display:flex!important;align-items:center;justify-content:space-between;gap:8px;width:100%!important;min-height:36px!important;height:auto!important;padding:7px 9px!important;text-align:left;border:1px solid transparent!important;border-radius:6px!important;background:transparent!important;color:var(--tv-text)!important;font:500 12px/1.4 system-ui,sans-serif!important;white-space:normal!important;overflow-wrap:anywhere;box-shadow:none!important;cursor:pointer}',
+      root+' .mh-choice-list button:hover,'+root+' .mh-choice-list button[aria-pressed=true]{background:var(--tv-card)!important;border-color:var(--tv-line)!important}',
+      root+' .mh-choice-list button[aria-pressed=true]::after{content:"✓";flex:none;color:var(--tv-accent)}',
+      root+' #mhCurrencySearchV3{box-sizing:border-box;width:100%!important;min-height:36px!important;padding:7px 10px!important;border:1px solid var(--tv-line)!important;border-radius:7px!important;background:var(--tv-card)!important;color:var(--tv-text)!important}',
+      '@media(max-width:600px){'+root+' .mh-controls-row{flex-wrap:wrap;gap:6px}'+root+' .mh-controls-row>label{flex:1 1 100%}'+root+' .mh-controls-row>button{flex:1 1 auto!important;padding:5px 6px!important;font-size:11px!important}}'
+    ].join('\n');document.head.append(style);
+    const row=elt('div','mh-controls-row');grid.prepend(row);
+    // Keep native handlers and controls; only move their presentation.
+    for(const node of [...searchLabel.childNodes])if(node.nodeType===3)node.remove();
+    search.setAttribute('aria-label',tr('Search transactions','搜索交易','ငွေစာရင်း ရှာရန်'));
+    row.append(searchLabel,filterButton,clear,exportBtn,remove);actions.style.setProperty('display','none','important');
+    remove.id='mmhHistoryClearAllV2';
+    remove.setAttribute('data-mmh-delete-all','true');
+    const filterMenu=elt('div','mh-popover');filterMenu.id='mhHistoryFilterMenuV3';filterMenu.hidden=true;grid.append(filterMenu);
+    filterButton.setAttribute('aria-controls',filterMenu.id);
+    const names=[['Type','类型','အမျိုးအစား'],['Account','账户','အကောင့်'],['Transaction','交易','ငွေလွှဲမှု'],['Category','分类','အုပ်စု']];
+    fields.forEach((select,i)=>{
+      const label=select.closest('label'),field=elt('div','mh-filter-field'),heading=elt('span'),details=elt('details'),summary=elt('summary'),list=elt('div','mh-choice-list');
+      field.dataset.select=select.id;heading.dataset.index=String(i);heading.id=select.id+'HistoryLabelV3';summary.id=select.id+'HistoryTriggerV3';summary.setAttribute('aria-labelledby',heading.id+' '+summary.id);
+      details.append(summary,list);field.append(heading,select,details);label?.remove();filterMenu.append(field);
+      select.classList.add('mh-native-filter');select.hidden=true;select.tabIndex=-1;
+      details.addEventListener('toggle',()=>{if(details.open)for(const other of filterMenu.querySelectorAll('details'))if(other!==details)other.open=false;});
+      details.addEventListener('keydown',e=>{if(e.key==='Escape'&&details.open){e.preventDefault();e.stopPropagation();details.open=false;summary.focus();}});
+    });
+    const currencyButton=btn('',()=>toggleCurrency());currencyButton.id='mhCurrencyButtonV3';currencyButton.setAttribute('aria-expanded','false');currency.before(currencyButton);currency.hidden=true;currency.tabIndex=-1;
+    const currencyMenu=elt('div','mh-popover');currencyMenu.id='mhHistoryCurrencyMenuV3';currencyMenu.hidden=true;const input=elt('input');input.id='mhCurrencySearchV3';input.type='search';const currencyList=elt('div','mh-choice-list');currencyMenu.append(input,currencyList);currency.closest('.hc-shell').append(currencyMenu);currencyButton.setAttribute('aria-controls',currencyMenu.id);
+    calendar.classList.add('mh-popover');
+    const pairs=[[calendar,calendarButton],[filterMenu,filterButton],[currencyMenu,currencyButton]];
+    const topLayer=typeof calendar.showPopover==='function';
+    if(topLayer)for(const [menu] of pairs)menu.setAttribute('popover','manual');
+    function position(menu,button){
+      if(!topLayer||!menu.matches(':popover-open'))return;
+      const rect=button.getBoundingClientRect(),w=menu.offsetWidth,h=menu.offsetHeight;
+      const left=Math.max(12,Math.min(innerWidth-w-12,rect.right-w));
+      const below=innerHeight-rect.bottom-12,above=rect.top-12;
+      const top=below>=h||below>=above?rect.bottom+6:Math.max(12,rect.top-h-6);
+      menu.style.setProperty('left',left+'px','important');menu.style.setProperty('top',Math.max(12,Math.min(top,innerHeight-h-12))+'px','important');
+    }
+    function display(menu,button,open){
+      if(menu!==calendar&&menu.hidden===open)menu.hidden=!open;
+      if(topLayer){
+        if(open&&!menu.matches(':popover-open')&&menu.isConnected&&button.getClientRects().length){try{menu.showPopover()}catch(_){}}
+        if(!open&&menu.matches(':popover-open'))menu.hidePopover();
+        if(open)position(menu,button);
+      }
+    }
+    function close(menu,button){
+      if(menu===calendar){if(!calendar.hidden)calendarButton.click();}
+      else if(menu===filterMenu){if(filterButton.getAttribute('aria-expanded')==='true')filterButton.click();}
+      else if(!currencyMenu.hidden){currencyButton.setAttribute('aria-expanded','false');display(currencyMenu,currencyButton,false);}
+    }
+    function closeOthers(menu){for(const [other,button] of pairs)if(other!==menu)close(other,button);}
+    function toggleCurrency(){
+      const open=currencyMenu.hidden;if(open){closeOthers(currencyMenu);input.value='';renderCurrency();}
+      currencyButton.setAttribute('aria-expanded',String(open));display(currencyMenu,currencyButton,open);if(open)input.focus();
+    }
+    const flag=code=>{const region=code==='EUR'?'EU':code.slice(0,2);return /^[A-Z]{2}$/.test(region)?String.fromCodePoint(...[...region].map(x=>127397+x.charCodeAt(0)))+' ':'';};
+    function currencyName(code,locale){try{return new Intl.DisplayNames([locale],{type:'currency'}).of(code)||code}catch(_){return code}}
+    function renderCurrency(){
+      const lang=document.documentElement.lang||'en',term=input.value.trim().toLowerCase(),options=[...currency.options];
+      currencyList.replaceChildren(...options.filter(o=>[o.value,currencyName(o.value,lang),currencyName(o.value,'en'),o.value==='CNY'?'RMB 人民币':''].some(x=>x.toLowerCase().includes(term))).map(o=>{
+        const b=btn(flag(o.value)+o.value+' · '+currencyName(o.value,lang),()=>{currency.value=o.value;currency.dispatchEvent(new Event('change',{bubbles:true}));close(currencyMenu,currencyButton);currencyButton.focus();refresh();});b.setAttribute('aria-pressed',String(o.selected));return b;
+      }));
+      if(!currencyList.children.length)currencyList.append(elt('span','',tr('No matching currency','未找到币种','ငွေကြေး မတွေ့ပါ')));
+    }
+    input.addEventListener('input',renderCurrency);
+    function refresh(){
+      const active=panel.getClientRects().length>0;
+      const filterOpen=active&&filterButton.getAttribute('aria-expanded')==='true';
+      const calendarOpen=active&&!calendar.hidden;
+      if(!active){for(const [menu,button] of pairs)close(menu,button);}
+      else if(filterOpen){closeOthers(filterMenu);display(filterMenu,filterButton,true);}
+      else if(calendarOpen){closeOthers(calendar);display(calendar,calendarButton,true);}
+      if(!filterOpen)display(filterMenu,filterButton,false);
+      if(!calendarOpen)display(calendar,calendarButton,false);
+      const text=flag(currency.value)+currency.value+' ⌄';if(currencyButton.textContent!==text)currencyButton.textContent=text;
+      currencyButton.setAttribute('aria-label',tr('Summary currency','统计币种','စာရင်းချုပ် ငွေကြေး')+': '+currency.value);
+      input.placeholder=tr('Search currencies','搜索币种','ငွေကြေး ရှာရန်');input.setAttribute('aria-label',input.placeholder);
+      const labels=[tr('Clear filters','清除筛选','စစ်ထုတ်မှု ရှင်းရန်'),tr('Export CSV','导出 CSV','CSV ထုတ်ရန်'),tr('Delete all','删除全部','အားလုံး ဖျက်ရန်')];
+      [clear,exportBtn,remove].forEach((b,i)=>{if(b.textContent!==labels[i])b.textContent=labels[i];b.title=labels[i];b.setAttribute('aria-label',labels[i]);});
+      for(const field of filterMenu.querySelectorAll('.mh-filter-field')){
+        const select=$(field.dataset.select),heading=field.querySelector('span'),summary=field.querySelector('summary'),list=field.querySelector('.mh-choice-list');if(!select)continue;
+        const label=names[Number(heading.dataset.index)];const headingText=tr(...label);if(heading.textContent!==headingText)heading.textContent=headingText;
+        const opts=[...select.options],labelOf=o=>o.value?o.textContent:tr('All','全部','အားလုံး');
+        const chosen=opts.find(o=>o.selected),chosenText=chosen?labelOf(chosen):tr('All','全部','အားလုံး');if(summary.textContent!==chosenText)summary.textContent=chosenText;
+        const signature=JSON.stringify(opts.map(o=>[o.value,labelOf(o),o.selected,o.disabled]));
+        if(list.dataset.signature!==signature){
+          list.dataset.signature=signature;list.replaceChildren(...opts.map(o=>{
+            const b=btn(labelOf(o),()=>{select.value=o.value;field.querySelector('details').open=false;summary.focus();select.dispatchEvent(new Event('change',{bubbles:true}));refresh();});b.disabled=o.disabled;b.setAttribute('aria-pressed',String(o.selected));return b;
+          }));
+        }
+      }
+    }
+    grid._mhRefreshHistoryV3=refresh;
+    filterButton.addEventListener('click',()=>{if(filterButton.getAttribute('aria-expanded')==='true')closeOthers(filterMenu);refresh()});
+    calendarButton.addEventListener('click',()=>{if(!calendar.hidden)closeOthers(calendar);refresh()});
+    grid.addEventListener('change',refresh);currency.addEventListener('change',refresh);
+    panel.addEventListener('click',()=>queueMicrotask(refresh));
+    document.addEventListener('pointerdown',e=>{for(const [menu,button] of pairs)if(!menu.hidden&&!menu.contains(e.target)&&!button.contains(e.target)&&!(menu===calendar&&$('hcSelected')?.parentElement?.contains(e.target)))close(menu,button);},{passive:true});
+    document.addEventListener('keydown',e=>{if(e.key!=='Escape'||e.defaultPrevented)return;for(const [menu,button] of pairs)if(!menu.hidden){close(menu,button);button.focus();break;}});
+    const reposition=()=>{for(const [menu,button] of pairs)position(menu,button);};
+    window.addEventListener('resize',reposition,{passive:true});window.addEventListener('scroll',reposition,{passive:true,capture:true});
+    if(typeof MutationObserver==='function'){
+      new MutationObserver(()=>refresh()).observe(calendar,{attributes:true,attributeFilter:['hidden']});
+      new MutationObserver(()=>refresh()).observe(filterButton,{attributes:true,attributeFilter:['aria-expanded']});
+      for(const select of fields)new MutationObserver(()=>refresh()).observe(select,{childList:true});
+      new MutationObserver(()=>refresh()).observe(panel,{attributes:true,attributeFilter:['style','hidden']});
+    }
+    window.addEventListener('mmhvault:config-owner-changed',()=>{for(const [menu,button] of pairs)close(menu,button);});
+    window.addEventListener('mmhvault-language-change',()=>{refresh();if(!currencyMenu.hidden)renderCurrency()});
+  }
+  grid._mhRefreshHistoryV3?.();
 }
 function syncHistoryFilterLabel(){
   const button=$('mmhHistoryFilterV2');if(!button)return;
   const count=['txFilterType','txFilterGroup','txFilterCategory','txFilterAccount'].filter(id=>!!$(id)?.value).length;
   const open=button.getAttribute('aria-expanded')==='true';
-  const text=(open?tr('Hide filters','收起筛选','စစ်ထုတ်မှု ပိတ်ရန်'):tr('Filters','筛选','စစ်ထုတ်ရန်'))+(count?' · '+count:'');
+  const text=tr('Filters','筛选','စစ်ထုတ်ရန်')+(count?' · '+count:'')+(open?' ⌃':' ⌄');
   if(button.textContent!==text)button.textContent=text;
 }
 let historyPageV2=0,historyKeyV2='';
@@ -1527,7 +1677,7 @@ function boot(){
     window.addEventListener(event,renderRecentEntry);
   schedule();
 }
-window.MMHV11HierarchyLive={version:'0.13-history-compact',refresh:schedule,onLedgerInserted:ledgerInserted};
+window.MMHV11HierarchyLive={version:'0.14-history-controls',refresh:schedule,onLedgerInserted:ledgerInserted};
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot,{once:true});
 else boot();
 })();

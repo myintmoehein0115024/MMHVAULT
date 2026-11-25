@@ -15172,7 +15172,9 @@ async function deleteAllTx(){
   const actionOwner=currentSessionUser?.id;
   if(!actionOwner){await window.mmhEditDeleteUI.message('Delete failed','Please sign in again.');return;}
   try{
-    if(!await window.mmhEditDeleteUI.confirm('Delete All Transactions','All transactions'))return;
+    if(!await window.mmhEditDeleteUI.confirm('Delete All Transactions','All transactions','This deletes every transaction in your account, not only the current filtered list. Account balances and reports may change. Export your records first. This action cannot be undone.'))return;
+    if(currentSessionUser?.id!==actionOwner)return;
+    if(!await window.mmhEditDeleteUI.requirePhrase('Delete All Transactions','All transaction records in this account will be permanently deleted.','DELETE ALL'))return;
     if(currentSessionUser?.id!==actionOwner)return;
     const u=(await db.auth.getUser()).data.user;
     if(!u||u.id!==actionOwner||currentSessionUser?.id!==actionOwner){await window.mmhEditDeleteUI.message('Delete failed','Please sign in again.');return;}
@@ -28277,9 +28279,22 @@ body.light #txHistoryPanel .hc-shell{color:#254767}body.light #txHistoryPanel .h
   window.v28FilteredTx=function(){return baseFiltered().filter(t=>(!state.monthActive||dateKey(t).slice(0,7)===state.month)&&(!state.day||dateKey(t)===state.day));};
   window.mmhHistoryCalendarContextV1=()=>String(state.monthActive)+'|'+state.month+'|'+state.day;
   function group(t){if(t.category==='Data Adjustment')return 'Data Adjustment';return typeof inferTxGroup==='function'?inferTxGroup(t):transactionGroupFor(t);}
+  function updateCurrentBalance(){
+    const el=$('hcRemaining');if(!el)return;
+    let value='—';
+    try{const uid=currentSessionUser?.id;
+      if(uid&&MMHVAULT_CONFIG_OWNER===uid&&window.mmhWalletDataOwnerV191===uid&&Array.isArray(window.transactions)&&window.transactions.every(t=>t?.user_id===uid)){
+        const live=window.MMHBalanceBridgeV202?.current?.();
+        if(live?.ready&&Number.isFinite(live.total))value=window.mmhAccountDisplayTotalV203?.(live.total,state.currency)||'—';
+      }
+    }catch(_){}
+    el.textContent=value;
+    const lang=String(document.documentElement.lang||'en').toLowerCase();
+    const label=$('hcRemainingLabelV3');if(label)label.textContent=lang.startsWith('zh')?'当前余额':lang.startsWith('my')||lang.startsWith('bur')?'လက်ရှိလက်ကျန်':'CURRENT BALANCE';
+  }
   function draw(){
     const grid=$('hcDays');if(!grid)return;
-    const filtered=baseFiltered(),monthly=filtered.filter(t=>dateKey(t).slice(0,7)===state.month),summaryRows=state.monthActive?monthly:filtered,counts=new Map();
+    const filtered=baseFiltered(),monthly=filtered.filter(t=>dateKey(t).slice(0,7)===state.month),summaryRows=state.day?monthly.filter(t=>dateKey(t)===state.day):state.monthActive?monthly:filtered,counts=new Map();
     monthly.forEach(t=>counts.set(dateKey(t),(counts.get(dateKey(t))||0)+1));
     const [year,month]=state.month.split('-').map(Number),first=new Date(year,month-1,1,12),offset=(first.getDay()+6)%7,length=new Date(year,month,0,12).getDate();
     const cells=Math.ceil((offset+length)/7)*7,fragment=document.createDocumentFragment();
@@ -28289,10 +28304,10 @@ body.light #txHistoryPanel .hc-shell{color:#254767}body.light #txHistoryPanel .h
     for(const t of summaryRows){const g=group(t);if(g==='Data Adjustment'||g==='Loans'||t.category==='Investment'||(typeof isLinkedInvestmentTx==='function'&&isLinkedInvestmentTx(t)))continue;if(t.type==='Income'&&g==='Income')income+=convert(t);else if(t.type==='Expense'&&(g==='Expense'||g==='Personal'))expense+=convert(t)}
     const rate=state.currency==='USD'?1:Number(window.MMHExchangeEffectiveFXV2?window.MMHExchangeEffectiveFXV2.getUsdRate(state.currency):(['THB','MMK','CNY'].includes(state.currency)?rates?.[{THB:'usd_thb',MMK:'usd_mmk',CNY:'usd_cny'}[state.currency]]:window.MMHAccountReferenceFXV1?.getRate?.(state.currency)));if(!Number.isFinite(rate)||rate<=0)valid=false;
     const money=v=>valid?({USD:'$ ',THB:'฿ ',MMK:'K ',CNY:'￥ '}[state.currency]||state.currency+' ')+(v*rate).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2}):'—';
-    $('hcIncome').textContent=money(income);$('hcExpense').textContent=money(expense);$('hcRemaining').textContent=money(income-expense);$('hcCaption').textContent=valid?(state.monthActive?'Month totals':'All-date totals')+' follow active filters · loans, transfers and adjustments excluded.':'Summary unavailable: amount or exchange rate missing.';
+    $('hcIncome').textContent=money(income);$('hcExpense').textContent=money(expense);updateCurrentBalance();const lang=String(document.documentElement.lang||'en').toLowerCase(),zh=lang.startsWith('zh'),my=lang.startsWith('my')||lang.startsWith('bur');const period=state.day?'Selected day':state.monthActive?'Month':'All-date';$('hcCaption').textContent=zh?(valid?'收入和支出按筛选统计；当前余额与 Accounts 一致，不受筛选影响。':'收支统计缺少金额或汇率；当前余额独立计算。'):my?(valid?'ဝင်ငွေနှင့် အသုံးစရိတ်ကို စစ်ထုတ်မှုအလိုက် တွက်ချက်သည်။ လက်ရှိလက်ကျန်သည် Accounts နှင့် တူညီသည်။':'ငွေပမာဏ သို့မဟုတ် ငွေလဲနှုန်း မရရှိပါ။ လက်ရှိလက်ကျန်ကို သီးခြားတွက်ချက်သည်။'):(valid?period+' income/expense follow filters; current balance follows Accounts, independent of filters.':'Income/expense unavailable: amount or FX missing. Current balance is independent.');
   }
   function refresh(){window.mmhvaultInvalidateTransactionRenderV34241?.();window.renderTransactions();}
-  function init(){const panel=$('txHistoryPanel');if(!panel)return;const host=document.createElement('div');host.className='hc-shell';host.innerHTML='<div class="hc-toolbar"><div class="hc-month-controls"><button id="hcPrevious" type="button" aria-label="Previous month">‹</button><input id="hcMonth" type="month" aria-label="History month"><button id="hcNext" type="button" aria-label="Next month">›</button><button id="hcToday" type="button">Today</button></div><select id="hcCurrency" aria-label="Summary currency"><option value="MMK">MMK</option><option value="USD" selected>USD</option><option value="CNY">RMB</option><option value="THB">THB</option></select><button id="hcToggle" type="button" aria-controls="hcCalendar">Hide calendar</button></div><div class="hc-calendar" id="hcCalendar"><div class="hc-grid" aria-hidden="true"><span class="hc-weekday">Mon</span><span class="hc-weekday">Tue</span><span class="hc-weekday">Wed</span><span class="hc-weekday">Thu</span><span class="hc-weekday">Fri</span><span class="hc-weekday">Sat</span><span class="hc-weekday">Sun</span></div><div class="hc-grid" id="hcDays" aria-label="Select a transaction date"></div><div class="hc-totals"><div><span>INCOME</span><b id="hcIncome"></b></div><div><span>EXPENSE</span><b id="hcExpense"></b></div><div><span>REMAINING</span><b id="hcRemaining"></b></div></div><div class="hc-caption" id="hcCaption"></div></div><div class="hc-selection"><span id="hcSelected"></span><button id="hcWholeMonth" type="button">View whole month</button><button id="hcAllDates" type="button" hidden>All dates</button></div>';
+  function init(){const panel=$('txHistoryPanel');if(!panel)return;const host=document.createElement('div');host.className='hc-shell';host.innerHTML='<div class="hc-toolbar"><div class="hc-month-controls"><button id="hcPrevious" type="button" aria-label="Previous month">‹</button><input id="hcMonth" type="month" aria-label="History month"><button id="hcNext" type="button" aria-label="Next month">›</button><button id="hcToday" type="button">Today</button></div><select id="hcCurrency" aria-label="Summary currency"><option value="MMK">MMK</option><option value="USD" selected>USD</option><option value="CNY">RMB</option><option value="THB">THB</option></select><button id="hcToggle" type="button" aria-controls="hcCalendar">Hide calendar</button></div><div class="hc-calendar" id="hcCalendar"><div class="hc-grid" aria-hidden="true"><span class="hc-weekday">Mon</span><span class="hc-weekday">Tue</span><span class="hc-weekday">Wed</span><span class="hc-weekday">Thu</span><span class="hc-weekday">Fri</span><span class="hc-weekday">Sat</span><span class="hc-weekday">Sun</span></div><div class="hc-grid" id="hcDays" aria-label="Select a transaction date"></div><div class="hc-totals"><div><span>INCOME</span><b id="hcIncome"></b></div><div><span>EXPENSE</span><b id="hcExpense"></b></div><div><span id="hcRemainingLabelV3">CURRENT BALANCE</span><b id="hcRemaining"></b></div></div><div class="hc-caption" id="hcCaption"></div></div><div class="hc-selection"><span id="hcSelected"></span><button id="hcWholeMonth" type="button">View whole month</button><button id="hcAllDates" type="button" hidden>All dates</button></div>';
     panel.querySelector('.filter-grid').before(host);
     const codes=Array.from(MMHVAULT_ACCOUNT_CURRENCY_CODES_V140),preferred=['USD','MMK','THB','CNY','AMD'];
     const ordered=[...preferred,...codes.filter(c=>!preferred.includes(c)).sort()];
@@ -28303,6 +28318,7 @@ body.light #txHistoryPanel .hc-shell{color:#254767}body.light #txHistoryPanel .h
     $('hcDays').onclick=e=>{const b=e.target.closest('[data-date]');if(!b)return;state.day=b.dataset.date;state.month=state.day.slice(0,7);state.monthActive=true;refresh()};
     const render=window.renderTransactions;window.renderTransactions=function(){draw();return render.apply(this,arguments)};window.renderTransactionsV28=window.renderTransactions;
     const clear=window.clearTxFilters;window.clearTxFilters=function(){state.day='';state.monthActive=false;window.mmhvaultInvalidateTransactionRenderV34241?.();return clear.apply(this,arguments)};
+    for(const event of ['mmhvault:data-loaded','mmhvault:data-change','mmhvault:market-updated','mmhvault:config-owner-changed','mmhvault:sync-complete','mmhvault-language-change','mmhvault:rendered'])window.addEventListener(event,updateCurrentBalance);
     draw();
   }
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});else init();
@@ -28441,6 +28457,7 @@ function money(value,cur){return mmhCurrencySymbolV194(cur)+' '+(window.mmhSetti
 function dashboard(){try{mmhVaultRefreshDashboardAccountOverviewV449()}catch(_){}}
 function displayFactor(currency=displayCurrency){const core={THB:'usd_thb',MMK:'usd_mmk',CNY:'usd_cny'};const factor=['USD','NATIVE'].includes(currency)?1:core[currency]?Number(rates?.[core[currency]]):Number(window.MMHAccountReferenceFXV1?.getRate?.(currency));return Number.isFinite(factor)&&factor>0?factor:null}
 function displayMoney(usdValue,currency=displayCurrency){const factor=displayFactor(currency);return factor!==null&&Number.isFinite(usdValue)?money(usdValue*factor,currency==='NATIVE'?'USD':currency==='CNY'?'RMB':currency):'—'}
+window.mmhAccountDisplayTotalV203=(usd,currency)=>mmhAccountDisplayCodesV926.has(currency)?displayMoney(usd,currency):'—';
 function displayAccountBalanceV11(a){const native=money(a.type==='crypto'?accountTotalNative(a):Number(balance(a.name)),a.currency==='CNY'?'RMB':a.currency);if(rowDisplayCurrency==='NATIVE')return native;const converted=displayMoney(accountTotalUSD(a),rowDisplayCurrency);return converted==='—'?native+' · FX pending':converted;}
 function portfolios(){
   const total=(investments||[]).length&&typeof window.mmhDashboardHeldInvestmentUSD==='function'?Number(window.mmhDashboardHeldInvestmentUSD()):0;
@@ -35820,7 +35837,7 @@ html body #settings.page.active #stPage_security #mmhA783SecurityCenter .mmh-a78
 <!-- Auto MMK is loaded only by the explicit release gate below. -->
 <!-- APP V11.7: owner-linked Manage replaces the former field-layout loader.
      The original V11 script remains in Git history for rollback; no DB migration. -->
-<script type="module" src="js/mmhvault-v11-manage-hierarchy-live.mjs?v=0.8.1"></script>
+<script type="module" src="js/mmhvault-v11-manage-hierarchy-live.mjs?v=0.14.0"></script>
 <link rel="stylesheet" href="css/mmhvault-transaction-onboarding-v1.css?v=1.0.0">
 <script type="module" src="js/mmhvault-transaction-onboarding-live-v1.mjs?v=1.0.0"></script>
 
