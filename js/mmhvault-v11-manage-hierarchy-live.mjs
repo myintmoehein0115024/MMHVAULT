@@ -1277,12 +1277,12 @@ function installHistoryControls(panel,grid,root){
       root+' .panel>.actions:empty{display:none!important}',
       root+' #hcCurrency[hidden],'+root+' .mh-native-filter[hidden]{display:none!important}',
       root+' .mh-popover[hidden]{display:none!important}',
-      root+' .mh-popover:not([hidden]){box-sizing:border-box!important;padding:12px!important;border:1px solid var(--tv-line)!important;border-radius:9px!important;background:var(--tv-raised)!important;color:var(--tv-text)!important;box-shadow:0 12px 36px #0004!important;max-height:min(65vh,420px);overflow:auto!important;overscroll-behavior:contain;margin:0!important}',
+      root+' .mh-popover:not([hidden]):not(.mmh-shared-currency-v3){box-sizing:border-box!important;padding:12px!important;border:1px solid var(--tv-line)!important;border-radius:9px!important;background:var(--tv-raised)!important;color:var(--tv-text)!important;box-shadow:0 12px 36px #0004!important;max-height:min(65vh,420px);overflow:auto!important;overscroll-behavior:contain;margin:0!important}',
       root+' .mh-popover:popover-open{position:fixed!important;inset:auto;max-width:calc(100vw - 24px)!important;z-index:2147483000!important}',
       root+' #hcCalendar.mh-popover:not([hidden]){position:relative!important;top:auto;right:auto;width:min(100%,360px)!important;max-width:360px!important;margin:6px 0 0 auto!important;background:var(--tv-card)!important}',
       root+' #hcCalendar.mh-popover:popover-open{position:fixed!important;right:auto!important;width:min(360px,calc(100vw - 24px))!important;margin:0!important}',
       root+' #mhHistoryFilterMenuV3{width:min(100%,270px);max-width:270px;flex:0 0 100%;margin-left:auto!important}',
-      root+' #mhHistoryCurrencyMenuV3{width:min(100%,300px);max-width:300px;margin-left:auto!important}',
+      root+' #mhHistoryCurrencyMenuV3{margin-left:auto!important}',
       root+' .mh-popover:popover-open:is(#mhHistoryFilterMenuV3,#mhHistoryCurrencyMenuV3){margin:0!important}',
       root+' .mh-filter-field{display:grid;gap:5px;margin:0 0 10px;min-width:0}',
       root+' .mh-filter-field:last-child{margin:0}',
@@ -1292,12 +1292,10 @@ function installHistoryControls(panel,grid,root){
       root+' .mh-filter-field summary::after{content:"⌄";flex:none;color:var(--tv-muted)}',
       root+' .mh-filter-field details[open] summary::after{content:"⌃"}',
       root+' .mh-choice-list{display:grid;gap:3px;padding:4px 0;max-height:190px;overflow:auto;overscroll-behavior:contain}',
-      root+' #mhHistoryCurrencyMenuV3 .mh-choice-list{max-height:270px}',
-      root+' .mh-choice-list button{display:flex!important;align-items:center;justify-content:space-between;gap:8px;width:100%!important;min-height:36px!important;height:auto!important;padding:7px 9px!important;text-align:left;border:1px solid transparent!important;border-radius:6px!important;background:transparent!important;color:var(--tv-text)!important;font:500 12px/1.4 system-ui,sans-serif!important;white-space:normal!important;overflow-wrap:anywhere;box-shadow:none!important;cursor:pointer}',
+            root+' .mh-choice-list button{display:flex!important;align-items:center;justify-content:space-between;gap:8px;width:100%!important;min-height:36px!important;height:auto!important;padding:7px 9px!important;text-align:left;border:1px solid transparent!important;border-radius:6px!important;background:transparent!important;color:var(--tv-text)!important;font:500 12px/1.4 system-ui,sans-serif!important;white-space:normal!important;overflow-wrap:anywhere;box-shadow:none!important;cursor:pointer}',
       root+' .mh-choice-list button:hover,'+root+' .mh-choice-list button[aria-pressed=true]{background:var(--tv-card)!important;border-color:var(--tv-line)!important}',
       root+' .mh-choice-list button[aria-pressed=true]::after{content:"✓";flex:none;color:var(--tv-accent)}',
-      root+' #mhCurrencySearchV3{box-sizing:border-box;width:100%!important;min-height:36px!important;padding:7px 10px!important;border:1px solid var(--tv-line)!important;border-radius:7px!important;background:var(--tv-card)!important;color:var(--tv-text)!important}',
-      '@media(max-width:600px){'+root+' .mh-controls-row{flex-wrap:wrap;gap:6px}'+root+' .mh-controls-row>label{flex:1 1 100%}'+root+' .mh-controls-row>button{flex:1 1 auto!important;padding:5px 6px!important;font-size:11px!important}}'
+            '@media(max-width:600px){'+root+' .mh-controls-row{flex-wrap:wrap;gap:6px}'+root+' .mh-controls-row>label{flex:1 1 100%}'+root+' .mh-controls-row>button{flex:1 1 auto!important;padding:5px 6px!important;font-size:11px!important}}'
     ].join('\n');document.head.append(style);
     const row=elt('div','mh-controls-row');grid.prepend(row);
     // Keep native handlers and controls; only move their presentation.
@@ -1318,7 +1316,7 @@ function installHistoryControls(panel,grid,root){
       details.addEventListener('keydown',e=>{if(e.key==='Escape'&&details.open){e.preventDefault();e.stopPropagation();details.open=false;summary.focus();}});
     });
     const currencyButton=btn('',()=>toggleCurrency());currencyButton.id='mhCurrencyButtonV3';currencyButton.setAttribute('aria-expanded','false');currency.before(currencyButton);currency.hidden=true;currency.tabIndex=-1;
-    const currencyMenu=elt('div','mh-popover');currencyMenu.id='mhHistoryCurrencyMenuV3';currencyMenu.hidden=true;const input=elt('input');input.id='mhCurrencySearchV3';input.type='search';const currencyList=elt('div','mh-choice-list');currencyMenu.append(input,currencyList);currency.closest('.hc-shell').append(currencyMenu);currencyButton.setAttribute('aria-controls',currencyMenu.id);
+    const currencyMenu=elt('div','mh-popover ap-currency-choices-v2 mmh-shared-currency-v3');currencyMenu.id='mhHistoryCurrencyMenuV3';currencyMenu.hidden=true;currencyMenu.setAttribute('role','group');const input=elt('input');input.id='mhCurrencySearchV3';input.type='search';input.autocomplete='off';input.spellcheck=false;const currencyLabel=elt('label','ap-currency-search-label-v2');currencyLabel.htmlFor=input.id;const currencyList=elt('div','ap-currency-list-v2');currencyMenu.append(currencyLabel,input,currencyList);currency.closest('.hc-shell').append(currencyMenu);currencyButton.setAttribute('aria-controls',currencyMenu.id);
     calendar.classList.add('mh-popover');
     const pairs=[[calendar,calendarButton],[filterMenu,filterButton],[currencyMenu,currencyButton]];
     const topLayer=typeof calendar.showPopover==='function';
@@ -1347,18 +1345,19 @@ function installHistoryControls(panel,grid,root){
     function closeOthers(menu){for(const [other,button] of pairs)if(other!==menu)close(other,button);}
     function toggleCurrency(){
       const open=currencyMenu.hidden;if(open){closeOthers(currencyMenu);input.value='';renderCurrency();}
-      currencyButton.setAttribute('aria-expanded',String(open));display(currencyMenu,currencyButton,open);if(open)input.focus();
+      currencyButton.setAttribute('aria-expanded',String(open));display(currencyMenu,currencyButton,open);if(open)currencyList.scrollTop=0;
     }
-    const flag=code=>{const region=code==='EUR'?'EU':code.slice(0,2);return /^[A-Z]{2}$/.test(region)?String.fromCodePoint(...[...region].map(x=>127397+x.charCodeAt(0)))+' ':'';};
-    function currencyName(code,locale){try{return new Intl.DisplayNames([locale],{type:'currency'}).of(code)||code}catch(_){return code}}
+    const flag=code=>window.MMHCurrencyPickerV3?.flag(code)||'';
+    const currencyLabelText=()=>tr('Summary currency','统计币种','စာရင်းချုပ် ငွေကြေး');
     function renderCurrency(){
-      const lang=document.documentElement.lang||'en',term=input.value.trim().toLowerCase(),options=[...currency.options];
-      currencyList.replaceChildren(...options.filter(o=>[o.value,currencyName(o.value,lang),currencyName(o.value,'en'),o.value==='CNY'?'RMB 人民币':''].some(x=>x.toLowerCase().includes(term))).map(o=>{
-        const b=btn(flag(o.value)+o.value+' · '+currencyName(o.value,lang),()=>{currency.value=o.value;currency.dispatchEvent(new Event('change',{bubbles:true}));close(currencyMenu,currencyButton);currencyButton.focus();refresh();});b.setAttribute('aria-pressed',String(o.selected));return b;
-      }));
-      if(!currencyList.children.length)currencyList.append(elt('span','',tr('No matching currency','未找到币种','ငွေကြေး မတွေ့ပါ')));
+      window.MMHCurrencyPickerV3?.render({select:currency,search:input,list:currencyList,group:currencyMenu,label:currencyLabelText(),includeNative:false});
     }
-    input.addEventListener('input',renderCurrency);
+    currencyMenu.addEventListener('click',e=>{
+      const item=e.target.closest('button[data-ap-currency]');if(!item)return;
+      const value=item.dataset.apCurrency;if(![...currency.options].some(o=>o.value===value&&!o.disabled))return;
+      if(currency.value!==value){currency.value=value;currency.dispatchEvent(new Event('change',{bubbles:true}));}
+      close(currencyMenu,currencyButton);currencyButton.focus({preventScroll:true});refresh();
+    });
     function refresh(){
       const active=panel.getClientRects().length>0;
       const filterOpen=active&&filterButton.getAttribute('aria-expanded')==='true';
@@ -1370,7 +1369,7 @@ function installHistoryControls(panel,grid,root){
       if(!calendarOpen)display(calendar,calendarButton,false);
       const text=flag(currency.value)+currency.value+' ⌄';if(currencyButton.textContent!==text)currencyButton.textContent=text;
       currencyButton.setAttribute('aria-label',tr('Summary currency','统计币种','စာရင်းချုပ် ငွေကြေး')+': '+currency.value);
-      input.placeholder=tr('Search currencies','搜索币种','ငွေကြေး ရှာရန်');input.setAttribute('aria-label',input.placeholder);
+      if(!currencyMenu.hidden&&currencyMenu.getAttribute('aria-label')!==currencyLabelText())renderCurrency();
       const labels=[tr('Clear filters','清除筛选','စစ်ထုတ်မှု ရှင်းရန်'),tr('Export CSV','导出 CSV','CSV ထုတ်ရန်'),tr('Delete all','删除全部','အားလုံး ဖျက်ရန်')];
       [clear,exportBtn,remove].forEach((b,i)=>{if(b.textContent!==labels[i])b.textContent=labels[i];b.title=labels[i];b.setAttribute('aria-label',labels[i]);});
       for(const field of filterMenu.querySelectorAll('.mh-filter-field')){
@@ -1677,7 +1676,7 @@ function boot(){
     window.addEventListener(event,renderRecentEntry);
   schedule();
 }
-window.MMHV11HierarchyLive={version:'0.14-history-controls',refresh:schedule,onLedgerInserted:ledgerInserted};
+window.MMHV11HierarchyLive={version:'0.15-history-unified',refresh:schedule,onLedgerInserted:ledgerInserted};
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot,{once:true});
 else boot();
 })();
