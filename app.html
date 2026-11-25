@@ -37394,6 +37394,33 @@ html body.mmh-workspace-active #transactions#transactions#transactions#transacti
 html body.mmh-workspace-active #transactions#transactions#transactions#transactions#transactions #txForm button:is(.mmh-p24-account-trigger,.mmh-p25-picker-trigger){font-size:16px!important}
 html body:has(#transactions.active) :is(.mmh-p24-account-menu,.mmh-p25-picker-menu)>button{min-height:44px!important}
 }
+
+/* Transaction V2: full-height canvas, compact icon actions; keep original buttons. */
+html body.mmh-workspace-active #transactions#transactions#transactions#transactions#transactions#transactions#transactions.active{min-height:calc(100dvh - var(--wv-shell-top,var(--wv-top,64px)))!important;box-sizing:border-box!important;background:var(--tv-card)!important;position:relative!important}
+html body.mmh-workspace-active:has(#transactions#transactions.active) main.wrap.wrap.wrap{min-height:100dvh!important;box-sizing:border-box!important}
+html body.mmh-workspace-active #transactions#transactions#transactions#transactions#transactions#transactions#transactions:has(#txTabAdd.active)>.mmh-tx-entry-tools-v2{gap:5px!important;border:0!important;background:transparent!important;min-height:0!important}
+html body.mmh-workspace-active #transactions#transactions#transactions#transactions#transactions#transactions#transactions:has(#txTabAdd.active)>.mmh-tx-entry-tools-v2 .mmh-glass-tx-nav-item-v1,
+html body.mmh-workspace-active #transactions#transactions#transactions#transactions#transactions#transactions#transactions:has(#txTabAdd.active)>.mmh-tx-entry-tools-v2 #mmhTxOnboardingHelpV1{width:34px!important;min-width:34px!important;height:34px!important;min-height:34px!important;max-width:34px!important;padding:0!important;display:inline-flex!important;align-items:center!important;justify-content:center!important;box-sizing:border-box!important;border:1px solid var(--tv-line)!important;border-radius:7px!important;background:transparent!important;color:var(--tv-muted)!important;flex:none!important}
+html body.mmh-workspace-active #transactions#transactions#transactions#transactions#transactions#transactions#transactions:has(#txTabAdd.active)>.mmh-tx-entry-tools-v2 .mmh-glass-tx-nav-add-v1{display:none!important}
+html body.mmh-workspace-active #transactions#transactions#transactions#transactions#transactions#transactions#transactions:has(#txTabAdd.active)>.mmh-tx-entry-tools-v2 .mmh-glass-tx-nav-copy-v1{position:absolute!important;width:1px!important;height:1px!important;padding:0!important;margin:-1px!important;overflow:hidden!important;clip-path:inset(50%)!important;white-space:nowrap!important}
+html body.mmh-workspace-active #transactions#transactions#transactions#transactions#transactions#transactions#transactions:has(#txTabAdd.active)>.mmh-tx-entry-tools-v2 #mmhTxOnboardingHelpV1{font-size:0!important;position:relative!important}
+html body.mmh-workspace-active #transactions#transactions#transactions#transactions#transactions#transactions#transactions:has(#txTabAdd.active)>.mmh-tx-entry-tools-v2 #mmhTxOnboardingHelpV1::after{content:"?"!important;display:grid!important;place-items:center!important;width:17px!important;height:17px!important;border:1.5px solid currentColor!important;border-radius:50%!important;font:600 12px/1 system-ui,sans-serif!important}
+html body.mmh-workspace-active #transactions#transactions#transactions#transactions#transactions#transactions#transactions:has(#txTabAdd.active)>.mmh-tx-entry-tools-v2 :is(.mmh-glass-tx-nav-item-v1,#mmhTxOnboardingHelpV1):hover{background:var(--tv-raised)!important;color:var(--tv-accent)!important}
+html body.mmh-workspace-active #transactions#transactions#transactions#transactions#transactions#transactions#transactions:has(#txTabAdd.active) #txAddPanel>.panel{background:var(--tv-card)!important;min-height:inherit!important}
+@media(min-width:768px){
+html body.mmh-workspace-active #transactions#transactions#transactions#transactions#transactions#transactions#transactions:has(#txTabAdd.active)>.mmh-tx-entry-tools-v2{position:absolute!important;top:15px!important;right:clamp(14px,2vw,26px)!important;width:auto!important;max-width:none!important;padding:0!important;margin:0!important;z-index:3!important}
+html body.mmh-workspace-active #transactions#transactions#transactions#transactions#transactions#transactions#transactions:has(#txTabAdd.active) #txForm #mmhHierarchyDirection{padding-right:128px!important;min-height:43px!important}
+html body.mmh-workspace-active #transactions#transactions#transactions#transactions#transactions#transactions#transactions:has(#txTabAdd.active) #txAddPanel>.panel{min-height:calc(100dvh - var(--wv-shell-top,var(--wv-top,64px)))!important}
+}
+@media(max-width:767px){
+html body.mmh-workspace-active #transactions#transactions#transactions#transactions#transactions#transactions#transactions.active{min-height:calc(100dvh - var(--wv-shell-top,var(--wv-top,64px)) - 64px)!important}
+html body.mmh-workspace-active #transactions#transactions#transactions#transactions#transactions#transactions#transactions:has(#txTabAdd.active)>.mmh-tx-entry-tools-v2{padding:4px 12px 0!important}
+html body.mmh-workspace-active #transactions#transactions#transactions#transactions#transactions#transactions#transactions:has(#txTabAdd.active) #txAddPanel>.panel{min-height:0!important}
+}
+@media(min-width:540px) and (max-width:767px){
+html body.mmh-workspace-active #transactions#transactions#transactions#transactions#transactions#transactions#transactions:has(#txTabAdd.active)>.mmh-tx-entry-tools-v2{position:absolute!important;top:14px!important;right:12px!important;width:auto!important;padding:0!important;z-index:3!important}
+html body.mmh-workspace-active #transactions#transactions#transactions#transactions#transactions#transactions#transactions:has(#txTabAdd.active) #txForm #mmhHierarchyDirection{padding-right:128px!important;min-height:44px!important}
+}
 </style>
 </body>
 </html>
