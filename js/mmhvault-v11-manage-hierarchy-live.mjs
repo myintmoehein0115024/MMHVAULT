@@ -1145,6 +1145,65 @@ function installHistoryPresentation(){
       }
     `;
     document.head.append(refStyle);
+    const compact=elt('style');compact.id='mmhHistoryCompactV2';
+    const page='html body.mmh-workspace-active #transactions#transactions#transactions#transactions#transactions#transactions#transactions#transactions';
+    compact.textContent=`
+      ${page}:has(#txTabHistory.active)>.mmh-tx-entry-tools-v2{display:none!important}
+      ${page}.active:has(#txTabHistory.active){background:var(--tv-card)!important;min-height:calc(100dvh - var(--wv-shell-top,64px))!important}
+      html body.mmh-workspace-active:has(#transactions#transactions#transactions.active #txTabHistory.active) main.wrap.wrap.wrap{background:var(--wv-bg,#19212e)!important;background-image:none!important}
+      ${root}>.panel{min-height:calc(100dvh - var(--wv-shell-top,64px))!important;padding:clamp(12px,1.5vw,20px)!important}
+      ${root}>.panel>.toolbar{margin:0 0 14px!important;padding:0!important;background:transparent!important;background-image:none!important;box-shadow:none!important;min-height:0!important;border:0!important}
+      ${root} .mmh-history-titlebar{display:flex!important;align-items:center!important;gap:8px!important}
+      ${root} .mmh-history-titlebar>div{display:none!important}
+      ${root} .mmh-history-tools{display:flex;gap:6px;align-items:center}
+      ${root} .mmh-history-tools button{display:grid!important;place-items:center;min-height:34px!important;height:34px!important;min-width:34px!important;width:34px!important;padding:0!important;border:1px solid var(--tv-line)!important;border-radius:7px!important;color:var(--tv-text)!important;background:var(--tv-raised)!important;font-size:17px!important;cursor:pointer}
+      ${root} #mmhHistoryBackV2{min-height:34px!important;font-size:12px!important;padding:5px 10px!important}
+      ${root} #mmhHistorySummaryV2{margin:0 0 12px!important}
+      ${root} #mmhHistorySummaryV2 .hc-totals>div{padding:10px 12px!important}
+      ${root} #mmhHistorySummaryV2 .hc-totals b{font-size:clamp(15px,1.5vw,23px)!important}
+      ${root} #mmhHistorySummaryV2 #hcCaption{font-size:11px!important;margin:5px 0 0!important}
+      ${root} .hc-shell{position:relative!important;margin:0 0 10px!important;min-width:0}
+      ${root} .hc-toolbar{display:flex!important;align-items:center!important;justify-content:flex-end!important;gap:8px!important;margin:0!important}
+      ${root} .hc-selection{margin:0 auto 0 0!important;display:flex!important;align-items:center!important;flex-wrap:wrap!important;gap:6px!important}
+      ${root} .hc-selection button[hidden]{display:none!important}
+      ${root} .hc-selection button{min-height:32px!important;font-size:11px!important;padding:4px 7px!important;color:var(--tv-accent)!important;background:var(--tv-raised)!important;border:1px solid var(--tv-line)!important;border-radius:6px!important}
+      ${root} #hcCurrency{min-width:74px!important;width:auto!important;max-width:100px!important}
+      ${root} #hcCalendar:not([hidden]){position:absolute!important;right:0;top:calc(100% + 6px);width:min(100%,420px)!important;max-width:420px!important;box-sizing:border-box!important;z-index:25!important;margin:0!important;padding:12px!important;background:var(--tv-card)!important;box-shadow:0 10px 30px #0003!important}
+      ${root} #hcCalendar .hc-month-controls{display:flex!important;flex-wrap:nowrap!important;gap:5px!important;margin:0 0 10px!important;min-width:0!important}
+      ${root} #hcCalendar .hc-month-controls :is(button,input){min-height:34px!important;background:var(--tv-raised)!important;border:1px solid var(--tv-line)!important;border-radius:6px!important;color:var(--tv-text)!important;font-size:12px!important}
+      ${root} #hcCalendar .hc-month-controls #hcMonth{min-width:0!important;flex:1 1 auto!important}
+      ${root} #hcCalendar .hc-grid{gap:4px!important}
+      ${root} #hcCalendar .hc-day{min-height:38px!important;padding:4px 2px!important;font-size:12px!important}
+      ${root} #hcCalendar .hc-day small{font-size:9px!important}
+      ${root} .filter-grid{grid-template-columns:repeat(4,minmax(0,1fr))!important;gap:8px!important;margin:0 0 10px!important}
+      ${root} .filter-grid>label:has(#txSearch){grid-column:1/4!important;grid-row:1!important}
+      ${root} #mmhHistoryFilterV2{grid-column:4!important;grid-row:1!important}
+      ${root} .filter-grid.mmh-history-filters-closed>label:not(:has(#txSearch)){display:none!important}
+      ${root} .filter-grid:not(.mmh-history-filters-closed)>label:has(#txFilterType){grid-column:1!important;grid-row:2!important}
+      ${root} .filter-grid:not(.mmh-history-filters-closed)>label:has(#txFilterAccount){grid-column:2!important;grid-row:2!important}
+      ${root} .filter-grid:not(.mmh-history-filters-closed)>label:has(#txFilterGroup){grid-column:3!important;grid-row:2!important}
+      ${root} .filter-grid:not(.mmh-history-filters-closed)>label:has(#txFilterCategory){grid-column:4!important;grid-row:2!important}
+      ${root} .filter-grid>label{font-size:12px!important;letter-spacing:0!important;text-transform:none!important}
+      ${root} .filter-grid.mmh-history-filters-closed #mmhHistoryClearAllV2{display:none!important}
+      ${root} #mmhHistoryClearAllV2{grid-column:1/-1;justify-self:end;min-height:32px!important;font-size:11px!important;color:var(--tv-negative)!important;background:transparent!important;border:1px solid var(--tv-line)!important;border-radius:6px!important;padding:4px 8px!important}
+      ${root}>.panel>.actions{margin:0 0 10px!important}
+      @media(max-width:767px){
+        ${page}.active:has(#txTabHistory.active){min-height:calc(100dvh - var(--wv-shell-top,64px) - 76px - env(safe-area-inset-bottom,0px))!important}
+        ${root}>.panel{min-height:0!important;padding:10px 12px!important}
+        ${root} #mmhHistorySummaryV2 .hc-totals>div{padding:8px 5px!important}
+        ${root} #mmhHistorySummaryV2 .hc-totals b{font-size:13px!important}
+        ${root} .hc-toolbar{gap:6px!important;justify-content:space-between!important}
+        ${root} #hcCalendar:not([hidden]){position:relative!important;top:auto!important;right:auto!important;margin:6px auto 0!important;box-shadow:none!important}
+        ${root} .filter-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+        ${root} .filter-grid>label:has(#txSearch){grid-column:1!important}
+        ${root} #mmhHistoryFilterV2{grid-column:2!important;min-width:84px!important}
+        ${root} .filter-grid:not(.mmh-history-filters-closed)>label:has(#txFilterType){grid-column:1!important;grid-row:2!important}
+        ${root} .filter-grid:not(.mmh-history-filters-closed)>label:has(#txFilterAccount){grid-column:2!important;grid-row:2!important}
+        ${root} .filter-grid:not(.mmh-history-filters-closed)>label:has(#txFilterGroup){grid-column:1!important;grid-row:3!important}
+        ${root} .filter-grid:not(.mmh-history-filters-closed)>label:has(#txFilterCategory){grid-column:2!important;grid-row:3!important}
+      }
+    `;
+    document.head.append(compact);
   }
   const title=panel.querySelector('.toolbar>div:first-child');
   if(title&&!$('mmhHistoryBackV2')){
@@ -1152,9 +1211,29 @@ function installHistoryPresentation(){
     const wrap=elt('div','mmh-history-titlebar');title.before(wrap);wrap.append(back,title);
   }
   const back=$('mmhHistoryBackV2');if(back)back.textContent=tr('‹ Add Transaction','‹ 返回记账','‹ ငွေစာရင်း ထည့်ရန်');
+  const toolbar=panel.querySelector('.toolbar');
+  if(toolbar&&!toolbar.querySelector('.mmh-history-tools')){
+    const tools=elt('div','mmh-history-tools');
+    const make=(label,icon,run)=>{const b=btn(icon,run);b.setAttribute('aria-label',label);b.title=label;return b;};
+    const help=make('Help / Tutorial','?',()=>{const original=$('mmhTxOnboardingHelpV1');original?.click();});
+    help.id='mmhHistoryHelpV2';
+    const manage=make('Manage','☷',()=>document.querySelector('#transactions .mmh-glass-tx-nav-manage-v1')?.click());manage.id='mmhHistoryManageV2';
+    tools.append(help,manage);toolbar.append(tools);
+    const clear=toolbar.querySelector('button.danger');if(clear){clear.id='mmhHistoryClearAllV2';grid.append(clear);}
+  }
+  const help=$('mmhHistoryHelpV2'),manage=$('mmhHistoryManageV2');
+  if(help){help.title=tr('Help / Tutorial','新手指南','အသုံးပြုနည်း');help.setAttribute('aria-label',help.title);}
+  if(manage){manage.title=tr('Manage','编辑','စီမံရန်');manage.setAttribute('aria-label',manage.title);}
   const totals=panel.querySelector('.hc-totals'),caption=$('hcCaption'),shell=panel.querySelector('.hc-shell');
   if(totals&&shell&&!$('mmhHistorySummaryV2')){
     const summary=elt('div');summary.id='mmhHistorySummaryV2';shell.before(summary);summary.append(totals);if(caption)summary.append(caption);
+  }
+  const calendarHost=$('hcCalendar'),calendarToolbar=panel.querySelector('.hc-toolbar'),monthControls=panel.querySelector('.hc-month-controls'),selection=panel.querySelector('.hc-selection');
+  if(calendarHost&&calendarToolbar&&monthControls&&selection&&!calendarHost.dataset.mmhCompactV2){
+    calendarHost.dataset.mmhCompactV2='1';calendarHost.prepend(monthControls);calendarToolbar.prepend(selection);
+    const toggle=$('hcToggle');
+    document.addEventListener('pointerdown',e=>{if(!calendarHost.hidden&&!calendarHost.contains(e.target)&&!toggle?.contains(e.target)&&!selection.contains(e.target))toggle?.click();},{passive:true});
+    document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!calendarHost.hidden){toggle?.click();toggle?.focus();}});
   }
   let filter=$('mmhHistoryFilterV2');
   if(!filter){
@@ -1193,8 +1272,9 @@ function renderHistoryReference(){
   if(!ready()||!current||!Array.isArray(records)||window.mmhWalletDataOwnerV191!==current||records.some(t=>t?.user_id!==current)||typeof v28FilteredTx!=='function'){
     view.hidden=true;view.replaceChildren();list.classList.remove('mmh-history-projection-ready');return;
   }
-  const rows=safe(()=>v28FilteredTx(),null);
-  if(!Array.isArray(rows)||rows.some(t=>t?.user_id!==current)){view.hidden=true;view.replaceChildren();list.classList.remove('mmh-history-projection-ready');return;}
+  const filteredRows=safe(()=>v28FilteredTx(),null);
+  if(!Array.isArray(filteredRows)||filteredRows.some(t=>t?.user_id!==current)){view.hidden=true;view.replaceChildren();list.classList.remove('mmh-history-projection-ready');return;}
+  const rows=filteredRows.slice().sort((a,b)=>String(b.tx_date||'').localeCompare(String(a.tx_date||''))||String(b.created_at||'').localeCompare(String(a.created_at||''))||String(b.id||'').localeCompare(String(a.id||''),undefined,{numeric:true}));
   const key=[current,...rows.map(t=>t.id)].join('|');if(key!==historyKeyV2){historyPageV2=0;historyKeyV2=key;}
   const pageSize=8,pages=Math.max(1,Math.ceil(rows.length/pageSize));historyPageV2=Math.min(historyPageV2,pages-1);
   const amount=(value,account)=>{
@@ -1447,7 +1527,7 @@ function boot(){
     window.addEventListener(event,renderRecentEntry);
   schedule();
 }
-window.MMHV11HierarchyLive={version:'0.12-history-reference',refresh:schedule,onLedgerInserted:ledgerInserted};
+window.MMHV11HierarchyLive={version:'0.13-history-compact',refresh:schedule,onLedgerInserted:ledgerInserted};
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot,{once:true});
 else boot();
 })();
