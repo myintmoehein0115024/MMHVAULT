@@ -38414,19 +38414,29 @@ html body.mmh-workspace-active:not(.auth-page-active) #mmhContactLauncherV2#mmhC
 if(!window.CSS?.supports('-webkit-touch-callout','none'))return;
 const mq=matchMedia('(max-width:899px), (max-width:1099px) and (hover:none), (max-width:1099px) and (pointer:coarse)');
 const root=document.documentElement,vv=window.visualViewport;
-let frame=0,last='',timer=0;
+let frame=0,last='',timer=0,lateTimer=0;
 function sync(){
  frame=0;
  if(!mq.matches){if(last){root.style.removeProperty('--mmh-ios-shell-height');last=''}return;}
  if(vv&&Math.abs(vv.scale-1)>.02)return;
- // Height only: offsetTop is a pan, not additional usable height.
- const height=Math.floor(vv?.height||window.innerHeight);
+ // A standalone/fullscreen iOS app has no browser toolbar to reserve.
+ // WebKit may retain a shorter visualViewport after reload or restoration.
+ // Prefer the layout viewport there, except while an editable field has
+ // the keyboard open. In a regular browser keep the visible viewport.
+ const visibleHeight=vv?.height||window.innerHeight;
+ const layoutHeight=Math.max(window.innerHeight||0,root.clientHeight||0);
+ const standalone=navigator.standalone===true||
+   matchMedia('(display-mode: standalone), (display-mode: fullscreen)').matches;
+ const focused=document.activeElement;
+ const editing=!!focused?.matches?.('textarea,input:not([type=button]):not([type=submit]):not([type=checkbox]):not([type=radio]):not([type=range]):not([type=hidden]),[contenteditable=true]');
+ const gap=layoutHeight-visibleHeight;
+ const height=Math.floor(standalone&&!editing&&gap>=0&&gap<=120?layoutHeight:visibleHeight);
  if(!Number.isFinite(height)||height<100)return;
  const next=height+'px';
  if(next!==last){root.style.setProperty('--mmh-ios-shell-height',next);last=next;}
 }
 function schedule(){if(!frame)frame=requestAnimationFrame(sync);}
-function settle(){schedule();clearTimeout(timer);timer=setTimeout(schedule,250);}
+function settle(){schedule();clearTimeout(timer);clearTimeout(lateTimer);timer=setTimeout(schedule,250);lateTimer=setTimeout(schedule,700);}
 window.addEventListener('resize',schedule,{passive:true});
 vv?.addEventListener('resize',schedule,{passive:true});
 vv?.addEventListener('scroll',schedule,{passive:true});
