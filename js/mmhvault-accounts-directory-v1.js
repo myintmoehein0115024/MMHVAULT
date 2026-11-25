@@ -126,6 +126,71 @@
     applyCurrencyPanelState();
     sync();
   }
+  // V2 custom filter disclosures: native selects remain the single source of truth.
+  const filterSortLabels={original:['Original','默认顺序','မူလအစဉ်'],'balance-desc':['High to low','从高到低','အများမှအနည်း'],'balance-asc':['Low to high','从低到高','အနည်းမှအများ'],'name-asc':['Name A–Z','名称 A–Z','အမည် A–Z'],'name-desc':['Name Z–A','名称 Z–A','အမည် Z–A'],type:['Account type','账户类型','အကောင့်အမျိုးအစား'],currency:['Currency','币种','ငွေကြေး']};
+  function filterOptionLabel(select,option){
+    if(select.id==='amSort')return filterSortLabels[option.value]?.[language()]||option.textContent;
+    if(option.value==='all')return t('allTypes');
+    if(option.value==='archived')return ['Archived','已归档','သိမ်းဆည်းထားသော'][language()];
+    const key='type_'+option.value;
+    return labels[key]?t(key):option.textContent;
+  }
+  function installFilterStyles(){
+    if($('amV2FilterChoicesStyle'))return;
+    const style=el('style');style.id='amV2FilterChoicesStyle';
+    style.textContent=`
+      #accounts-page #amHome .am-v3-filter-menu select.am-v2-filter-native{display:none!important}
+      #accounts-page #amHome .am-v3-filter-menu{width:224px!important;max-width:calc(100vw - 32px);box-sizing:border-box;max-height:min(65vh,420px);overflow:auto;overscroll-behavior:contain}
+      #accounts-page #amHome .am-v2-filter-choice{min-width:0;width:100%;position:relative}
+      #accounts-page #amHome .am-v2-filter-choice>summary{list-style:none;cursor:pointer;display:flex!important;align-items:center;justify-content:space-between;gap:6px;min-height:38px;padding:8px 10px;box-sizing:border-box;border:1px solid var(--ac-line);border-radius:7px;background:var(--ac-card);color:var(--ac-text);font:500 12px/1.4 system-ui,sans-serif;white-space:normal;overflow-wrap:anywhere}
+      #accounts-page #amHome .am-v2-filter-choice>summary::-webkit-details-marker{display:none}
+      #accounts-page #amHome .am-v2-filter-choice>summary::after{content:'⌄';color:var(--ac-muted);flex:none}
+      #accounts-page #amHome .am-v2-filter-choice[open]>summary::after{content:'⌃'}
+      #accounts-page #amHome .am-v2-filter-choice:not([open])>.am-v2-filter-options{display:none!important}
+      #accounts-page #amHome .am-v2-filter-options{display:grid;gap:2px;padding:4px 0}
+      #accounts-page #amHome .am-v2-filter-options button{display:flex!important;align-items:center;justify-content:space-between;gap:8px;width:100%;min-height:36px;height:auto!important;padding:7px 9px!important;text-align:left;box-sizing:border-box;border:1px solid transparent!important;border-radius:6px;background:transparent!important;color:var(--ac-text)!important;box-shadow:none!important;font:400 12px/1.4 system-ui,sans-serif!important;white-space:normal;overflow-wrap:anywhere;cursor:pointer}
+      #accounts-page #amHome .am-v2-filter-options button[aria-pressed=true],#accounts-page #amHome .am-v2-filter-options button:hover{background:var(--ac-card)!important;border-color:var(--ac-line)!important}
+      #accounts-page #amHome .am-v2-filter-options button[aria-pressed=true]::after{content:'✓';color:var(--ac-text);flex:none}
+      #accounts-page #amHome .am-v2-filter-choice>summary:focus-visible,#accounts-page #amHome .am-v2-filter-options button:focus-visible{outline:1px solid var(--ac-muted)!important;outline-offset:-1px!important}
+    `;
+    document.head.append(style);
+  }
+  function buildFilterChoice(select,label,key,menu){
+    const disclosure=el('details','am-v2-filter-choice'),trigger=el('summary','am-v2-filter-current'),options=el('div','am-v2-filter-options');
+    disclosure.dataset.filterSelect=select.id;
+    trigger.id=select.id+'V2Trigger';label.htmlFor='';label.id=select.id+'V2Label';
+    trigger.setAttribute('aria-labelledby',label.id+' '+trigger.id);
+    options.setAttribute('role','group');options.setAttribute('aria-labelledby',label.id);
+    disclosure.append(trigger,options);
+    select.classList.add('am-v2-filter-native');select.hidden=true;select.tabIndex=-1;
+    disclosure.addEventListener('toggle',()=>{if(disclosure.open)for(const other of menu.querySelectorAll('.am-v2-filter-choice'))if(other!==disclosure)other.open=false});
+    disclosure.addEventListener('keydown',e=>{
+      if(e.key==='Escape'&&disclosure.open){e.stopPropagation();e.preventDefault();disclosure.open=false;trigger.focus()}
+    });
+    return disclosure;
+  }
+  function syncFilterChoices(){
+    if(!currentShell)return;
+    for(const disclosure of currentShell.querySelectorAll('.am-v2-filter-choice')){
+      const select=$(disclosure.dataset.filterSelect),trigger=disclosure.querySelector('summary'),list=disclosure.querySelector('.am-v2-filter-options');
+      if(!select||!trigger||!list)continue;
+      const options=[...select.options],active=options.find(o=>o.selected);
+      const label=active?filterOptionLabel(select,active):'';
+      if(trigger.textContent!==label)trigger.textContent=label;
+      const signature=JSON.stringify(options.map(o=>[o.value,filterOptionLabel(select,o),o.disabled,o.selected]));
+      if(list.dataset.signature===signature)continue;
+      list.dataset.signature=signature;
+      list.replaceChildren(...options.map(option=>{
+        const button=el('button','am-v2-filter-option',filterOptionLabel(select,option));button.type='button';
+        button.disabled=option.disabled;button.setAttribute('aria-pressed',String(option.selected));
+        button.addEventListener('click',()=>{
+          select.value=option.value;disclosure.open=false;trigger.focus();
+          select.dispatchEvent(new Event('change',{bubbles:true}));syncFilterChoices();
+        });
+        return button;
+      }));
+    }
+  }
   function build() {
     const shell = $('amShell'), home = $('amHome'), heading = document.querySelector('#' + ROOT + ' .ap-heading');
     if (!shell || !home || !heading || !$('amList') || !$('amAdd')) return false;
@@ -147,12 +212,12 @@
     const left=el('div','am-v2-balance-main'), right=el('div','am-v2-balance-controls');
     const top=summary.querySelector('.am-top'), net=$('amNet'), note=summary.querySelector('.am-help'), breakdownGrid=summary.querySelector('.am-summary-grid');
     const title=top.querySelector('span');title.classList.add('am-v2-total-label');title.textContent=t('total');
-    left.append(top,net,note);
+    const info=el('details','am-v3-balance-info');const infoTitle=el('summary','','ⓘ');infoTitle.setAttribute('aria-label','Balance and exchange rate information');info.append(infoTitle,note);top.append(info);left.append(top,net);
     const display=el('div','am-v2-display-row'), displayLabel=el('span','am-v2-display-label',t('display'));
     display.append(displayLabel,$('apCurrencyPickerV2'));
     const breakdown=el('details','am-v2-breakdown'), breakdownTitle=el('summary','am-v2-breakdown-label',t('breakdown'));
     breakdown.append(breakdownTitle,breakdownGrid);
-    right.append(display,stats,breakdown);
+    breakdown.hidden=true;right.append(display,stats,breakdown);
     summary.append(left,right);
     heading.hidden=true;
     const directory = el('div','am-directory-layout-v1');
@@ -162,7 +227,7 @@
     sidebar.append(el('h2','am-directory-sidebar-title-v1',t('currencies')));
     const menu = el('nav','am-directory-menu-v1');
     menu.setAttribute('aria-label',t('currencies'));
-    sidebar.append(menu,el('p','am-directory-note-v1',t('original')));
+    sidebar.append(menu);
     const main = el('section','am-directory-main-v1');
     main.setAttribute('aria-label',t('directory'));
     const head = el('div','am-directory-head-v1');
@@ -181,12 +246,20 @@
     searchToggle.onclick=()=>{const open=searchWrap.hidden;if(!open&&$('amSearch').value){$('amSearch').value='';$('amSearch').dispatchEvent(new Event('input',{bubbles:true}))}searchWrap.hidden=!open;searchToggle.setAttribute('aria-expanded',String(open));if(open)$('amSearch').focus();else searchToggle.focus()};
     const typeLabel=el('label','am-v2-type-label',t('type'));typeLabel.htmlFor='amFilter';
     const balanceLabel=el('label','am-v2-sort-label',t('balance'));balanceLabel.htmlFor='amSort';
-    toolbar.append(searchToggle,toggle,typeLabel,$('amFilter'),balanceLabel,$('amSort'),$('amAdd'));
+    const filters=el('details','am-v3-filters'),filterButton=el('summary','am-v3-filter-label','Filters'),filterMenu=el('div','am-v3-filter-menu');
+    installFilterStyles();
+    const typeSelect=$('amFilter'),sortSelect=$('amSort');
+    filterMenu.append(typeLabel,typeSelect,buildFilterChoice(typeSelect,typeLabel,'type',filterMenu),balanceLabel,sortSelect,buildFilterChoice(sortSelect,balanceLabel,'balance',filterMenu));filters.append(filterButton,filterMenu);
+    filters.addEventListener('toggle',()=>{if(!filters.open)for(const nested of filterMenu.querySelectorAll('.am-v2-filter-choice'))nested.open=false});
+    typeSelect.addEventListener('change',syncFilterChoices);sortSelect.addEventListener('change',syncFilterChoices);
+    document.addEventListener('pointerdown',e=>{if(filters.open&&!filters.contains(e.target))filters.open=false},{passive:true});
+    filters.addEventListener('keydown',e=>{if(e.key==='Escape'){filters.open=false;filterButton.focus()}});
+    toolbar.append(searchToggle,toggle,filters,$('apRowCurrencyPickerV2'),$('amAdd'));
     head.append(headText,toolbar);
     const columns = el('div','am-directory-columns-v1');
     [t('account'),t('type'),t('currency'),t('balance')].forEach(v => columns.append(el('span','',v)));
-    main.append(head,searchWrap,columns,count,list); find.remove();
-    directory.append(sidebar,main);
+    main.append(head,searchWrap,sidebar,columns,count,list); find.remove();
+    directory.append(main);
     home.append(directory);
     applyCurrencyPanelState();
     oldTop.classList.add('am-directory-original-top-v1');
@@ -213,9 +286,9 @@
       button.dataset.currency=codeValue;
       button.setAttribute('aria-pressed',String(currency===codeValue));
       button.setAttribute('aria-label',name+' ('+n+')');
-      button.append(el('span','am-directory-flag-v1',symbol));
+      if(codeValue!=='ALL')button.append(el('span','am-directory-flag-v1',symbol));
       const text=el('span','am-directory-currency-copy-v1');
-      text.append(el('strong','',name),el('small','',codeValue==='ALL'?t('choose'):displayName(codeValue)));
+      text.append(el('strong','',name));
       button.append(text,el('span','am-directory-currency-count-v1',n));
       button.addEventListener('click',() => setCurrency(codeValue));
       menu.append(button);
@@ -266,9 +339,12 @@
       else list.append(el('p','am-directory-empty-v1',t('noMatch')));
     } else if(empty) empty.remove();
     for(const [selector,key] of [['.am-v2-total-label','total'],['.am-v2-display-label','display'],['.am-v2-breakdown-label','breakdown'],['.am-v2-type-label','type'],['.am-v2-sort-label','balance']]){const n=currentShell.querySelector(selector);if(n)n.textContent=t(key)}
+    const fLabel=currentShell.querySelector('.am-v3-filter-label');if(fLabel)fLabel.textContent=language()===1?'筛选':language()===2?'စစ်ထုတ်ရန်':'Filters';
+    const infoTitle=currentShell.querySelector('.am-v3-balance-info>summary');if(infoTitle)infoTitle.setAttribute('aria-label',language()===1?'余额与汇率说明':language()===2?'လက်ကျန်နှင့် ငွေလဲနှုန်း အချက်အလက်':'Balance and exchange rate information');
     const searchBtn=currentShell.querySelector('.am-v2-search-toggle');if(searchBtn)searchBtn.setAttribute('aria-label',t('search'));
     const allOption=$('amFilter')?.querySelector('option[value="all"]');if(allOption)allOption.textContent=t('allTypes');
     for(const [value,key] of [['original','originalOrder'],['balance-desc','high'],['balance-asc','low']]){const opt=$('amSort')?.querySelector('option[value="'+value+'"]');if(opt)opt.textContent=t(key)}
+    syncFilterChoices();
     const subtitle=document.querySelector('#'+ROOT+' .am-directory-sidebar-title-v1');
     if(subtitle) subtitle.textContent=t('currencies');
     const title=document.querySelector('#'+ROOT+' .am-directory-title-v1');
