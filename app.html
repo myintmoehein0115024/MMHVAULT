@@ -11067,7 +11067,7 @@ html.mmh-desktop-compact-v11110 body.mmh-workspace-active #moreNavMenu.more-nav-
 </div>
 </div>
 <main class="wrap">
-<section class="page" id="accounts-page"><div class="ap-heading"><div><h1 class="mmh-hint-anchor-v195 mmh-context-title-v199" data-mmh-hint-source="next" tabindex="0">Accounts</h1><p class="mmh-context-desc-v199">Your cash accounts and investment portfolios</p></div><label>Display currency<select id="apCurrency" aria-label="Account display currency"><option value="NATIVE" selected>Original currency</option><option value="USD">$</option><option value="MMK">K</option><option value="THB">฿</option><option value="CNY">￥</option></select></label></div><div id="apBody"></div></section>
+<section class="page" id="accounts-page"><div class="ap-heading"><div><h1 class="mmh-hint-anchor-v195 mmh-context-title-v199" data-mmh-hint-source="next" tabindex="0">Accounts</h1><p class="mmh-context-desc-v199">Your cash accounts and investment portfolios</p></div><details id="apCurrencyPickerV2"><summary><svg aria-hidden="true" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h15m-4-4 4 4-4 4M20 17H5m4-4-4 4 4 4"/></svg><span id="apCurrencyCurrentV2">Original currency</span><span aria-hidden="true">⌄</span></summary><div class="ap-currency-choices-v2" role="group" aria-label="Display currency"><button type="button" data-ap-currency="NATIVE">Original currency</button><button type="button" data-ap-currency="USD">USD · $</button><button type="button" data-ap-currency="THB">THB · ฿</button><button type="button" data-ap-currency="MMK">MMK · K</button><button type="button" data-ap-currency="CNY">CNY · ￥</button></div><select hidden tabindex="-1" aria-hidden="true" id="apCurrency" aria-label="Account display currency"><option value="NATIVE" selected>Original currency</option><option value="USD">$</option><option value="MMK">K</option><option value="THB">฿</option><option value="CNY">￥</option></select></details></div><div id="apBody"></div></section>
 <section class="page" id="budget" aria-label="Budget">
   <div class="budget-shell-v110">
     <div class="budget-head-v110">
@@ -19888,7 +19888,7 @@ function myWorkspaceTextV2(base,el){
 }
 function translateAttributes(root){
   const applyAttrs=el=>{
-    if(!el?.getAttribute||el.closest?.('#mmhNotifyPopoverV560,.wv-choice-menu-v2,.mmh-notification-dialog-v149,#wvThemeToggle,.wv-flag-wrap,#dataLoadOverlayV384,#mmhP947AccountGuard'))return;
+    if(!el?.getAttribute||el.closest?.('#apCurrencyPickerV2,#mmhNotifyPopoverV560,.wv-choice-menu-v2,.mmh-notification-dialog-v149,#wvThemeToggle,.wv-flag-wrap,#dataLoadOverlayV384,#mmhP947AccountGuard'))return;
     ['placeholder','title','aria-label'].forEach(a=>{
       const v=el.getAttribute(a); if(!v)return;
       const key='i18n'+a.replace(/-([a-z])/g,(_,c)=>c.toUpperCase());
@@ -19971,7 +19971,7 @@ function translateTextNode(n){
   const current=n.nodeValue.trim();if(!current||!n.parentElement||n.parentElement.closest('script,style,textarea,[contenteditable="true"]'))return;
 
   const parent=n.parentElement;
-  if(parent.closest('#mmhNotifyPopoverV560,.wv-choice-menu-v2,.mmh-notification-dialog-v149,#dataLoadOverlayV384,#mmhBootWorkspaceTextV2,#welcomeScreen .welcome-title,#welcomeScreen .welcome-sub,#welcomeScreen .welcome-ready,#mmhP947AccountGuard'))return; // These surfaces own their translations and user content.
+  if(parent.closest('#apCurrencyPickerV2,#accounts-page .am-row[data-account-id] .am-row-copy b,#mmhNotifyPopoverV560,.wv-choice-menu-v2,.mmh-notification-dialog-v149,#dataLoadOverlayV384,#mmhBootWorkspaceTextV2,#welcomeScreen .welcome-title,#welcomeScreen .welcome-sub,#welcomeScreen .welcome-ready,#mmhP947AccountGuard'))return; // These surfaces own their translations and user content.
   // Never translate member-entered account/category names or machine-readable finance types in the new dashboard.
   if(parent.closest('#mmhPremiumDashboardV500 .pf-tx-copy-v500,#mmhPremiumDashboardV500 .pf-tag-v500,#mmhPremiumDashboardV500 .pf-name-v500,#mmhPremiumDashboardV500 .pf-asset-v500,#mmhPremiumDashboardV500 .pf-signal-card-v150[data-signal-action-v150="category"] b,#header .wvLiveClockV2'))return;
   let rec=mmhI18nTextStateV135.get(n);
@@ -28510,6 +28510,11 @@ function scheduleAccountsRenderV159(){
   accountsRenderRafV159=requestAnimationFrame(()=>{accountsRenderRafV159=0;if(!accountsActiveV159()){accountsRenderDirtyV159=true;return}accountsRenderDirtyV159=false;renderHome()});
 }
 window.mmhAccountsRefreshV1=renderHome;window.mmhAccountsHomeV1=home;mmhAccountDisplayRestoreV926();$('apCurrency').onchange=e=>{mmhAccountDisplaySaveV926(e.target.value);renderHome()};
+const picker=$('apCurrencyPickerV2'),pickerSelect=$('apCurrency');
+function syncCurrencyPickerV2(){const lang=localStorage.getItem('mmhvault_language_v3363')||'en',native=lang==='zh'?'原币显示':lang==='my'?'မူရင်းငွေကြေး':'Original currency',label=lang==='zh'?'显示币种':lang==='my'?'ပြသမည့် ငွေကြေး':'Display currency';$('apCurrencyCurrentV2').textContent=pickerSelect.value==='NATIVE'?native:pickerSelect.value;picker.querySelector('summary').setAttribute('aria-label',label+': '+$('apCurrencyCurrentV2').textContent);picker.querySelector('.ap-currency-choices-v2').setAttribute('aria-label',label);for(const btn of picker.querySelectorAll('[data-ap-currency]')){btn.setAttribute('aria-pressed',String(btn.dataset.apCurrency===pickerSelect.value));if(btn.dataset.apCurrency==='NATIVE')btn.textContent=native}}
+picker.addEventListener('click',e=>{const btn=e.target.closest('[data-ap-currency]');if(!btn)return;const value=btn.dataset.apCurrency;if(!mmhAccountDisplayCodesV926.has(value))return;if(pickerSelect.value!==value){pickerSelect.value=value;pickerSelect.dispatchEvent(new Event('change',{bubbles:true}))}picker.open=false;picker.querySelector('summary').focus({preventScroll:true})});
+pickerSelect.addEventListener('change',syncCurrencyPickerV2);window.addEventListener('mmhvault-language-change',syncCurrencyPickerV2);window.addEventListener('mmhvault:config-owner-changed',()=>{picker.open=false;queueMicrotask(syncCurrencyPickerV2)});window.addEventListener('mmhvault:page-visible',()=>{picker.open=false;syncCurrencyPickerV2()});document.addEventListener('pointerdown',e=>{if(picker.open&&!picker.contains(e.target))picker.open=false},{passive:true});picker.addEventListener('keydown',e=>{if(e.key==='Escape'){picker.open=false;picker.querySelector('summary').focus({preventScroll:true})}});syncCurrencyPickerV2();
+
 const original=window.mmhVaultRenderManager;window.mmhVaultRenderManager=function(){const r=original.apply(this,arguments);scheduleAccountsRenderV159();return r};const open=window.mmhOpenManagerV1;window.mmhOpenManagerV1=function(mode){if(mode!=='categories'){home();$('amFilter').value=selected;setPage('accounts-page');return}return open.apply(this,arguments)};renderHome();
 window.addEventListener('mmhvault:config-owner-changed',()=>{token++;busy=false;query='';sortMode='original';selected='all';conceal=false;mmhAccountDisplayRestoreV926();$('amSearch').value='';$('amSort').value='original';$('amFilter').value='all';home()});
 ['mmhvault:data-loaded','mmhvault:data-change','mmhvault:cache-restored','mmhvault:market-updated','mmhvault:sync-complete','mmhvault:account-reference-fx-updated'].forEach(event=>window.addEventListener(event,scheduleAccountsRenderV159));
@@ -36499,6 +36504,78 @@ html body #dataLoadOverlayV384#dataLoadOverlayV384 #mmhDataProgressV2::-webkit-p
 html body #dataLoadOverlayV384#dataLoadOverlayV384 #mmhDataProgressV2::-moz-progress-bar{background:var(--mmh-v2-load-accent);border-radius:4px}
 html body #dataLoadOverlayV384#dataLoadOverlayV384 #mmhDataProgressTextV2{min-width:34px;text-align:right;font-variant-numeric:tabular-nums}
 html body #welcomeScreen#welcomeScreen .welcome-line{display:none!important}
+</style>
+
+<style id="mmh-v2-accounts-workspace-20261125">
+html body:not(.light):not(#mmh-acct-a):not(#mmh-acct-b):has(#accounts-page#accounts-page.active){background:#19212e!important;background-image:none!important}
+html body.light:not(#mmh-acct-a):not(#mmh-acct-b):has(#accounts-page#accounts-page.active){background:#f2f5fa!important;background-image:none!important}
+html body:has(#accounts-page#accounts-page.active) main.wrap.wrap::before,html body:has(#accounts-page#accounts-page.active) main.wrap.wrap::after{background:none!important;box-shadow:none!important}
+html body #accounts-page#accounts-page#accounts-page#accounts-page{--ac-bg:#19212e;--ac-card:#1c2531;--ac-raised:#273242;--ac-line:#344052;--ac-text:#edf0f6;--ac-muted:#b1b8c5;--ac-accent:#9bb7fb;--ac-selected:#2b3850;--ac-positive:#4ad0ad;--ac-negative:#f18d98;max-width:none!important;width:100%!important;min-width:0!important;box-sizing:border-box!important;margin:0!important;color:var(--ac-text)!important;background:transparent!important;background-image:none!important;box-shadow:none!important}
+html body.light #accounts-page#accounts-page#accounts-page#accounts-page{--ac-bg:#f2f5fa;--ac-card:#fff;--ac-raised:#eef2f8;--ac-line:#d8dfe9;--ac-text:#202a3a;--ac-muted:#576477;--ac-accent:#365fae;--ac-selected:#e4ecfb;--ac-positive:#087b60;--ac-negative:#b73950}
+html body #accounts-page#accounts-page#accounts-page#accounts-page .ap-heading{display:flex!important;flex-direction:row!important;align-items:flex-start!important;justify-content:space-between!important;gap:12px!important;margin:0 0 14px!important;padding:0 0 12px!important;border:0!important;background:none!important;box-shadow:none!important;position:relative!important;overflow:visible!important;min-height:0!important;isolation:isolate!important;backdrop-filter:none!important;-webkit-backdrop-filter:none!important}
+html body #accounts-page#accounts-page#accounts-page#accounts-page .ap-heading:has(#apCurrencyPickerV2[open]){z-index:20!important}
+html body #accounts-page#accounts-page#accounts-page#accounts-page .ap-heading::before{content:none!important}
+html body #accounts-page#accounts-page#accounts-page#accounts-page #apCurrencyPickerV2{z-index:2}
+html body #accounts-page#accounts-page#accounts-page#accounts-page .ap-heading>div{flex:1;min-width:0}
+html body #accounts-page#accounts-page#accounts-page#accounts-page .ap-heading h1{font:650 clamp(22px,2vw,28px)/1.3 system-ui,sans-serif!important;letter-spacing:-.02em!important;color:var(--ac-text)!important;text-shadow:none!important}
+html body #accounts-page#accounts-page#accounts-page#accounts-page .ap-heading p{font-size:12px!important;line-height:1.5!important;color:var(--ac-muted)!important;margin:4px 0 0!important}
+html body #accounts-page#accounts-page#accounts-page#accounts-page #apBody,html body #accounts-page#accounts-page#accounts-page#accounts-page .am-shell{padding:0!important;border:0!important;border-radius:0!important;background:transparent!important;background-image:none!important;box-shadow:none!important;color:var(--ac-text)!important;max-width:none!important;min-width:0!important}
+html body #accounts-page#accounts-page#accounts-page#accounts-page #amHome>.am-top{margin:0 0 12px!important;gap:8px!important;display:flex!important;justify-content:space-between!important}
+html body #accounts-page#accounts-page#accounts-page#accounts-page #amHome>.am-top #amFilter{width:min(220px,55%)!important}
+html body #accounts-page#accounts-page#accounts-page#accounts-page :is(.am-top button,.am-top select,.am-find input,.am-find select,.am-fields input:not([type=checkbox]):not([type=color]):not([type=file]),.am-fields select,.am-logo-row button,.am-actions .btn){background:var(--ac-card)!important;background-image:none!important;color:var(--ac-text)!important;border:1px solid var(--ac-line)!important;border-radius:8px!important;box-shadow:none!important;min-height:40px!important;font-size:13px!important;min-width:0!important}
+html body #accounts-page#accounts-page#accounts-page#accounts-page #amAdd,html body #accounts-page#accounts-page#accounts-page#accounts-page .am-actions .btn.primary{background:var(--ac-selected)!important;color:var(--ac-accent)!important;border:1px solid var(--ac-line)!important;font-weight:650!important;white-space:normal!important}
+html body #accounts-page#accounts-page#accounts-page#accounts-page .am-summary{background:var(--ac-card)!important;background-image:none!important;border:1px solid var(--ac-line)!important;border-radius:12px!important;box-shadow:none!important;padding:16px!important;gap:9px 20px!important;grid-template-columns:minmax(0,1fr) minmax(0,1.4fr)!important;color:var(--ac-text)!important;margin:0 0 14px!important}
+html body #accounts-page#accounts-page#accounts-page#accounts-page .am-summary>.am-top{grid-column:1/-1!important;margin:0!important}
+html body #accounts-page#accounts-page#accounts-page#accounts-page .am-summary>.am-top>span,html body #accounts-page#accounts-page#accounts-page#accounts-page .am-summary-grid small{color:var(--ac-muted)!important;font-size:12px!important;font-weight:500!important}
+html body #accounts-page#accounts-page#accounts-page#accounts-page #amNet{color:var(--ac-text)!important;font-size:clamp(25px,3vw,34px)!important;line-height:1.35!important;font-weight:700!important;overflow-wrap:anywhere!important}
+html body #accounts-page#accounts-page#accounts-page#accounts-page #amHideAll{background:var(--ac-raised)!important;border:1px solid var(--ac-line)!important;color:var(--ac-muted)!important;min-height:34px!important;padding:6px 10px!important;font-size:11px!important}
+html body #accounts-page#accounts-page#accounts-page#accounts-page .am-summary-grid{gap:8px!important}
+html body #accounts-page#accounts-page#accounts-page#accounts-page .am-summary-grid>div{background:var(--ac-raised)!important;background-image:none!important;border:1px solid var(--ac-line)!important;border-radius:8px!important;padding:10px 12px!important;min-width:0!important}
+html body #accounts-page#accounts-page#accounts-page#accounts-page .am-summary-grid b{font-size:clamp(15px,1.6vw,21px)!important;font-weight:650!important;overflow-wrap:anywhere!important}
+html body #accounts-page#accounts-page#accounts-page#accounts-page #amAssets{color:var(--ac-positive)!important}
+html body #accounts-page#accounts-page#accounts-page#accounts-page #amDebts{color:var(--ac-negative)!important}
+html body #accounts-page#accounts-page#accounts-page#accounts-page :is(.am-help,.am-count,.am-row-copy small,.am-fields label,.am-types h3){color:var(--ac-muted)!important;font-size:12px!important;line-height:1.5!important}
+html body #accounts-page#accounts-page#accounts-page#accounts-page .am-summary>.am-help{font-size:11px!important}
+html body #accounts-page#accounts-page#accounts-page#accounts-page .am-help a{color:var(--ac-accent)!important}
+html body #accounts-page#accounts-page#accounts-page#accounts-page .am-find{margin:0!important;gap:8px!important;grid-template-columns:minmax(0,1fr) minmax(125px,180px)!important}
+html body #accounts-page#accounts-page#accounts-page#accounts-page .am-find input::placeholder{color:var(--ac-muted)!important}
+html body #accounts-page#accounts-page#accounts-page#accounts-page #amClearSearch{color:var(--ac-muted)!important;top:0!important;height:40px!important}
+html body #accounts-page#accounts-page#accounts-page#accounts-page .am-count{margin:9px 0!important;font-size:11px!important}
+html body #accounts-page#accounts-page#accounts-page#accounts-page :is(.am-list,.am-fields,.am-picker){background:var(--ac-card)!important;background-image:none!important;border:1px solid var(--ac-line)!important;border-radius:10px!important;box-shadow:none!important;color:var(--ac-text)!important}
+html body #accounts-page#accounts-page#accounts-page#accounts-page :is(.am-list,.am-types) .am-row{background:transparent!important;background-image:none!important;border:0!important;border-bottom:1px solid var(--ac-line)!important;border-radius:0!important;box-shadow:none!important;min-height:60px!important;padding:10px 14px!important;gap:12px!important;color:var(--ac-text)!important}
+html body #accounts-page#accounts-page#accounts-page#accounts-page :is(.am-list,.am-types) .am-row:last-child{border-bottom:0!important}
+html body #accounts-page#accounts-page#accounts-page#accounts-page :is(.am-list,.am-types) .am-row:hover{background:var(--ac-raised)!important}
+html body #accounts-page#accounts-page#accounts-page#accounts-page .am-row .am-logo{width:36px!important;height:36px!important;border-radius:8px!important;flex:none!important;background:var(--ac-raised)!important;box-shadow:none!important}
+html body #accounts-page#accounts-page#accounts-page#accounts-page .am-row-copy b{color:var(--ac-text)!important;font-size:14px!important;line-height:1.4!important}
+html body #accounts-page#accounts-page#accounts-page#accounts-page .am-row-copy small{font-size:11px!important}
+html body #accounts-page#accounts-page#accounts-page#accounts-page .am-row-value{color:var(--ac-text)!important;font-size:15px!important;max-width:48%!important;font-weight:650!important;font-variant-numeric:tabular-nums!important;overflow-wrap:anywhere!important}
+html body #accounts-page#accounts-page#accounts-page#accounts-page .am-fields .am-upload{background:var(--ac-raised)!important;background-image:none!important;border-color:var(--ac-line)!important;color:var(--ac-text)!important}
+html body #accounts-page#accounts-page#accounts-page#accounts-page .am-upload-copy small{color:var(--ac-muted)!important}
+html body #accounts-page#accounts-page#accounts-page#accounts-page .am-icons button,html body #accounts-page#accounts-page#accounts-page#accounts-page .am-upload-symbol{background:var(--ac-raised)!important;border-color:var(--ac-line)!important;color:var(--ac-text)!important}
+html body #accounts-page#accounts-page#accounts-page#accounts-page .am-icons button[aria-pressed=true]{background:var(--ac-selected)!important;border-color:var(--ac-accent)!important}
+html body #accounts-page#accounts-page#accounts-page#accounts-page :is(button,select,input,summary):focus-visible{outline:2px solid var(--ac-accent)!important;outline-offset:2px!important}
+html body #accounts-page#accounts-page#accounts-page#accounts-page #apCurrencyPickerV2{flex:0 1 auto;max-width:55%;min-width:0;position:relative;color:var(--ac-text)}
+html body #accounts-page#accounts-page#accounts-page#accounts-page #apCurrencyPickerV2 summary{display:flex;align-items:center;gap:6px;min-height:36px;padding:7px 10px;border:1px solid var(--ac-line);border-radius:8px;background:var(--ac-card);font-size:11px;cursor:pointer;list-style:none}
+html body #accounts-page#accounts-page#accounts-page#accounts-page #apCurrencyPickerV2 summary::-webkit-details-marker{display:none}
+html body #accounts-page#accounts-page#accounts-page#accounts-page #apCurrencyPickerV2 summary svg{flex:none}
+html body #accounts-page#accounts-page#accounts-page#accounts-page #apCurrencyCurrentV2{min-width:0;overflow-wrap:anywhere}
+html body #accounts-page#accounts-page#accounts-page#accounts-page #apCurrencyPickerV2 #apCurrency{display:none!important}
+html body #accounts-page#accounts-page#accounts-page#accounts-page .ap-currency-choices-v2{position:absolute;top:calc(100% + 5px);right:0;z-index:12;width:min(188px,calc(100vw - 24px));padding:5px;background:var(--ac-card);border:1px solid var(--ac-line);border-radius:9px;box-shadow:0 8px 25px #0003}
+html body #accounts-page#accounts-page#accounts-page#accounts-page #apCurrencyPickerV2:not([open]) .ap-currency-choices-v2{display:none}
+html body #accounts-page#accounts-page#accounts-page#accounts-page .ap-currency-choices-v2 button{display:block;width:100%;text-align:left;border:0;border-radius:6px;background:transparent;color:var(--ac-text);padding:8px 10px;min-height:38px;font:inherit;font-size:12px;white-space:normal;cursor:pointer}
+html body #accounts-page#accounts-page#accounts-page#accounts-page .ap-currency-choices-v2 button[aria-pressed=true],html body #accounts-page#accounts-page#accounts-page#accounts-page .ap-currency-choices-v2 button:hover{background:var(--ac-selected);color:var(--ac-accent)}
+@media(max-width:680px){
+html body #accounts-page#accounts-page#accounts-page#accounts-page .am-summary{grid-template-columns:minmax(0,1fr)!important;padding:12px!important;gap:10px!important}
+html body #accounts-page#accounts-page#accounts-page#accounts-page #amNet{font-size:28px!important}
+html body #accounts-page#accounts-page#accounts-page#accounts-page .am-summary-grid>div{padding:9px!important}
+html body #accounts-page#accounts-page#accounts-page#accounts-page .am-find{grid-template-columns:minmax(0,1fr) minmax(105px,36%)!important}
+html body #accounts-page#accounts-page#accounts-page#accounts-page .am-list .am-row{min-height:58px!important;padding:9px 10px!important;gap:8px!important}
+html body #accounts-page#accounts-page#accounts-page#accounts-page .am-row-value{font-size:13px!important;max-width:48%!important}
+html body #accounts-page#accounts-page#accounts-page#accounts-page .am-row-copy b{font-size:13px!important}
+html body #accounts-page#accounts-page#accounts-page#accounts-page .am-row .am-logo{width:32px!important;height:32px!important}
+html body #accounts-page#accounts-page#accounts-page#accounts-page #amAdd{min-height:42px!important}
+html body #accounts-page#accounts-page#accounts-page#accounts-page #apCurrencyPickerV2{max-width:48%}
+}
 </style>
 </body>
 </html>
