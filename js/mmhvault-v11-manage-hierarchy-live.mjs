@@ -809,8 +809,17 @@ function fitRecentEntry(){
   const mobile=window.matchMedia('(max-width:767px)').matches;
   const nav=mobile?$('bottomNav'):null;
   const bottom=nav?Math.min(window.innerHeight,nav.getBoundingClientRect().top):window.innerHeight;
-  const available=Math.max(108,Math.floor(bottom-list.getBoundingClientRect().top-16));
-  list.style.maxHeight=available+'px';
+  const header=$('header');
+  const top=Math.max(0,header?.getBoundingClientRect().bottom||0);
+  const section=$('transactions');
+  // Use section-relative geometry so scrolling the document cannot shrink or
+  // expand the list. Reserve the actual panel's bottom padding.
+  const panel=$('txAddPanel')?.querySelector('.panel');
+  const padding=panel?parseFloat(getComputedStyle(panel).paddingBottom)||0:0;
+  const used=list.getBoundingClientRect().top-section.getBoundingClientRect().top;
+  const available=Math.max(108,Math.floor(bottom-top-used-padding));
+  list.style.height=available+'px';
+  list.style.maxHeight='none';
 }
 function renderRecentEntry(){
   const f=$('txForm');if(!f)return;
@@ -824,7 +833,7 @@ function renderRecentEntry(){
     if(typeof ResizeObserver==='function')new ResizeObserver(fitRecentEntry).observe(f);
     window.addEventListener('resize',fitRecentEntry);
   }
-  section.querySelector('strong').textContent=tr('Recently added','最近添加','မကြာသေးမီက ထည့်ထားသော မှတ်တမ်းများ');
+  section.querySelector('strong').textContent=tr('Recent Transactions','最近交易记录','လတ်တလော ငွေစာရင်းများ');
   const list=section.querySelector('.mmh-recent-list');
   list.replaceChildren();
   fitRecentEntry();
@@ -833,7 +842,7 @@ function renderRecentEntry(){
     list.append(elt('div','mmh-recent-empty',tr('Loading recent records…','正在加载最近记录…','နောက်ဆုံးမှတ်တမ်းများ ဖတ်နေပါသည်…')));return;
   }
   const recent=rows.filter(t=>['Income','Expense','Transfer'].includes(t.type)&&!(typeof isLinkedInvestmentTx==='function'&&isLinkedInvestmentTx(t)))
-    .slice().sort((a,b)=>String(b.created_at||'').localeCompare(String(a.created_at||''))||String(b.id||'').localeCompare(String(a.id||''),undefined,{numeric:true})).slice(0,8);
+    .slice().sort((a,b)=>String(b.created_at||'').localeCompare(String(a.created_at||''))||String(b.id||'').localeCompare(String(a.id||''),undefined,{numeric:true})).slice(0,30);
   if(!recent.length){list.append(elt('div','mmh-recent-empty',tr('No transactions yet','暂无交易记录','ငွေစာရင်း မရှိသေးပါ')));return;}
   const amount=(value,account)=>{
     if(value==null||value===''||!Number.isFinite(Number(value)))return '—';
@@ -847,7 +856,8 @@ function renderRecentEntry(){
     const glyph=elt('span','mmh-recent-icon',income?'↙':expense?'↗':'⇄');glyph.setAttribute('aria-hidden','true');
     const primary=elt('div','mmh-recent-primary',String(t.category||t.type));
     const account=income?t.to_account:expense?t.from_account:[t.from_account,t.to_account].filter(Boolean).join(' → ');
-    const secondary=elt('div','mmh-recent-secondary',[account,t.tx_date].filter(Boolean).join(' · '));
+    const secondary=elt('div','mmh-recent-secondary');
+    secondary.append(elt('span','mmh-recent-account',account||'—'),elt('span','mmh-recent-date',String(t.tx_date||'—')));
     const total=elt('div','mmh-recent-amount',income?'+'+amount(t.to_amount,t.to_account):expense?'−'+amount(t.from_amount,t.from_account):amount(t.from_amount,t.from_account)+' → '+amount(t.to_amount,t.to_account));
     row.append(glyph,primary,secondary,total);list.append(row);
   }
@@ -1025,6 +1035,11 @@ function boot(){
       html body.mmh-workspace-active:has(#transactions#transactions#transactions.active #txTabAdd.active) :is(.mmh-p24-account-menu,.mmh-p25-picker-menu)>button{color:var(--tx-menu-text)!important}
       html body.mmh-workspace-active:has(#transactions#transactions#transactions.active #txTabAdd.active) :is(.mmh-p24-account-menu,.mmh-p25-picker-menu)>button:is([aria-selected=true],:hover,:focus-visible){background:var(--tx-menu-selected)!important;color:var(--tx-menu-accent)!important}
       /* Compact entry controls; recent records occupy the available canvas. */
+      html body.mmh-workspace-active:has(#transactions#transactions#transactions#transactions.active #txTabAdd.active){background:var(--tx-entry-surface)!important;background-image:none!important}
+      html body.mmh-workspace-active:has(#transactions#transactions#transactions#transactions.active #txTabAdd.active) main.wrap.wrap.wrap{background:var(--tx-entry-surface)!important;background-image:none!important;min-height:100dvh!important;padding-bottom:0!important}
+      @media(min-width:768px){
+        html body.mmh-workspace-active:has(#transactions#transactions#transactions#transactions.active #txTabAdd.active){padding-bottom:0!important}
+      }
       ${root}#transactions#transactions.active:has(#txTabAdd.active){display:flex!important;flex-direction:column!important;min-height:var(--tx-entry-height)!important;height:auto!important;max-height:none!important;overflow:visible!important;background:var(--tv-card)!important}
       ${root}#transactions#transactions:has(#txTabAdd.active) #txAddPanel{display:flex!important;flex-direction:column!important;flex:1 1 auto!important;min-height:0!important;width:100%!important}
       ${root}#transactions#transactions:has(#txTabAdd.active) #txAddPanel>.panel{display:flex!important;flex-direction:column!important;flex:1 1 auto!important;min-height:0!important;max-height:none!important;padding:clamp(14px,1.6vw,24px)!important}
@@ -1033,17 +1048,20 @@ function boot(){
       ${form} .formgrid :is(#txDate,#fromAmount,#toAmount,#txNote,button.mmh-p24-account-trigger,button.mmh-p25-picker-trigger,select:not(.mmh-p24-native):not(.mmh-p25-picker-source)){width:100%!important;height:46px!important;min-height:46px!important;max-height:46px!important;flex:none!important;font-size:14px!important}
       ${form} #receiptDropzoneV3300{min-height:54px!important}
       ${form} .actions{margin-top:12px!important}
-      ${root} #mmhRecentEntryV2{display:flex!important;flex-direction:column;min-width:0;flex:1 1 auto;margin-top:20px;padding-top:12px;border-top:1px solid var(--tv-line);color:var(--tv-text)}
+      ${root} #mmhRecentEntryV2{display:flex!important;flex-direction:column;min-width:0;flex:1 1 auto;margin-top:32px!important;padding-top:16px!important;border-top:1px solid var(--tv-line);color:var(--tv-text)}
       ${root} #mmhRecentEntryV2 .mmh-recent-heading{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:0 0 8px}
       ${root} #mmhRecentEntryV2 .mmh-recent-heading strong{font-size:14px;font-weight:650}
-      ${root} #mmhRecentEntryV2 .mmh-recent-list{min-height:0;overflow:auto;max-height:clamp(120px,32vh,420px);overscroll-behavior:contain}
-      ${root} #mmhRecentEntryV2 .mmh-recent-row{display:grid;grid-template-columns:28px minmax(0,1fr) minmax(0,1fr) auto;align-items:center;gap:10px;padding:9px 4px;border-bottom:1px solid var(--tv-line);min-width:0}
+      ${root} #mmhRecentEntryV2 .mmh-recent-list{min-height:108px;overflow:auto;max-height:none;overscroll-behavior:contain;scrollbar-gutter:stable;flex:1 1 auto}
+      ${root} #mmhRecentEntryV2 .mmh-recent-row{display:grid;grid-template-columns:30px minmax(0,1.1fr) minmax(0,1.25fr) minmax(100px,.55fr) minmax(0,1fr);align-items:center;gap:12px;padding:9px 8px;border-bottom:1px solid var(--tv-line);min-width:0;min-height:46px;box-sizing:border-box}
       ${root} #mmhRecentEntryV2 .mmh-recent-row:last-child{border-bottom:0}
       ${root} #mmhRecentEntryV2 .mmh-recent-icon{display:grid;place-items:center;width:28px;height:28px;background:var(--tv-raised);border-radius:6px;font-size:16px;color:var(--tv-accent)}
       ${root} #mmhRecentEntryV2 .mmh-recent-row[data-direction=Income] :is(.mmh-recent-icon,.mmh-recent-amount){color:var(--tv-positive)}
       ${root} #mmhRecentEntryV2 .mmh-recent-row[data-direction=Expense] :is(.mmh-recent-icon,.mmh-recent-amount){color:var(--tv-negative)}
       ${root} #mmhRecentEntryV2 .mmh-recent-primary{font-size:13px;font-weight:600;overflow-wrap:anywhere;min-width:0}
-      ${root} #mmhRecentEntryV2 .mmh-recent-secondary{font-size:12px;color:var(--tv-muted);overflow-wrap:anywhere;min-width:0}
+      ${root} #mmhRecentEntryV2 .mmh-recent-secondary{display:contents;font-size:12px;color:var(--tv-muted);overflow-wrap:anywhere;min-width:0}
+      ${root} #mmhRecentEntryV2 .mmh-recent-account{grid-column:3;min-width:0;overflow-wrap:anywhere;text-align:left}
+      ${root} #mmhRecentEntryV2 .mmh-recent-date{grid-column:4;font-variant-numeric:tabular-nums;white-space:nowrap;text-align:left}
+      ${root} #mmhRecentEntryV2 .mmh-recent-amount{grid-column:5}
       ${root} #mmhRecentEntryV2 .mmh-recent-amount{text-align:right;font-size:13px;font-weight:650;font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
       ${root} #mmhRecentEntryV2 .mmh-recent-empty{padding:12px 0;font-size:12px;color:var(--tv-muted)}
       @media(max-width:767px){
@@ -1054,10 +1072,12 @@ function boot(){
         ${form} .formgrid :is(#txDate,#fromAmount,#toAmount,#txNote,button.mmh-p24-account-trigger,button.mmh-p25-picker-trigger,select:not(.mmh-p24-native):not(.mmh-p25-picker-source)){font-size:16px!important}
         ${form} .actions{display:grid!important;grid-template-columns:2fr 3fr!important;gap:8px!important}
         ${form} .actions>button{min-height:44px!important;width:100%!important}
-        ${root} #mmhRecentEntryV2{margin-top:14px;padding-top:10px}
-        ${root} #mmhRecentEntryV2 .mmh-recent-list{max-height:180px;overflow:auto}
-        ${root} #mmhRecentEntryV2 .mmh-recent-row{grid-template-columns:26px minmax(0,1fr) minmax(0,auto);gap:8px;padding:8px 0}
-        ${root} #mmhRecentEntryV2 .mmh-recent-secondary{grid-column:2;grid-row:2}
+        ${root} #mmhRecentEntryV2{margin-top:24px!important;padding-top:12px!important}
+        ${root} #mmhRecentEntryV2 .mmh-recent-list{max-height:none;overflow:auto}
+        ${root} #mmhRecentEntryV2 .mmh-recent-row{grid-template-columns:28px minmax(0,1fr) minmax(0,40%);column-gap:8px;row-gap:3px;padding:9px 2px}
+        ${root} #mmhRecentEntryV2 .mmh-recent-secondary{display:flex;flex-wrap:wrap;gap:2px 6px;grid-column:2;grid-row:2;align-items:center}
+        ${root} #mmhRecentEntryV2 .mmh-recent-account{min-width:0}
+        ${root} #mmhRecentEntryV2 .mmh-recent-date{font-size:11px}
         ${root} #mmhRecentEntryV2 .mmh-recent-amount{grid-column:3;grid-row:1/3;max-width:42vw}
         ${root} #mmhRecentEntryV2 .mmh-recent-icon{grid-row:1/3}
       }
@@ -1175,7 +1195,7 @@ function boot(){
     window.addEventListener(event,renderRecentEntry);
   schedule();
 }
-window.MMHV11HierarchyLive={version:'0.10-recent-entry',refresh:schedule,onLedgerInserted:ledgerInserted};
+window.MMHV11HierarchyLive={version:'0.10.1-recent-alignment',refresh:schedule,onLedgerInserted:ledgerInserted};
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot,{once:true});
 else boot();
 })();
