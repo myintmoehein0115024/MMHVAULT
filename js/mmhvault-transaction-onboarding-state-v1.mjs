@@ -45,7 +45,8 @@ export function markSaved(raw){
 export function isAutoEligible({saved,historyLoaded,hasHistory,hasAccounts,hasConfigured,hasLegacy}={}){
   if(!historyLoaded)return false;
   const state=normalizeState(saved);
-  if(state)return state.status==='paused'||state.status==='active';
+  // A recorded state means the member has already been offered the guide.
+  if(state)return false;
   // Conservative legacy guard: existing finances/settings belong to established members.
   return !hasHistory&&!hasAccounts&&!hasConfigured&&!hasLegacy;
 }

@@ -35846,7 +35846,7 @@ html body #settings.page.active #stPage_security #mmhA783SecurityCenter .mmh-a78
      The original V11 script remains in Git history for rollback; no DB migration. -->
 <script type="module" src="js/mmhvault-v11-manage-hierarchy-live.mjs?v=0.16.2"></script>
 <link rel="stylesheet" href="css/mmhvault-transaction-onboarding-v1.css?v=2.1.0">
-<script type="module" src="js/mmhvault-transaction-onboarding-live-v1.mjs?v=2.1.0"></script>
+<script type="module" src="js/mmhvault-transaction-onboarding-live-v1.mjs?v=2.2.0"></script>
 
 <!-- Accounts Premium Directory V1: presentation-only, late cascade, isolated from finance/auth. -->
 <link rel="stylesheet" href="css/mmhvault-accounts-directory-v1.css?v=1.0.1" data-mmh-accounts-directory="v1">
@@ -37936,6 +37936,33 @@ html body #mmhCategoryPickerV2.mmh-hier-picker-v3 .mmh-cat-options-v2 button{fle
 html body #mmhCategoryPickerV2.mmh-hier-picker-v3 .mmh-cat-options-v2 button:focus-visible{border-color:var(--uv-accent)!important}
 @media(max-width:767px){html body #mmhContactLauncherV2{bottom:calc(78px + env(safe-area-inset-bottom))!important;right:12px!important;width:44px!important;height:44px!important;min-height:44px!important}#mmhContactLayerV2 .mc-drawer{width:100%;border:0}#mmhContactLayerV2 .mc-head{padding-top:max(12px,env(safe-area-inset-top))}}
 @media(prefers-reduced-motion:reduce){#mmhContactLayerV2,#mmhContactLayerV2 .mc-drawer,#mmhContactLayerV2 .mc-scrim{transition:none!important}}
+
+/* V2 conversation workspace: keep actual service DOM and handlers, not a preview. */
+#mmhContactLayerV2 .mc-drawer{width:min(620px,100%);background:var(--uv-card)}
+#mmhContactLayerV2 .mc-head{padding:14px 16px;min-height:64px}
+#mmhContactLayerV2 .mc-heading small{margin-top:3px;font-size:12px}
+#mmhContactLayerV2 .mc-body.mc-ai{padding:0;overflow:hidden}
+#mmhContactLayerV2 .mc-ai>.mc-link{align-self:flex-end;margin:6px 14px 4px;font-size:11px;background:transparent;border:0;padding:3px}
+#mmhContactLayerV2 .mc-body:has(.cs-panel-v1518){display:flex;flex-direction:column;overflow:hidden;padding:0;gap:0}
+#mmhContactLayerV2 .mc-body:has(.cs-panel-v1518)>.mc-link{flex:none;align-self:flex-end;margin:8px 14px}
+#mmhContactLayerV2 #stPage_supportV1518{flex:1;min-height:0;display:flex!important;flex-direction:column}
+#mmhContactLayerV2 #stPage_supportV1518 .cs-panel-v1518{flex:1;min-height:0;display:flex!important;flex-direction:column;border:0!important;border-radius:0!important;margin:0!important;padding:0!important;background:var(--uv-card)!important;overflow:hidden}
+#mmhContactLayerV2 .cs-head-v1518{flex:none;padding:10px 16px;border-bottom:1px solid var(--uv-line);background:transparent!important}
+#mmhContactLayerV2 .cs-agent-copy-v1518 strong,#mmhContactLayerV2 .cs-agent-copy-v1518 small{display:block;line-height:1.5}
+#mmhContactLayerV2 .cs-thread-v1518{flex:1 1 0;min-height:0;max-height:none;overflow-y:auto;padding:14px 16px;gap:12px}
+#mmhContactLayerV2 .cs-row-v1518{display:flex;flex-direction:column;gap:5px}
+#mmhContactLayerV2 .cs-bubble-v1518{font-size:13px;line-height:1.55;box-shadow:none!important}
+#mmhContactLayerV2 .cs-row-v1518.system .cs-bubble-v1518{background:transparent;border:0;padding:4px 0;color:var(--uv-muted)}
+#mmhContactLayerV2 .cs-compose-v1518{flex:0 0 auto;max-height:60%;overflow-y:auto;padding:10px 14px max(12px,env(safe-area-inset-bottom));background:var(--uv-card)!important}
+#mmhContactLayerV2 .cs-compose-meta-v1518{margin-bottom:7px}
+#mmhContactLayerV2 textarea{display:block;min-height:64px;max-height:120px;resize:vertical}
+#mmhContactLayerV2 :is(textarea,input,select):focus{outline:1px solid var(--uv-accent)!important;outline-offset:0!important;border-color:var(--uv-accent)!important;box-shadow:none!important}
+#mmhContactLayerV2 .cs-compose-bottom-v1518{justify-content:space-between}
+#mmhContactLayerV2 .cs-send-v1518{background:var(--uv-accent)!important;color:var(--uv-card)!important;border-color:var(--uv-accent)!important;min-width:70px}
+#mmhContactLayerV2 .cs-emoji-v1518:not([hidden]){display:flex;flex-wrap:wrap;gap:4px;padding:5px}
+#mmhContactLayerV2 .cs-emoji-v1518 button{min-width:32px;min-height:32px}
+@media(max-width:767px){#mmhContactLayerV2 .mc-drawer{width:100%}#mmhContactLayerV2 .mc-head{min-height:54px;padding-top:max(10px,env(safe-area-inset-top))}}
+
 </style>
 <script id="mmhContactCenterV2Logic">
 (()=>{
@@ -37949,15 +37976,15 @@ const scrim=make('div','mc-scrim'),drawer=make('aside','mc-drawer'),head=make('d
 drawer.setAttribute('role','dialog');drawer.setAttribute('aria-modal','true');drawer.setAttribute('aria-labelledby','mmhContactTitleV2');
 const back=make('button','mc-icon','‹'),x=make('button','mc-icon','×');back.type=x.type='button';const title=make('strong');title.id='mmhContactTitleV2';const sub=make('small');heading.append(title,sub);head.append(back,heading,x);drawer.append(head,body);layer.append(scrim,drawer);document.body.append(launcher,layer);
 let mode='home',mounted=null,previousFocus=null,settingsSnapshot=null,originalSupport=null,originalFeedback=null,frame=null;
-function labels(){launcher.title=t('Contact MMHVAULT','联系 MMHVAULT','MMHVAULT ကို ဆက်သွယ်ရန်');launcher.setAttribute('aria-label',launcher.title);x.setAttribute('aria-label',t('Close','关闭','ပိတ်ရန်'));back.setAttribute('aria-label',t('Back','返回','နောက်သို့'));back.hidden=mode==='home';title.textContent=mode==='ai'?t('AI Assistant','AI 助手','AI အကူအညီ'):mode==='support'?t('Customer Support','人工客服','ဖောက်သည် ဝန်ဆောင်မှု'):mode==='feedback'?t('Feedback & replies','反馈与回复','အကြံပြုချက်များ'):launcher.title;sub.textContent=mode==='home'?t('Choose AI assistance or customer support.','选择 AI 助手或人工客服。','AI အကူအညီ သို့မဟုတ် ဖောက်သည်ဝန်ဆောင်မှုကို ရွေးပါ။'):''}
+function labels(){launcher.title=t('Contact MMHVAULT','联系 MMHVAULT','MMHVAULT ကို ဆက်သွယ်ရန်');launcher.setAttribute('aria-label',launcher.title);x.setAttribute('aria-label',t('Close','关闭','ပိတ်ရန်'));back.setAttribute('aria-label',t('Back','返回','နောက်သို့'));back.hidden=mode==='home';title.textContent=mode==='ai'?t('AI Assistant','AI 助手','AI အကူအညီ'):mode==='support'?t('Customer Support','人工客服','ဖောက်သည် ဝန်ဆောင်မှု'):mode==='feedback'?t('Feedback & replies','反馈与回复','အကြံပြုချက်များ'):launcher.title;sub.textContent=mode==='home'?t('Choose AI assistance or customer support.','选择 AI 助手或人工客服。','AI အကူအညီ သို့မဟုတ် ဖောက်သည်ဝန်ဆောင်မှုကို ရွေးပါ။'):mode==='ai'?t('Private local financial assistant','私人本地财务助手','ကိုယ်ပိုင် ငွေကြေး AI အကူအညီ'):mode==='support'?t('Member message support','会员消息客服','အဖွဲ့ဝင် စာတိုဝန်ဆောင်မှု'):''}
 function signedIn(){try{return !!currentSessionUser?.id}catch(_){return false}}
 function release(){if(mounted){const {page,parent,next,backId}=mounted;mounted=null;$(backId)?.click();page.hidden=true;if(parent.isConnected){if(next?.parentNode===parent)parent.insertBefore(page,next);else parent.append(page)}if(settingsSnapshot){for(const [el,hidden] of settingsSnapshot.pages)if(el.isConnected)el.hidden=hidden;settingsSnapshot.settings.classList.toggle('st-in-subpage',settingsSnapshot.sub);settingsSnapshot=null;}}if(frame){frame.remove();frame=null;}body.replaceChildren();body.classList.remove('mc-ai')}
 function choice(icon,name,desc,fn){const b=make('button','mc-choice'),copy=make('span');b.type='button';copy.append(make('b','',name),make('small','',desc));b.append(make('span','',icon),copy,make('span','','›'));b.onclick=fn;body.append(b)}
 function buttonLink(text,fn){const b=make('button','mc-link',text);b.type='button';b.onclick=fn;body.append(b);return b}
-function show(which='home'){release();mode=which;labels();
+function show(which='home'){release();mode=which;labels();x.focus({preventScroll:true});
  if(which==='home'){body.append(make('p','mc-text',t('How can we help?','需要什么帮助？','မည်သို့ ကူညီပေးရမည်နည်း။')));choice('✧',t('Ask AI Assistant','联系 AI 助手','AI ကို မေးရန်'),t('Finance questions & app guides','财务问答和使用指南','ငွေစာရင်းနှင့် အသုံးပြုနည်း'),()=>show('ai'));choice('♧',t('Contact Customer Support','联系人工客服','ဖောက်သည်ဝန်ဆောင်မှု'),t('Account questions, issues & feedback','账户问题、故障及反馈','အကောင့် ပြဿနာနှင့် အကြံပြုချက်'),()=>show('support'));return}
  if(!signedIn()){body.append(make('p','mc-text',t('Sign in to use this service.','请登录后使用此服务。','အသုံးပြုရန် အကောင့်ဝင်ပါ။')));return}
- if(which==='ai'){body.classList.add('mc-ai');const a=make('a','mc-link',t('Open full AI page','打开完整 AI 页面','AI စာမျက်နှာအပြည့်'));a.href='ai-chat.html';a.onclick=()=>{try{window.mmhWriteAISnapshotV1115?.()}catch(_){}};body.append(a);try{window.mmhWriteAISnapshotV1115?.()}catch(_){}frame=make('iframe');frame.title=title.textContent;frame.src='ai-chat.html';frame.addEventListener('load',()=>{try{const doc=frame?.contentDocument;if(!doc)return;const b=doc.getElementById('backApp');if(b)b.onclick=e=>{e.preventDefault();show('home')}}catch(_){}});body.append(frame);return}
+ if(which==='ai'){body.classList.add('mc-ai');const a=make('a','mc-link',t('Open full AI page','打开完整 AI 页面','AI စာမျက်နှာအပြည့်'));a.href='ai-chat.html';a.onclick=()=>{try{window.mmhWriteAISnapshotV1115?.()}catch(_){}};body.append(a);try{window.mmhWriteAISnapshotV1115?.()}catch(_){}frame=make('iframe');frame.title=title.textContent;frame.src='ai-chat.html?contact=v2&ui=2';frame.addEventListener('load',()=>{try{const doc=frame?.contentDocument;if(!doc)return;const b=doc.getElementById('backApp');if(b)b.onclick=e=>{e.preventDefault();show('home')}}catch(_){}});body.append(frame);return}
  const settings=$('settings'),page=$(which==='support'?'stPage_supportV1518':'stPage_feedback'),open=which==='support'?originalSupport:originalFeedback;
  if(which==='support')buttonLink(t('Feedback & replies','反馈与回复','အကြံပြုချက်များ'),()=>show('feedback'));
  if(!settings||!page||!open){body.append(make('p','mc-text',t('Service is not ready. Close and reopen this panel.','服务尚未准备好，请关闭后重新打开。','ဝန်ဆောင်မှု အဆင်သင့် မဖြစ်သေးပါ။')));return}
@@ -37966,11 +37993,13 @@ function show(which='home'){release();mode=which;labels();
  // Opening the old service should not change the underlying workspace.
  for(const [el,hidden] of settingsSnapshot.pages)if(el.isConnected)el.hidden=hidden;
  settings.classList.toggle('st-in-subpage',settingsSnapshot.sub);
+ if(which==='feedback')x.focus({preventScroll:true});
 }
 function open(which='home'){if(!document.body.classList.contains('mmh-workspace-active'))return;previousFocus=layer.classList.contains('is-open')?previousFocus:document.activeElement;layer.inert=false;layer.setAttribute('aria-hidden','false');layer.classList.add('is-open');show(which);if(which==='home')x.focus({preventScroll:true})}
 function close(){if(!layer.classList.contains('is-open'))return;release();layer.classList.remove('is-open');layer.inert=true;layer.setAttribute('aria-hidden','true');if(previousFocus?.isConnected&&previousFocus.getClientRects().length)previousFocus.focus({preventScroll:true});previousFocus=null}
 launcher.onclick=()=>open();back.onclick=()=>show('home');x.onclick=close;scrim.onclick=close;
-document.addEventListener('keydown',e=>{if(!layer.classList.contains('is-open'))return;if(e.key==='Escape'){e.preventDefault();e.stopPropagation();close()}else if(e.key==='Tab'&&drawer.contains(document.activeElement)){const nodes=[...drawer.querySelectorAll('button:not(:disabled),a[href],input:not(:disabled),textarea:not(:disabled),select:not(:disabled),iframe')].filter(n=>n.getClientRects().length&&n.tabIndex>=0);if(nodes.length&&e.shiftKey&&document.activeElement===nodes[0]){e.preventDefault();nodes.at(-1).focus()}else if(nodes.length&&!e.shiftKey&&document.activeElement===nodes.at(-1)){e.preventDefault();nodes[0].focus()}}},true);
+document.addEventListener('keydown',e=>{if(!layer.classList.contains('is-open'))return;if(e.key==='Escape'){e.preventDefault();e.stopPropagation();close()}else if(e.key==='Tab'){const nodes=[...drawer.querySelectorAll('button:not(:disabled),a[href],input:not(:disabled),textarea:not(:disabled),select:not(:disabled),iframe')].filter(n=>n.getClientRects().length&&n.tabIndex>=0);if(nodes.length&&!drawer.contains(document.activeElement)){e.preventDefault();(e.shiftKey?nodes.at(-1):nodes[0]).focus()}else if(nodes.length&&e.shiftKey&&document.activeElement===nodes[0]){e.preventDefault();nodes.at(-1).focus()}else if(nodes.length&&!e.shiftKey&&document.activeElement===nodes.at(-1)){e.preventDefault();nodes[0].focus()}}},true);
+document.addEventListener('focusin',e=>{if(layer.classList.contains('is-open')&&!drawer.contains(e.target))x.focus({preventScroll:true})},true);
 function bind(){if(!originalSupport&&typeof window.mmhOpenSupportV1518==='function'){originalSupport=window.mmhOpenSupportV1518;window.mmhOpenSupportV1518=()=>open('support')}if(!originalFeedback&&typeof window.mmhOpenFeedbackV136==='function'){originalFeedback=window.mmhOpenFeedbackV136;window.mmhOpenFeedbackV136=()=>open('feedback')}if(layer.classList.contains('is-open')&&!document.body.classList.contains('mmh-workspace-active'))close()}
 new MutationObserver(bind).observe(document.body,{childList:true,subtree:true,attributes:true,attributeFilter:['class']});
 window.addEventListener('mmhvault:config-owner-changed',close);window.addEventListener('pagehide',close);

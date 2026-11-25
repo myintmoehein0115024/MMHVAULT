@@ -4,7 +4,7 @@
  * Must not be interpreted as confirmed financial saving without a new owner row.
  */
 import {STEPS,cleanOwner,keyFor,normalizeState,initialState,advanceTo,
-  pause,stop,finish,markSaved,isAutoEligible,canShowAccountCoach} from './mmhvault-transaction-onboarding-state-v1.mjs';
+  pause,stop,finish,markSaved,isAutoEligible,canShowAccountCoach} from './mmhvault-transaction-onboarding-state-v1.mjs?v=2.2.0';
 (()=>{'use strict';
 if(window.MMHTransactionsOnboardingV1)return;
 const $=id=>document.getElementById(id);
@@ -158,6 +158,7 @@ const targetFor=(step)=>{
   return null;
 };
 let shown=false,help=null,root=null,card=null,halo=null,state=null,activeOwner='',dismissedOwner='',lastSig='',scheduled=false;
+const offeredThisDocument=new Set();
 let beforeIds=null,submitOwner='';
 const read=(id)=>{try{return normalizeState(JSON.parse(localStorage.getItem(keyFor(id))||'null'))}catch(_){return null}};
 const persist=s=>{if(!activeOwner||owner()!==activeOwner||configOwner()!==activeOwner)return false;
@@ -213,7 +214,9 @@ function openGuide(manual=false){
   if(!data.owner||!data.loaded||!txPage())return;
   activeOwner=data.owner;
   state=manual?initialState():(read(activeOwner)||initialState());
-  if(manual)persist(state);
+  // Record the first display before rendering, including a refresh during step one.
+  persist(state);
+  offeredThisDocument.add(activeOwner);
   dismissedOwner='';
   shown=true;lastSig='';visitedCoachStage='';
   mountHelp();renderGuide();
@@ -385,7 +388,7 @@ function schedule(){
     }
     if(!d.loaded||!d.owner){if(shown)saveAndClose();return;}
     if(shown){checkSaved();renderGuide();return;}
-    if(dismissedOwner===d.owner)return;
+    if(dismissedOwner===d.owner||offeredThisDocument.has(d.owner))return;
     const saved=read(d.owner);
     if(isAutoEligible({saved,historyLoaded:d.loaded,hasHistory:d.hasHistory,hasAccounts:d.accounts,
       hasConfigured:d.hasConfigured,hasLegacy:d.legacy}))openGuide(false);
@@ -435,7 +438,7 @@ function init(){
   });
   schedule();
 }
-window.MMHTransactionsOnboardingV1=Object.freeze({version:'2.1.0',open:()=>openGuide(true),close:()=>saveAndClose(),
+window.MMHTransactionsOnboardingV1=Object.freeze({version:'2.2.0',open:()=>openGuide(true),close:()=>saveAndClose(),
   status:()=>({active:shown,step:shown?STEPS[state?.step||0]:null})});
 if(doc.readyState==='loading')doc.addEventListener('DOMContentLoaded',init,{once:true});else init();
 })();

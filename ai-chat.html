@@ -11,6 +11,7 @@
 <link rel="icon" href="images/icon-192.png">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.57.4/dist/umd/supabase.js"></script>
 <script>if(typeof supabase==='undefined')console.error('[MMHVAULT] Supabase SDK failed to load from the primary CDN.')</script>
+<script>if(new URLSearchParams(location.search).get('contact')==='v2' && window.parent!==window)document.documentElement.classList.add('mmh-contact-embedded');</script>
 <style>
 :root{--bg:#061522;--bg2:#0a2033;--panel:#092238;--panel2:#071b2c;--line:rgba(112,170,210,.18);--text:#e8f2f8;--muted:#7f9daf;--blue:#6dc8ee;--gold:#edc66e;--green:#65d6a8;--red:#f38b91;--shadow:0 24px 70px rgba(0,0,0,.30);font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
 *{box-sizing:border-box}html,body{margin:0;min-height:100%;background:radial-gradient(circle at 86% 10%,rgba(61,142,192,.14),transparent 30%),radial-gradient(circle at 10% 90%,rgba(237,198,110,.07),transparent 27%),var(--bg);color:var(--text)}body{min-height:100vh;min-height:100dvh}button,textarea{font:inherit}button{cursor:pointer;touch-action:manipulation;-webkit-tap-highlight-color:transparent}.shell{min-height:100vh;min-height:100dvh;display:grid;grid-template-rows:auto 1fr}
@@ -515,6 +516,44 @@ html,body{max-width:100%;overflow-x:hidden}.shell,.wrap,.hero,.layout,.chat,.pro
   .hero{margin-bottom:7px!important}
 }
 
+
+/* Contact Center V2 embedded conversation: preserve the existing authenticated engine. */
+html.mmh-contact-embedded{height:100%;overflow:hidden;background:#1c2531;color-scheme:dark}
+html.mmh-contact-embedded body{--bg:#1c2531;--bg2:#202b39;--panel:#1c2531;--panel2:#263343;--line:#344153;--text:#eef1f6;--muted:#a3afbf;--blue:#a9c0f1;--shadow:none;height:100%;min-height:0!important;overflow:hidden;background:var(--bg)!important;color:var(--text)}
+html.mmh-contact-embedded body.light{--bg:#fff;--bg2:#f4f7fb;--panel:#fff;--panel2:#eef2f7;--line:#d8dfe9;--text:#202b3d;--muted:#596778;--blue:#315fba;color-scheme:light}
+html.mmh-contact-embedded .shell{height:100%;min-height:0!important;display:flex!important;flex-direction:column}
+html.mmh-contact-embedded :is(.top,.hero,.metrics){display:none!important}
+html.mmh-contact-embedded .wrap{flex:1;min-height:0;height:100%;width:100%!important;margin:0!important;padding:0!important;display:flex!important;flex-direction:column}
+html.mmh-contact-embedded .layout{flex:1;min-height:0;display:flex!important}
+html.mmh-contact-embedded .chat{flex:1;min-height:0!important;height:100%!important;border:0!important;border-radius:0!important;background:var(--panel)!important;box-shadow:none!important;grid-template-rows:auto minmax(0,1fr) auto auto!important}
+html.mmh-contact-embedded .chathead{padding:12px 14px!important;gap:8px;flex-wrap:wrap;border-color:var(--line);background:var(--panel)}
+html.mmh-contact-embedded .chathead b{font-size:14px;color:var(--text)}
+html.mmh-contact-embedded :is(.chathead small,.guide-intro small,.model-state-row small,.meta,.foot){color:var(--muted)!important;font-size:11px!important;white-space:normal!important}
+html.mmh-contact-embedded .chattools{display:flex;gap:6px;flex-wrap:wrap}
+html.mmh-contact-embedded :is(.chathead button,.guidegrid .prompt,.model-dock select,.model-action,.model-more summary,.model-more-menu button,.tx-preview-actions button){background:var(--panel2)!important;background-image:none!important;color:var(--text)!important;border:1px solid var(--line)!important;border-radius:7px!important;font-size:12px!important;box-shadow:none!important}
+html.mmh-contact-embedded .thread{padding:16px 14px!important;scrollbar-gutter:auto}
+html.mmh-contact-embedded .guidegrid{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px!important;overflow:visible!important}
+html.mmh-contact-embedded .guidegrid .prompt{width:100%!important;min-width:0!important;max-width:none!important;min-height:42px!important;white-space:normal!important}
+html.mmh-contact-embedded .guidegrid .prompt b{font-size:12px!important;white-space:normal!important;overflow-wrap:anywhere;color:var(--text)}
+html.mmh-contact-embedded .guidegrid .prompt>span,.mmh-contact-embedded .guide-ai-icon{background:var(--panel2)!important;color:var(--blue)!important;box-shadow:none!important}
+html.mmh-contact-embedded .guide-intro b{font-size:16px;color:var(--text)}
+html.mmh-contact-embedded :is(.bubble,.msg.user .bubble,.tx-preview,.tx-preview-item,.tx-preview-note){background:var(--panel2)!important;background-image:none!important;color:var(--text)!important;border:1px solid var(--line)!important;box-shadow:none!important;border-radius:8px!important;font-size:13px}
+html.mmh-contact-embedded :is(.tx-preview-head b,.tx-preview-item b){color:var(--text)!important}
+html.mmh-contact-embedded :is(.tx-preview-head span,.tx-preview-item span){color:var(--muted)!important}
+html.mmh-contact-embedded .compose{grid-template-columns:minmax(0,1fr)!important;padding:10px 14px!important;background:var(--panel)!important;box-shadow:none!important;border-color:var(--line)!important}
+html.mmh-contact-embedded .model-dock{background:var(--panel)!important;border:0!important;padding:0;box-shadow:none!important}
+html.mmh-contact-embedded .model-more{display:block!important}
+html.mmh-contact-embedded .model-dock-row{grid-template-columns:minmax(0,1fr) auto auto!important}
+html.mmh-contact-embedded .model-more-menu{background:var(--panel)!important;border-color:var(--line)!important}
+html.mmh-contact-embedded .model-state-row{position:static!important;width:auto;height:auto;clip:auto;clip-path:none;overflow:hidden}
+html.mmh-contact-embedded .cache-state{color:var(--muted)!important;background:var(--panel2)!important;border-color:var(--line)!important}
+html.mmh-contact-embedded .compose-main{grid-template-columns:minmax(0,1fr) auto!important}
+html.mmh-contact-embedded .compose textarea{background:var(--panel2)!important;color:var(--text)!important;border:1px solid var(--line)!important;border-radius:8px!important;min-height:54px!important}
+html.mmh-contact-embedded .send{background:var(--blue)!important;color:var(--bg)!important;border:0!important;border-radius:8px!important;font-size:13px!important}
+html.mmh-contact-embedded .foot{background:var(--panel)!important;padding:0 14px max(8px,env(safe-area-inset-bottom))!important;line-height:1.4}
+html.mmh-contact-embedded :is(button,textarea,select):focus-visible{outline:2px solid var(--blue)!important;outline-offset:1px;box-shadow:none!important}
+@media(max-height:420px){html.mmh-contact-embedded .chathead{padding:6px!important}html.mmh-contact-embedded .compose{padding:5px!important}html.mmh-contact-embedded .foot{font-size:9px!important}}
+
 </style>
 </head>
 <body>
@@ -577,7 +616,7 @@ const $=id=>document.getElementById(id),N=v=>Number.isFinite(Number(v))?Number(v
 const db=typeof supabase!=='undefined'?supabase.createClient(SUPABASE_URL,SUPABASE_KEY):null;
 const state={user:null,scopeUserId:'',data:null,canonical:null,loadedAt:0,messages:[],sending:false,engine:null,engineModel:'',engineReady:false,engineLoading:false,authSubscription:null,cacheStatus:'loading',replyLang:'',lastIntent:'',pendingTxId:'',txSaving:false};
 function lang(){try{return (localStorage.getItem('mmhvault_language_v3363')||'en')==='zh'?'zh':'en'}catch(_e){return'en'}}function T(en,zh){return lang()==='zh'?zh:en}
-function applyTheme(){let t='dark';try{t=localStorage.getItem('myfinance_theme')||'dark'}catch(_e){}document.body.classList.toggle('light',t==='light')}
+function applyTheme(){let t='dark';try{t=localStorage.getItem('myfinance_theme')||'dark'}catch(_e){}document.body.classList.toggle('light',t==='light'||(t!=='dark'&&window.matchMedia('(prefers-color-scheme: light)').matches))}
 function translate(){
   document.documentElement.lang=lang()==='zh'?'zh-CN':'en';
   document.title=T('MMHVAULT · Local AI Financial Assistant','MMHVAULT · 本地 AI 财务助手');
