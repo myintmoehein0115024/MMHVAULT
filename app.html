@@ -35844,9 +35844,9 @@ html body #settings.page.active #stPage_security #mmhA783SecurityCenter .mmh-a78
 <!-- Auto MMK is loaded only by the explicit release gate below. -->
 <!-- APP V11.7: owner-linked Manage replaces the former field-layout loader.
      The original V11 script remains in Git history for rollback; no DB migration. -->
-<script type="module" src="js/mmhvault-v11-manage-hierarchy-live.mjs?v=0.16.0"></script>
-<link rel="stylesheet" href="css/mmhvault-transaction-onboarding-v1.css?v=2.0.0">
-<script type="module" src="js/mmhvault-transaction-onboarding-live-v1.mjs?v=2.0.0"></script>
+<script type="module" src="js/mmhvault-v11-manage-hierarchy-live.mjs?v=0.16.1"></script>
+<link rel="stylesheet" href="css/mmhvault-transaction-onboarding-v1.css?v=2.1.0">
+<script type="module" src="js/mmhvault-transaction-onboarding-live-v1.mjs?v=2.1.0"></script>
 
 <!-- Accounts Premium Directory V1: presentation-only, late cascade, isolated from finance/auth. -->
 <link rel="stylesheet" href="css/mmhvault-accounts-directory-v1.css?v=1.0.1" data-mmh-accounts-directory="v1">
@@ -37794,6 +37794,7 @@ html body .mmh-hier-overlay .mmh-hier-dialog .mmh-hier-form input[type=checkbox]
 
 <style id="mmhTransactionReceiptAndSpacingV2">
 /* Shared top rhythm, preserve edge-to-edge Transaction workspace. */
+html body.mmh-workspace-active:has(#transactions#transactions.active) main.wrap.wrap.wrap{background:var(--tv-card,var(--uv-card))!important;background-image:none!important}
 @media(min-width:900px){
 html body.mmh-workspace-active #transactions#transactions#transactions#transactions#transactions#transactions#transactions.active,
 html body.mmh-workspace-active #transactions#transactions#transactions#transactions#transactions#transactions#transactions:has(#txTabAdd.active) #txAddPanel>.panel{min-height:calc(100dvh - var(--wv-shell-top,var(--wv-top,64px)) - var(--wv-shell-gap,22px))!important}
