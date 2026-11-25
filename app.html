@@ -38401,7 +38401,71 @@ html body.mmh-workspace-active:not(.auth-page-active) #bottomNav#bottomNav#botto
 }
 }
 }
+
+/* iPhone standalone only: use the large viewport as one containing block.
+   Safari tabs and non-iPhone layouts continue to use the existing rules. */
+@supports (height:100lvh){
+@media(max-width:899px) and (orientation:portrait){
+html.mmh-iphone-pwa-full-v2 body.mmh-workspace-active:not(.auth-page-active){
+ position:relative!important;inset:auto!important;height:max(100lvh,100dvh)!important;
+}
+html.mmh-iphone-pwa-full-v2 body.mmh-workspace-active:not(.auth-page-active) #header#header#header#header#header#header#header#header{
+ position:absolute!important;inset:0 0 auto 0!important;
+}
+html.mmh-iphone-pwa-full-v2 body.mmh-workspace-active:not(.auth-page-active) main.wrap.wrap.wrap.wrap.wrap.wrap{
+ position:absolute!important;inset:var(--mmh-mobile-header-total) 0 var(--mmh-mobile-nav-total) 0!important;height:auto!important;
+}
+html.mmh-iphone-pwa-full-v2 body.mmh-workspace-active:not(.auth-page-active) #bottomNav#bottomNav#bottomNav#bottomNav#bottomNav#bottomNav#bottomNav.bottom-nav{
+ position:absolute!important;inset:auto 0 0 0!important;
+}
+html.mmh-iphone-pwa-full-v2 body.mmh-workspace-active:not(.auth-page-active) #mmhContactLauncherV2#mmhContactLauncherV2{
+ position:absolute!important;top:auto!important;bottom:calc(var(--mmh-mobile-nav-total) + 10px)!important;
+}
+html.mmh-iphone-pwa-full-v2 body.mmh-workspace-active:not(.auth-page-active) #moreNavMenu#moreNavMenu#moreNavMenu#moreNavMenu.more-nav-menu{
+ position:absolute!important;inset:0!important;height:100%!important;max-height:none!important;
+}
+}
+}
 </style>
+<script id="mmhIPhoneStandaloneLayoutV2">
+(()=>{'use strict';
+if(!/iPhone|iPod/i.test(navigator.userAgent)||!(navigator.standalone===true||matchMedia('(display-mode: standalone)').matches)||!CSS.supports('height','100lvh'))return;
+const root=document.documentElement,flag='mmh-iphone-pwa-full-v2',mq=matchMedia('(max-width:899px) and (orientation:portrait)');
+const field='textarea,input:not([type=button]):not([type=submit]):not([type=checkbox]):not([type=radio]):not([type=range]):not([type=hidden]),[contenteditable=true]';
+let raf=0,blocked=false;
+const workspace=()=>document.body.classList.contains('mmh-workspace-active')&&!document.body.classList.contains('auth-page-active');
+const overlay=()=>[...document.querySelectorAll('.modal-backdrop.open,[aria-modal=true],#moreNavMenu.open,#mmhContactLayerV2.is-open,.mmh-hier-overlay,.mmh-onboard-stage-v1')].some(el=>el.getClientRects().length&&getComputedStyle(el).visibility==='visible');
+function check(){
+ if(!root.classList.contains(flag)||!workspace()||overlay())return;
+ const nav=document.getElementById('bottomNav');if(!nav?.getClientRects().length)return;
+ const buttons=[...nav.querySelectorAll(':scope > button')].filter(el=>el.getClientRects().length);
+ if(!buttons.length)return;
+ // Never retain a layout that pushes any tab outside the actual hit-test surface.
+ const all=buttons.every(el=>{const r=el.getBoundingClientRect();const hit=document.elementFromPoint(r.left+r.width/2,r.top+r.height/2);return !!hit&&el.contains(hit)});
+ if(!all){blocked=true;root.classList.remove(flag);}
+}
+function apply(){
+ raf=0;
+ const v=window.visualViewport;
+ const focused=document.activeElement?.matches?.(field);
+ const usable=workspace()&&mq.matches&&!focused&&(!v||Math.abs(v.scale-1)<.02);
+ root.classList.toggle(flag,!!usable&&!blocked);
+ if(usable&&!blocked)requestAnimationFrame(check);
+}
+function schedule(){if(!raf)raf=requestAnimationFrame(apply)}
+function reset(){blocked=false;schedule()}
+window.addEventListener('resize',reset,{passive:true});
+window.visualViewport?.addEventListener('resize',reset,{passive:true});
+window.addEventListener('orientationchange',reset,{passive:true});
+window.addEventListener('pageshow',reset);
+window.addEventListener('mmhvault:page-visible',schedule);
+document.addEventListener('focusin',schedule);
+document.addEventListener('focusout',schedule);
+document.addEventListener('visibilitychange',()=>{if(!document.hidden)reset()});
+new MutationObserver(schedule).observe(document.body,{attributes:true,attributeFilter:['class']});
+schedule();
+})();
+</script>
 <script id="mmhIOSLayoutCheckV2">
 (()=>{'use strict';
 if(!/iPhone|iPod/i.test(navigator.userAgent))return;
@@ -38424,7 +38488,8 @@ const nav=document.getElementById('bottomNav'),main=document.querySelector('main
 const buttons=[...(nav?.querySelectorAll(':scope > button')||[])].filter(e=>e.getClientRects().length);
 const hits=buttons.map(e=>{const r=e.getBoundingClientRect(),hit=document.elementFromPoint(r.left+r.width/2,r.top+r.height/2);return hit&&e.contains(hit)?'Y':'N'}).join('');
 panel.textContent=[
-'MMH iOS layout check 95 (local only)',
+'MMH iOS layout check 96 (local only)',
+'PWA large layout '+(root.classList.contains('mmh-iphone-pwa-full-v2')?'active':'inactive'),
 'mode '+(navigator.standalone===true||matchMedia('(display-mode: standalone)').matches?'standalone':'browser'),
 'screen '+n(screen.width)+' x '+n(screen.height)+' DPR '+n(devicePixelRatio),
 'inner '+n(innerHeight)+' root '+n(root.clientHeight)+' large '+getComputedStyle(probe).height,
