@@ -38402,5 +38402,56 @@ html body.mmh-workspace-active:not(.auth-page-active) #bottomNav#bottomNav#botto
 }
 }
 </style>
+<script id="mmhIOSLayoutCheckV2">
+(()=>{'use strict';
+if(!/iPhone|iPod/i.test(navigator.userAgent))return;
+const standalone=()=>navigator.standalone===true||matchMedia('(display-mode: standalone)').matches;
+let enabled=new URLSearchParams(location.search).get('ios-layout-check')==='1';
+if(!enabled&&!standalone())return;
+let taps=0,lastTap=0;
+const panel=document.createElement('pre');
+panel.id='mmhIOSLayoutCheckPanelV2';panel.setAttribute('aria-hidden','true');
+panel.style.cssText='position:fixed;top:calc(env(safe-area-inset-top,0px) + 62px);left:8px;right:8px;z-index:1100;pointer-events:none;margin:0;padding:8px;background:#101720ed;color:#d9f5ff;border:1px solid #86b6d0;border-radius:8px;font:11px/1.3 monospace;white-space:pre-wrap;overflow-wrap:anywhere;display:none';
+document.body.append(panel);
+const probe=document.createElement('div');
+probe.style.cssText='position:fixed;top:0;left:0;width:0;height:100lvh;padding-bottom:env(safe-area-inset-bottom,0px);box-sizing:content-box;visibility:hidden;pointer-events:none';
+document.body.append(probe);
+const n=v=>Number.isFinite(v)?Math.round(v*10)/10:'n/a';
+const rect=e=>{if(!e)return 'missing';const r=e.getBoundingClientRect();return [r.top,r.bottom,r.height].map(n).join('/')};
+let raf=0;
+function measure(){raf=0;const body=document.body,active=body.classList.contains('mmh-workspace-active')&&!body.classList.contains('auth-page-active');panel.style.display=active&&enabled?'block':'none';if(!active||!enabled)return;
+const nav=document.getElementById('bottomNav'),main=document.querySelector('main.wrap'),head=document.getElementById('header'),v=window.visualViewport,cs=nav&&getComputedStyle(nav),root=document.documentElement;
+const buttons=[...(nav?.querySelectorAll(':scope > button')||[])].filter(e=>e.getClientRects().length);
+const hits=buttons.map(e=>{const r=e.getBoundingClientRect(),hit=document.elementFromPoint(r.left+r.width/2,r.top+r.height/2);return hit&&e.contains(hit)?'Y':'N'}).join('');
+panel.textContent=[
+'MMH iOS layout check 95 (local only)',
+'mode '+(navigator.standalone===true||matchMedia('(display-mode: standalone)').matches?'standalone':'browser'),
+'screen '+n(screen.width)+' x '+n(screen.height)+' DPR '+n(devicePixelRatio),
+'inner '+n(innerHeight)+' root '+n(root.clientHeight)+' large '+getComputedStyle(probe).height,
+'visual '+n(v?.height)+' offset '+n(v?.offsetTop)+' scale '+n(v?.scale),
+'safe '+getComputedStyle(probe).paddingBottom+' body '+rect(body),
+'header '+rect(head)+' main '+rect(main),
+'nav '+rect(nav)+' '+(cs?.position||'')+' pad '+(cs?.paddingBottom||''),
+'nav top/bottom '+(cs?.top||'')+'/'+(cs?.bottom||'')+' box '+(cs?.boxSizing||''),
+'first button '+rect(buttons[0])+' hit '+hits
+].join('\n');
+}
+function schedule(){if(!raf)raf=requestAnimationFrame(measure)}
+document.addEventListener('click',e=>{
+ if(!standalone()||!e.target.closest?.('#header .mmhvault-header-brand, #header .wv-crumb'))return;
+ if(!document.body.classList.contains('mmh-workspace-active')||document.body.classList.contains('auth-page-active'))return;
+ const now=performance.now();taps=now-lastTap<1200?taps+1:1;lastTap=now;
+ if(taps===5){taps=0;enabled=!enabled;schedule();}
+},true);
+window.addEventListener('resize',schedule,{passive:true});
+window.visualViewport?.addEventListener('resize',schedule,{passive:true});
+window.visualViewport?.addEventListener('scroll',schedule,{passive:true});
+window.addEventListener('pageshow',schedule);
+window.addEventListener('mmhvault:page-visible',schedule);
+document.addEventListener('visibilitychange',schedule);
+new MutationObserver(schedule).observe(document.body,{attributes:true,attributeFilter:['class']});
+schedule();
+})();
+</script>
 </body>
 </html>
