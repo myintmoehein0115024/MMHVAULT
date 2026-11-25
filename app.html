@@ -13646,6 +13646,7 @@ function mmhVaultOpenDialogV449({title,message='',body='',actions=[],dialogClass
   });
   m.style.display='';
   m.classList.add('show');m.setAttribute('aria-hidden','false');
+  window.MMHTransactionDialogLayoutV2?.();
   return new Promise(resolve=>{m._resolver=resolve;});
 }
 window.mmhVaultCloseDialogV449=()=>mmhVaultResolveDialogV449(false);
@@ -15103,6 +15104,7 @@ function openEditModal(title,body){
     form.insertBefore(scroll,actions||null);
     form.classList.add('mmh-edit-form-p22');
   }
+  window.MMHTransactionDialogLayoutV2?.();
 }
 function txCategoryOptions(type,group){
   if(type==='Transfer')return ['Transfer'];
@@ -28687,7 +28689,7 @@ let origin='transactions',savedScroll=0,detailOwner='';
 function init(){
  const host=document.createElement('section');host.id='ledger-detail';host.className='page';host.innerHTML='<div class="ld-head"><button id="ldBack" type="button">‹ Back</button><h1 id="ldTitle">Details</h1></div><div id="ldBody"></div>';document.getElementById('transactions').parentElement.append(host);
  document.getElementById('ldBack').onclick=()=>{document.getElementById('ldBody').replaceChildren();setPage(origin);requestAnimationFrame(()=>window.scrollTo({top:savedScroll}))};
- function open(card,page){origin=page;savedScroll=window.scrollY;detailOwner=currentSessionUser?.id||'';const clone=card.cloneNode(true);clone.removeAttribute('tabindex');clone.removeAttribute('role');clone.classList.add('open');const buttons=[...card.querySelectorAll('button')];clone.querySelectorAll('button').forEach((b,i)=>{b.onclick=e=>{e.stopPropagation();if(currentSessionUser?.id!==detailOwner)return;buttons[i]?.click()}});if(card.classList.contains('mmh-history-card')){let actions=clone.querySelector('.mmh-history-actions');if(!actions){actions=document.createElement('div');actions.className='mmh-history-actions';clone.append(actions)}const detailBtn=document.createElement('button');detailBtn.type='button';detailBtn.dataset.historyRole='details-v831';detailBtn.textContent='Details';detailBtn.onclick=e=>{e.preventDefault();e.stopPropagation();if(currentSessionUser?.id!==detailOwner)return false;window.openInvestmentPortfolioDetailV821?.(clone);return false};actions.insertBefore(detailBtn,actions.firstChild)}const detailTitle=page==='transactions'?'Transaction details':card.classList.contains('mmh-history-card')?'Investment details':'Holding details';document.getElementById('ldTitle').dataset.i18nBase=detailTitle;document.getElementById('ldTitle').textContent=detailTitle;document.getElementById('ldBody').replaceChildren(clone);setPage('ledger-detail');window.scrollTo({top:0});document.getElementById('ldBack').focus();}
+ function open(card,page){origin=page;savedScroll=window.scrollY;detailOwner=currentSessionUser?.id||'';const clone=card.cloneNode(true);clone.removeAttribute('tabindex');clone.removeAttribute('role');clone.classList.add('open');const buttons=[...card.querySelectorAll('button')];clone.querySelectorAll('button').forEach((b,i)=>{b.onclick=e=>{e.stopPropagation();if(currentSessionUser?.id!==detailOwner)return;buttons[i]?.click()}});if(card.classList.contains('mmh-history-card')){let actions=clone.querySelector('.mmh-history-actions');if(!actions){actions=document.createElement('div');actions.className='mmh-history-actions';clone.append(actions)}const detailBtn=document.createElement('button');detailBtn.type='button';detailBtn.dataset.historyRole='details-v831';detailBtn.textContent='Details';detailBtn.onclick=e=>{e.preventDefault();e.stopPropagation();if(currentSessionUser?.id!==detailOwner)return false;window.openInvestmentPortfolioDetailV821?.(clone);return false};actions.insertBefore(detailBtn,actions.firstChild)}const detailTitle=page==='transactions'?'Transaction details':card.classList.contains('mmh-history-card')?'Investment details':'Holding details';document.getElementById('ldTitle').dataset.i18nBase=detailTitle;document.getElementById('ldTitle').textContent=detailTitle;document.getElementById('ldBody').replaceChildren(clone);setPage('ledger-detail');window.scrollTo({top:0,behavior:'instant'});document.getElementById('ldBack').focus({preventScroll:true});if(page==='transactions'){const host=document.getElementById('ledger-detail');requestAnimationFrame(()=>{if(!host.classList.contains('active'))return;for(const el of [document.scrollingElement,host.closest('main'),host])if(el)el.scrollTop=0;window.scrollTo({top:0,behavior:'instant'});});}}
  document.addEventListener('click',e=>{const card=e.target.closest('#txMobileListV371 .tx-mobile-card-v371,#mmhUnifiedListV1 .mmh-overview-card,#mmhHistoryRowsV1 .mmh-history-card');if(!card||e.target.closest('button,a,input,select'))return;e.preventDefault();e.stopImmediatePropagation();open(card,card.closest('#transactions')?'transactions':'invest')},true);
  document.addEventListener('keydown',e=>{if((e.key==='Enter'||e.key===' ')&&e.target.matches('#txMobileListV371 .tx-mobile-card-v371,#mmhUnifiedListV1 .mmh-overview-card,#mmhHistoryRowsV1 .mmh-history-card')){e.preventDefault();e.target.click()}});
  const decorate=()=>{const selector=document.getElementById('transactions')?.classList.contains('active')?'#txMobileListV371 .tx-mobile-card-v371':document.getElementById('invest')?.classList.contains('active')?'#mmhUnifiedListV1 .mmh-overview-card,#mmhHistoryRowsV1 .mmh-history-card':'';if(!selector)return;document.querySelectorAll(selector).forEach(x=>{x.tabIndex=0;x.setAttribute('role','button');x.setAttribute('aria-label','Open '+(x.querySelector('b')?.textContent||'record')+' details')});};
@@ -37028,9 +37030,9 @@ function geometry(anchor,bounds,preferred,desired){
   const up=below<Math.min(desired,200)&&above>below;
   return {width,left,up,height:Math.max(0,Math.min(desired,up?above:below))};
 }
-function bounds(){
+function bounds(target=page){
   const vw=document.documentElement.clientWidth||innerWidth,vh=document.documentElement.clientHeight||innerHeight;
-  const r=page.getBoundingClientRect(),nav=document.getElementById('bottomNav')?.getBoundingClientRect(),header=document.getElementById('header')?.getBoundingClientRect();
+  const r=target?.getBoundingClientRect()||{width:0},nav=document.getElementById('bottomNav')?.getBoundingClientRect(),header=document.getElementById('header')?.getBoundingClientRect();
   const rail=nav&&nav.height>vh*.5&&nav.width<vw*.5&&nav.left<8?nav.right:0;
   const bottomBar=nav&&nav.width>vw*.5&&nav.height<vh*.3&&nav.top>vh*.5?nav.top:vh;
   const top=Math.max(6,header&&header.bottom>0&&header.bottom<vh*.35?header.bottom+6:6);
@@ -37038,6 +37040,7 @@ function bounds(){
   const right=Math.max(left+1,Math.min(vw-8,r.width>0?r.right-6:vw-8));
   return {left,right,top,bottom:Math.max(top+1,bottomBar-8),vw,vh};
 }
+window.MMHWorkspaceDialogBoundsV2=bounds;
 function placeMenu(p,b){
   if(!p.open||!p.isConnected)return;
   const panel=p.querySelector(':scope > .ap-currency-choices-v2,:scope > .am-v3-filter-menu,:scope > .am-help');
@@ -37533,5 +37536,86 @@ html body #editModal#editModal#editModal#editModal #editTxForm>.actions{flex:0 0
 @media(max-width:600px){html body #mmhVaultDialogV449#mmhVaultDialogV449#mmhVaultDialogV449#mmhVaultDialogV449 .mmh-tx-detail-v800[data-mmh-tx-direction] .mmh-tx-detail-grid-v800{grid-template-columns:repeat(2,minmax(0,1fr))!important}html body #editModal#editModal#editModal#editModal #editTxForm .formgrid{grid-template-columns:minmax(0,1fr)!important}html body #editModal#editModal#editModal#editModal #editTxForm :is(input:not([type=file]),select,textarea){font-size:16px!important}html body #editModal#editModal#editModal#editModal.open:has(#editTxForm)>.modal{height:calc(100dvh - 24px)!important}}
 @media(max-width:350px){html body #mmhVaultDialogV449#mmhVaultDialogV449#mmhVaultDialogV449#mmhVaultDialogV449 .mmh-tx-detail-v800[data-mmh-tx-direction] .mmh-tx-detail-grid-v800{grid-template-columns:minmax(0,1fr)!important}}
 </style>
+
+<style id="mmhTransactionWorkspaceBoundedDialogsV2">
+/* Keep actual overlay and scrim inside the visible workspace, excluding rail/header/bottom nav. */
+html body #mmhVaultDialogV449#mmhVaultDialogV449#mmhVaultDialogV449#mmhVaultDialogV449.mmh-tx-bounded-v2.show,
+html body #editModal#editModal#editModal#editModal.mmh-tx-bounded-v2.open:has(#editTxForm){
+ position:fixed!important;inset:var(--tx-bound-top,8px) var(--tx-bound-right,8px) var(--tx-bound-bottom,8px) var(--tx-bound-left,8px)!important;
+ width:auto!important;height:auto!important;max-width:none!important;max-height:none!important;min-width:0!important;min-height:0!important;
+ margin:0!important;padding:0!important;box-sizing:border-box!important;display:flex!important;align-items:center!important;justify-content:center!important;overflow:hidden!important;
+ background:var(--mmh-notice-scrim)!important;background-image:none!important;backdrop-filter:none!important;-webkit-backdrop-filter:none!important;
+}
+html body #mmhVaultDialogV449#mmhVaultDialogV449#mmhVaultDialogV449#mmhVaultDialogV449.mmh-tx-bounded-v2>.mmh-v449-dialog,
+html body #editModal#editModal#editModal#editModal.mmh-tx-bounded-v2.open:has(#editTxForm)>.modal{
+ box-sizing:border-box!important;width:min(760px,100%)!important;max-width:100%!important;min-width:0!important;
+ height:auto!important;max-height:100%!important;min-height:0!important;flex:0 1 auto!important;display:flex!important;flex-direction:column!important;overflow:hidden!important;margin:0!important;
+}
+html body #mmhVaultDialogV449#mmhVaultDialogV449#mmhVaultDialogV449#mmhVaultDialogV449.mmh-tx-bounded-v2 :is(.mmh-v449-dialog-head,.mmh-v449-dialog-actions),
+html body #editModal#editModal#editModal#editModal.mmh-tx-bounded-v2:has(#editTxForm)>.modal>.toolbar{
+ flex:0 0 auto!important;min-height:0!important;
+}
+html body #mmhVaultDialogV449#mmhVaultDialogV449#mmhVaultDialogV449#mmhVaultDialogV449.mmh-tx-bounded-v2 .mmh-v449-dialog-body{
+ flex:1 1 auto!important;min-height:0!important;overflow-y:auto!important;overflow-x:hidden!important;overscroll-behavior:contain!important;scrollbar-width:thin;scrollbar-color:var(--uv-line) transparent;
+}
+html body #editModal#editModal#editModal#editModal.mmh-tx-bounded-v2.open:has(#editTxForm)>.modal{height:min(740px,100%)!important;}
+html body #editModal#editModal#editModal#editModal.mmh-tx-bounded-v2 #editModalBody,
+html body #editModal#editModal#editModal#editModal.mmh-tx-bounded-v2 #editTxForm{
+ flex:1 1 0!important;min-height:0!important;max-height:100%!important;display:flex!important;flex-direction:column!important;overflow:hidden!important;
+ background:var(--uv-card)!important;background-image:none!important;box-shadow:none!important;
+}
+html body #editModal#editModal#editModal#editModal.mmh-tx-bounded-v2 #editTxForm .mmh-edit-scroll-p22{
+ flex:1 1 0!important;min-height:0!important;overflow-y:auto!important;overflow-x:hidden!important;overscroll-behavior:contain!important;
+ background:var(--uv-card)!important;background-image:none!important;box-shadow:none!important;scrollbar-width:thin;scrollbar-color:var(--uv-line) transparent;
+}
+html body #editModal#editModal#editModal#editModal.mmh-tx-bounded-v2 #editTxForm>.actions{
+ flex:0 0 auto!important;position:static!important;margin:0!important;padding:10px 14px!important;min-height:0!important;display:flex!important;flex-wrap:wrap!important;justify-content:flex-end!important;
+}
+html body #editModal#editModal#editModal#editModal.mmh-tx-bounded-v2 #editTxForm>.actions .btn{min-width:0!important;max-width:100%!important;}
+/* A full-height canvas and no inherited desktop gutter for transaction ledger details. */
+html body.mmh-workspace-active:has(#ledger-detail.active #ldBody .tx-mobile-card-v371),
+html body.mmh-workspace-active:has(#ledger-detail.active #ldBody .tx-mobile-card-v371) main.wrap.wrap.wrap{
+ background:var(--uv-card)!important;background-image:none!important;min-height:100dvh!important;box-sizing:border-box!important;
+}
+@media(min-width:900px) and (hover:hover) and (pointer:fine),(min-width:1100px){
+ html body.mmh-workspace-active:has(#ledger-detail.active #ldBody .tx-mobile-card-v371) main.wrap.wrap.wrap{padding:var(--wv-shell-top,64px) 0 0 var(--wv-shell-rail,var(--wv-nav,240px))!important;}
+ html body #ledger-detail#ledger-detail#ledger-detail#ledger-detail.active:has(#ldBody .tx-mobile-card-v371){min-height:calc(100dvh - var(--wv-shell-top,64px))!important;padding-bottom:16px!important;}
+}
+@media(max-height:540px){
+ html body #mmhVaultDialogV449#mmhVaultDialogV449#mmhVaultDialogV449#mmhVaultDialogV449.mmh-tx-bounded-v2 :is(.mmh-v449-dialog-head,.mmh-v449-dialog-actions),
+ html body #editModal#editModal#editModal#editModal.mmh-tx-bounded-v2:has(#editTxForm)>.modal>.toolbar,
+ html body #editModal#editModal#editModal#editModal.mmh-tx-bounded-v2 #editTxForm>.actions{padding:6px 10px!important;}
+}
+@media(max-width:600px){
+ html body #editModal#editModal#editModal#editModal.mmh-tx-bounded-v2.open:has(#editTxForm)>.modal{height:100%!important;}
+}
+</style>
+<script id="mmhTransactionWorkspaceDialogGeometryV2">
+(()=>{
+'use strict';
+const detail=document.getElementById('mmhVaultDialogV449'),edit=document.getElementById('editModal');
+if(!detail||!edit)return;
+const px=n=>Math.max(0,Math.round(n))+'px';
+function update(){
+ const b=window.MMHWorkspaceDialogBoundsV2?.(null);
+ for(const [host,active] of [[detail,detail.classList.contains('show')&&!!detail.querySelector('.mmh-tx-detail-v800[data-mmh-tx-direction]')],[edit,edit.classList.contains('open')&&!!edit.querySelector('#editTxForm')]]){
+   host.classList.toggle('mmh-tx-bounded-v2',active&&!!b);
+   if(!active||!b)continue;
+   const vv=window.visualViewport;
+   const left=Math.max(b.left,vv?vv.offsetLeft+6:0),top=Math.max(b.top,vv?vv.offsetTop+6:0);
+   const right=Math.min(b.right,vv?vv.offsetLeft+vv.width-6:b.right),bottom=Math.min(b.bottom,vv?vv.offsetTop+vv.height-6:b.bottom);
+   for(const [k,v] of Object.entries({left,top,right:b.vw-Math.max(left+1,right),bottom:b.vh-Math.max(top+1,bottom)}))host.style.setProperty('--tx-bound-'+k,px(v));
+ }
+}
+window.MMHTransactionDialogLayoutV2=update;
+let raf=0;const schedule=()=>{if(!raf)raf=requestAnimationFrame(()=>{raf=0;update()})};
+for(const host of [detail,edit])new MutationObserver(schedule).observe(host,{attributes:true,attributeFilter:['class'],childList:true,subtree:true});
+window.addEventListener('resize',schedule,{passive:true});
+window.visualViewport?.addEventListener('resize',schedule,{passive:true});
+window.visualViewport?.addEventListener('scroll',schedule,{passive:true});
+window.addEventListener('mmhvault:page-visible',schedule);
+if(typeof ResizeObserver==='function'){const observer=new ResizeObserver(schedule);for(const id of ['header','bottomNav']){const e=document.getElementById(id);if(e)observer.observe(e)}}
+})();
+</script>
 </body>
 </html>
