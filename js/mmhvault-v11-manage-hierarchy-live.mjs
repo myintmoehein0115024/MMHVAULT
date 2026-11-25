@@ -802,9 +802,59 @@ function valid(){
   return !!path&&$('txType')?.value===path.type&&$('txGroup')?.value===path.group&&
     $('txCategory')?.value===path.category;
 }
+// Read-only projection of already loaded, owner-verified transaction rows.
+function fitRecentEntry(){
+  const list=$('mmhRecentEntryV2')?.querySelector('.mmh-recent-list');
+  if(!list||!$('transactions')?.classList.contains('active')||!$('txTabAdd')?.classList.contains('active'))return;
+  const mobile=window.matchMedia('(max-width:767px)').matches;
+  const nav=mobile?$('bottomNav'):null;
+  const bottom=nav?Math.min(window.innerHeight,nav.getBoundingClientRect().top):window.innerHeight;
+  const available=Math.max(108,Math.floor(bottom-list.getBoundingClientRect().top-16));
+  list.style.maxHeight=available+'px';
+}
+function renderRecentEntry(){
+  const f=$('txForm');if(!f)return;
+  let section=$('mmhRecentEntryV2');
+  if(!section){
+    section=elt('section');section.id='mmhRecentEntryV2';
+    const heading=elt('div','mmh-recent-heading');
+    const title=elt('strong');title.id='mmhRecentEntryHeadingV2';heading.append(title);
+    section.setAttribute('aria-labelledby',title.id);
+    section.append(heading,elt('div','mmh-recent-list'));f.after(section);
+    if(typeof ResizeObserver==='function')new ResizeObserver(fitRecentEntry).observe(f);
+    window.addEventListener('resize',fitRecentEntry);
+  }
+  section.querySelector('strong').textContent=tr('Recently added','最近添加','မကြာသေးမီက ထည့်ထားသော မှတ်တမ်းများ');
+  const list=section.querySelector('.mmh-recent-list');
+  list.replaceChildren();
+  fitRecentEntry();
+  const current=owner(),rows=window.transactions;
+  if(!ready()||!current||window.mmhWalletDataOwnerV191!==current||!Array.isArray(rows)||rows.some(row=>row?.user_id!==current)){
+    list.append(elt('div','mmh-recent-empty',tr('Loading recent records…','正在加载最近记录…','နောက်ဆုံးမှတ်တမ်းများ ဖတ်နေပါသည်…')));return;
+  }
+  const recent=rows.filter(t=>['Income','Expense','Transfer'].includes(t.type)&&!(typeof isLinkedInvestmentTx==='function'&&isLinkedInvestmentTx(t)))
+    .slice().sort((a,b)=>String(b.created_at||'').localeCompare(String(a.created_at||''))||String(b.id||'').localeCompare(String(a.id||''),undefined,{numeric:true})).slice(0,8);
+  if(!recent.length){list.append(elt('div','mmh-recent-empty',tr('No transactions yet','暂无交易记录','ငွေစာရင်း မရှိသေးပါ')));return;}
+  const amount=(value,account)=>{
+    if(value==null||value===''||!Number.isFinite(Number(value)))return '—';
+    const meta=safe(()=>typeof mmhVaultAccountMeta==='function'?mmhVaultAccountMeta(account):null);
+    const currency=meta&&!String(meta.id||'').startsWith('legacy_')?String(meta.currency||''):'';
+    return Number(value).toLocaleString(undefined,{maximumFractionDigits:6})+(currency?' '+currency:'');
+  };
+  for(const t of recent){
+    const income=t.type==='Income',expense=t.type==='Expense';
+    const row=elt('div','mmh-recent-row');row.dataset.direction=t.type;
+    const glyph=elt('span','mmh-recent-icon',income?'↙':expense?'↗':'⇄');glyph.setAttribute('aria-hidden','true');
+    const primary=elt('div','mmh-recent-primary',String(t.category||t.type));
+    const account=income?t.to_account:expense?t.from_account:[t.from_account,t.to_account].filter(Boolean).join(' → ');
+    const secondary=elt('div','mmh-recent-secondary',[account,t.tx_date].filter(Boolean).join(' · '));
+    const total=elt('div','mmh-recent-amount',income?'+'+amount(t.to_amount,t.to_account):expense?'−'+amount(t.from_amount,t.from_account):amount(t.from_amount,t.from_account)+' → '+amount(t.to_amount,t.to_account));
+    row.append(glyph,primary,secondary,total);list.append(row);
+  }
+}
 function schedule(){
   if(queued)return;queued=true;
-  queueMicrotask(()=>{queued=false;manager();form()});
+  queueMicrotask(()=>{queued=false;manager();form();renderRecentEntry()});
 }
 function retryConfirmedLink(target){
   if(!target||linkSync!==target||!ready()||target.state!=='needs-link')return;
@@ -974,34 +1024,44 @@ function boot(){
       html body.mmh-workspace-active:has(#transactions#transactions#transactions.active #txTabAdd.active) :is(.mmh-p24-account-menu,.mmh-p25-picker-menu){background:var(--tx-menu-surface)!important;background-image:none!important;border-color:var(--tx-menu-line)!important;color:var(--tx-menu-text)!important}
       html body.mmh-workspace-active:has(#transactions#transactions#transactions.active #txTabAdd.active) :is(.mmh-p24-account-menu,.mmh-p25-picker-menu)>button{color:var(--tx-menu-text)!important}
       html body.mmh-workspace-active:has(#transactions#transactions#transactions.active #txTabAdd.active) :is(.mmh-p24-account-menu,.mmh-p25-picker-menu)>button:is([aria-selected=true],:hover,:focus-visible){background:var(--tx-menu-selected)!important;color:var(--tx-menu-accent)!important}
-      /* One flexible canvas for all devices: grow actual controls and receipt,
-         not empty inter-row gaps. Natural scrolling remains on short screens. */
+      /* Compact entry controls; recent records occupy the available canvas. */
       ${root}#transactions#transactions.active:has(#txTabAdd.active){display:flex!important;flex-direction:column!important;min-height:var(--tx-entry-height)!important;height:auto!important;max-height:none!important;overflow:visible!important;background:var(--tv-card)!important}
-      ${root}#transactions#transactions:has(#txTabAdd.active) #txAddPanel{display:flex!important;flex-direction:column!important;flex:1 1 auto!important;min-height:0!important;max-height:none!important;width:100%!important}
-      ${root}#transactions#transactions:has(#txTabAdd.active) #txAddPanel>.panel{display:flex!important;flex-direction:column!important;flex:1 1 auto!important;min-height:0!important;max-height:none!important;padding:clamp(14px,2vw,28px)!important}
-      ${form}:has(#mmhHierarchyDirection){display:flex!important;flex-direction:column!important;flex:1 1 auto!important;width:100%!important;max-width:none!important;min-width:0!important;margin:0!important}
-      ${form} .formgrid{flex:1 1 auto!important;align-content:stretch!important;align-items:stretch!important;grid-auto-rows:minmax(min-content,1fr)!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:clamp(12px,1.8vh,20px) clamp(12px,2vw,28px)!important}
-      ${form} .formgrid>label:not([hidden]):not(.tx-field-hidden-v141):not(.mmh-p24-side-inactive){align-self:stretch!important;min-width:0!important;flex-direction:column!important;justify-content:flex-start!important;font-size:clamp(13px,1.1vw,16px)!important;gap:6px!important}
-      ${form} .formgrid>label>span:is(.mmh-p24-account-wrap,.mmh-p25-picker-shell){display:flex!important;flex-direction:column!important;flex:1 1 auto!important;min-width:0!important;min-height:46px!important;height:auto!important}
-      ${form} .formgrid :is(input:not([type=file]):not([type=hidden]):not([type=checkbox]):not([type=radio]),textarea,button.mmh-p24-account-trigger,button.mmh-p25-picker-trigger,select:not(.mmh-p24-native):not(.mmh-p25-picker-source)){width:100%!important;min-height:clamp(46px,6vh,66px)!important;height:auto!important;flex:1 1 auto!important;font-size:clamp(14px,1.1vw,17px)!important}
-      ${form} .formgrid>label:has(:is(#txDate,#txGroup,#txCategory,#fromAccount,#toAccount,#fromAmount,#toAmount,#txNote)):not([hidden]):not(.tx-field-hidden-v141):not(.mmh-p24-side-inactive){display:flex!important}
-      ${form} .formgrid :is(#txDate,#fromAmount,#toAmount,#txNote){height:auto!important;min-height:clamp(48px,6vh,66px)!important;flex:1 1 auto!important}
-      ${form} .formgrid>#receiptUploadV3300{display:flex!important;flex-direction:column!important;align-self:stretch!important;grid-column:1/-1!important;min-height:0!important;gap:8px!important}
-      ${form} #receiptDropzoneV3300{flex:1 1 auto!important;min-height:clamp(64px,10vh,100px)!important;align-items:center!important}
-      ${form} .actions{flex:0 0 auto!important;margin-top:clamp(12px,1.8vh,20px)!important}
+      ${root}#transactions#transactions:has(#txTabAdd.active) #txAddPanel{display:flex!important;flex-direction:column!important;flex:1 1 auto!important;min-height:0!important;width:100%!important}
+      ${root}#transactions#transactions:has(#txTabAdd.active) #txAddPanel>.panel{display:flex!important;flex-direction:column!important;flex:1 1 auto!important;min-height:0!important;max-height:none!important;padding:clamp(14px,1.6vw,24px)!important}
+      ${form}:has(#mmhHierarchyDirection){display:block!important;flex:0 0 auto!important;width:100%!important;max-width:none!important;min-width:0!important;margin:0!important}
+      ${form} .formgrid{align-content:start!important;align-items:start!important;grid-auto-rows:auto!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:12px 18px!important}
+      ${form} .formgrid :is(#txDate,#fromAmount,#toAmount,#txNote,button.mmh-p24-account-trigger,button.mmh-p25-picker-trigger,select:not(.mmh-p24-native):not(.mmh-p25-picker-source)){width:100%!important;height:46px!important;min-height:46px!important;max-height:46px!important;flex:none!important;font-size:14px!important}
+      ${form} #receiptDropzoneV3300{min-height:54px!important}
+      ${form} .actions{margin-top:12px!important}
+      ${root} #mmhRecentEntryV2{display:flex!important;flex-direction:column;min-width:0;flex:1 1 auto;margin-top:20px;padding-top:12px;border-top:1px solid var(--tv-line);color:var(--tv-text)}
+      ${root} #mmhRecentEntryV2 .mmh-recent-heading{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:0 0 8px}
+      ${root} #mmhRecentEntryV2 .mmh-recent-heading strong{font-size:14px;font-weight:650}
+      ${root} #mmhRecentEntryV2 .mmh-recent-list{min-height:0;overflow:auto;max-height:clamp(120px,32vh,420px);overscroll-behavior:contain}
+      ${root} #mmhRecentEntryV2 .mmh-recent-row{display:grid;grid-template-columns:28px minmax(0,1fr) minmax(0,1fr) auto;align-items:center;gap:10px;padding:9px 4px;border-bottom:1px solid var(--tv-line);min-width:0}
+      ${root} #mmhRecentEntryV2 .mmh-recent-row:last-child{border-bottom:0}
+      ${root} #mmhRecentEntryV2 .mmh-recent-icon{display:grid;place-items:center;width:28px;height:28px;background:var(--tv-raised);border-radius:6px;font-size:16px;color:var(--tv-accent)}
+      ${root} #mmhRecentEntryV2 .mmh-recent-row[data-direction=Income] :is(.mmh-recent-icon,.mmh-recent-amount){color:var(--tv-positive)}
+      ${root} #mmhRecentEntryV2 .mmh-recent-row[data-direction=Expense] :is(.mmh-recent-icon,.mmh-recent-amount){color:var(--tv-negative)}
+      ${root} #mmhRecentEntryV2 .mmh-recent-primary{font-size:13px;font-weight:600;overflow-wrap:anywhere;min-width:0}
+      ${root} #mmhRecentEntryV2 .mmh-recent-secondary{font-size:12px;color:var(--tv-muted);overflow-wrap:anywhere;min-width:0}
+      ${root} #mmhRecentEntryV2 .mmh-recent-amount{text-align:right;font-size:13px;font-weight:650;font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
+      ${root} #mmhRecentEntryV2 .mmh-recent-empty{padding:12px 0;font-size:12px;color:var(--tv-muted)}
       @media(max-width:767px){
         ${root}:has(#txTabAdd.active){--tx-entry-height:calc(100dvh - var(--wv-shell-top,var(--wv-top,64px)) - 76px - env(safe-area-inset-bottom,0px))}
         ${root}#transactions#transactions:has(#txTabAdd.active) #txAddPanel>.panel{padding:10px 14px 14px!important}
         ${form} #mmhHierarchyDirection .mmh-direction-buttons>button{flex:1 1 0!important}
-        ${form} .formgrid{gap:12px 10px!important}
-        ${form} .formgrid :is(input:not([type=file]):not([type=hidden]):not([type=checkbox]):not([type=radio]),textarea,button.mmh-p24-account-trigger,button.mmh-p25-picker-trigger,select:not(.mmh-p24-native):not(.mmh-p25-picker-source)){min-height:48px!important;font-size:16px!important}
+        ${form} .formgrid{gap:10px!important}
+        ${form} .formgrid :is(#txDate,#fromAmount,#toAmount,#txNote,button.mmh-p24-account-trigger,button.mmh-p25-picker-trigger,select:not(.mmh-p24-native):not(.mmh-p25-picker-source)){font-size:16px!important}
         ${form} .actions{display:grid!important;grid-template-columns:2fr 3fr!important;gap:8px!important}
-        ${form} .actions>button{min-height:48px!important;width:100%!important}
+        ${form} .actions>button{min-height:44px!important;width:100%!important}
+        ${root} #mmhRecentEntryV2{margin-top:14px;padding-top:10px}
+        ${root} #mmhRecentEntryV2 .mmh-recent-list{max-height:180px;overflow:auto}
+        ${root} #mmhRecentEntryV2 .mmh-recent-row{grid-template-columns:26px minmax(0,1fr) minmax(0,auto);gap:8px;padding:8px 0}
+        ${root} #mmhRecentEntryV2 .mmh-recent-secondary{grid-column:2;grid-row:2}
+        ${root} #mmhRecentEntryV2 .mmh-recent-amount{grid-column:3;grid-row:1/3;max-width:42vw}
+        ${root} #mmhRecentEntryV2 .mmh-recent-icon{grid-row:1/3}
       }
-      @media(max-width:480px){
-        ${form} .formgrid{grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:12px 10px!important}
-        ${form} .formgrid>label{grid-column:auto!important}
-      }
+      @media(max-width:480px){${form} .formgrid{grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:10px!important}${form} .formgrid>label{grid-column:auto!important}}
       @media(max-width:340px){${form} .formgrid{grid-template-columns:minmax(0,1fr)!important}}
     `;
     document.head.append(compact);
@@ -1110,9 +1170,12 @@ function boot(){
     window.transactions.every(row=>row?.user_id===owner())){
     historyReady=true;loadedOwner=owner();
   }
+  // Update after existing ledger rendering; never fetch or mutate transactions here.
+  for(const event of ['mmhvault:data-change','mmhvault:rendered','mmhvault:list-rendered'])
+    window.addEventListener(event,renderRecentEntry);
   schedule();
 }
-window.MMHV11HierarchyLive={version:'0.9.1-responsive-fill',refresh:schedule,onLedgerInserted:ledgerInserted};
+window.MMHV11HierarchyLive={version:'0.10-recent-entry',refresh:schedule,onLedgerInserted:ledgerInserted};
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot,{once:true});
 else boot();
 })();
