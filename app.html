@@ -4,6 +4,47 @@
 <head>
 <meta name="robots" content="noindex,nofollow,noarchive">
 <meta charset="utf-8"/>
+<style id="mmh-v2-early-boot-palette">
+html.mmh-v2-first-paint{--mmh-first-bg:#111720;--mmh-first-text:#eef1f6;--mmh-first-muted:#a3afbf;--mmh-first-accent:#a9c0f1;--mmh-first-track:#344052;background:#111720!important;color-scheme:dark}
+html.mmh-v2-first-paint[data-mmh-first-theme="light"]{--mmh-first-bg:#f4f7fb;--mmh-first-text:#202b3d;--mmh-first-muted:#596778;--mmh-first-accent:#315fba;--mmh-first-track:#d8dfe9;background:#f4f7fb!important;color-scheme:light}
+html.mmh-v2-first-paint body:not(#mmh-first-a):not(#mmh-first-b):not(#mmh-first-c):not(#mmh-first-d){background:var(--mmh-first-bg)!important;background-image:none!important;color:var(--mmh-first-text)!important}
+html.mmh-v2-first-paint body:not(#mmh-first-a):not(#mmh-first-b):not(#mmh-first-c):not(#mmh-first-d)::before,html.mmh-v2-first-paint body:not(#mmh-first-a):not(#mmh-first-b):not(#mmh-first-c):not(#mmh-first-d)::after{background:none!important;box-shadow:none!important}
+html.mmh-v2-first-paint body #dataLoadOverlayV384#dataLoadOverlayV384.show,html.mmh-v2-first-paint body #mmhvaultAppBootGuardV3282#mmhvaultAppBootGuardV3282{background:var(--mmh-first-bg)!important;background-image:none!important;color:var(--mmh-first-text)!important}
+</style>
+<script id="mmh-v2-early-boot-language">
+(()=>{
+ const root=document.documentElement;root.classList.add('mmh-v2-first-paint');
+ const stored=k=>{try{return localStorage.getItem(k)}catch(_){return null}};
+ const lang=()=>{const x=stored('mmhvault_language_v3363');return x==='zh'||x==='my'?x:'en'};
+ const locale=()=>lang()==='zh'?'zh-CN':lang();
+ const mode=stored('myfinance_theme')||'system';root.dataset.mmhFirstTheme=mode==='light'||(mode!=='dark'&&window.matchMedia?.('(prefers-color-scheme: light)').matches)?'light':'dark';root.lang=locale();
+ const labels={
+ workspace:['Loading your private finance workspace…','正在加载您的私人财务空间…','သင့်ကိုယ်ပိုင် ငွေကြေးလုပ်ငန်းခွင်ကို ရယူနေပါသည်…'],
+ title:['Loading your finance data…','正在加载您的财务数据…','သင့်ငွေကြေးဒေတာကို ရယူနေပါသည်…'],
+ sync:['Syncing your private cloud records.','正在同步您的私人云端数据。','သင့်ကိုယ်ပိုင် Cloud မှတ်တမ်းများကို ထပ်တူပြုနေပါသည်။'],
+ loading:['Loading your private cloud records…','正在加载您的私人云端数据…','သင့်ကိုယ်ပိုင် Cloud မှတ်တမ်းများကို ရယူနေပါသည်…'],
+ refreshing:['Refreshing your private cloud records…','正在刷新您的私人云端数据…','သင့်ကိုယ်ပိုင် Cloud မှတ်တမ်းများကို ပြန်လည်ရယူနေပါသည်…'],
+ checking:['Checking your data…','正在校验您的数据…','သင့်ဒေတာကို စစ်ဆေးနေပါသည်…'],
+ preparing:['Preparing your workspace…','正在准备您的工作区…','သင့်လုပ်ငန်းခွင်ကို ပြင်ဆင်နေပါသည်…'],
+ complete:['Data loaded.','数据加载完成。','ဒေတာ ရယူပြီးပါပြီ။'],
+ progress:['Initialization progress','初始化进度','စတင်ပြင်ဆင်မှု တိုးတက်မှု'],
+ welcome:['Welcome back','欢迎回来','ပြန်လည်ကြိုဆိုပါတယ်'],
+ welcomeSub:['Your MMHVAULT dashboard is getting ready.','您的 MMHVAULT 仪表盘正在准备中。','သင့် MMHVAULT ခြုံငုံသုံးသပ်ချက်ကို ပြင်ဆင်နေပါသည်။'],
+ welcomeReady:['Loading your latest financial data…','正在加载最新财务数据…','သင့်နောက်ဆုံး ငွေကြေးဒေတာကို ရယူနေပါသည်…']
+ };
+ const t=key=>labels[key]?.[lang()==='zh'?1:lang()==='my'?2:0]||key;
+ let stage='sync',progress=0;
+ function update(){const put=(sel,val)=>{const e=document.querySelector(sel);if(e&&e.textContent!==val)e.textContent=val};
+ put('#mmhBootWorkspaceTextV2',t('workspace'));put('#dataLoadOverlayV384 .data-load-title-v384',t('title'));put('#dataLoadSubV384',t(stage));put('#mmhDataProgressTextV2',progress+'%');
+ const bar=document.getElementById('mmhDataProgressV2');if(bar){bar.value=progress;bar.setAttribute('aria-label',t('progress'))}
+ put('#welcomeScreen .welcome-title',t('welcome'));put('#welcomeScreen .welcome-sub',t('welcomeSub'));put('#welcomeScreen .welcome-ready',t('welcomeReady'));
+ }
+ window.mmhV2LoadStage=(value,key)=>{progress=Math.max(0,Math.min(100,value));stage=key;update()};
+ window.mmhV2LoadLocale=update;
+ window.addEventListener('mmhvault-language-change',update);document.addEventListener('DOMContentLoaded',update,{once:true});
+})();
+</script>
+
 <!-- P9.60: Close transient popovers before hard-refresh and present one calm boot surface. -->
 <style id="mmhvault-p960-quiet-refresh">
 html.mmh-p960-quiet-loading body #moreNavMenu#moreNavMenu#moreNavMenu,
@@ -14,13 +55,13 @@ html.mmh-p960-quiet-loading body #welcomeScreen#welcomeScreen{
 }
 html.mmh-p960-quiet-loading body #dataLoadOverlayV384.show{
   position:fixed!important;inset:0!important;z-index:30020!important;display:flex!important;
-  background:radial-gradient(ellipse at 54% 15%,#142e48 0%,#091729 43%,#030915 100%)!important;
+  background:var(--mmh-first-bg,#111720)!important;
   -webkit-backdrop-filter:none!important;backdrop-filter:none!important;pointer-events:auto!important;
 }
 html.mmh-p960-quiet-loading body #dataLoadOverlayV384.show .data-load-card-v384{
   width:min(360px,calc(100vw - 44px))!important;max-width:100%!important;padding:26px 24px!important;
   border:1px solid rgba(194,166,94,.3)!important;border-radius:23px!important;
-  background:linear-gradient(145deg,rgba(21,54,77,.95),rgba(5,21,40,.98))!important;
+  background:transparent!important;
   box-shadow:0 26px 76px rgba(0,0,0,.38),inset 0 1px rgba(255,255,255,.08)!important;
   text-align:center!important;
 }
@@ -10957,13 +10998,13 @@ html.mmh-desktop-compact-v11110 body.mmh-workspace-active #moreNavMenu.more-nav-
 <div id="mmhvaultAppBootGuardV3282" style="position:fixed;inset:0;z-index:30000;display:none;align-items:center;justify-content:center;background:#050a18;color:#dce8ff;font-family:Arial,sans-serif;padding:24px;text-align:center;">
 <div style="max-width:420px;border:1px solid rgba(78,164,255,.25);border-radius:18px;padding:24px 22px;background:rgba(10,20,42,.92);box-shadow:0 18px 60px rgba(0,0,0,.4);">
 <img class="mmh-v2-transition-logo" src="images/mmhvault-v2-auth-mark.webp" width="48" height="48" alt="">
-<div style="margin-top:8px;color:#9db0cf;font-size:13px;line-height:1.5;">Loading your private finance workspace…</div>
+<div id="mmhBootWorkspaceTextV2" style="margin-top:8px;color:#9db0cf;font-size:13px;line-height:1.5;">Loading your private finance workspace…</div>
 </div>
 </div>
 <div aria-hidden="true" class="data-load-overlay-v384" id="dataLoadOverlayV384">
 <div class="data-load-card-v384">
 <img class="mmh-v2-transition-logo" src="images/mmhvault-v2-auth-mark.webp" width="48" height="48" alt="">
-<div class="data-load-spinner-v384"></div>
+<div class="mmh-data-progress-row-v2"><progress id="mmhDataProgressV2" max="100" value="0" aria-label="Initialization progress"></progress><span id="mmhDataProgressTextV2" aria-hidden="true">0%</span></div>
 <div class="data-load-title-v384">Loading your finance data…</div>
 <div class="data-load-sub-v384" id="dataLoadSubV384">Syncing your private cloud records.</div>
 </div>
@@ -13996,7 +14037,7 @@ function setPage(p){
   if(["dashboard","transactions","exchange","invest"].includes(p))scheduleRenderV3441();
   return p;
 }
-function applyTheme(theme){const mode=['system','light','dark'].includes(theme)?theme:'system',light=mode==='light'||(mode==='system'&&window.matchMedia('(prefers-color-scheme: light)').matches),previous=document.body.dataset.mmhThemeMode,wasLight=document.body.classList.contains('light');document.body.dataset.mmhThemeMode=mode;document.body.classList.toggle('light',light);document.querySelectorAll('input[name="theme"]').forEach(r=>r.checked=r.value===mode);try{localStorage.setItem('myfinance_theme',mode)}catch(_e){}if(previous!==mode||wasLight!==light)window.dispatchEvent(new Event('mmhvault:theme-mode-changed'));}
+function applyTheme(theme){const mode=['system','light','dark'].includes(theme)?theme:'system',light=mode==='light'||(mode==='system'&&window.matchMedia('(prefers-color-scheme: light)').matches),previous=document.body.dataset.mmhThemeMode,wasLight=document.body.classList.contains('light');document.body.dataset.mmhThemeMode=mode;document.body.classList.toggle('light',light);document.documentElement.dataset.mmhFirstTheme=light?'light':'dark';document.querySelectorAll('input[name="theme"]').forEach(r=>r.checked=r.value===mode);try{localStorage.setItem('myfinance_theme',mode)}catch(_e){}if(previous!==mode||wasLight!==light)window.dispatchEvent(new Event('mmhvault:theme-mode-changed'));}
 function initTheme(){let t='system';try{t=localStorage.getItem('myfinance_theme')||'system'}catch(_e){}applyTheme(t);document.querySelectorAll('input[name="theme"]').forEach(r=>{if(r.dataset.mmhThemeBound)return;r.dataset.mmhThemeBound='1';r.addEventListener('change',()=>{if(typeof window.mmhSetWorkspaceThemeV2==='function')window.mmhSetWorkspaceThemeV2(r.value);else applyTheme(r.value)})});if(!window.__mmhSystemThemeBoundV2){window.__mmhSystemThemeBoundV2=true;const media=window.matchMedia('(prefers-color-scheme: light)'),sync=()=>{if(document.body.dataset.mmhThemeMode==='system')applyTheme('system')};if(media.addEventListener)media.addEventListener('change',sync);else media.addListener?.(sync);window.addEventListener('pageshow',sync);}}
 function editTheme(){initTheme();}
 function showAppBootErrorV328(message){
@@ -14198,7 +14239,7 @@ async function forgotPassword(){
 window.myFinanceLogin=auth;window.myFinanceCreateAccount=createAccount;window.myFinanceForgotPassword=forgotPassword;
 function showWelcome(){
  const w=$("welcomeScreen"); if(!w) return;
- w.classList.add("show"); w.setAttribute("aria-hidden","false");
+ window.mmhV2LoadLocale?.();w.classList.add("show"); w.setAttribute("aria-hidden","false");
  const hide=()=>{w.classList.remove("show");w.setAttribute("aria-hidden","true");};
  window.setTimeout(hide,1900);
 }
@@ -14394,7 +14435,9 @@ function setDataLoadingV384(show,sub="Syncing your private cloud records."){
   document.documentElement.classList.toggle('mmh-p960-quiet-loading',!!show && !/^Refreshing /i.test(sub));
   const el=$("dataLoadOverlayV384"),txt=$("dataLoadSubV384");
   if(txt)txt.textContent=sub;
+  if(show){window.mmhV2LoadStage?.(10,/^Refreshing /i.test(sub)?"refreshing":"loading");}
   if(el){el.classList.toggle("show",!!show);el.setAttribute("aria-hidden",show?"false":"true");}
+  if(!show)document.documentElement.classList.remove("mmh-v2-first-paint");
 }
 function setDataErrorV384(message=""){lastLoadErrorV384=message||"";const box=$("dataErrorBannerV384"),msg=$("dataErrorMsgV384");if(msg)msg.textContent=message||"";if(box)box.classList.toggle("show",!!message);}
 function retryLoadAllV384(){setDataErrorV384("");return loadAll({force:true});}
@@ -14425,7 +14468,9 @@ async function loadAll(opts={}){
       if(b.error){console.error("Investments load failed",b.error);hardErrors.push("Investments: "+b.error.message);}
       if(w.error)hardErrors.push("Wallet movements: "+w.error.message);if(c.error)hardErrors.push("Custom investments: "+c.error.message);
       if(hardErrors.length)throw new Error(hardErrors.join(" "));
+      if(!quietPresentation)window.mmhV2LoadStage?.(65,'checking');
       if((a.data||[]).some(x=>x.user_id!==loadOwner)||(b.data||[]).some(x=>x.user_id!==loadOwner)||(c.data||[]).some(x=>x.user_id!==loadOwner)||(w.data||[]).some(x=>x.user_id!==loadOwner)||(r.data&&r.data.user_id!==loadOwner))throw Error('Unexpected record owner');
+      if(!quietPresentation)window.mmhV2LoadStage?.(85,'preparing');
       transactions=a.data||[];investments=b.data||[];window.transactions=transactions;window.investments=investments;window.mmhWalletMovementsV174=w.data||[];window.mmhWalletDataOwnerV191=loadOwner;window.mmhCustomInvestRecords=c.data||[];window.mmhCustomInvestLoaded=true;
       mmhVaultRecoverOwnedLegacyConfigV1(loadOwner);
       mmhVaultRestoreReferencedBuiltinAccountsV1(loadOwner);
@@ -14433,7 +14478,7 @@ async function loadAll(opts={}){
       if(r.error){console.warn("Exchange rates load skipped",r.error);optionalErrors.push("Exchange Rates: "+r.error.message);}else if(r.data)rates=r.data;window.rates=rates;
       if(!r.error){window.__mmhExchangeRawRatesV2={owner:loadOwner,row:r.data||null};try{window.MMHExchangeEffectiveFXV2?.recompute(false);}catch(_){}}
       try{loadRateInputs();}catch(e){console.warn("Rate input render skipped",e);}
-      try{render();}catch(e){console.error("MMHVAULT render failed after cloud load",e);}
+      try{render();if(!quietPresentation)window.mmhV2LoadStage?.(100,'complete');}catch(e){console.error("MMHVAULT render failed after cloud load",e);}
       if(optionalErrors.length)console.warn("Optional cloud data warning",optionalErrors);
       try{window.transactions=transactions;window.investments=investments;window.rates=rates;}catch(_e){}
       window.__mmhLastCloudLoadAtV1235=Date.now();
@@ -19843,7 +19888,7 @@ function myWorkspaceTextV2(base,el){
 }
 function translateAttributes(root){
   const applyAttrs=el=>{
-    if(!el?.getAttribute)return;
+    if(!el?.getAttribute||el.closest?.('#mmhNotifyPopoverV560,.wv-choice-menu-v2,.mmh-notification-dialog-v149,#wvThemeToggle,.wv-flag-wrap,#dataLoadOverlayV384,#mmhP947AccountGuard'))return;
     ['placeholder','title','aria-label'].forEach(a=>{
       const v=el.getAttribute(a); if(!v)return;
       const key='i18n'+a.replace(/-([a-z])/g,(_,c)=>c.toUpperCase());
@@ -19926,6 +19971,7 @@ function translateTextNode(n){
   const current=n.nodeValue.trim();if(!current||!n.parentElement||n.parentElement.closest('script,style,textarea,[contenteditable="true"]'))return;
 
   const parent=n.parentElement;
+  if(parent.closest('#mmhNotifyPopoverV560,.wv-choice-menu-v2,.mmh-notification-dialog-v149,#dataLoadOverlayV384,#mmhBootWorkspaceTextV2,#welcomeScreen .welcome-title,#welcomeScreen .welcome-sub,#welcomeScreen .welcome-ready,#mmhP947AccountGuard'))return; // These surfaces own their translations and user content.
   // Never translate member-entered account/category names or machine-readable finance types in the new dashboard.
   if(parent.closest('#mmhPremiumDashboardV500 .pf-tx-copy-v500,#mmhPremiumDashboardV500 .pf-tag-v500,#mmhPremiumDashboardV500 .pf-name-v500,#mmhPremiumDashboardV500 .pf-asset-v500,#mmhPremiumDashboardV500 .pf-signal-card-v150[data-signal-action-v150="category"] b,#header .wvLiveClockV2'))return;
   let rec=mmhI18nTextStateV135.get(n);
@@ -23226,7 +23272,8 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
 (()=>{'use strict';
   if(window.__mmhNotifyPopoverV900)return;window.__mmhNotifyPopoverV900=true;
   const $=id=>document.getElementById(id);
-  const tr=(en,zh)=>(localStorage.getItem('mmhvault_language_v3363')||'en')==='zh'?zh:en;
+  const notifyMyV2={"Notifications":"အသိပေးချက်များ","Financial alerts, personal messages & announcements":"ငွေကြေးသတိပေးချက်များ၊ ကိုယ်ရေးစာများနှင့် ကြေညာချက်များ","Refresh":"ပြန်လည်ရယူရန်","All":"အားလုံး","Unread":"မဖတ်ရသေး","Mark all read":"အားလုံး ဖတ်ပြီးအဖြစ် သတ်မှတ်ရန်","Open a message to view details.":"အသေးစိတ်ကြည့်ရန် စာတစ်စောင်ကို ဖွင့်ပါ။","Device check":"စက်ပစ္စည်း စစ်ဆေးရန်","Test push":"အသိပေးချက် စမ်းသပ်ရန်","Enable system alerts":"စနစ်အသိပေးချက် ဖွင့်ရန်","Preparing alerts…":"အသိပေးချက်များ ပြင်ဆင်နေသည်…","Background alerts on":"နောက်ခံအသိပေးချက် ဖွင့်ထားသည်","Fix notification permission":"အသိပေးချက် ခွင့်ပြုချက် ပြင်ရန်","Finishing background setup…":"နောက်ခံစနစ် ပြင်ဆင်နေသည်…","Repair background alerts":"နောက်ခံအသိပေးချက် ပြင်ရန်","Enable background alerts":"နောက်ခံအသိပေးချက် ဖွင့်ရန်","Add to Home Screen for alerts":"အသိပေးချက်အတွက် ပင်မမျက်နှာပြင်သို့ ထည့်ပါ","Background alerts unavailable":"နောက်ခံအသိပေးချက် မရနိုင်ပါ","Enable background push":"နောက်ခံ Push ဖွင့်ရန်","Unable to update background alerts.":"နောက်ခံအသိပေးချက် မပြင်ဆင်နိုင်ပါ။","Yes":"ဟုတ်ကဲ့","No":"မဟုတ်ပါ","N/A":"မသက်ဆိုင်ပါ","Ready":"အသင့်ဖြစ်ပါပြီ","Permission blocked":"ခွင့်ပြုချက် ပိတ်ထားသည်","Home Screen required":"ပင်မမျက်နှာပြင် လိုအပ်သည်","Push worker not active":"Push worker မလည်ပတ်ပါ","Permission granted, subscription missing":"ခွင့်ပြုထားသော်လည်း စာရင်းမသွင်းရသေးပါ","Permission not requested":"ခွင့်ပြုချက် မတောင်းရသေးပါ","Background alerts off":"နောက်ခံအသိပေးချက် ပိတ်ထားသည်","Subscription needs repair":"စာရင်းသွင်းမှု ပြင်ရန်လိုသည်","Check failed":"စစ်ဆေးမှု မအောင်မြင်ပါ","Unsupported":"မပံ့ပိုးပါ","Enabled":"ဖွင့်ထားသည်","Disabled":"ပိတ်ထားသည်","Not registered":"စာရင်းမသွင်းရသေးပါ","Server check unavailable":"ဆာဗာ စစ်ဆေးမရပါ","Notification / Push device check":"အသိပေးချက် / Push စက်ပစ္စည်း စစ်ဆေးမှု","Version":"ဗားရှင်း","Device":"စက်ပစ္စည်း","Secure context":"လုံခြုံသော ပတ်ဝန်းကျင်","Notification permission":"အသိပေးချက် ခွင့်ပြုချက်","Home Screen mode":"ပင်မမျက်နှာပြင် မုဒ်","Push Service Worker":"Push Service Worker","Active (isolated scope)":"လည်ပတ်နေသည် (သီးခြားနယ်ပယ်)","Not active":"မလည်ပတ်ပါ","Dedicated Push scope":"သီးခြား Push နယ်ပယ်","Cross-tab Push lock":"တက်ဘ်များကြား Push လော့ခ်","Browser lock active":"ဘရောက်ဇာ လော့ခ် ဖွင့်ထားသည်","Same-tab fallback":"တက်ဘ်တစ်ခုတည်း အစားထိုးစနစ်","Legacy sw.js registration":"ယခင် sw.js စာရင်းသွင်းမှု","Detected — left untouched":"တွေ့ရှိသည် — မပြောင်းလဲပါ","Older root-scope Push worker":"ယခင် root-scope Push worker","Detected — registration left untouched":"တွေ့ရှိသည် — စာရင်းသွင်းမှု မပြောင်းလဲပါ","Older root Push subscription":"ယခင် root Push စာရင်းသွင်းမှု","Present":"ရှိသည်","Older subscription account":"ယခင် စာရင်းသွင်းအကောင့်","Current account":"လက်ရှိအကောင့်","Other or unbound — left untouched":"အခြားအကောင့် သို့မဟုတ် မချိတ်ဆက်ရသေး — မပြောင်းလဲပါ","Browser subscription":"ဘရောက်ဇာ စာရင်းသွင်းမှု","Missing":"မရှိပါ","Server binding":"ဆာဗာ ချိတ်ဆက်မှု","Push keys match":"Push သော့များ ကိုက်ညီမှု","Overall state":"အခြေအနေ အနှစ်ချုပ်","Next step":"နောက်တစ်ဆင့်","Device Push Check":"စက်ပစ္စည်း Push စစ်ဆေးမှု","Unable to check this device.":"ဤစက်ပစ္စည်းကို စစ်ဆေးမရပါ။","Test push sent. It should arrive on this device shortly.":"စမ်းသပ် Push ပို့ပြီးပါပြီ။ ဤစက်ပစ္စည်းတွင် မကြာမီ ရောက်ရှိပါမည်။","Background alerts":"နောက်ခံအသိပေးချက်များ","Unable to send a test push.":"စမ်းသပ် Push မပို့နိုင်ပါ။","Push test":"Push စမ်းသပ်မှု","Category":"အမျိုးအစား","Monthly spending is above last month":"ယခုလ အသုံးစရိတ် ယခင်လထက် များနေသည်","Monthly budget exceeded":"လစဉ် ဘတ်ဂျက် ကျော်လွန်နေသည်","Monthly budget watch":"လစဉ် ဘတ်ဂျက် သတိပေးချက်","Savings rate dropped":"ငွေစုနှုန်း ကျဆင်းနေသည်","Recurring transaction":"ပုံမှန် ငွေပေးချေမှု","Notification":"အသိပေးချက်","The support agent sent you a photo.":"အကူအညီပေးသူက ဓာတ်ပုံတစ်ပုံ ပို့ထားသည်။","The support agent sent you a file.":"အကူအညီပေးသူက ဖိုင်တစ်ခု ပို့ထားသည်။","Your support conversation has been updated.":"အကူအညီ စကားဝိုင်းတွင် စာအသစ် ရှိပါသည်။","Customer support reply":"ဖောက်သည်ဝန်ဆောင်မှု အကြောင်းပြန်စာ","This month":"ယခုလ","Last month":"ယခင်လ","Change":"ပြောင်းလဲမှု","vs. previous month":"ယခင်လနှင့် နှိုင်းယှဉ်","Spent":"သုံးစွဲပြီး","Budget":"ဘတ်ဂျက်","Usage":"အသုံးပြုမှု","Threshold":"သတ်မှတ်ချက်","Alert threshold":"သတိပေးချက် သတ်မှတ်ချက်","Due today":"ယနေ့ သတ်မှတ်ရက်","Due date":"သတ်မှတ်ရက်","Status":"အခြေအနေ","Frequency":"အကြိမ်ရေ","Financial alert":"ငွေကြေး သတိပေးချက်","Announcement":"ကြေညာချက်","Personal notification":"ကိုယ်ရေး အသိပေးချက်","Open related page":"သက်ဆိုင်ရာ စာမျက်နှာ ဖွင့်ရန်","Continue from this notification.":"ဤအသိပေးချက်မှ ဆက်လက်လုပ်ဆောင်ပါ။","Important":"အရေးကြီး","Watch":"သတိထားရန်","Info":"အချက်အလက်","Close":"ပိတ်ရန်","Open":"ဖွင့်ရန်","No unread notifications.":"မဖတ်ရသေးသော အသိပေးချက် မရှိပါ။","No notifications yet.":"အသိပေးချက် မရှိသေးပါ။","Financial":"ငွေကြေး","Personal":"ကိုယ်ရေး","Read":"ဖတ်ပြီး","Loading…":"ရယူနေသည်…","Unable to load notifications.":"အသိပေးချက်များ ရယူမရပါ။","Device registration is complete. Run Test push to verify provider delivery and the notification click path.":"စက်ပစ္စည်း စာရင်းသွင်းပြီးပါပြီ။ အသိပေးချက်ရောက်ရှိမှုနှင့် ဖွင့်နိုင်မှုကို စမ်းသပ် Push ဖြင့် စစ်ဆေးပါ။","Add MMHVAULT to the iPhone/iPad Home Screen, open it from the Home Screen, then enable Background alerts.":"MMHVAULT ကို iPhone/iPad ပင်မမျက်နှာပြင်သို့ ထည့်ပါ။ ထိုနေရာမှ ဖွင့်ပြီး နောက်ခံအသိပေးချက် ဖွင့်ပါ။","Allow notifications in browser/system settings, return to MMHVAULT, then tap Repair/Enable background alerts.":"ဘရောက်ဇာ/စနစ် ဆက်တင်တွင် အသိပေးချက် ခွင့်ပြုပါ။ MMHVAULT သို့ပြန်လာပြီး နောက်ခံအသိပေးချက် ပြင်ရန်/ဖွင့်ရန် နှိပ်ပါ။","This environment cannot provide Web Push. Use a supported secure browser context.":"ဤပတ်ဝန်းကျင်တွင် Web Push မရနိုင်ပါ။ ပံ့ပိုးသော လုံခြုံသည့် ဘရောက်ဇာကို အသုံးပြုပါ။","Reload MMHVAULT once. If the Push worker still does not become active, close other MMHVAULT tabs and reopen the app.":"MMHVAULT ကို တစ်ကြိမ် ပြန်ဖွင့်ပါ။ Push worker မလည်ပတ်သေးလျှင် အခြား MMHVAULT တက်ဘ်များ ပိတ်ပြီး အက်ပ်ကို ပြန်ဖွင့်ပါ။","Background alerts are disabled on the server for this browser identity. Tap Enable background alerts whenever you want to turn them back on.":"ဤဘရောက်ဇာအတွက် နောက်ခံအသိပေးချက်ကို ဆာဗာတွင် ပိတ်ထားသည်။ ပြန်ဖွင့်လိုပါက နောက်ခံအသိပေးချက် ဖွင့်ရန် နှိပ်ပါ။","Tap Enable/Repair background alerts to finish this device registration. Chrome/Edge Push should be tested in a normal window, not Incognito/InPrivate.":"စက်ပစ္စည်း စာရင်းသွင်းမှု ပြီးစီးရန် နောက်ခံအသိပေးချက် ဖွင့်ရန်/ပြင်ရန် နှိပ်ပါ။ Chrome/Edge Push ကို ပုံမှန်ဝင်းဒိုးတွင် စမ်းသပ်ပါ၊ Incognito/InPrivate မသုံးပါနှင့်။","A legacy root-scope worker was detected and intentionally left registered; Notification 2.0 never unregisters sw.js.":"ယခင် root-scope worker တွေ့ရှိပြီး မပြောင်းလဲဘဲ ထားရှိသည်။ Notification 2.0 သည် sw.js စာရင်းသွင်းမှုကို မဖျက်ပါ။","This account also has an older root-scope Push subscription. Enable/Repair or Disable background alerts once to retire that obsolete subscription safely; the legacy worker registration itself remains untouched.":"ဤအကောင့်တွင် ယခင် root-scope Push စာရင်းသွင်းမှု ရှိသည်။ အဟောင်းကို လုံခြုံစွာ ရပ်တန့်ရန် နောက်ခံအသိပေးချက် ဖွင့်ရန်/ပြင်ရန် သို့မဟုတ် ပိတ်ရန် တစ်ကြိမ် နှိပ်ပါ။ ယခင် worker စာရင်းသွင်းမှု မပြောင်းလဲပါ။","An older root-scope Push subscription exists but is not bound to the current signed-in account. MMHVAULT will not modify another account’s server record.":"ယခင် root-scope Push စာရင်းသွင်းမှု ရှိသော်လည်း လက်ရှိအကောင့်နှင့် မချိတ်ဆက်ထားပါ။ MMHVAULT သည် အခြားအကောင့်၏ ဆာဗာမှတ်တမ်းကို မပြောင်းလဲပါ။"};
+  const tr=(en,zh,my)=>{const lang=localStorage.getItem('mmhvault_language_v3363')||'en';return lang==='zh'?zh:lang==='my'?(my??notifyMyV2[en]??en):en};
   const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   let popup=null,bell=null,list=null,rows=[],loading=false,mode='all',owner='',request=0,lastLoaded=0,queuedLoad=false,queuedShowLoading=false,pollTimer=0;
   const currentOwner=()=>typeof currentSessionUser!=='undefined'?(currentSessionUser?.id||''):'';
@@ -23337,32 +23384,37 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
       if(row.kind==='category_vs_last_month'){
         const cat=String(m.category||tr('Category','分类'));
         const pct=Number(m.change_pct||0);
-        return{title:tr(`${cat} spending is above last month`,`${cat} 开销已超过上月`),body:tr(`${cat} is ${money(m.current_usd)} this month vs ${money(m.previous_usd)} last month (${pct>=0?'+':''}${pct.toFixed(1)}%). Internal transfers, Data Adjustment, loans and linked investment cash flow are excluded.`,`${cat} 本月为 ${money(m.current_usd)}，上月为 ${money(m.previous_usd)}（${pct>=0?'+':''}${pct.toFixed(1)}%）。内部 Transfer、Data Adjustment、Loan 和 linked investment cash flow 均不计入。`)};
+        return{title:tr(`${cat} spending is above last month`,`${cat} 开销已超过上月`,`${cat} အသုံးစရိတ် ယခင်လထက် များနေသည်`),body:tr(`${cat} is ${money(m.current_usd)} this month vs ${money(m.previous_usd)} last month (${pct>=0?'+':''}${pct.toFixed(1)}%). Internal transfers, Data Adjustment, loans and linked investment cash flow are excluded.`,`${cat} 本月为 ${money(m.current_usd)}，上月为 ${money(m.previous_usd)}（${pct>=0?'+':''}${pct.toFixed(1)}%）。内部 Transfer、Data Adjustment、Loan 和 linked investment cash flow 均不计入。`,`${cat} ယခုလ ${money(m.current_usd)}၊ ယခင်လ ${money(m.previous_usd)} (${pct>=0?'+':''}${pct.toFixed(1)}%) ဖြစ်သည်။ အတွင်းငွေလွှဲမှု၊ ဒေတာပြင်ဆင်မှု၊ ချေးငွေနှင့် ဆက်စပ်ရင်းနှီးမြှုပ်နှံမှု ငွေဝင်ငွေထွက် မပါဝင်ပါ။`)};
       }
       if(row.kind==='total_spending_vs_last_month'){
         const pct=Number(m.change_pct||0);
-        return{title:tr('Monthly spending is above last month','本月开销已超过上月'),body:tr(`Ordinary spending is ${money(m.current_usd)} this month vs ${money(m.previous_usd)} last month (${pct>=0?'+':''}${pct.toFixed(1)}%).`,`本月普通开销为 ${money(m.current_usd)}，上月为 ${money(m.previous_usd)}（${pct>=0?'+':''}${pct.toFixed(1)}%）。`)};
+        return{title:tr('Monthly spending is above last month','本月开销已超过上月'),body:tr(`Ordinary spending is ${money(m.current_usd)} this month vs ${money(m.previous_usd)} last month (${pct>=0?'+':''}${pct.toFixed(1)}%).`,`本月普通开销为 ${money(m.current_usd)}，上月为 ${money(m.previous_usd)}（${pct>=0?'+':''}${pct.toFixed(1)}%）。`,`ပုံမှန်အသုံးစရိတ် ယခုလ ${money(m.current_usd)}၊ ယခင်လ ${money(m.previous_usd)} (${pct>=0?'+':''}${pct.toFixed(1)}%) ဖြစ်သည်။`)};
       }
       if(row.kind==='budget_category_threshold'){
         const cat=String(m.category||tr('Category','分类')),usage=Number(m.usage||0),threshold=Number(m.threshold||80),currency=String(m.currency||'USD');
-        return{title:threshold>=100?tr(`${cat} budget exceeded`,`${cat} 分类预算已超出`):tr(`${cat} budget watch`,`${cat} 分类预算提醒`),body:tr(`${cat} has used ${usage.toFixed(1)}% of its budget: ${moneyCode(m.spent,currency)} spent of ${moneyCode(m.budget,currency)}.`,`${cat} 已使用分类预算的 ${usage.toFixed(1)}%：已支出 ${moneyCode(m.spent,currency)} / 预算 ${moneyCode(m.budget,currency)}。`)};
+        return{title:threshold>=100?tr(`${cat} budget exceeded`,`${cat} 分类预算已超出`,`${cat} ဘတ်ဂျက် ကျော်လွန်နေသည်`):tr(`${cat} budget watch`,`${cat} 分类预算提醒`,`${cat} ဘတ်ဂျက် သတိပေးချက်`),body:tr(`${cat} has used ${usage.toFixed(1)}% of its budget: ${moneyCode(m.spent,currency)} spent of ${moneyCode(m.budget,currency)}.`,`${cat} 已使用分类预算的 ${usage.toFixed(1)}%：已支出 ${moneyCode(m.spent,currency)} / 预算 ${moneyCode(m.budget,currency)}。`,`${cat} ဘတ်ဂျက်၏ ${usage.toFixed(1)}% သုံးစွဲပြီးပါပြီ။ သုံးစွဲငွေ ${moneyCode(m.spent,currency)} / ဘတ်ဂျက် ${moneyCode(m.budget,currency)}။`)};
       }
       if(row.kind==='budget_month_threshold'){
         const usage=Number(m.usage||0),threshold=Number(m.threshold||80),currency=String(m.currency||'USD');
-        return{title:threshold>=100?tr('Monthly budget exceeded','月度预算已超出'):tr('Monthly budget watch','月度预算提醒'),body:tr(`Monthly budget usage is ${usage.toFixed(1)}%: ${moneyCode(m.spent,currency)} spent of ${moneyCode(m.budget,currency)}.`,`本月预算已使用 ${usage.toFixed(1)}%：已支出 ${moneyCode(m.spent,currency)} / 预算 ${moneyCode(m.budget,currency)}。`)};
+        return{title:threshold>=100?tr('Monthly budget exceeded','月度预算已超出'):tr('Monthly budget watch','月度预算提醒'),body:tr(`Monthly budget usage is ${usage.toFixed(1)}%: ${moneyCode(m.spent,currency)} spent of ${moneyCode(m.budget,currency)}.`,`本月预算已使用 ${usage.toFixed(1)}%：已支出 ${moneyCode(m.spent,currency)} / 预算 ${moneyCode(m.budget,currency)}。`,`ယခုလ ဘတ်ဂျက်၏ ${usage.toFixed(1)}% သုံးစွဲပြီးပါပြီ။ သုံးစွဲငွေ ${moneyCode(m.spent,currency)} / ဘတ်ဂျက် ${moneyCode(m.budget,currency)}။`)};
       }
       if(row.kind==='savings_rate_drop'){
         const cur=Number(m.current_rate||0),prev=Number(m.previous_rate||0),drop=Number(m.drop_pp||0);
-        return{title:tr('Savings rate dropped','储蓄率下降提醒'),body:tr(`This month’s savings rate is ${cur.toFixed(1)}%, down ${drop.toFixed(1)} percentage points from last month (${prev.toFixed(1)}%).`,`本月储蓄率为 ${cur.toFixed(1)}%，较上月 ${prev.toFixed(1)}% 下降 ${drop.toFixed(1)} 个百分点。`)};
+        return{title:tr('Savings rate dropped','储蓄率下降提醒'),body:tr(`This month’s savings rate is ${cur.toFixed(1)}%, down ${drop.toFixed(1)} percentage points from last month (${prev.toFixed(1)}%).`,`本月储蓄率为 ${cur.toFixed(1)}%，较上月 ${prev.toFixed(1)}% 下降 ${drop.toFixed(1)} 个百分点。`,`ယခုလ ငွေစုနှုန်း ${cur.toFixed(1)}% ဖြစ်ပြီး ယခင်လ (${prev.toFixed(1)}%) ထက် ${drop.toFixed(1)} ရာခိုင်နှုန်းအမှတ် လျော့နည်းသည်။`)};
       }
       if(row.kind==='recurring_upcoming'||row.kind==='recurring_due_today'||row.kind==='recurring_overdue'){
         const name=String(m.name||tr('Recurring transaction','周期交易')),due=String(m.due_date||''),days=Number(m.days_until||0);
-        if(row.kind==='recurring_overdue')return{title:tr(`${name} is overdue`,`${name} 已逾期`),body:tr(`The recurring schedule was due on ${due} (${Math.abs(days)} day${Math.abs(days)===1?'':'s'} overdue).`,`该周期计划应于 ${due} 执行，现已逾期 ${Math.abs(days)} 天。`)};
-        if(row.kind==='recurring_due_today')return{title:tr(`${name} is due today`,`${name} 今天到期`),body:tr(`The recurring schedule is due today (${due}).`,`该周期计划今天到期（${due}）。`)};
-        return{title:tr(`${name} is due soon`,`${name} 即将到期`),body:tr(`The recurring schedule is due on ${due}, in ${days} day${days===1?'':'s'}.`,`该周期计划将于 ${due} 到期，还有 ${days} 天。`)};
+        if(row.kind==='recurring_overdue')return{title:tr(`${name} is overdue`,`${name} 已逾期`,`${name} သတ်မှတ်ရက် ကျော်လွန်နေသည်`),body:tr(`The recurring schedule was due on ${due} (${Math.abs(days)} day${Math.abs(days)===1?'':'s'} overdue).`,`该周期计划应于 ${due} 执行，现已逾期 ${Math.abs(days)} 天。`,`ပုံမှန်ငွေပေးချေမှုသည် ${due} တွင် သတ်မှတ်ထားပြီး ${Math.abs(days)} ရက် ကျော်လွန်နေပါပြီ။`)};
+        if(row.kind==='recurring_due_today')return{title:tr(`${name} is due today`,`${name} 今天到期`,`${name} ယနေ့ သတ်မှတ်ရက် ရောက်ပါပြီ`),body:tr(`The recurring schedule is due today (${due}).`,`该周期计划今天到期（${due}）。`,`ပုံမှန်ငွေပေးချေမှုသည် ယနေ့ (${due}) သတ်မှတ်ရက် ရောက်ပါပြီ။`)};
+        return{title:tr(`${name} is due soon`,`${name} 即将到期`,`${name} မကြာမီ သတ်မှတ်ရက် ရောက်မည်`),body:tr(`The recurring schedule is due on ${due}, in ${days} day${days===1?'':'s'}.`,`该周期计划将于 ${due} 到期，还有 ${days} 天。`,`ပုံမှန်ငွေပေးချေမှုသည် ${due} တွင် သတ်မှတ်ရက် ရောက်မည်။ ${days} ရက် ကျန်ပါသည်။`)};
       }
     }
     const rawTitle=String(row?.title||''),rawBody=String(row?.body||''),parsed=supportNoticePayload(rawBody);
+    if((localStorage.getItem('mmhvault_language_v3363')||'en')==='my'){
+      const budget=rawTitle.match(/^Budget (exceeded|watch)\s*·/i),recurring=rawTitle.match(/^Recurring (overdue|due today|upcoming)\s*·\s*(.*)$/i);
+      if(budget){const exceeded=budget[1].toLowerCase()==='exceeded';const match=rawBody.match(/^Your monthly individual-expense budget has reached\s*(.+?)(?:\.\s*|$)(?:Review Budget Center and your recent spending\.|You are approaching the monthly limit\.)?$/i);return{title:exceeded?tr('Monthly budget exceeded','月度预算已超出'):tr('Monthly budget watch','月度预算提醒'),body:match?'ယခုလ ပုံမှန်အသုံးစရိတ် ဘတ်ဂျက် '+match[1]+' သို့ ရောက်ရှိနေပါသည်။ '+(exceeded?'ဘတ်ဂျက်နှင့် လတ်တလော အသုံးစရိတ်များကို စစ်ဆေးပါ။':'လစဉ် ဘတ်ဂျက် ကန့်သတ်ချက်နှင့် နီးကပ်နေပါသည်။'):rawBody};}
+      if(recurring){const state=recurring[1].toLowerCase(),label=state==='overdue'?'သတ်မှတ်ရက် ကျော်လွန်နေသည်':state==='due today'?'ယနေ့ သတ်မှတ်ရက် ရောက်ပါပြီ':'မကြာမီ သတ်မှတ်ရက် ရောက်မည်';return{title:label+' · '+recurring[2],body:rawBody.replace('This recurring item was due on','ဤပုံမှန်ငွေပေးချေမှု သတ်မှတ်ရက်မှာ').replace('This recurring item is due today.','ဤပုံမှန်ငွေပေးချေမှုသည် ယနေ့ သတ်မှတ်ရက် ရောက်ပါပြီ။').replace(/This recurring item is due in (\d+) days? \(/,'ဤပုံမှန်ငွေပေးချေမှုသည် $1 ရက်အတွင်း သတ်မှတ်ရက် ရောက်မည် (').replace('Open Recurring to record it or update the schedule.','ပုံမှန်ငွေပေးချေမှုကို ဖွင့်ပြီး မှတ်တမ်းတင်ပါ သို့မဟုတ် အစီအစဉ် ပြင်ပါ။').replace('Open Recurring to record it from the saved template.','ပုံမှန်ငွေပေးချေမှုကို ဖွင့်ပြီး သိမ်းထားသော ပုံစံဖြင့် မှတ်တမ်းတင်ပါ။')};}
+    }
     if(/^Budget exceeded\s*·/i.test(rawTitle))return{title:tr('Monthly budget exceeded','月度预算已超出'),body:tr(rawBody,rawBody.replace('Your monthly individual-expense budget has reached','本月普通开销预算已使用').replace('Review Budget Center and your recent spending.','请检查 Budget 与近期支出。'))};
     if(/^Budget watch\s*·/i.test(rawTitle))return{title:tr('Monthly budget watch','月度预算提醒'),body:tr(rawBody,rawBody.replace('Your monthly individual-expense budget has reached','本月普通开销预算已使用').replace('You are approaching the monthly limit.','已接近本月预算上限。'))};
     if(/^Recurring overdue\s*·/i.test(rawTitle))return{title:tr(rawTitle,rawTitle.replace(/^Recurring overdue\s*·\s*/i,'周期交易已逾期 · ')),body:tr(rawBody,rawBody.replace('This recurring item was due on','该周期交易原定于').replace('Open Recurring to record it or update the schedule.','请打开 Recurring 记录或更新计划。'))};
@@ -23401,7 +23453,7 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
       return '<div class="mmh-notify-metrics-v125">'+card(tr('This month','本月'),Number(m.current_rate||0).toFixed(1)+'%')+card(tr('Last month','上月'),Number(m.previous_rate||0).toFixed(1)+'%')+card(tr('Change','变化'),'-'+Math.abs(Number(m.drop_pp||0)).toFixed(1)+' pp',tr('Alert threshold','提醒阈值')+' '+Number(m.threshold_pp||15).toFixed(0)+' pp')+'</div>';
     }
     if(row.kind==='recurring_upcoming'||row.kind==='recurring_due_today'||row.kind==='recurring_overdue'){
-      const days=Number(m.days_until||0),state=row.kind==='recurring_overdue'?tr(`${Math.abs(days)} day${Math.abs(days)===1?'':'s'} overdue`,`逾期 ${Math.abs(days)} 天`):row.kind==='recurring_due_today'?tr('Due today','今天到期'):tr(`Due in ${days} day${days===1?'':'s'}`,`${days} 天后到期`);
+      const days=Number(m.days_until||0),state=row.kind==='recurring_overdue'?tr(`${Math.abs(days)} day${Math.abs(days)===1?'':'s'} overdue`,`逾期 ${Math.abs(days)} 天`,`${Math.abs(days)} ရက် ကျော်လွန်နေသည်`):row.kind==='recurring_due_today'?tr('Due today','今天到期'):tr(`Due in ${days} day${days===1?'':'s'}`,`${days} 天后到期`,`${days} ရက်အတွင်း သတ်မှတ်ရက် ရောက်မည်`);
       return '<div class="mmh-notify-metrics-v125">'+card(tr('Due date','到期日'),String(m.due_date||'—'))+card(tr('Status','状态'),state)+(m.frequency?card(tr('Frequency','频率'),String(m.frequency)):m.category?card(tr('Category','分类'),String(m.category)):'')+'</div>';
     }
     return'';
@@ -23431,19 +23483,44 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
     const kind=row?._source==='financial'?tr('Financial alert','财务提醒'):(row.audience==='all'?tr('Announcement','公告'):tr('Personal notification','个人通知'));
     const clean=cleanNotice(row);
     const target=window.mmhNotificationResolveV145?.(row)||null;
-    const actionHint=target?'<div class="mmh-notify-action-hint-v145"><span>↗</span><div><strong>'+esc(target.label||tr('Open related page','打开相关页面'))+'</strong><small>'+esc(target.hint||tr('Continue from this notification.','从这条通知继续处理。'))+'</small></div></div>':'';
+    const targetLabelsV2={"Open filtered transactions":["打开筛选后的交易","စစ်ထုတ်ထားသော ငွေလွှဲမှတ်တမ်း ဖွင့်ရန်"],"Open Cash Flow Analyze":["打开现金流分析","ငွေဝင်ငွေထွက် သုံးသပ်ချက် ဖွင့်ရန်"],"Open Budget":["打开预算","ဘတ်ဂျက် ဖွင့်ရန်"],"Open Recurring":["打开周期交易","ပုံမှန်ငွေပေးချေမှု ဖွင့်ရန်"],"Open Feedback":["打开反馈","အကြံပြုချက် ဖွင့်ရန်"],"Open Live Support":["打开人工客服","ဖောက်သည်ဝန်ဆောင်မှု ဖွင့်ရန်"],"Open Goals":["打开目标","ရည်မှန်းချက်များ ဖွင့်ရန်"],"Open Invest":["打开投资","ရင်းနှီးမြှုပ်နှံမှု ဖွင့်ရန်"],"Open Accounts":["打开账户","အကောင့်များ ဖွင့်ရန်"],"Open Reports":["打开报告","အစီရင်ခံစာများ ဖွင့်ရန်"],"Open Transactions":["打开交易","ငွေလွှဲမှတ်တမ်းများ ဖွင့်ရန်"],"Open Settings":["打开设置","ဆက်တင်များ ဖွင့်ရန်"],"Open Exchange":["打开汇率","ငွေလဲနှုန်း ဖွင့်ရန်"],"Open Dashboard":["打开概览","ခြုံငုံသုံးသပ်ချက် ဖွင့်ရန်"],"Review this category in Transaction History.":["在交易历史中查看此分类。","ငွေလွှဲမှတ်တမ်းတွင် ဤအမျိုးအစားကို ကြည့်ပါ။"],"Review the change in your monthly cash flow.":["查看本月现金流变化。","ယခုလ ငွေဝင်ငွေထွက် ပြောင်းလဲမှုကို ကြည့်ပါ။"],"Review this month’s budget usage.":["查看本月预算使用情况。","ယခုလ ဘတ်ဂျက် အသုံးပြုမှုကို ကြည့်ပါ။"],"Review the related recurring schedule.":["查看相关周期计划。","သက်ဆိုင်ရာ ပုံမှန်ငွေပေးချေမှုကို ကြည့်ပါ။"],"View your feedback status and administrator replies.":["查看反馈状态和管理员回复。","အကြံပြုချက် အခြေအနေနှင့် စီမံခန့်ခွဲသူ အကြောင်းပြန်စာများ ကြည့်ပါ။"],"Continue on the related MMHVAULT page.":["在相关 MMHVAULT 页面继续处理。","သက်ဆိုင်ရာ MMHVAULT စာမျက်နှာတွင် ဆက်လက်လုပ်ဆောင်ပါ။"],"Continue your conversation with the support agent.":["继续与人工客服对话。","အကူအညီပေးသူနှင့် ဆက်လက် စကားပြောပါ။"],"View your submission status and administrator reply.":["查看提交状态及管理员回复。","တင်ပြမှု အခြေအနေနှင့် အကြောင်းပြန်စာ ကြည့်ပါ။"],"Review this month’s spending plan and category limits.":["查看本月支出计划和分类上限。","ယခုလ အသုံးစရိတ်အစီအစဉ်နှင့် အမျိုးအစား ကန့်သတ်ချက်များ ကြည့်ပါ။"],"Review your financial goal progress.":["查看财务目标进度。","ငွေကြေး ရည်မှန်းချက် တိုးတက်မှုကို ကြည့်ပါ။"],"Review your portfolio and investment activity.":["查看投资组合及投资活动。","ရင်းနှီးမြှုပ်နှံမှု စုစည်းမှုနှင့် လှုပ်ရှားမှုများ ကြည့်ပါ။"],"Review the related account.":["查看相关账户。","သက်ဆိုင်ရာ အကောင့်ကို ကြည့်ပါ။"],"Review your financial report.":["查看财务报告。","ငွေကြေး အစီရင်ခံစာကို ကြည့်ပါ။"],"Review the related transaction activity.":["查看相关交易。","သက်ဆိုင်ရာ ငွေလွှဲမှုကို ကြည့်ပါ။"]};
+    const targetText=v=>{const x=targetLabelsV2[v];return x?tr(v,x[0],x[1]):v};
+    const actionHint=target?'<div class="mmh-notify-action-hint-v145"><span>↗</span><div><strong>'+esc(targetText(target.label)||tr('Open related page','打开相关页面'))+'</strong><small>'+esc(targetText(target.hint)||tr('Continue from this notification.','从这条通知继续处理。'))+'</small></div></div>':'';
     const severity=row?._source==='financial'?String(row.severity||'info').toLowerCase():'';
     const badges='<div class="mmh-notify-detail-badges-v125"><div class="mmh-notify-detail-badge-v900">'+esc(kind)+'</div>'+(severity?'<div class="mmh-notify-severity-v125 '+esc(severity)+'">'+esc(severity==='error'?tr('Important','重要'):severity==='warning'?tr('Watch','注意'):tr('Info','信息'))+'</div>':'')+'</div>';
     const metrics=financialDetailMetrics(row);
     const body='<div class="mmh-notify-detail-v900">'+badges+'<p>'+esc(clean.body).replace(/\n/g,'<br>')+'</p>'+metrics+'<small>'+esc(formatDate(row.created_at))+'</small>'+actionHint+'</div>';
     const actions=[{label:tr('Close','关闭')}];
-    if(target)actions.push({label:target.label||tr('Open','打开'),className:'primary',onClick:()=>{setTimeout(()=>window.mmhNotificationOpenTargetV145?.(target),0);return true;}});
+    if(target)actions.push({label:targetText(target.label)||tr('Open','打开'),className:'primary',onClick:()=>{setTimeout(()=>window.mmhNotificationOpenTargetV145?.(target),0);return true;}});
     else actions[0].className='primary';
     if(typeof window.mmhVaultOpenDialogV449==='function')await window.mmhVaultOpenDialogV449({title:clean.title,message:'',body,actions,dialogClass:'mmh-notification-dialog-v149',bodyClass:'mmh-notification-dialog-body-v149',actionsClass:'mmh-notification-actions-v149'});
     else await window.mmhVaultMessageV740?.(clean.body,clean.title);
   }
+
+  function syncNoticeLanguageV2(){
+    if(!popup||!list)return;
+    const set=(selector,value)=>{const el=popup.querySelector(selector);if(el&&el.textContent!==value)el.textContent=value};
+    popup.setAttribute('aria-label',tr('Notifications','通知'));
+    set('.np-title strong',tr('Notifications','通知'));
+    set('.np-title small',tr('Financial alerts, personal messages & announcements','财务提醒、个人通知与公告'));
+    set('#mmhNotifyRefreshV560',tr('Refresh','刷新'));
+    for(const [key,label] of [['all',tr('All','全部')],['unread',tr('Unread','未读')]]){
+      const btn=popup.querySelector('[data-notify-mode="'+key+'"]');if(btn){const count=btn.querySelector('span');if(count){btn.replaceChildren(document.createTextNode(label+' '),count)}btn.classList.toggle('active',mode===key)}
+    }
+    set('#mmhNotifyMarkAllV900',tr('Mark all read','全部已读'));
+    set('.np-foot>span',tr('Open a message to view details.','点击消息查看完整内容。'));
+    set('#mmhNotifyPushCheckV127',tr('Device check','设备检查'));
+    set('#mmhNotifyPushTestV123',tr('Test push','测试推送'));
+    const state=$('mmhNotifySystemV121')?.dataset.state;
+    const labels={on:tr('Background alerts on','后台提醒已开启'),blocked:tr('Fix notification permission','修复通知权限'),registering:tr('Finishing background setup…','正在完成后台设置…'),repair:tr('Repair background alerts','修复后台提醒'),disabled:tr('Enable background alerts','开启后台提醒'),'ios-install':tr('Add to Home Screen for alerts','添加到主屏幕后开启提醒'),unsupported:tr('Background alerts unavailable','此设备不支持后台提醒'),granted:tr('Enable background push','开启后台推送'),loading:tr('Preparing alerts…','正在准备提醒…')};
+    set('#mmhNotifySystemV121',labels[state]||tr('Enable background alerts','开启后台提醒'));
+    const scroll=list.scrollTop;
+    if(loading){const empty=list.querySelector('.np-empty');if(empty)empty.textContent=tr('Loading…','加载中…')}
+    else if(list.dataset.noticeError==='1'){set('.np-empty',tr('Unable to load notifications.','通知加载失败。'))}
+    else{render();list.scrollTop=scroll}
+  }
   function render(){
-    if(!list)return;updateBadge();list.replaceChildren();const visible=mode==='unread'?rows.filter(r=>!r.is_read):rows;
+    if(!list)return;delete list.dataset.noticeError;updateBadge();list.replaceChildren();const visible=mode==='unread'?rows.filter(r=>!r.is_read):rows;
     if(!visible.length){const e=document.createElement('div');e.className='np-empty';e.textContent=mode==='unread'?tr('No unread notifications.','暂无未读通知。'):tr('No notifications yet.','暂无通知。');list.append(e);return}
     visible.forEach(row=>{const clean=cleanNotice(row),b=document.createElement('button');b.type='button';b.className='np-item'+(row.is_read?'':' unread');const top=document.createElement('div');top.className='np-row';const h=document.createElement('h4');h.textContent=clean.title;const kind=document.createElement('span');kind.className='np-kind';kind.textContent=row?._source==='financial'?tr('Financial','财务'):(row.audience==='all'?tr('Announcement','公告'):tr('Personal','个人'));top.append(h,kind);const body=document.createElement('p');body.textContent=clean.body;const meta=document.createElement('div');meta.className='np-meta';const date=document.createElement('span');date.textContent=formatDate(row.created_at);const state=document.createElement('span');state.className=row.is_read?'np-read':'';state.textContent=row.is_read?tr('Read','已读'):tr('Unread','未读');meta.append(date,state);b.append(top,body,meta);b.onclick=e=>{e.stopPropagation();openDetail(row)};list.append(b)});
   }
@@ -23464,7 +23541,7 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
       const alerts=(Array.isArray(alertResult?.data)?alertResult.data:[]).map(x=>({...x,audience:'personal',_source:'financial'}));
       rows=[...notices,...alerts].sort((a,b)=>new Date(b.created_at||0)-new Date(a.created_at||0)).slice(0,50);lastLoaded=Date.now();updateBadge();if(isOpen())render()
     }
-    catch(err){if(req!==request||currentOwner()!==targetOwner)return;console.warn('[MMHVAULT] notification load failed',err);if(list&&isOpen())list.innerHTML='<div class="np-empty">'+tr('Unable to load notifications.','通知加载失败。')+'</div>'}
+    catch(err){if(req!==request||currentOwner()!==targetOwner)return;console.warn('[MMHVAULT] notification load failed',err);if(list&&isOpen()){list.dataset.noticeError='1';list.innerHTML='<div class="np-empty">'+tr('Unable to load notifications.','通知加载失败。')+'</div>'}}
     finally{
       if(req===request&&currentOwner()===targetOwner){
         loading=false;
@@ -23479,7 +23556,7 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
   function stopPoll(){if(pollTimer){clearTimeout(pollTimer);pollTimer=0}}
   function schedulePoll(delay=120000){stopPoll();if(document.hidden||!currentOwner())return;pollTimer=setTimeout(()=>{pollTimer=0;if(!document.hidden&&currentOwner()&&!loading)load(false);schedulePoll(120000)},Math.max(500,delay))}
   function resetForOwner(){request++;loading=false;queuedLoad=false;queuedShowLoading=false;owner=currentOwner();rows=[];mode='all';close();if(ensure()){updateBadge();if(owner)load(false)}schedulePoll(120000)}
-  function init(){bind();window.addEventListener('mmhvault:notifications-changed',()=>load(false));window.addEventListener('mmhvault:config-owner-changed',resetForOwner);window.addEventListener('mmhvault:push-state',()=>syncSystemButton(),{passive:true});setTimeout(bind,300);setTimeout(bind,900);setTimeout(bind,1600);schedulePoll(120000);document.addEventListener('visibilitychange',()=>{if(document.hidden)stopPoll();else{if(currentOwner()&&!loading&&Date.now()-lastLoaded>120000)load(false);schedulePoll(120000)}},{passive:true});window.addEventListener('pagehide',stopPoll,{passive:true})}
+  function init(){bind();window.addEventListener('mmhvault-language-change',syncNoticeLanguageV2);window.addEventListener('mmhvault:notifications-changed',()=>load(false));window.addEventListener('mmhvault:config-owner-changed',resetForOwner);window.addEventListener('mmhvault:push-state',()=>syncSystemButton(),{passive:true});setTimeout(bind,300);setTimeout(bind,900);setTimeout(bind,1600);schedulePoll(120000);document.addEventListener('visibilitychange',()=>{if(document.hidden)stopPoll();else{if(currentOwner()&&!loading&&Date.now()-lastLoaded>120000)load(false);schedulePoll(120000)}},{passive:true});window.addEventListener('pagehide',stopPoll,{passive:true})}
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});else init();
 })();
 </script>
@@ -29815,7 +29892,26 @@ function addTopbar(){
  const header=$('header');if(!header||header.querySelector('.mmh-finance-topbar-v500'))return;
  const bar=document.createElement('div');bar.className='mmh-finance-topbar-v500';bar.innerHTML='<label class="mmh-global-search-v500"><input id="mmhGlobalSearchV500" type="search" autocomplete="off" placeholder="Search transactions, accounts, or pages…"><kbd>⌘ K</kbd></label><span class="mmh-topbar-date-v500" id="mmhTopDateV500"></span><button class="mmh-topbar-support-v1520" id="mmhTopSupportV1520" type="button" aria-label="Customer support" title="Customer support"><svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M4 13v-1a8 8 0 0 1 16 0v1" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><path d="M4 13h2a2 2 0 0 1 2 2v3H6a2 2 0 0 1-2-2v-3Zm16 0h-2a2 2 0 0 0-2 2v3h2a2 2 0 0 0 2-2v-3Z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path d="M16 21h-3" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></button><button class="mmh-topbar-bell-v500" id="mmhTopBellV500" type="button" aria-label="Notifications"><svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9M10 21h4" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></button>';header.prepend(bar);
  const crumb=document.createElement('div');crumb.className='wv-crumb';crumb.innerHTML='<span id="wvWorkspaceLabel">Workspace /</span> <strong id="wvCurrentPage">Overview</strong>';bar.prepend(crumb);
- const controls=document.createElement('div');controls.className='wv-theme-language';controls.innerHTML='<label id="wvThemeToggle" class="wv-tool wv-theme-picker-v2"><span id="wvThemeIconV2" aria-hidden="true">◐</span><select id="wvThemeSelectV2" aria-label="Theme" title="Theme"><option value="system">System</option><option value="light">Light</option><option value="dark">Dark</option></select></label><label class="wv-flag-wrap"><span id="wvLanguageFlag" aria-hidden="true">🇺🇸</span><select id="wvLanguageSelect" class="wv-tool" aria-label="Language" title="Language"><option value="en">🇺🇸 English</option><option value="zh">🇨🇳 中文</option><option value="my">🇲🇲 မြန်မာ</option></select></label>';bar.append(controls);
+ const controls=document.createElement('div');controls.className='wv-theme-language';controls.innerHTML='<button type="button" id="wvThemeToggle" class="wv-tool wv-theme-picker-v2" aria-haspopup="menu" aria-expanded="false"><span id="wvThemeIconV2" aria-hidden="true">◐</span></button><select hidden tabindex="-1" aria-hidden="true" id="wvThemeSelectV2" aria-label="Theme" title="Theme"><option value="system">System</option><option value="light">Light</option><option value="dark">Dark</option></select><button type="button" class="wv-flag-wrap" aria-haspopup="menu" aria-expanded="false"><span id="wvLanguageFlag" aria-hidden="true">🇺🇸</span></button><select hidden tabindex="-1" aria-hidden="true" id="wvLanguageSelect" class="wv-tool" aria-label="Language" title="Language"><option value="en">🇺🇸 English</option><option value="zh">🇨🇳 中文</option><option value="my">🇲🇲 မြန်မာ</option></select>';bar.append(controls);
+ const pickerLang=()=>localStorage.getItem('mmhvault_language_v3363')||'en';
+ const pickerText=(en,zh,my)=>pickerLang()==='zh'?zh:pickerLang()==='my'?my:en;
+ const pickerTheme=controls.querySelector('#wvThemeToggle'),pickerFlag=controls.querySelector('.wv-flag-wrap'),pickerThemeSelect=controls.querySelector('#wvThemeSelectV2'),pickerLanguageSelect=controls.querySelector('#wvLanguageSelect');
+ let pickerMenu=null,pickerAnchor=null;
+ function pickerNames(){pickerTheme.setAttribute('aria-label',pickerText('Theme','主题','အပြင်အဆင်'));pickerFlag.setAttribute('aria-label',pickerText('Language','语言','ဘာသာစကား'))}
+ function closePicker(restore=false){if(!pickerMenu)return;pickerMenu.remove();pickerMenu=null;pickerAnchor?.setAttribute('aria-expanded','false');if(restore)pickerAnchor?.focus({preventScroll:true});pickerAnchor=null}
+ function placePicker(){if(!pickerMenu||!pickerAnchor)return;const v=window.visualViewport,left=v?.offsetLeft||0,top=v?.offsetTop||0,width=v?.width||window.innerWidth,height=v?.height||window.innerHeight,r=pickerAnchor.getBoundingClientRect(),safe=8,gap=6;const w=Math.max(0,Math.min(208,width-safe*2));pickerMenu.style.width=w+'px';pickerMenu.style.left=Math.max(left+safe,Math.min(r.right-w,left+width-w-safe))+'px';const below=Math.max(0,top+height-r.bottom-gap-safe),above=Math.max(0,r.top-top-gap-safe),useAbove=below<Math.min(pickerMenu.scrollHeight,160)&&above>below;pickerMenu.style.maxHeight=(useAbove?above:below)+'px';const h=pickerMenu.getBoundingClientRect().height;pickerMenu.style.top=Math.max(top+safe,Math.min(useAbove?r.top-gap-h:r.bottom+gap,top+height-h-safe))+'px'}
+ function openPicker(anchor,select,kind){if(pickerAnchor===anchor){closePicker(true);return}closePicker();pickerAnchor=anchor;const menu=document.createElement('div');menu.className='wv-choice-menu-v2';menu.setAttribute('role','menu');menu.setAttribute('aria-label',anchor.getAttribute('aria-label')||kind);pickerMenu=menu;
+ const values=kind==='theme'?[['system','▣',pickerText('System','跟随系统','စက်စနစ်အတိုင်း')],['light','☀',pickerText('Light','浅色','အလင်း')],['dark','☾',pickerText('Dark','深色','အမှောင်')]]:[['en','🇺🇸','English'],['zh','🇨🇳','简体中文'],['my','🇲🇲','မြန်မာ']];
+ for(const [value,symbol,label] of values){const item=document.createElement('button');item.type='button';item.setAttribute('role','menuitemradio');item.setAttribute('aria-checked',String(select.value===value));item.dataset.value=value;const i=document.createElement('span');i.textContent=symbol;i.setAttribute('aria-hidden','true');const name=document.createElement('span');name.textContent=label;const check=document.createElement('span');check.textContent=select.value===value?'✓':'';check.setAttribute('aria-hidden','true');item.append(i,name,check);item.addEventListener('click',e=>{e.stopPropagation();closePicker(true);if(select.value!==value){select.value=value;select.dispatchEvent(new Event('change',{bubbles:true}))}});menu.append(item)}
+ document.body.append(menu);anchor.setAttribute('aria-expanded','true');placePicker();(menu.querySelector('[aria-checked="true"]')||menu.firstElementChild)?.focus({preventScroll:true});
+ menu.addEventListener('keydown',e=>{const items=[...menu.querySelectorAll('button')],i=items.indexOf(document.activeElement);if(e.key==='Escape'){e.preventDefault();e.stopPropagation();closePicker(true)}else if(['ArrowDown','ArrowUp','Home','End'].includes(e.key)){e.preventDefault();const next=e.key==='Home'?0:e.key==='End'?items.length-1:(i+(e.key==='ArrowDown'?1:-1)+items.length)%items.length;items[next]?.focus({preventScroll:true})}else if(e.key==='Tab')closePicker()});
+ }
+ pickerNames();pickerTheme.addEventListener('click',e=>{e.preventDefault();e.stopPropagation();openPicker(pickerTheme,pickerThemeSelect,'theme')});pickerFlag.addEventListener('click',e=>{e.preventDefault();e.stopPropagation();openPicker(pickerFlag,pickerLanguageSelect,'language')});
+ document.addEventListener('pointerdown',e=>{if(pickerMenu&&!pickerMenu.contains(e.target)&&!pickerAnchor?.contains(e.target))closePicker()},true);
+ window.addEventListener('mmhvault-language-change',()=>{closePicker();pickerNames()});
+ window.addEventListener('mmhvault:theme-mode-changed',()=>closePicker());
+ window.addEventListener('resize',placePicker,{passive:true});window.visualViewport?.addEventListener('resize',placePicker,{passive:true});window.visualViewport?.addEventListener('scroll',placePicker,{passive:true});window.addEventListener('mmhvault:page-visible',()=>closePicker());document.addEventListener('visibilitychange',()=>{if(document.hidden)closePicker()});
+
  const pageLabels={dashboard:['Overview','概览'], 'accounts-page':['Accounts','账户'],transactions:['Transactions','交易'],invest:['Invest','投资'],'cashflow-analyze':['Cash Flow','现金流'],exchange:['Exchange','汇率'],reports:['Reports','报告'],budget:['Budget','预算'],goals:['Goals','目标'],recurring:['Recurring','周期交易'],forecast:['Forecast','预测'],settings:['Settings','设置'],'life-planner':['Life Planner','生活规划']};
  function syncWorkspaceVisual(){const code=localStorage.getItem('mmhvault_language_v3363')||'en',cn=code==='zh',current=document.querySelector('.page.active')?.id||'dashboard',label=pageLabels[current]||[current,current];const crumbLabel=$('wvWorkspaceLabel'),pageLabel=$('wvCurrentPage');const write=(el,value)=>{if(el&&el.textContent!==value)el.textContent=value};write(crumbLabel,cn?'工作区 /':code==='my'?'လုပ်ငန်းခွင် /':'Workspace /');const myLabels={"Overview":"ခြုံငုံသုံးသပ်ချက်","Accounts":"အကောင့်များ","Transactions":"ငွေလွှဲမှတ်တမ်းများ","Invest":"ရင်းနှီးမြှုပ်နှံမှု","Cash Flow":"ငွေဝင်ငွေထွက်","Exchange":"ငွေလဲနှုန်း","Reports":"အစီရင်ခံစာများ","Budget":"ဘတ်ဂျက်","Goals":"ရည်မှန်းချက်များ","Recurring":"ပုံမှန်ငွေပေးချေမှု","Forecast":"ခန့်မှန်းချက်","Settings":"ဆက်တင်များ","Life Planner":"ဘဝအစီအစဉ်"};write(pageLabel,code==='my'?(myLabels[label[0]]||label[0]):label[cn?1:0]);const nav=$('bottomNav');if(nav)nav.querySelectorAll('button[data-page]').forEach(b=>{const n=pageLabels[b.dataset.page],span=b.querySelector('span');if(n&&span){const value=code==='my'?(myLabels[n[0]]||n[0]):n[cn?1:0];if(span.textContent!==value)span.textContent=value}});const language=$('wvLanguageSelect');if(language&&language.value!==code)language.value=['en','zh','my'].includes(code)?code:'en';const flag=$('wvLanguageFlag');if(flag){const value=({en:'🇺🇸',zh:'🇨🇳',my:'🇲🇲'})[code]||'🇺🇸';if(flag.textContent!==value)flag.textContent=value;}const settingsLanguage=$('stLanguage');if(settingsLanguage&&settingsLanguage.value!==code)settingsLanguage.value=code;const theme=$('wvThemeSelectV2'),icon=$('wvThemeIconV2'),mode=document.body.dataset.mmhThemeMode||'system';if(theme&&theme.value!==mode)theme.value=mode;if(icon&&icon.dataset.mode!==mode){icon.dataset.mode=mode;const paths={system:'<rect x="3" y="4" width="18" height="13" rx="2"/><path d="M8 21h8m-4-4v4"/>',light:'<circle cx="12" cy="12" r="4"/><path d="M12 2v2m0 16v2M2 12h2m16 0h2M5 5l1.5 1.5m11 11L19 19M5 19l1.5-1.5m11-11L19 5"/>',dark:'<path d="M20.8 14.2A9 9 0 0 1 9.8 3.2 9 9 0 1 0 20.8 14.2Z"/>'};icon.innerHTML='<svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">'+(paths[mode]||paths.system)+'</svg>';}}
  controls.querySelector('#wvThemeSelectV2').addEventListener('change',e=>{const mode=e.target.value;if(typeof window.mmhSetWorkspaceThemeV2==='function')window.mmhSetWorkspaceThemeV2(mode);else applyTheme(mode);syncWorkspaceVisual()});window.addEventListener('mmhvault:theme-mode-changed',syncWorkspaceVisual);
@@ -36383,6 +36479,26 @@ html body #lpOverlayV1 .lp-reminder-dialog .lp-primary{background:var(--mmh-noti
 html body #lpOverlayV1 .lp-reminder-dialog .lp-form-error{color:var(--mmh-notice-error)!important}
 html body #lpNoticeV1.lp-notice{background:var(--mmh-notice-raised)!important;background-image:none!important;color:var(--mmh-notice-text)!important;border:1px solid var(--mmh-notice-border)!important;border-radius:8px!important}
 @media(prefers-reduced-motion:reduce){html body :is(.mmh-v4-toast,.mmh-v4-modal,.mmh-v4-modal-backdrop,.mmh-toast-v760,.mmh-glass-toast-v2){animation:none!important;transition:none!important}}
+</style>
+
+<style id="mmhvault-v2-viewport-pickers-20261125">
+html body #header#header#header#header#header#header #wvThemeSelectV2,html body #header#header#header#header#header#header #wvLanguageSelect{display:none!important}
+html body #header#header#header#header#header#header .wv-flag-wrap:focus-visible,html body #header#header#header#header#header#header #wvThemeToggle:focus-visible{outline:2px solid var(--wv-accent)!important;outline-offset:2px!important}
+html body .wv-choice-menu-v2{position:fixed!important;z-index:2147483000!important;box-sizing:border-box!important;display:flex!important;flex-direction:column!important;gap:3px!important;padding:5px!important;margin:0!important;overflow:auto!important;overscroll-behavior:contain;background:var(--mmh-notice-bg,#1c2531)!important;border:1px solid var(--mmh-notice-border,#344052)!important;border-radius:10px!important;box-shadow:var(--mmh-notice-shadow,0 12px 36px #0005)!important;color:var(--mmh-notice-text,#edf0f6)!important;font-family:Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif!important;backdrop-filter:none!important}
+html body .wv-choice-menu-v2>button{display:grid!important;grid-template-columns:23px minmax(0,1fr) 16px!important;align-items:center!important;gap:7px!important;width:100%!important;min-height:38px!important;padding:7px 9px!important;border:0!important;border-radius:6px!important;background:transparent!important;background-image:none!important;color:inherit!important;box-shadow:none!important;font-size:13px!important;text-align:left!important;white-space:normal!important;line-height:1.5!important;transform:none!important;cursor:pointer!important}
+html body .wv-choice-menu-v2>button[aria-checked="true"],html body .wv-choice-menu-v2>button:hover,html body .wv-choice-menu-v2>button:focus-visible{background:var(--mmh-notice-active,#2b3850)!important;color:var(--mmh-notice-accent,#9bb7fb)!important}
+html body .wv-choice-menu-v2>button>span:nth-child(2){min-width:0;overflow-wrap:anywhere}
+html body #mmhNotifyPopoverV560#mmhNotifyPopoverV560 .np-title small,html body #mmhNotifyPopoverV560#mmhNotifyPopoverV560 .np-filter-v900 button,html body #mmhNotifyPopoverV560#mmhNotifyPopoverV560 .np-system-v121{white-space:normal!important;overflow-wrap:anywhere!important}
+</style>
+<style id="mmh-v2-loading-progress-20261125">
+html body #dataLoadOverlayV384#dataLoadOverlayV384 .mmh-data-progress-row-v2{display:flex!important;align-items:center!important;justify-content:center!important;gap:10px!important;width:min(250px,100%)!important;margin:0 auto 14px!important;font:500 12px/1.4 system-ui,sans-serif!important;color:var(--mmh-v2-load-muted)!important}
+html body #dataLoadOverlayV384#dataLoadOverlayV384 #mmhDataProgressV2{appearance:none!important;-webkit-appearance:none!important;display:block!important;flex:1 1 auto!important;width:100%!important;min-width:0!important;height:4px!important;border:0!important;border-radius:4px!important;overflow:hidden!important;background:#344052!important;color:var(--mmh-v2-load-accent)!important}
+html body.light #dataLoadOverlayV384#dataLoadOverlayV384 #mmhDataProgressV2{background:#d8dfe9!important}
+html body #dataLoadOverlayV384#dataLoadOverlayV384 #mmhDataProgressV2::-webkit-progress-bar{background:transparent;border-radius:4px}
+html body #dataLoadOverlayV384#dataLoadOverlayV384 #mmhDataProgressV2::-webkit-progress-value{background:var(--mmh-v2-load-accent);border-radius:4px}
+html body #dataLoadOverlayV384#dataLoadOverlayV384 #mmhDataProgressV2::-moz-progress-bar{background:var(--mmh-v2-load-accent);border-radius:4px}
+html body #dataLoadOverlayV384#dataLoadOverlayV384 #mmhDataProgressTextV2{min-width:34px;text-align:right;font-variant-numeric:tabular-nums}
+html body #welcomeScreen#welcomeScreen .welcome-line{display:none!important}
 </style>
 </body>
 </html>
