@@ -19,12 +19,12 @@ const words={
   welcomeCopy:'Learn how to set up your own categories and record money in or out. This guide never creates financial data for you.',
   manageTitle:'Find your Manage workspace',
   manageCopy:'Select Manage in Transactions to set up your own transaction fields. Tap the highlighted real menu button to continue.',
-  typeTitle:'Create your first type',
-  typeCopy:'Use the Type card inside Manage. You decide whether each Type adds money, subtracts money, or transfers it. Examples are only suggestions.',
+  typeTitle:'Three fixed financial directions',
+  typeCopy:'Income adds money, Expense subtracts it, and Transfer moves money between accounts. These directions are fixed. If a direction is missing, use Set up missing directions in Manage.',
   transactionTitle:'Link a transaction to your type',
-  transactionCopy:'Create a Transaction inside the Type you chose. This preserves the correct money direction. You can skip and configure this later.',
+  transactionCopy:'Open Transaction → Manage, then + Add Transaction at the top. Enter a name and choose its linked Type. You can also do this later.',
   categoryTitle:'Organize with a category',
-  categoryCopy:'Add a Category under an existing Transaction. The category describes the purpose of the money movement. Nothing is created automatically.',
+  categoryCopy:'Open Category → Manage, then + Add Category at the top. Enter a name and choose the linked Transaction. Nothing is created automatically.',
   fieldsTitle:'Understand your transaction fields',
   fieldsCopy:'The current finance engine needs a complete Type → Transaction → Category path when you save. The three money-direction shortcuts only filter your own choices.',
   firstTitle:'Record your first transaction',
@@ -32,8 +32,8 @@ const words={
   completeTitle:'You know the essentials',
   completeCopy:'Manage your categories and visit your transaction history whenever you want. The Help button can restart this guide at any time.',
   completeWithSave:'Your new transaction appeared in your account records.',
-  noType:'There is no Type yet. Select Manage on the Type card and add one yourself.',
-  noTransaction:'First create a Type, then add a Transaction linked to it.',
+  noType:'If a fixed direction is missing, set it up in Manage before recording money.',
+  noTransaction:'Choose a fixed direction when adding your Transaction.',
   noCategory:'First create a linked Transaction, then add a Category under it.',
   accountNeeded:'You have not set up an account yet. Open Accounts and add your own account before recording money.',
   pathNeeded:'Your transaction fields are incomplete. Open Manage and finish the linked Type → Transaction → Category path.',
@@ -52,12 +52,12 @@ const words={
   welcomeCopy:'一步步了解自定义分类、资金进出和交易记录。教程不会自动新增财务数据。',
   manageTitle:'认识分类管理',
   manageCopy:'在交易页面点击高亮的管理按钮，打开您的自定义记账设置。',
-  typeTitle:'创建第一个类型',
-  typeCopy:'进入类型卡片自行添加项目，并明确指定资金增加、减少或转账方向。示例不会自动添加。',
+  typeTitle:'认识三个固定资金方向',
+  typeCopy:'收入增加余额，支出减少余额，转账在账户间移动资金。三个方向固定，无需编辑；缺少方向时，可在管理页面初始化。',
   transactionTitle:'关联交易项目',
-  transactionCopy:'在刚创建的类型下添加交易项目，并继承正确的资金方向。不需要现在设置也可以跳过。',
+  transactionCopy:'打开 Transaction 管理，点击顶部新增按钮，输入名称并选择关联的固定 Type。也可以稍后设置。',
   categoryTitle:'设置分类',
-  categoryCopy:'在已创建的交易项目下增加分类，用于区分资金用途。系统不会自动填入示例。',
+  categoryCopy:'打开 Category 管理，点击顶部新增按钮，输入名称并选择关联的 Transaction。系统不会自动创建分类。',
   fieldsTitle:'了解记账字段',
   fieldsCopy:'当前正式版保存交易需要完整的类型 → 交易项目 → 分类关联。资金方向快捷按钮只筛选您自己创建的选项。',
   firstTitle:'尝试添加第一笔交易',
@@ -65,8 +65,8 @@ const words={
   completeTitle:'已经掌握基本操作',
   completeCopy:'以后可以随时管理分类、查看历史记录，或通过帮助按钮重新打开教程。',
   completeWithSave:'您的新增交易已经出现在账户记录中。',
-  noType:'还没有设置类型，请进入类型管理自行添加。',
-  noTransaction:'请先添加类型，再创建关联的交易项目。',
+  noType:'如果缺少固定资金方向，请先在管理页面初始化。',
+  noTransaction:'新增交易项目时请选择关联的固定资金方向。',
   noCategory:'请先创建交易项目，再在其下添加分类。',
   accountNeeded:'目前还没有账户。请先打开账户管理创建您自己的账户。',
   pathNeeded:'记账关联尚未完整，请返回分类管理完成类型、交易项目及分类。',
@@ -85,12 +85,12 @@ const words={
   welcomeCopy:'ကိုယ်ပိုင်အမျိုးအစားများ သတ်မှတ်ခြင်းနှင့် ငွေဝင်ငွေထွက် မှတ်တမ်းတင်ခြင်းကို လေ့လာပါ။ အချက်အလက်များကို အလိုအလျောက် မထည့်ပါ။',
   manageTitle:'စီမံခန့်ခွဲမှုကို လေ့လာပါ',
   manageCopy:'ငွေစာရင်း စာမျက်နှာရှိ မီးမောင်းထိုးထားသော စီမံခန့်ခွဲမှုခလုတ်ကို နှိပ်ပါ။',
-  typeTitle:'ပထမဆုံး အမျိုးအစား ဖန်တီးပါ',
-  typeCopy:'ငွေတိုး၊ ငွေလျော့ သို့မဟုတ် ငွေလွှဲမှုကို သတ်မှတ်ပြီး ကိုယ်ပိုင် အမျိုးအစားကို ဖန်တီးပါ။ နမူနာများကို အလိုအလျောက် မထည့်ပါ။',
+  typeTitle:'သတ်မှတ်ထားသော ငွေလမ်းကြောင်း သုံးမျိုး',
+  typeCopy:'ဝင်ငွေက လက်ကျန်တိုးစေပြီး အသုံးစရိတ်က လျော့စေပါသည်။ ငွေလွှဲသည် အကောင့်များကြား ရွှေ့ခြင်းဖြစ်ပါသည်။ ဤ Type သုံးမျိုးကို ပြင်ရန်မလိုပါ။ လိုအပ်ပါက Manage တွင် သတ်မှတ်ပါ။',
   transactionTitle:'ငွေစာရင်းအမျိုးအစားကို ချိတ်ဆက်ပါ',
-  transactionCopy:'ရွေးထားသော အမျိုးအစားအောက်တွင် ငွေစာရင်းအတွက် အမည်အသစ် ထည့်ပါ။ နောက်မှ ပြုလုပ်လိုပါက ဤအဆင့်ကို ကျော်နိုင်ပါသည်။',
+  transactionCopy:'Transaction ကို စီမံရန် ဖွင့်ပြီး အပေါ်ရှိ + Add Transaction ကို နှိပ်ပါ။ အမည်နှင့် ချိတ်ဆက်မည့် Type ကို ရွေးပါ။ နောက်မှလည်း လုပ်နိုင်ပါသည်။',
   categoryTitle:'အသေးစိတ် အမျိုးအစား သတ်မှတ်ပါ',
-  categoryCopy:'ရှိပြီးသား ငွေစာရင်းအမျိုးအစားအောက်တွင် အသေးစိတ်ခွဲခြားမှု ထည့်ပါ။ အလိုအလျောက် ဖန်တီးမည် မဟုတ်ပါ။',
+  categoryCopy:'Category ကို စီမံရန် ဖွင့်ပြီး အပေါ်ရှိ + Add Category ကို နှိပ်ပါ။ အမည်နှင့် ချိတ်ဆက်မည့် Transaction ကို ရွေးပါ။ အလိုအလျောက် မဖန်တီးပါ။',
   fieldsTitle:'ငွေစာရင်းအကွက်များကို နားလည်ပါ',
   fieldsCopy:'လက်ရှိစနစ်တွင် မှတ်တမ်းသိမ်းရန် အဆင့်သုံးဆင့် ချိတ်ဆက်ထားရန် လိုအပ်သည်။ ငွေဝင်၊ ငွေထွက်၊ ငွေလွှဲ ခလုတ်များသည် ကိုယ်တိုင်သတ်မှတ်ထားသည့် အရာများကိုသာ စစ်ထုတ်သည်။',
   firstTitle:'ပထမဆုံး မှတ်တမ်း ထည့်ကြည့်ပါ',
@@ -98,8 +98,8 @@ const words={
   completeTitle:'အခြေခံအသုံးပြုမှုကို သိရှိပြီးပါပြီ',
   completeCopy:'အမျိုးအစားများကို စီမံပြီး မှတ်တမ်းဟောင်းများကို ကြည့်နိုင်ပါသည်။ အကူအညီခလုတ်မှ လမ်းညွှန်ကို ပြန်ဖွင့်နိုင်ပါသည်။',
   completeWithSave:'အကောင့်မှတ်တမ်းတွင် မှတ်တမ်းအသစ်ကို တွေ့ရှိပြီးပါပြီ။',
-  noType:'အမျိုးအစား မရှိသေးပါ။ ကိုယ်တိုင် ထည့်သွင်းပါ။',
-  noTransaction:'အမျိုးအစားကို အရင်ဖန်တီးပြီး ငွေစာရင်းအမည် ချိတ်ဆက်ပါ။',
+  noType:'ငွေလမ်းကြောင်း လိုအပ်ပါက Manage တွင် အရင် သတ်မှတ်ပါ။',
+  noTransaction:'Transaction အသစ်ထည့်ရာတွင် သတ်မှတ်ထားသော Type ကို ရွေးပါ။',
   noCategory:'ငွေစာရင်းအမည် ဖန်တီးပြီးမှ အသေးစိတ် အမျိုးအစား ထည့်ပါ။',
   accountNeeded:'အကောင့် မရှိသေးပါ။ ငွေစာရင်း မထည့်မီ ကိုယ်ပိုင်အကောင့် ဖန်တီးပါ။',
   pathNeeded:'ငွေစာရင်း ချိတ်ဆက်မှု မပြည့်စုံသေးပါ။ စီမံခန့်ခွဲမှုတွင် အဆင့်သုံးဆင့် ပြည့်စုံအောင် ထည့်ပါ။',
@@ -120,15 +120,16 @@ const lang=()=>{
 const txPage=()=>!!$('transactions')?.classList.contains('active');
 const managerPage=()=>!!$('txManagePanel')&&!$('txManagePanel').hidden&&$('txManagePanel').style.display!=='none';
 const editorOpen=()=>!!doc.querySelector('.mmh-hier-overlay');
+const visibleTarget=(...nodes)=>nodes.find(n=>n?.isConnected&&n.getClientRects().length&&n.getBoundingClientRect().width>0)||null;
 const targetFor=(step)=>{
   const scope=$('mmhHierarchyManage');
   const cards=scope?.querySelectorAll('.mmh-hier-card')||[];
-  if(step==='manage')return doc.querySelector('#transactions .mmh-glass-tx-nav-manage-v1')||$('mmhManageCategoriesLaunchV1');
-  if(step==='type')return cards[0]?.querySelector('button:not(:disabled)')||cards[0]||null;
-  if(step==='transaction')return cards[1]?.querySelector('button:not(:disabled)')||cards[1]||null;
-  if(step==='category')return cards[2]?.querySelector('button:not(:disabled)')||cards[2]||null;
-  if(step==='fields')return $('mmhHierarchyDirection')||$('txType');
-  if(step==='first')return doc.querySelector('#transactions .mmh-glass-tx-nav-add-v1')||$('txForm');
+  if(step==='manage')return managerPage()?scope:visibleTarget($('mmhHistoryManageV2'),doc.querySelector('#transactions .mmh-glass-tx-nav-manage-v1'),$('mmhManageCategoriesLaunchV1'));
+  if(step==='type')return scope?.querySelector('.mmh-hier-fixed-v2')||null;
+  if(step==='transaction')return cards[0]?.querySelector('button:not(:disabled)')||cards[0]||null;
+  if(step==='category')return cards[1]?.querySelector('button:not(:disabled)')||cards[1]||null;
+  if(step==='fields')return visibleTarget($('mmhHierarchyDirection'),$('txType'),$('mmhHistoryBackV2'),doc.querySelector('#transactions .mmh-glass-tx-nav-add-v1'));
+  if(step==='first')return visibleTarget($('mmhHistoryBackV2'),doc.querySelector('#transactions .mmh-glass-tx-nav-add-v1'),$('txAmount'),$('txForm'));
   return null;
 };
 let shown=false,help=null,root=null,card=null,halo=null,state=null,activeOwner='',dismissedOwner='',lastSig='',scheduled=false;
@@ -174,7 +175,7 @@ function mountHelp(){
     if(bar.parentNode!==nav.parentNode||bar.nextElementSibling!==nav)nav.before(bar);
     if(help.parentNode!==bar)bar.append(help);
   }else if(fallback&&help.parentNode!==fallback)fallback.append(help);
-  help.textContent='✦ '+words[lang()].help;
+  const title=words[lang()].help;if(help.textContent!=='?')help.textContent='?';help.title=title;help.setAttribute('aria-label',title);
 }
 function saveAndClose(status='paused'){
   if(state)persist(status==='skipped'?stop(state):pause(state));
@@ -208,29 +209,28 @@ function ensureStage(){
   doc.body.classList.add('mmh-onboarding-active-v1');
 }
 function placement(){
-  if(!shown||!card||!halo)return;
-  const stage=STEPS[state?.step||0];
-  const target=targetFor(stage);
-  const visible=target&&target.isConnected&&target.getBoundingClientRect().width>0&&
-    target.getBoundingClientRect().height>0&&target.getClientRects().length>0;
-  if(visible&&!editorOpen()){
-    const r=target.getBoundingClientRect();
-    halo.hidden=false;halo.style.width=Math.max(18,r.width+12)+'px';halo.style.height=Math.max(18,r.height+12)+'px';
-    halo.style.transform='translate('+Math.max(0,r.left-6)+'px,'+Math.max(0,r.top-6)+'px)';
-  }else halo.hidden=true;
-  if(matchMedia('(max-width:690px)').matches){
-    card.style.left='';card.style.right='';card.style.top='';card.style.bottom='';return;
-  }
-  const width=Math.min(390,innerWidth-32),height=card.offsetHeight;
-  let left=(innerWidth-width)/2,top=Math.max(12,(innerHeight-height)/2);
+  if(!shown||!card||!halo||root?.hidden)return;
+  const stage=STEPS[state?.step||0],target=targetFor(stage);
+  const vv=window.visualViewport,vl=vv?.offsetLeft||0,vt=vv?.offsetTop||0,vr=vl+(vv?.width||innerWidth),vb=vt+(vv?.height||innerHeight);
+  const b=window.MMHWorkspaceDialogBoundsV2?.(null);
+  const left=Math.max(vl+8,b?.left||0),right=Math.min(vr-8,b?.right||vr),top=Math.max(vt+8,b?.top||0),bottom=Math.min(vb-8,b?.bottom||vb);
+  if(right<=left||bottom<=top)return;
+  const dim=root.querySelector('.mmh-onboard-dim-v1');
+  if(dim)Object.assign(dim.style,{left:left+'px',right:Math.max(0,innerWidth-right)+'px',top:top+'px',bottom:Math.max(0,innerHeight-bottom)+'px'});
+  const r=target?.getBoundingClientRect(),visible=!!(r&&target.isConnected&&target.getClientRects().length&&r.width>0&&r.height>0&&r.bottom>top&&r.top<bottom&&r.right>left&&r.left<right&&!editorOpen());
+  halo.hidden=!visible;
+  if(visible){const x=Math.max(left,r.left-4),y=Math.max(top,r.top-4);halo.style.width=Math.max(1,Math.min(right,r.right+4)-x)+'px';halo.style.height=Math.max(1,Math.min(bottom,r.bottom+4)-y)+'px';halo.style.transform='translate('+x+'px,'+y+'px)';}
+  const width=Math.min(390,right-left),maxHeight=bottom-top;
+  card.style.width=width+'px';card.style.maxHeight=maxHeight+'px';
+  const height=card.offsetHeight,clamp=(v,min,max)=>Math.max(min,Math.min(max,v));
+  let x=left+(right-left-width)/2,y=top+(maxHeight-height)/2;
   if(visible){
-    const r=target.getBoundingClientRect();
-    const tryRight=r.right+24,tryLeft=r.left-width-24;
-    left=tryRight+width<=innerWidth-12?tryRight:tryLeft>=12?tryLeft:Math.min(innerWidth-width-12,Math.max(12,r.left));
-    top=Math.min(innerHeight-height-12,Math.max(12,r.top));
-    if(r.bottom>innerHeight-90)top=Math.max(12,Math.min(top,r.top-height-12));
+    const candidates=[{x:r.right+12,y:r.top},{x:r.left-width-12,y:r.top},{x:r.left,y:r.bottom+12},{x:r.left,y:r.top-height-12}];
+    const fitted=candidates.map(p=>({x:clamp(p.x,left,right-width),y:clamp(p.y,top,bottom-height)}));
+    const overlap=p=>Math.max(0,Math.min(p.x+width,r.right)-Math.max(p.x,r.left))*Math.max(0,Math.min(p.y+height,r.bottom)-Math.max(p.y,r.top));
+    fitted.sort((a,b)=>overlap(a)-overlap(b));({x,y}=fitted[0]);
   }
-  card.style.left=left+'px';card.style.right='auto';card.style.top=top+'px';card.style.bottom='auto';
+  Object.assign(card.style,{left:clamp(x,left,right-width)+'px',right:'auto',top:clamp(y,top,bottom-height)+'px',bottom:'auto'});
 }
 function action(caption,fn,primary=false,disabled=false){
   const button=make('button','mmh-onboard-cta-v1'+(primary?' is-primary':''),caption);
@@ -256,6 +256,7 @@ function openManage(){
   try{window.mmhTxPagePickerOpenCategoriesV3?.()}catch(_){}
   schedule();
 }
+function openAdd(){try{$('txTabAdd')?.click()}catch(_){}schedule();}
 function viewHistory(){
   end();try{window.showTxTab?.('history')}catch(_){}
 }
@@ -265,18 +266,18 @@ function renderGuide(){
   const locale=lang(),t=localeText(),stage=STEPS[state.step];
   if(editorOpen()){if(root)root.hidden=true;return;}
   if(root)root.hidden=false;
-  const manager=managerPage();
+  const manager=managerPage(),adding=!!$('txTabAdd')?.classList.contains('active');
   const hasPath=d.configured.type&&d.configured.transaction&&d.configured.category;
   const mode=canShowAccountCoach({hasAccount:d.accounts,hasPath});
-  const ready=(stage==='type'&&d.configured.type)||(stage==='transaction'&&d.configured.transaction)||
+  const ready=(stage==='type')||(stage==='transaction'&&d.configured.transaction)||
     (stage==='category'&&d.configured.category);
-  const signature=[stage,locale,manager,d.accounts,hasPath,d.configured.type,d.configured.transaction,d.configured.category,
+  const signature=[stage,locale,manager,adding,d.accounts,hasPath,d.configured.type,d.configured.transaction,d.configured.category,
     state.hasSavedTransaction,mode].join('|');
   ensureStage();
   if(signature===lastSig){placement();return;}
   lastSig=signature;card.replaceChildren();card.lang=locale;
   const header=make('div','mmh-onboard-head-v1');
-  const brand=make('div','mmh-onboard-brand-v1');brand.append(make('span','mmh-onboard-logo-v1','✦'),make('span','',t.brand));
+  const brand=make('div','mmh-onboard-brand-v1');brand.append(make('span','mmh-onboard-logo-v1','?'),make('span','',t.brand));
   const x=make('button','mmh-onboard-close-v1','×');x.type='button';x.setAttribute('aria-label',t.close);
   x.addEventListener('click',()=>saveAndClose());
   const right=make('div','mmh-onboard-head-actions-v1');
@@ -286,7 +287,8 @@ function renderGuide(){
     right.append(skipAll);
   }
   right.append(x);header.append(brand,right);card.append(header);
-  card.append(make('div','mmh-onboard-step-v1',t.step+' '+(state.step+1)+' '+t.of+' '+STEPS.length));
+  const progress=make('div','mmh-onboard-step-v1');
+  progress.append(make('span','',t.step+' '+(state.step+1)+' '+t.of+' '+STEPS.length),make('span','',Math.round((state.step+1)/STEPS.length*100)+'%'));card.append(progress);
   card.append(make('h2','mmh-onboard-title-v1',t[stage+'Title']));
   card.append(make('p','mmh-onboard-copy-v1',t[stage+'Copy']));
   let note='';
@@ -302,6 +304,7 @@ function renderGuide(){
   for(let i=0;i<STEPS.length;i++)dots.append(make('span','mmh-onboard-dot-v1'+(i<=state.step?' is-done':'')));
   dots.setAttribute('aria-hidden','true');card.append(dots);
   const footer=make('div','mmh-onboard-actions-v1');
+  if(state.step>0)footer.append(action(locale==='zh'?'上一步':locale==='my'?'နောက်သို့':'Back',()=>go(state.step-1)));
   if(stage==='welcome'){
     footer.append(action(t.pause,()=>saveAndClose()));
     footer.append(action(t.start,()=>go(1),true));
@@ -309,16 +312,20 @@ function renderGuide(){
     footer.append(action(t.skip,()=>saveAndClose('skipped')));
     if(manager)footer.append(action(t.next,()=>go(2),true));
     else footer.append(action(t.openManage,openManage,true));
-  }else if(['type','transaction','category'].includes(stage)){
+  }else if(stage==='type'){
+    if(!manager)footer.append(action(t.openManage,openManage));
+    footer.append(action(t.next,()=>go(state.step+1),true));
+  }else if(['transaction','category'].includes(stage)){
     footer.append(action(t.skipStep,()=>go(state.step+1)));
     footer.append(action(t.next,()=>go(state.step+1),true,!ready));
     if(!manager)footer.append(action(t.openManage,openManage));
   }else if(stage==='fields'){
-    footer.append(action(t.pause,()=>saveAndClose()));
+    if(!adding)footer.append(action(locale==='zh'?'打开记账':locale==='my'?'ငွေစာရင်းဖွင့်ရန်':'Open Add Transaction',openAdd));
     footer.append(action(t.next,()=>go(6),true));
   }else if(stage==='first'){
     if(mode==='account')footer.append(action(t.openAccounts,openAccounts));
     else if(mode==='manage')footer.append(action(t.openManage,openManage));
+    else if(!adding)footer.append(action(locale==='zh'?'打开记账':locale==='my'?'ငွေစာရင်းဖွင့်ရန်':'Open Add Transaction',openAdd));
     footer.append(action(t.skipStep,()=>go(7)));
     if(state.hasSavedTransaction)footer.append(action(t.next,()=>go(7),true));
   }else if(stage==='complete'){
@@ -352,7 +359,7 @@ function onClick(e){
   if(!shown||!state||owner()!==activeOwner)return;
   const element=e.target instanceof Element?e.target:null;if(!element)return;
   const step=STEPS[state.step];
-  if(step==='manage'&&element.closest('.mmh-glass-tx-nav-manage-v1,#mmhManageCategoriesLaunchV1')){
+  if(step==='manage'&&element.closest('.mmh-glass-tx-nav-manage-v1,#mmhManageCategoriesLaunchV1,#mmhHistoryManageV2')){
     requestAnimationFrame(()=>{if(shown&&managerPage())go(2);});
   }
   if(step==='first'&&element.closest('#txForm .actions button:not([type="button"])')){
@@ -382,13 +389,16 @@ function init(){
   const section=$('mmhManagerCategoriesPanelV445');
   if(section)new MutationObserver(schedule).observe(section,{childList:true,subtree:false});
   new MutationObserver(schedule).observe(doc.documentElement,{attributes:true,attributeFilter:['lang']});
+  new MutationObserver(records=>{if(records.some(r=>[...r.addedNodes,...r.removedNodes].some(n=>n.nodeType===1&&n.matches?.('.mmh-hier-overlay'))))schedule()}).observe(doc.body,{childList:true});
+  window.visualViewport?.addEventListener('resize',()=>{if(shown)placement()},{passive:true});
+  window.visualViewport?.addEventListener('scroll',()=>{if(shown)placement()},{passive:true});
   window.addEventListener('storage',e=>{
     if(e.key==='mmhvault_language_v3363')schedule();
     if(activeOwner&&e.key===keyFor(activeOwner)){if(shown)renderGuide();else schedule();}
   });
   schedule();
 }
-window.MMHTransactionsOnboardingV1=Object.freeze({version:'1.0.0',open:()=>openGuide(true),close:()=>saveAndClose(),
+window.MMHTransactionsOnboardingV1=Object.freeze({version:'2.0.0',open:()=>openGuide(true),close:()=>saveAndClose(),
   status:()=>({active:shown,step:shown?STEPS[state?.step||0]:null})});
 if(doc.readyState==='loading')doc.addEventListener('DOMContentLoaded',init,{once:true});else init();
 })();
