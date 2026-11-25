@@ -7,7 +7,7 @@ import {
   emptyHierarchy,legacyHierarchy,normalizePersistedHierarchy,
   addType,addTransaction,addCategory,renameItem,deleteItem,archiveItem,
   recordLink,choices,entryUsage,pathFor
-} from './mmhvault-v11-manage-hierarchy-model.mjs';
+} from './mmhvault-v11-manage-hierarchy-model.mjs?v=0.16.2';
 const clone=x=>JSON.parse(JSON.stringify(x));
 const fail=reason=>{throw new Error(reason);};
 export function createHierarchyController(host){
