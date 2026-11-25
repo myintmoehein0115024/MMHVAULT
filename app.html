@@ -11753,9 +11753,9 @@ html.mmh-desktop-compact-v11110 body.mmh-workspace-active #moreNavMenu.more-nav-
     // Keep fixed positioning tied to the viewport, outside transformed page containers.
     if(modal.parentElement!==el('invest').parentElement)el('invest').parentElement.appendChild(modal);
     modal.classList.add('page');
-    modal.dataset.returnScroll=String(window.scrollY);
+    modal.dataset.returnScroll=String(mmhWorkspaceScrollYV2());
     setPage('mmhV436CryptoExplorer');
-    window.scrollTo({top:0});
+    mmhWorkspaceScrollToV2({top:0});
     modal.classList.add("show");modal.setAttribute("aria-hidden","false");
     stopMarketTimer();
     loadLive().finally(()=>scheduleMarketTimer(60000));
@@ -11766,7 +11766,7 @@ html.mmh-desktop-compact-v11110 body.mmh-workspace-active #moreNavMenu.more-nav-
     modal.classList.remove("show");modal.setAttribute("aria-hidden","true");
     stopMarketTimer();
     setPage("invest");
-    requestAnimationFrame(()=>{window.scrollTo({top:Number(modal.dataset.returnScroll)||0});el("mmhV436MoreCrypto")?.focus({preventScroll:true});});
+    requestAnimationFrame(()=>{mmhWorkspaceScrollToV2({top:Number(modal.dataset.returnScroll)||0});el("mmhV436MoreCrypto")?.focus({preventScroll:true});});
     document.body.classList.remove("mmh-v436-explorer-open");
   };
   el("mmhV436CryptoExplorer")?.addEventListener("click",e=>{if(e.target===el("mmhV436CryptoExplorer"))window.closeMmhV436CryptoExplorer();});
@@ -14015,6 +14015,12 @@ function mmhVaultStoredPageV136(userId=""){
     return MMHVAULT_PERSISTENT_PAGES_V136.has(page)&&document.getElementById(page)?page:"dashboard";
   }catch(_e){return "dashboard";}
 }
+/* Workspace scroll adapter: document on desktop, bounded main on mobile. */
+function mmhWorkspaceScrollHostV2(){
+  return document.body?.classList.contains('mmh-workspace-active')&&!document.body.classList.contains('auth-page-active')&&matchMedia('(max-width:899px), (max-width:1099px) and (hover:none), (max-width:1099px) and (pointer:coarse)').matches?document.querySelector('main.wrap'):null;
+}
+function mmhWorkspaceScrollYV2(){return mmhWorkspaceScrollHostV2()?.scrollTop??window.scrollY}
+function mmhWorkspaceScrollToV2(options){const host=mmhWorkspaceScrollHostV2();if(host)host.scrollTo(options);else window.scrollTo(options)}
 function setPage(p){
   if(["analyze","wealth-planning"].includes(p))p="dashboard";
   let target=$(p);
@@ -14032,6 +14038,7 @@ function setPage(p){
   }
   document.body.classList.toggle("auth-page-active",p==="login");
   document.body.classList.toggle("mmh-workspace-active",p!=="login");
+  if(pageChanged&&mmhWorkspaceScrollHostV2())mmhWorkspaceScrollHostV2().scrollTop=0;
   document.querySelectorAll(".bottom-nav button").forEach(b=>{const active=b.dataset.page===p;b.classList.toggle("active",active);if(active)b.setAttribute("aria-current","page");else b.removeAttribute("aria-current");});
   if(p!=="login"&&MMHVAULT_PERSISTENT_PAGES_V136.has(p)){
     try{sessionStorage.setItem(mmhVaultPageKeyV136(),p);sessionStorage.removeItem("myfinance_page");}catch(_e){}
@@ -21219,6 +21226,7 @@ body.mmhvault-scroll-active #invest .invest-top>.panel{box-shadow:inset 0 1px 0 
     if(c.textContent!==String(value))c.textContent=String(value);
   }
   function updateDesktopRow(row,t){
+    row.dataset.mmhHistoryDirection=t.category==='Data Adjustment'?'Adjustment':String(t.type||'');
     setCell(row,0,t.tx_date||'');
     setCell(row,1,t.type||'');
     setCell(row,2,transactionGroupFor(t)||'');
@@ -21255,6 +21263,7 @@ body.mmhvault-scroll-active #invest .invest-top>.panel{box-shadow:inset 0 1px 0 
       if(edit)edit.onclick=()=>editTransaction(t.id);
       if(del)del.onclick=()=>deleteTx(t.id);
       row.dataset.mmhV34241Key=dataKey(t);
+      row.dataset.mmhHistoryDirection=t.category==='Data Adjustment'?'Adjustment':String(t.type||'');
     });
   }
 
@@ -21288,6 +21297,7 @@ body.mmhvault-scroll-active #invest .invest-top>.panel{box-shadow:inset 0 1px 0 
       let card=existing.get(String(t.id));
       if(!card){card=document.createElement('div');card.className='tx-mobile-card-v371';card.dataset.txId=String(t.id);card.onclick=()=>card.classList.toggle('open');card.innerHTML=mobileCardHTML(t);host.appendChild(card);}
       card.dataset.visualGroup=t.category==='Data Adjustment'?'Data Adjustment':inferTxGroup(t);
+      card.dataset.mmhHistoryDirection=t.category==='Data Adjustment'?'Adjustment':String(t.type||'');
       updateMobileCard(card,t);
     });
     const desired=[...rs].map(t=>String(t.id));
@@ -22029,9 +22039,10 @@ body.mmhvault-scroll-active #invest .panel{transition:none!important}
 /* MMHVAULT · retained header scroll state only.
    Retired unused deep-scroll / active-page / IntersectionObserver presentation passes. */
 (function(){
-  const sync=()=>document.body.classList.toggle('mmh-scrolled',window.scrollY>18);
+  const sync=()=>document.body.classList.toggle('mmh-scrolled',mmhWorkspaceScrollYV2()>18);
   sync();
   window.addEventListener('scroll',sync,{passive:true});
+  document.querySelector('main.wrap')?.addEventListener('scroll',sync,{passive:true});
 })();
 </script>
 
@@ -28215,8 +28226,8 @@ const data=$('settingsPanelDataV371');data.classList.remove('settings-panel-v371
 const home=document.createElement('div');home.className='st-home';home.id='stSettingsHomeV3';root.append(home);home.append(account);
 const menu=document.createElement('nav');menu.className='st-home-menu';menu.setAttribute('aria-label','Settings');home.append(menu);
 const pages=new Map();let homeScroll=0,lastTrigger=null;
-function go(id,trigger){const page=pages.get(id);if(!page)return;if(!root.classList.contains('st-in-subpage'))homeScroll=window.scrollY||0;lastTrigger=trigger||lastTrigger;home.hidden=true;root.classList.add('st-in-subpage');for(const [k,p] of pages)p.hidden=k!==id;window.scrollTo?.({top:0,behavior:'instant'});page.querySelector('.st-back').focus({preventScroll:true});}
-function back(){for(const p of pages.values())p.hidden=true;home.hidden=false;root.classList.remove('st-in-subpage');window.scrollTo?.({top:homeScroll,behavior:'instant'});lastTrigger?.focus({preventScroll:true});}
+function go(id,trigger){const page=pages.get(id);if(!page)return;if(!root.classList.contains('st-in-subpage'))homeScroll=mmhWorkspaceScrollYV2()||0;lastTrigger=trigger||lastTrigger;home.hidden=true;root.classList.add('st-in-subpage');for(const [k,p] of pages)p.hidden=k!==id;mmhWorkspaceScrollToV2({top:0,behavior:'instant'});page.querySelector('.st-back').focus({preventScroll:true});}
+function back(){for(const p of pages.values())p.hidden=true;home.hidden=false;root.classList.remove('st-in-subpage');mmhWorkspaceScrollToV2({top:homeScroll,behavior:'instant'});lastTrigger?.focus({preventScroll:true});}
 function register(id,title,icon,content,host=menu){const page=document.createElement('section');page.className='st-page';page.id='stPage_'+id;page.hidden=true;page.setAttribute('aria-label',title);const header=document.createElement('div');header.className='st-page-head';const backButton=document.createElement('button');backButton.type='button';backButton.className='st-back';backButton.textContent='‹ Back';backButton.addEventListener('click',back);const heading=document.createElement('h2');heading.textContent=title;header.append(backButton,heading);page.append(header,content);root.append(page);pages.set(id,page);
 const button=document.createElement('button');button.type='button';button.className='st-nav';button.setAttribute('aria-controls',page.id);const glyph=document.createElement('span');glyph.className='st-icon';glyph.textContent=icon;glyph.setAttribute('aria-hidden','true');const label=document.createElement('span');label.className='st-nav-name';label.textContent=title;const arrow=document.createElement('span');arrow.className='st-chevron';arrow.textContent='›';arrow.setAttribute('aria-hidden','true');button.append(glyph,label,arrow);button.addEventListener('click',()=>go(id,button));host.append(button);return button;}
 for(const [i,g] of [...main.querySelectorAll('.st-group')].entries()){const title=g.querySelector('h2').textContent;register(['appearance','general','transactions'][i],title,['◐','⚙','⇄'][i],g);}main.remove();
@@ -28688,8 +28699,8 @@ body.light :is(#transactions,#invest) .panel,body.light #invest .mmh-ui-panel,bo
 let origin='transactions',savedScroll=0,detailOwner='';
 function init(){
  const host=document.createElement('section');host.id='ledger-detail';host.className='page';host.innerHTML='<div class="ld-head"><button id="ldBack" type="button">‹ Back</button><h1 id="ldTitle">Details</h1></div><div id="ldBody"></div>';document.getElementById('transactions').parentElement.append(host);
- document.getElementById('ldBack').onclick=()=>{document.getElementById('ldBody').replaceChildren();setPage(origin);requestAnimationFrame(()=>window.scrollTo({top:savedScroll}))};
- function open(card,page){origin=page;savedScroll=window.scrollY;detailOwner=currentSessionUser?.id||'';const clone=card.cloneNode(true);clone.removeAttribute('tabindex');clone.removeAttribute('role');clone.classList.add('open');const buttons=[...card.querySelectorAll('button')];clone.querySelectorAll('button').forEach((b,i)=>{b.onclick=e=>{e.stopPropagation();if(currentSessionUser?.id!==detailOwner)return;buttons[i]?.click()}});if(card.classList.contains('mmh-history-card')){let actions=clone.querySelector('.mmh-history-actions');if(!actions){actions=document.createElement('div');actions.className='mmh-history-actions';clone.append(actions)}const detailBtn=document.createElement('button');detailBtn.type='button';detailBtn.dataset.historyRole='details-v831';detailBtn.textContent='Details';detailBtn.onclick=e=>{e.preventDefault();e.stopPropagation();if(currentSessionUser?.id!==detailOwner)return false;window.openInvestmentPortfolioDetailV821?.(clone);return false};actions.insertBefore(detailBtn,actions.firstChild)}const detailTitle=page==='transactions'?'Transaction details':card.classList.contains('mmh-history-card')?'Investment details':'Holding details';document.getElementById('ldTitle').dataset.i18nBase=detailTitle;document.getElementById('ldTitle').textContent=detailTitle;document.getElementById('ldBody').replaceChildren(clone);setPage('ledger-detail');window.scrollTo({top:0,behavior:'instant'});document.getElementById('ldBack').focus({preventScroll:true});if(page==='transactions'){const host=document.getElementById('ledger-detail');requestAnimationFrame(()=>{if(!host.classList.contains('active'))return;for(const el of [document.scrollingElement,host.closest('main'),host])if(el)el.scrollTop=0;window.scrollTo({top:0,behavior:'instant'});});}}
+ document.getElementById('ldBack').onclick=()=>{document.getElementById('ldBody').replaceChildren();setPage(origin);requestAnimationFrame(()=>mmhWorkspaceScrollToV2({top:savedScroll}))};
+ function open(card,page){origin=page;savedScroll=mmhWorkspaceScrollYV2();detailOwner=currentSessionUser?.id||'';const clone=card.cloneNode(true);clone.removeAttribute('tabindex');clone.removeAttribute('role');clone.classList.add('open');const buttons=[...card.querySelectorAll('button')];clone.querySelectorAll('button').forEach((b,i)=>{b.onclick=e=>{e.stopPropagation();if(currentSessionUser?.id!==detailOwner)return;buttons[i]?.click()}});if(card.classList.contains('mmh-history-card')){let actions=clone.querySelector('.mmh-history-actions');if(!actions){actions=document.createElement('div');actions.className='mmh-history-actions';clone.append(actions)}const detailBtn=document.createElement('button');detailBtn.type='button';detailBtn.dataset.historyRole='details-v831';detailBtn.textContent='Details';detailBtn.onclick=e=>{e.preventDefault();e.stopPropagation();if(currentSessionUser?.id!==detailOwner)return false;window.openInvestmentPortfolioDetailV821?.(clone);return false};actions.insertBefore(detailBtn,actions.firstChild)}const detailTitle=page==='transactions'?'Transaction details':card.classList.contains('mmh-history-card')?'Investment details':'Holding details';document.getElementById('ldTitle').dataset.i18nBase=detailTitle;document.getElementById('ldTitle').textContent=detailTitle;document.getElementById('ldBody').replaceChildren(clone);setPage('ledger-detail');mmhWorkspaceScrollToV2({top:0,behavior:'instant'});document.getElementById('ldBack').focus({preventScroll:true});if(page==='transactions'){const host=document.getElementById('ledger-detail');requestAnimationFrame(()=>{if(!host.classList.contains('active'))return;for(const el of [document.scrollingElement,host.closest('main'),host])if(el)el.scrollTop=0;mmhWorkspaceScrollToV2({top:0,behavior:'instant'});});}}
  document.addEventListener('click',e=>{const card=e.target.closest('#txMobileListV371 .tx-mobile-card-v371,#mmhUnifiedListV1 .mmh-overview-card,#mmhHistoryRowsV1 .mmh-history-card');if(!card||e.target.closest('button,a,input,select'))return;e.preventDefault();e.stopImmediatePropagation();open(card,card.closest('#transactions')?'transactions':'invest')},true);
  document.addEventListener('keydown',e=>{if((e.key==='Enter'||e.key===' ')&&e.target.matches('#txMobileListV371 .tx-mobile-card-v371,#mmhUnifiedListV1 .mmh-overview-card,#mmhHistoryRowsV1 .mmh-history-card')){e.preventDefault();e.target.click()}});
  const decorate=()=>{const selector=document.getElementById('transactions')?.classList.contains('active')?'#txMobileListV371 .tx-mobile-card-v371':document.getElementById('invest')?.classList.contains('active')?'#mmhUnifiedListV1 .mmh-overview-card,#mmhHistoryRowsV1 .mmh-history-card':'';if(!selector)return;document.querySelectorAll(selector).forEach(x=>{x.tabIndex=0;x.setAttribute('role','button');x.setAttribute('aria-label','Open '+(x.querySelector('b')?.textContent||'record')+' details')});};
@@ -29011,6 +29022,7 @@ body.light #accounts-page .am-row-value,body.light #category-manage .mmh-manager
       const record=lookup.get(card.dataset.txId);if(!record)return;
       const group=record.category==='Data Adjustment'?'Data Adjustment':typeof inferTxGroup==='function'?inferTxGroup(record):typeof transactionGroupFor==='function'?transactionGroupFor(record):record.type;
       if(card.dataset.visualGroup!==group)card.dataset.visualGroup=group;
+      card.dataset.mmhHistoryDirection=record.category==='Data Adjustment'?'Adjustment':String(record.type||'');
     });
   }
   let visualRafV1533=0;
@@ -29719,13 +29731,13 @@ base.addEventListener('change',draw);$('asiaSearchV10').addEventListener('input'
     if(host&&detail.parentElement!==host)host.appendChild(detail);
   };
   window.openMmhAsiaRatesV130=()=>{
-    ensureTopLevel();detail.dataset.returnScroll=String(window.scrollY||0);detail.setAttribute('aria-hidden','false');
-    window.setPage?.('exAsiaV10');window.scrollTo({top:0});
+    ensureTopLevel();detail.dataset.returnScroll=String(mmhWorkspaceScrollYV2()||0);detail.setAttribute('aria-hidden','false');
+    window.setPage?.('exAsiaV10');mmhWorkspaceScrollToV2({top:0});
     requestAnimationFrame(()=>backBtn.focus({preventScroll:true}));
   };
   window.closeMmhAsiaRatesV130=()=>{
     detail.setAttribute('aria-hidden','true');window.setPage?.('exchange');
-    requestAnimationFrame(()=>{window.scrollTo({top:Number(detail.dataset.returnScroll)||0});openBtn.focus({preventScroll:true});});
+    requestAnimationFrame(()=>{mmhWorkspaceScrollToV2({top:Number(detail.dataset.returnScroll)||0});openBtn.focus({preventScroll:true});});
   };
   openBtn.addEventListener('click',window.openMmhAsiaRatesV130);
   backBtn.addEventListener('click',window.closeMmhAsiaRatesV130);
@@ -29795,7 +29807,7 @@ const msg=t=>{if($('fbMsgV14'))$('fbMsgV14').textContent=t};
 function draw(items){const list=$('fbListV14');list.replaceChildren();for(const item of items){const d=document.createElement('details');d.className='fb-record';const sum=document.createElement('summary'),b=document.createElement('b'),badge=document.createElement('span');b.textContent=item.title;badge.className='fb-status';badge.dataset.status=item.status;badge.textContent=statusText(item.status);sum.append(b,badge);const meta=document.createElement('p');meta.className='fb-note';meta.textContent=date(item.created_at)+' · '+({bug:tr('Issue','问题'),idea:tr('Suggestion','建议'),other:tr('Other','其他')})[item.category];const body=document.createElement('p');body.className='fb-text';body.textContent=item.body;d.append(sum,meta,body);if(item.reply){const reply=document.createElement('div');reply.className='fb-reply';const label=document.createElement('b');label.textContent=tr('Administrator reply','管理员回复');const text=document.createElement('p');text.className='fb-text';text.textContent=item.reply;reply.append(label,text);d.append(reply)}list.append(d)}if(!items.length)list.textContent=tr('No feedback yet.','暂无反馈记录。');$('fbPrevV14').disabled=offset===0;$('fbNextV14').disabled=offset+20>=total;$('fbPageV14').textContent=total?`${offset+1}–${Math.min(offset+20,total)} / ${total}`:'0 / 0'}
 async function load(){if(!uid||loading||page?.hidden||!historyOpen)return;const e=epoch;loading=true;if($('fbRefreshV14'))$('fbRefreshV14').disabled=true;try{const {data,error}=await db.rpc('mmh_list_feedback',{p_admin:false,p_status:'',p_offset:offset});if(e!==epoch)return;if(error)throw error;total=data.total;const items=Array.isArray(data?.items)?data.items:[];draw(items);window.mmhDecorateFeedbackV1524?.(items)}catch(_){if(e===epoch)msg(tr('Unable to load feedback. Please retry.','反馈加载失败，请重试。'))}finally{if(e===epoch){loading=false;if($('fbRefreshV14'))$('fbRefreshV14').disabled=false}}}
 async function submit(event){event.preventDefault();if(!uid||sending)return;const title=$('fbTitleV14').value.trim(),body=$('fbBodyV14').value.trim(),category=$('fbTypeV14').value;if(!title||!body){msg(tr('Please enter a title and description.','请填写标题和描述。'));return}const value=JSON.stringify([category,title,body]);if(snapshot!==value){request=crypto.randomUUID();snapshot=value}const e=epoch;sending=true;$('fbSubmitV14').disabled=true;msg(tr('Submitting…','正在提交…'));try{const {error}=await db.rpc('mmh_submit_feedback',{p_request_id:request,p_category:category,p_title:title,p_body:body});if(e!==epoch)return;if(error)throw error;$('fbFormV14').reset();request=null;snapshot=null;offset=0;msg(tr('Feedback submitted. Check this page for updates and replies.','反馈已提交，可在此查看处理状态和回复。'));await load()}catch(error){if(e===epoch)msg(error.message?.includes('limit')?tr('Too many submissions. Please try again later.','提交次数过多，请稍后再试。'):tr('Submission failed. Your text is kept; please retry.','提交失败，内容已保留，请重试。'))}finally{if(e===epoch){sending=false;$('fbSubmitV14').disabled=false}}}
-function init(){const settings=$('settings'),group=document.querySelector('#stSettingsHomeV3 .st-template-group:nth-child(3)');if(!settings||!group)return;entry=document.createElement('button');entry.type='button';entry.className='fb-nav';entry.innerHTML='<span class="st-icon" aria-hidden="true">✉</span><span class="st-template-nav-copy"><span class="st-nav-name" data-en="Feedback center" data-zh="反馈中心">Feedback center</span><small data-en="Share issues, suggestions and view replies" data-zh="提交问题、建议并查看回复">Share issues, suggestions and view replies</small></span><span class="st-chevron" aria-hidden="true">›</span>';group.append(entry);page=document.createElement('section');page.id='stPage_feedback';page.className='st-page';page.hidden=true;page.innerHTML='<div class="st-page-head"><button class="st-back" id="fbBackV14" type="button" data-en="‹ Back" data-zh="‹ 返回">‹ Back</button><h2 data-en="Feedback center" data-zh="反馈中心">Feedback center</h2></div><section class="fb-panel fb-compose-v136"><div class="fb-heading"><div><h3 data-en="New feedback" data-zh="提交反馈">New feedback</h3><p class="fb-note" data-en="Send an issue or suggestion to the MMHVAULT administrator." data-zh="向 MMHVAULT 管理员提交问题或建议。">Send an issue or suggestion to the MMHVAULT administrator.</p></div></div><form id="fbFormV14"><div class="fb-fields"><label><span data-en="Type" data-zh="类型">Type</span><select id="fbTypeV14"><option value="bug" data-en="Issue" data-zh="问题">Issue</option><option value="idea" data-en="Suggestion" data-zh="建议">Suggestion</option><option value="other" data-en="Other" data-zh="其他">Other</option></select></label><label><span data-en="Title" data-zh="标题">Title</span><input id="fbTitleV14" maxlength="120" required></label></div><label class="fb-body-label"><span data-en="Description" data-zh="描述">Description</span><textarea id="fbBodyV14" maxlength="4000" required></textarea></label><p class="fb-note" data-en="Please avoid including passwords or payment details." data-zh="请避免填写密码或支付信息。">Please avoid including passwords or payment details.</p><button id="fbSubmitV14" type="submit" data-en="Submit feedback" data-zh="提交反馈">Submit feedback</button></form><div id="fbMsgV14" role="status" aria-live="polite"></div></section><section class="fb-panel fb-my-panel-v136"><button class="fb-my-toggle-v136" id="fbMyToggleV136" type="button" aria-expanded="false" aria-controls="fbMyBodyV136"><span class="fb-my-icon-v136" aria-hidden="true">▤</span><span class="fb-my-copy-v136"><strong data-en="My feedback" data-zh="我的反馈">My feedback</strong><small data-en="Open to view status, replies and previous submissions" data-zh="点击查看处理状态、回复和历史反馈">Open to view status, replies and previous submissions</small></span><span class="fb-my-arrow-v136" aria-hidden="true">›</span></button><div class="fb-my-body-v136" id="fbMyBodyV136" hidden><div class="fb-heading fb-my-head-v136"><h3 data-en="Feedback history" data-zh="反馈记录">Feedback history</h3><button id="fbRefreshV14" type="button" data-en="Refresh" data-zh="刷新">Refresh</button></div><div id="fbListV14"></div><div class="fb-pagination"><button id="fbPrevV14" type="button" data-en="Previous" data-zh="上一页">Previous</button><small id="fbPageV14" class="fb-note"></small><button id="fbNextV14" type="button" data-en="Next" data-zh="下一页">Next</button></div></div></section>';settings.append(page);entry.onclick=()=>{const home=$('stSettingsHomeV3');home.hidden=true;settings.querySelectorAll('.st-page').forEach(p=>p.hidden=true);settings.classList.remove('st-in-subpage');page.hidden=false;rememberSub('feedback');setHistoryOpen(false,false);translate();window.scrollTo({top:0,behavior:'instant'});$('fbBackV14').focus({preventScroll:true})};window.mmhOpenFeedbackV136=()=>entry?.click();$('fbBackV14').onclick=()=>close(true);$('fbMyToggleV136').onclick=()=>setHistoryOpen(!historyOpen,true);page.addEventListener('keydown',e=>{if(e.key==='Escape'){e.preventDefault();e.stopPropagation();close(true)}});$('fbFormV14').onsubmit=submit;$('fbRefreshV14').onclick=()=>{if(!historyOpen)setHistoryOpen(true,true);else load()};$('fbPrevV14').onclick=()=>{if(loading)return;offset=Math.max(0,offset-20);load()};$('fbNextV14').onclick=()=>{if(loading)return;offset+=20;load()};translate();for(const name of ['mmhvault-language-change','languagechange'])window.addEventListener(name,()=>{translate();if(!page.hidden&&historyOpen)load()})}
+function init(){const settings=$('settings'),group=document.querySelector('#stSettingsHomeV3 .st-template-group:nth-child(3)');if(!settings||!group)return;entry=document.createElement('button');entry.type='button';entry.className='fb-nav';entry.innerHTML='<span class="st-icon" aria-hidden="true">✉</span><span class="st-template-nav-copy"><span class="st-nav-name" data-en="Feedback center" data-zh="反馈中心">Feedback center</span><small data-en="Share issues, suggestions and view replies" data-zh="提交问题、建议并查看回复">Share issues, suggestions and view replies</small></span><span class="st-chevron" aria-hidden="true">›</span>';group.append(entry);page=document.createElement('section');page.id='stPage_feedback';page.className='st-page';page.hidden=true;page.innerHTML='<div class="st-page-head"><button class="st-back" id="fbBackV14" type="button" data-en="‹ Back" data-zh="‹ 返回">‹ Back</button><h2 data-en="Feedback center" data-zh="反馈中心">Feedback center</h2></div><section class="fb-panel fb-compose-v136"><div class="fb-heading"><div><h3 data-en="New feedback" data-zh="提交反馈">New feedback</h3><p class="fb-note" data-en="Send an issue or suggestion to the MMHVAULT administrator." data-zh="向 MMHVAULT 管理员提交问题或建议。">Send an issue or suggestion to the MMHVAULT administrator.</p></div></div><form id="fbFormV14"><div class="fb-fields"><label><span data-en="Type" data-zh="类型">Type</span><select id="fbTypeV14"><option value="bug" data-en="Issue" data-zh="问题">Issue</option><option value="idea" data-en="Suggestion" data-zh="建议">Suggestion</option><option value="other" data-en="Other" data-zh="其他">Other</option></select></label><label><span data-en="Title" data-zh="标题">Title</span><input id="fbTitleV14" maxlength="120" required></label></div><label class="fb-body-label"><span data-en="Description" data-zh="描述">Description</span><textarea id="fbBodyV14" maxlength="4000" required></textarea></label><p class="fb-note" data-en="Please avoid including passwords or payment details." data-zh="请避免填写密码或支付信息。">Please avoid including passwords or payment details.</p><button id="fbSubmitV14" type="submit" data-en="Submit feedback" data-zh="提交反馈">Submit feedback</button></form><div id="fbMsgV14" role="status" aria-live="polite"></div></section><section class="fb-panel fb-my-panel-v136"><button class="fb-my-toggle-v136" id="fbMyToggleV136" type="button" aria-expanded="false" aria-controls="fbMyBodyV136"><span class="fb-my-icon-v136" aria-hidden="true">▤</span><span class="fb-my-copy-v136"><strong data-en="My feedback" data-zh="我的反馈">My feedback</strong><small data-en="Open to view status, replies and previous submissions" data-zh="点击查看处理状态、回复和历史反馈">Open to view status, replies and previous submissions</small></span><span class="fb-my-arrow-v136" aria-hidden="true">›</span></button><div class="fb-my-body-v136" id="fbMyBodyV136" hidden><div class="fb-heading fb-my-head-v136"><h3 data-en="Feedback history" data-zh="反馈记录">Feedback history</h3><button id="fbRefreshV14" type="button" data-en="Refresh" data-zh="刷新">Refresh</button></div><div id="fbListV14"></div><div class="fb-pagination"><button id="fbPrevV14" type="button" data-en="Previous" data-zh="上一页">Previous</button><small id="fbPageV14" class="fb-note"></small><button id="fbNextV14" type="button" data-en="Next" data-zh="下一页">Next</button></div></div></section>';settings.append(page);entry.onclick=()=>{const home=$('stSettingsHomeV3');home.hidden=true;settings.querySelectorAll('.st-page').forEach(p=>p.hidden=true);settings.classList.remove('st-in-subpage');page.hidden=false;rememberSub('feedback');setHistoryOpen(false,false);translate();mmhWorkspaceScrollToV2({top:0,behavior:'instant'});$('fbBackV14').focus({preventScroll:true})};window.mmhOpenFeedbackV136=()=>entry?.click();$('fbBackV14').onclick=()=>close(true);$('fbMyToggleV136').onclick=()=>setHistoryOpen(!historyOpen,true);page.addEventListener('keydown',e=>{if(e.key==='Escape'){e.preventDefault();e.stopPropagation();close(true)}});$('fbFormV14').onsubmit=submit;$('fbRefreshV14').onclick=()=>{if(!historyOpen)setHistoryOpen(true,true);else load()};$('fbPrevV14').onclick=()=>{if(loading)return;offset=Math.max(0,offset-20);load()};$('fbNextV14').onclick=()=>{if(loading)return;offset+=20;load()};translate();for(const name of ['mmhvault-language-change','languagechange'])window.addEventListener(name,()=>{translate();if(!page.hidden&&historyOpen)load()})}
 function owner(user){const next=user?.id||null;if(next===uid)return;uid=next;++epoch;loading=false;sending=false;request=null;snapshot=null;offset=0;total=0;historyOpen=false;if(page){$('fbFormV14').reset();$('fbListV14').replaceChildren();$('fbSubmitV14').disabled=false;if($('fbRefreshV14'))$('fbRefreshV14').disabled=false;setHistoryOpen(false,false);msg('');close(false)}}
 db.auth.getSession().then(({data})=>owner(data?.session?.user)).catch(()=>{});db.auth.onAuthStateChange((_,s)=>setTimeout(()=>owner(s?.user),0));if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});else init();
 })();
@@ -33903,7 +33915,7 @@ body.light #settings .cs-panel-v1518{background:linear-gradient(160deg,#fff,#f3f
   }
  }
  function close(){if(!page||page.hidden)return;stopPoll();page.hidden=true;const home=$('stSettingsHomeV3');if(home)home.hidden=false;entry?.focus({preventScroll:true})}
- function open(){const settings=$('settings');if(!settings||!page)return;const home=$('stSettingsHomeV3');if(home)home.hidden=true;settings.querySelectorAll('.st-page').forEach(p=>p.hidden=true);settings.classList.remove('st-in-subpage');page.hidden=false;translateSurface();window.scrollTo({top:0,behavior:'instant'});lastSignature='';loadHistory();schedulePoll(1200);$('csMessageV1518')?.focus({preventScroll:true})}
+ function open(){const settings=$('settings');if(!settings||!page)return;const home=$('stSettingsHomeV3');if(home)home.hidden=true;settings.querySelectorAll('.st-page').forEach(p=>p.hidden=true);settings.classList.remove('st-in-subpage');page.hidden=false;translateSurface();mmhWorkspaceScrollToV2({top:0,behavior:'instant'});lastSignature='';loadHistory();schedulePoll(1200);$('csMessageV1518')?.focus({preventScroll:true})}
  function build(){if($('stPage_supportV1518'))return;const settings=$('settings'),group=document.querySelector('#stSettingsHomeV3 .st-template-group:nth-child(3)');if(!settings||!group)return;entry=document.createElement('button');entry.type='button';entry.className='st-nav cs-entry-v1518';entry.innerHTML='<span class="st-icon" aria-hidden="true">◉</span><span class="st-template-nav-copy"><span class="st-nav-name" data-en="Live support" data-zh="人工客服">Live support</span><small data-en="Chat with support · photo and emoji" data-zh="联系人工客服 · 支持照片和 Emoji">Chat with support · photo and emoji</small></span><span class="st-chevron" aria-hidden="true">›</span>';const fb=group.querySelector('.fb-nav');fb?fb.after(entry):group.append(entry);page=document.createElement('section');page.id='stPage_supportV1518';page.className='st-page';page.hidden=true;page.innerHTML='<div class="st-page-head"><button class="st-back" id="csBackV1518" type="button" data-en="‹ Back" data-zh="‹ 返回">‹ Back</button><h2 data-en="Live support" data-zh="人工客服">Live support</h2></div><section class="cs-panel-v1518"><div class="cs-head-v1518"><div class="cs-agent-v1518"><div class="cs-agent-avatar-v1518" aria-hidden="true">◉</div><div class="cs-agent-copy-v1518"><strong data-en="MMHVAULT support agent" data-zh="MMHVAULT 人工客服">MMHVAULT support agent</strong><small data-en="Live message support" data-zh="人工消息客服">Live message support</small></div></div><div class="cs-live-v1518" data-en="Auto sync every few seconds" data-zh="每几秒自动同步">Auto sync every few seconds</div></div><div class="cs-thread-v1518" id="csThreadV1518"></div><div class="cs-compose-v1518"><div class="cs-compose-meta-v1518"><span data-en="Signed in as" data-zh="当前账号">Signed in as</span><b id="csAccountV1518"></b></div><textarea id="csMessageV1518" maxlength="4000" placeholder="Message the support agent…"></textarea><div class="cs-emoji-v1518" id="csEmojiPanelV1518" hidden></div><div class="cs-preview-v1518" id="csPhotoPreviewV1518"></div><div class="cs-compose-bottom-v1518"><div class="cs-tools-v1518"><button class="cs-tool-v1518" id="csEmojiToggleV1518" type="button">😊 <span>Emoji</span></button><button class="cs-tool-v1518" id="csPhotoBtnV1518" type="button">🖼 <span data-en="Photo" data-zh="照片">Photo</span></button><button class="cs-tool-v1518" id="csClearPhotosV1518" type="button" data-en="Clear" data-zh="清除">Clear</button><input class="cs-file-input-v1518" id="csPhotosV1518" type="file" accept="image/jpeg,image/png,image/webp" multiple></div><button class="cs-send-v1518" id="csSendV1518" type="button" data-en="Send" data-zh="发送">Send</button></div><div class="cs-hint-v1518" data-en="Enter to send · Shift+Enter for a new line · up to 3 photos, 3 MB each" data-zh="Enter 发送 · Shift+Enter 换行 · 最多 3 张照片，每张 3 MB">Enter to send · Shift+Enter for a new line · up to 3 photos, 3 MB each</div><div class="cs-result-v1518" id="csResultV1518" role="status" aria-live="polite"></div></div></section>';settings.append(page);entry.onclick=open;$('csBackV1518').onclick=close;$('csSendV1518').onclick=send;$('csEmojiToggleV1518').onclick=()=>{const p=$('csEmojiPanelV1518');if(p)p.toggleAttribute('hidden')};const emojiPanel=$('csEmojiPanelV1518');for(const emoji of emojis){const b=document.createElement('button');b.type='button';b.textContent=emoji;b.setAttribute('aria-label','Emoji '+emoji);b.onclick=()=>insertEmoji(emoji);emojiPanel.append(b)}$('csPhotoBtnV1518').onclick=()=>$('csPhotosV1518')?.click();$('csClearPhotosV1518').onclick=clearFiles;$('csPhotosV1518').onchange=e=>chooseFiles(e.currentTarget.files||[]);$('csMessageV1518').addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey&&!e.isComposing){e.preventDefault();send()}});page.addEventListener('keydown',e=>{if(e.key==='Escape'&&!$('csEmojiPanelV1518')?.hidden){$('csEmojiPanelV1518').hidden=true;e.stopPropagation()}});window.mmhOpenSupportV1518=open;translateSurface()}
  function setOwner(user){const next=user?.id||null;if(next===owner?.id){owner=user||owner;renderAccount();return}owner=user||null;++epoch;loading=false;sending=false;lastSignature='';clearFiles();stopPoll();if(page&&!page.hidden){loadHistory();schedulePoll()}renderAccount()}
  const boot=()=>{build();db.auth.getSession().then(({data})=>setOwner(data?.session?.user||null)).catch(()=>{});db.auth.onAuthStateChange((_,session)=>setTimeout(()=>setOwner(session?.user||null),0));for(const name of ['mmhvault-language-change','languagechange'])window.addEventListener(name,()=>{translateSurface();if(page&&!page.hidden){lastSignature='';loadHistory({silent:true})}});document.addEventListener('visibilitychange',()=>{if(document.hidden){stopPoll();return}if(page&&!page.hidden){loadHistory({silent:true});schedulePoll(800)}});
@@ -38210,5 +38222,139 @@ html body.mmh-workspace-active:not(.auth-page-active) #header#header#header#head
 @media(prefers-reduced-motion:reduce){html body.mmh-workspace-active:not(.auth-page-active) #moreNavMenu#moreNavMenu#moreNavMenu#moreNavMenu.more-nav-menu,html body.mmh-workspace-active:not(.auth-page-active) #moreNavMenu#moreNavMenu#moreNavMenu#moreNavMenu.more-nav-menu .mmh-more-stage-v153{transition:none!important}}
 </style>
 
+<style id="mmhWorkspaceScrollThemeDateV2">
+html body.light #dashboard#dashboard#dashboard #mmhPremiumDashboardV500#mmhPremiumDashboardV500#mmhPremiumDashboardV500#mmhPremiumDashboardV500 .pf-tag-v500{background:#edf0f5!important;color:#34465b!important;border:1px solid #d5dce6!important}
+html body.light #dashboard#dashboard#dashboard #mmhPremiumDashboardV500#mmhPremiumDashboardV500#mmhPremiumDashboardV500#mmhPremiumDashboardV500 .pf-tag-v500.income,html body.light #dashboard#dashboard#dashboard #mmhPremiumDashboardV500#mmhPremiumDashboardV500#mmhPremiumDashboardV500#mmhPremiumDashboardV500 .pf-status-v500{background:#e0f4e9!important;color:#155c3d!important;border:1px solid #b9dfca!important}
+html body.light #dashboard#dashboard#dashboard #mmhPremiumDashboardV500#mmhPremiumDashboardV500#mmhPremiumDashboardV500#mmhPremiumDashboardV500 .pf-tag-v500.expense{background:#fbe8eb!important;color:#9d293f!important;border-color:#f1c7ce!important}
+html body.light #dashboard#dashboard#dashboard #mmhPremiumDashboardV500#mmhPremiumDashboardV500#mmhPremiumDashboardV500#mmhPremiumDashboardV500 .pf-tag-v500.transfer{background:#e8eef8!important;color:#344f80!important;border-color:#d1dcee!important}
+html body #transactions#transactions#transactions#transactions#transactions#transactions#transactions#transactions#transactions#transactions #txHistoryPanel#txHistoryPanel#txHistoryPanel #txMobileListV371#txMobileListV371 .tx-mobile-card-v371[data-mmh-history-direction="Income"] :is(.tx-mobile-amount-v371,.tx-mobile-sub-v371){color:var(--uv-positive,#4ad0ad)!important}
+html body #transactions#transactions#transactions#transactions#transactions#transactions#transactions#transactions#transactions#transactions #txHistoryPanel#txHistoryPanel#txHistoryPanel #txMobileListV371#txMobileListV371 .tx-mobile-card-v371[data-mmh-history-direction="Expense"] :is(.tx-mobile-amount-v371,.tx-mobile-sub-v371){color:var(--uv-negative,#f18d98)!important}
+html body #transactions#transactions#transactions#transactions#transactions#transactions#transactions#transactions#transactions#transactions #txHistoryPanel#txHistoryPanel#txHistoryPanel #txMobileListV371#txMobileListV371 .tx-mobile-card-v371[data-mmh-history-direction="Transfer"] :is(.tx-mobile-amount-v371,.tx-mobile-sub-v371){color:var(--uv-accent,#9bb7fb)!important}
+html body #transactions#transactions#transactions#transactions#transactions#transactions#transactions#transactions#transactions#transactions #txHistoryPanel#txHistoryPanel#txHistoryPanel #txMobileListV371#txMobileListV371 .tx-mobile-card-v371[data-mmh-history-direction="Adjustment"] :is(.tx-mobile-amount-v371,.tx-mobile-sub-v371){color:var(--uv-muted,#a3afbf)!important}
+html body.mmh-workspace-active:not(.auth-page-active) :is(main.wrap,#editModal,#mmhVaultDialogV449) input:is([type="date"],[type="month"]){box-sizing:border-box!important;min-width:0!important;max-width:100%!important;min-height:42px!important;height:42px!important;padding:8px 10px!important;border:1px solid var(--uv-line,#344052)!important;border-radius:8px!important;background:var(--uv-raised,#242d3c)!important;color:var(--uv-text,#edf0f6)!important;font:inherit!important;font-size:16px!important;line-height:24px!important;text-align:left!important;-webkit-appearance:none!important;appearance:none!important;color-scheme:dark}
+html body.light.mmh-workspace-active:not(.auth-page-active) :is(main.wrap,#editModal,#mmhVaultDialogV449) input:is([type="date"],[type="month"]){color-scheme:light}
+html body.mmh-workspace-active :is(main.wrap,#editModal,#mmhVaultDialogV449) input:is([type="date"],[type="month"])::-webkit-date-and-time-value{margin:0;text-align:left;min-height:24px;line-height:24px}
+html body.mmh-workspace-active :is(main.wrap,#editModal,#mmhVaultDialogV449) input:is([type="date"],[type="month"])::-webkit-datetime-edit{padding:0;min-width:0}
+html body.mmh-workspace-active :is(main.wrap,#editModal,#mmhVaultDialogV449) input:is([type="date"],[type="month"])::-webkit-calendar-picker-indicator{margin:0 0 0 4px;padding:0;flex:none;cursor:pointer}
+@media(max-width:899px),(max-width:1099px) and (hover:none),(max-width:1099px) and (pointer:coarse){
+html:has(body.mmh-workspace-active:not(.auth-page-active)){overscroll-behavior:none!important;overflow-x:clip!important;background:#19212e!important;background-image:none!important}
+html:has(body.light.mmh-workspace-active:not(.auth-page-active)){background:#f2f5fa!important}
+html body.mmh-workspace-active:not(.auth-page-active){overscroll-behavior:none!important;overflow-x:clip!important;background:#19212e!important;background-image:none!important;min-height:100dvh!important}
+html body.light.mmh-workspace-active:not(.auth-page-active){background:#f2f5fa!important}
+html body.mmh-workspace-active:not(.auth-page-active) main.wrap.wrap.wrap.wrap.wrap{overscroll-behavior:none!important;overflow-x:clip!important;background:transparent!important;background-image:none!important;min-height:100dvh!important}
+html body #transactions#transactions#transactions#transactions#transactions#transactions#transactions#transactions#transactions#transactions #txHistoryPanel#txHistoryPanel#txHistoryPanel #txMobileListV371#txMobileListV371 .tx-mobile-card-v371 .tx-mobile-top-v371{min-width:0!important;grid-template-columns:minmax(0,1fr) minmax(0,46%) auto!important}
+html body #transactions#transactions#transactions#transactions#transactions#transactions#transactions#transactions#transactions#transactions #txHistoryPanel#txHistoryPanel#txHistoryPanel #txMobileListV371#txMobileListV371 .tx-mobile-card-v371 :is(.tx-mobile-main-v371,.tx-mobile-amount-v371){min-width:0!important;max-width:100%!important;white-space:normal!important;overflow-wrap:anywhere!important}
+html body #transactions#transactions#transactions#transactions#transactions#transactions#transactions#transactions#transactions#transactions #txHistoryPanel#txHistoryPanel#txHistoryPanel #txMobileListV371#txMobileListV371 .tx-mobile-card-v371 .tx-mobile-amount-v371{font-size:clamp(12px,3.5vw,15px)!important;line-height:1.35!important}
+}
+@supports(-webkit-touch-callout:none){
+html body.mmh-workspace-active:not(.auth-page-active) :is(main.wrap,#editModal,#mmhVaultDialogV449) input:is([type="date"],[type="month"]){padding-inline-end:29px!important;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%237c8da5' stroke-width='1.8' stroke-linecap='round'%3E%3Crect x='3' y='5' width='18' height='16' rx='3'/%3E%3Cpath d='M7 3v4m10-4v4M3 10h18'/%3E%3C/svg%3E")!important;background-position:right 9px center!important;background-repeat:no-repeat!important;background-size:16px 16px!important}
+}
+#mmhPullRefreshV2{position:fixed;top:calc(var(--mmh-mobile-header-total,64px) + 8px);left:50%;transform:translateX(-50%);z-index:1200;display:flex;align-items:center;gap:8px;max-width:calc(100% - 24px);padding:8px 14px;border:1px solid var(--uv-line);border-radius:20px;background:var(--uv-card);color:var(--uv-text);font:500 12px/1.4 system-ui,sans-serif;box-shadow:0 3px 14px #0002;pointer-events:none}
+#mmhPullRefreshV2[hidden]{display:none!important}
+#mmhPullRefreshV2 .mmh-pull-ring{width:14px;height:14px;box-sizing:border-box;border:2px solid var(--uv-accent);border-right-color:transparent;border-radius:50%}
+#mmhPullRefreshV2[data-busy="true"] .mmh-pull-ring{animation:mmhPullSpinV2 .75s linear infinite}
+@keyframes mmhPullSpinV2{to{transform:rotate(360deg)}}
+@media(prefers-reduced-motion:reduce){#mmhPullRefreshV2[data-busy="true"] .mmh-pull-ring{animation:none}}
+</style>
+<script id="mmhWorkspacePullRefreshV2">
+(()=>{'use strict';
+  const media=matchMedia('(max-width:899px), (max-width:1099px) and (hover:none), (max-width:1099px) and (pointer:coarse)');
+  const dirty=new WeakSet(),field='input:not([type=hidden]):not([type=button]):not([type=submit]),textarea,select,[contenteditable=true]';
+  const visible=e=>!!e?.getClientRects().length&&getComputedStyle(e).visibility==='visible';
+  const root=()=>mmhWorkspaceScrollHostV2()||document.scrollingElement||document.documentElement;
+  const page=()=>document.querySelector('main.wrap .page.active');
+  const workspace=()=>media.matches&&document.body.classList.contains('mmh-workspace-active')&&!document.body.classList.contains('auth-page-active');
+  const text=(en,zh,my)=>({zh,my}[localStorage.getItem('mmhvault_language_v3363')]||en);
+  const notice=document.createElement('div');notice.id='mmhPullRefreshV2';notice.hidden=true;notice.setAttribute('role','status');notice.setAttribute('aria-live','polite');notice.innerHTML='<span class="mmh-pull-ring" aria-hidden="true"></span><span></span>';document.body.append(notice);
+  let gesture=null,busy=false,hideTimer=0;
+  const say=(message,spinning=false)=>{clearTimeout(hideTimer);notice.lastElementChild.textContent=message;notice.dataset.busy=String(spinning);notice.hidden=false};
+  const hide=()=>{clearTimeout(hideTimer);notice.hidden=true;notice.dataset.busy='false'};
+  const overlay=()=>[...document.querySelectorAll('.modal-backdrop.open,[aria-modal="true"],#moreNavMenu.open,#mmhContactLayerV2.open,.mmh-hier-overlay')].some(visible);
+  const mark=e=>{if(e.isTrusted&&e.target.matches?.(field))dirty.add(e.target)};
+  document.addEventListener('input',mark,true);document.addEventListener('change',mark,true);
+  document.addEventListener('reset',e=>e.target.querySelectorAll(field).forEach(el=>dirty.delete(el)),true);
+  const canRefresh=()=>{const p=page();if(!p||overlay()||!currentSessionUser?.id||Number(window.__mmhBulkMutationV1235||0)>0)return false;
+    if(document.activeElement?.matches?.(field))return false;
+    return ![...p.querySelectorAll(field)].some(e=>visible(e)&&dirty.has(e));
+  };
+  const scrollHost=target=>{for(let el=target;el&&el!==document.body&&el!==document.documentElement;el=el.parentElement){const st=getComputedStyle(el);if(/auto|scroll/.test(st.overflowY)&&el.scrollHeight>el.clientHeight+2)return el}return root()};
+  function start(e){gesture=null;if(!workspace()||busy||overlay()||e.touches.length!==1||!page()?.contains(e.target)||e.target.closest('input,textarea,select,button,a,[contenteditable=true],canvas,svg'))return;
+    const host=scrollHost(e.target);if(host!==root()&&!host.matches('main.wrap,.page.active'))return;
+    const t=e.touches[0];gesture={host,x:t.clientX,y:t.clientY,top:host.scrollTop<=1,bottom:host.scrollTop+host.clientHeight>=host.scrollHeight-2,page:page(),distance:0,armed:false};
+  }
+  function move(e){if(!gesture)return;if(e.touches.length!==1||page()!==gesture.page||overlay()){gesture=null;if(!busy)hide();return}const t=e.touches[0],dy=t.clientY-gesture.y,dx=t.clientX-gesture.x;if(Math.abs(dx)>Math.abs(dy)&&Math.abs(dx)>12){gesture=null;hide();return}
+    const host=gesture.host,atTop=host.scrollTop<=1,atBottom=host.scrollTop+host.clientHeight>=host.scrollHeight-2;
+    if((atTop&&dy>5)||(atBottom&&dy< -5)){if(e.cancelable)e.preventDefault()}
+    if(!gesture.top||!atTop||dy<10){gesture.armed=false;hide();return}
+    if(!canRefresh()){gesture.armed=false;hide();return;}
+    gesture.distance=dy;gesture.armed=dy>=75;
+    say(gesture.armed?text('Release to refresh','松开刷新','လွှတ်၍ ပြန်လည်ရယူပါ'):text('Pull down to refresh','下拉可以刷新','အောက်ဆွဲ၍ ပြန်လည်ရယူပါ'));
+  }
+  async function refresh(){if(busy||!canRefresh())return;busy=true;say(text('Refreshing…','正在刷新…','ပြန်လည်ရယူနေသည်…'),true);
+    try{if(typeof window.loadAll!=='function')throw Error('Refresh unavailable');const result=await window.loadAll({force:true,quietResume:true});if(result?.ok!==true)throw Error('Refresh failed');say(text('Updated','刷新完成','အပ်ဒိတ်ပြီးပါပြီ'))}
+    catch(_){say(text('Unable to refresh','刷新失败，请重试','ပြန်လည်ရယူ၍ မရပါ'))}finally{busy=false;hideTimer=setTimeout(hide,900)}
+  }
+  document.addEventListener('touchstart',start,{passive:true});
+  document.addEventListener('touchmove',move,{passive:false});
+  document.addEventListener('touchend',()=>{const armed=gesture?.armed;gesture=null;if(armed&&canRefresh())void refresh();else if(!busy)hide()},{passive:true});
+  document.addEventListener('touchcancel',()=>{gesture=null;if(!busy)hide()},{passive:true});
+  window.addEventListener('mmhvault:page-visible',()=>{gesture=null;if(!busy)hide()});
+})();
+</script>
+
+<style id="mmhWorkspaceBoundedViewportV2">
+/* Shared mobile layout contract: fixed chrome, one workspace scrollport, no root rubber-band.
+   Auth and desktop retain existing document scrolling. Nested lists and dialogs keep their own scroll. */
+@media(max-width:899px),(max-width:1099px) and (hover:none),(max-width:1099px) and (pointer:coarse){
+html:has(body.mmh-workspace-active:not(.auth-page-active)){height:100%!important;overflow:hidden!important;overscroll-behavior:none!important;background:#19212e!important}
+html:has(body.light.mmh-workspace-active:not(.auth-page-active)){background:#f2f5fa!important}
+html body.mmh-workspace-active:not(.auth-page-active){position:fixed!important;inset:0!important;width:100%!important;height:100%!important;min-height:0!important;max-height:none!important;overflow:hidden!important;overscroll-behavior:none!important;margin:0!important}
+html body.mmh-workspace-active:not(.auth-page-active) main.wrap.wrap.wrap.wrap.wrap.wrap.wrap{
+ position:fixed!important;inset:var(--mmh-mobile-header-total) 0 var(--mmh-mobile-nav-total) 0!important;
+ width:100%!important;max-width:none!important;height:auto!important;min-height:0!important;max-height:none!important;
+ margin:0!important;padding:8px 0 12px!important;box-sizing:border-box!important;
+ overflow-x:hidden!important;overflow-y:auto!important;overscroll-behavior:none!important;-webkit-overflow-scrolling:touch;
+ background:#19212e!important;background-image:none!important;scroll-padding:8px 0 12px!important;
+}
+html body.light.mmh-workspace-active:not(.auth-page-active) main.wrap.wrap.wrap.wrap.wrap.wrap.wrap{background:#f2f5fa!important}
+html body.mmh-workspace-active:not(.auth-page-active):has(#transactions.active) main.wrap.wrap.wrap.wrap.wrap.wrap.wrap{padding-top:0!important;background:#1c2531!important}
+html body.light.mmh-workspace-active:not(.auth-page-active):has(#transactions.active) main.wrap.wrap.wrap.wrap.wrap.wrap.wrap{background:#fff!important}
+html body.mmh-workspace-active #transactions#transactions#transactions#transactions#transactions#transactions#transactions #txAddPanel>.panel{min-height:0!important}
+}
+/* Date and month keep their native picker and ISO value; constrain actual control, not its surrounding row. */
+html body.mmh-workspace-active #transactions#transactions#transactions#transactions#transactions#transactions#transactions #txForm#txForm #txDate#txDate{
+ display:block!important;flex:0 0 46px!important;width:100%!important;height:46px!important;min-height:46px!important;max-height:46px!important;
+ margin:0!important;padding:0 30px 0 10px!important;box-sizing:border-box!important;border:1px solid var(--tv-line)!important;border-radius:7px!important;
+ font:500 14px/20px system-ui,sans-serif!important;color:var(--tv-text)!important;-webkit-text-fill-color:var(--tv-text)!important;
+ background:var(--tv-raised) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%237c8da5' stroke-width='1.8' stroke-linecap='round'%3E%3Crect x='3' y='5' width='18' height='16' rx='3'/%3E%3Cpath d='M7 3v4m10-4v4M3 10h18'/%3E%3C/svg%3E") no-repeat right 9px center / 16px 16px!important;
+ appearance:none!important;-webkit-appearance:none!important;
+}
+html body.mmh-workspace-active #transactions#transactions#transactions#transactions#transactions#transactions#transactions #txForm#txForm label:has(>#txDate){min-width:0!important;align-self:start!important}
+html body.mmh-workspace-active #transactions#transactions#transactions#transactions#transactions#transactions#transactions #txForm#txForm #txDate::-webkit-date-and-time-value{height:20px!important;min-height:0!important;line-height:20px!important;text-align:left!important;margin:0!important;padding:0!important}
+html body.mmh-workspace-active #transactions#transactions#transactions#transactions#transactions#transactions#transactions #txForm#txForm #txDate::-webkit-datetime-edit{padding:0!important;min-width:0!important;line-height:20px!important}
+@supports not (-webkit-touch-callout:none){
+html body.mmh-workspace-active #transactions#transactions#transactions#transactions#transactions#transactions#transactions #txForm#txForm #txDate#txDate{background-image:none!important;padding-inline-end:10px!important}
+}
+@media(max-width:767px){
+html body.mmh-workspace-active #transactions#transactions#transactions#transactions#transactions#transactions#transactions #txForm#txForm #txDate#txDate{font-size:16px!important}
+}
+/* Semantic financial colors: explicit text fill as well as color, for legacy light-theme overrides. */
+html body{--mmh-v2-income:#65dfb5;--mmh-v2-expense:#ff9eac;--mmh-v2-transfer:#a9c3ff;--mmh-v2-neutral:#b1b8c5;--mmh-v2-income-bg:#173b32;--mmh-v2-expense-bg:#442630;--mmh-v2-transfer-bg:#283752}
+html body.light{--mmh-v2-income:#08684c;--mmh-v2-expense:#a82b42;--mmh-v2-transfer:#345794;--mmh-v2-neutral:#536477;--mmh-v2-income-bg:#e0f4e9;--mmh-v2-expense-bg:#fbe8eb;--mmh-v2-transfer-bg:#e8eef8}
+html body #dashboard#dashboard#dashboard #mmhPremiumDashboardV500#mmhPremiumDashboardV500#mmhPremiumDashboardV500#mmhPremiumDashboardV500 .pf-tx-row-v500 :is(.pf-tag-v500.income,.pf-status-v500){background:var(--mmh-v2-income-bg)!important;color:var(--mmh-v2-income)!important;-webkit-text-fill-color:var(--mmh-v2-income)!important;opacity:1!important}
+html body #dashboard#dashboard#dashboard #mmhPremiumDashboardV500#mmhPremiumDashboardV500#mmhPremiumDashboardV500#mmhPremiumDashboardV500 .pf-tx-row-v500 .pf-tag-v500.expense{background:var(--mmh-v2-expense-bg)!important;color:var(--mmh-v2-expense)!important;-webkit-text-fill-color:var(--mmh-v2-expense)!important;opacity:1!important}
+html body #dashboard#dashboard#dashboard #mmhPremiumDashboardV500#mmhPremiumDashboardV500#mmhPremiumDashboardV500#mmhPremiumDashboardV500 .pf-tx-row-v500 .pf-tag-v500.transfer{background:var(--mmh-v2-transfer-bg)!important;color:var(--mmh-v2-transfer)!important;-webkit-text-fill-color:var(--mmh-v2-transfer)!important;opacity:1!important}
+html body #dashboard#dashboard#dashboard #mmhPremiumDashboardV500#mmhPremiumDashboardV500#mmhPremiumDashboardV500#mmhPremiumDashboardV500 .pf-tx-row-v500 :is(.pf-tag-v500,.pf-status-v500){font-size:11px!important;line-height:1.25!important;min-width:0!important}
+html body #dashboard#dashboard#dashboard #mmhPremiumDashboardV500#mmhPremiumDashboardV500#mmhPremiumDashboardV500#mmhPremiumDashboardV500 .pf-amount-v500.pos{color:var(--mmh-v2-income)!important;-webkit-text-fill-color:var(--mmh-v2-income)!important}
+html body #dashboard#dashboard#dashboard #mmhPremiumDashboardV500#mmhPremiumDashboardV500#mmhPremiumDashboardV500#mmhPremiumDashboardV500 .pf-amount-v500.neg{color:var(--mmh-v2-expense)!important;-webkit-text-fill-color:var(--mmh-v2-expense)!important}
+html body #transactions#transactions#transactions#transactions#transactions#transactions#transactions#transactions#transactions#transactions #txHistoryPanel#txHistoryPanel#txHistoryPanel :is(#txMobileListV371#txMobileListV371 .tx-mobile-card-v371,#txList tr)[data-mmh-history-direction=Income]{--mmh-v2-history-tone:var(--mmh-v2-income)}
+html body #transactions#transactions#transactions#transactions#transactions#transactions#transactions#transactions#transactions#transactions #txHistoryPanel#txHistoryPanel#txHistoryPanel :is(#txMobileListV371#txMobileListV371 .tx-mobile-card-v371,#txList tr)[data-mmh-history-direction=Expense]{--mmh-v2-history-tone:var(--mmh-v2-expense)}
+html body #transactions#transactions#transactions#transactions#transactions#transactions#transactions#transactions#transactions#transactions #txHistoryPanel#txHistoryPanel#txHistoryPanel :is(#txMobileListV371#txMobileListV371 .tx-mobile-card-v371,#txList tr)[data-mmh-history-direction=Transfer]{--mmh-v2-history-tone:var(--mmh-v2-transfer)}
+html body #transactions#transactions#transactions#transactions#transactions#transactions#transactions#transactions#transactions#transactions #txHistoryPanel#txHistoryPanel#txHistoryPanel :is(#txMobileListV371#txMobileListV371 .tx-mobile-card-v371,#txList tr)[data-mmh-history-direction=Adjustment]{--mmh-v2-history-tone:var(--mmh-v2-neutral)}
+html body #transactions#transactions#transactions#transactions#transactions#transactions#transactions#transactions#transactions#transactions #txHistoryPanel#txHistoryPanel#txHistoryPanel #txMobileListV371#txMobileListV371 .tx-mobile-card-v371[data-mmh-history-direction] :is(.tx-mobile-amount-v371,.tx-mobile-sub-v371),
+html body #transactions#transactions#transactions#transactions#transactions#transactions#transactions#transactions#transactions#transactions #txHistoryPanel#txHistoryPanel#txHistoryPanel #txList tr[data-mmh-history-direction] :is(td:nth-child(2),td:nth-child(6),td:nth-child(8)){color:var(--mmh-v2-history-tone,var(--uv-muted))!important;-webkit-text-fill-color:var(--mmh-v2-history-tone,var(--uv-muted))!important}
+html body #transactions#transactions#transactions#transactions#transactions#transactions#transactions#transactions#transactions#transactions #txHistoryPanel#txHistoryPanel#txHistoryPanel #hcIncome{color:var(--mmh-v2-income)!important;-webkit-text-fill-color:var(--mmh-v2-income)!important}
+html body #transactions#transactions#transactions#transactions#transactions#transactions#transactions#transactions#transactions#transactions #txHistoryPanel#txHistoryPanel#txHistoryPanel #hcExpense{color:var(--mmh-v2-expense)!important;-webkit-text-fill-color:var(--mmh-v2-expense)!important}
+</style>
 </body>
 </html>
