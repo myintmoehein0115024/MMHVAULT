@@ -38375,79 +38375,32 @@ html body.mmh-workspace-active #transactions#transactions#transactions#transacti
 </style>
 
 <style id="mmhIOSMobileViewportV2">
-/* iOS WebKit only. Avoid a fixed body containing fixed chrome, which can
-   produce divergent paint and touch geometry when the visual viewport changes.
-   Android, desktop, authentication, and existing overlay stacking stay intact. */
+/* One native layout viewport for iOS chrome; no JS height writes. */
 @supports (-webkit-touch-callout:none){
 @media(max-width:899px),(max-width:1099px) and (hover:none),(max-width:1099px) and (pointer:coarse){
 html body.mmh-workspace-active:not(.auth-page-active){
- --mmh-mobile-nav-pad:clamp(0px,calc(var(--mmh-mobile-safe-bottom) - 8px),26px);
+ --mmh-mobile-nav-pad:clamp(0px,env(safe-area-inset-bottom,0px),34px);
  position:relative!important;inset:auto!important;width:100%!important;
- height:var(--mmh-ios-shell-height,100dvh)!important;min-height:0!important;
- max-height:none!important;box-sizing:border-box!important;margin:0!important;padding:0!important;
+ height:100dvh!important;min-height:0!important;max-height:none!important;
+ margin:0!important;padding:0!important;box-sizing:border-box!important;
 }
 html body.mmh-workspace-active:not(.auth-page-active) #header#header#header#header#header#header#header#header{
- position:absolute!important;inset:0 0 auto 0!important;
+ position:fixed!important;inset:0 0 auto 0!important;
 }
 html body.mmh-workspace-active:not(.auth-page-active) main.wrap.wrap.wrap.wrap.wrap.wrap.wrap{
- position:absolute!important;inset:var(--mmh-mobile-header-total) 0 var(--mmh-mobile-nav-total) 0!important;
+ position:fixed!important;inset:var(--mmh-mobile-header-total) 0 var(--mmh-mobile-nav-total) 0!important;
  height:auto!important;min-height:0!important;
 }
 html body.mmh-workspace-active:not(.auth-page-active) #bottomNav#bottomNav#bottomNav#bottomNav#bottomNav#bottomNav#bottomNav.bottom-nav{
- position:absolute!important;inset:auto 0 0 0!important;transform:none!important;
+ position:fixed!important;inset:auto 0 0 0!important;transform:none!important;
+ height:var(--mmh-mobile-nav-total)!important;min-height:var(--mmh-mobile-nav-total)!important;max-height:var(--mmh-mobile-nav-total)!important;
+ padding-bottom:var(--mmh-mobile-nav-pad)!important;grid-template-rows:minmax(0,1fr)!important;
 }
 html body.mmh-workspace-active:not(.auth-page-active) #bottomNav#bottomNav#bottomNav#bottomNav#bottomNav#bottomNav>button{
- touch-action:manipulation;
-}
-html body.mmh-workspace-active:not(.auth-page-active) #moreNavMenu#moreNavMenu#moreNavMenu#moreNavMenu.more-nav-menu{
- position:absolute!important;inset:0!important;height:100%!important;
-}
-html body.mmh-workspace-active:not(.auth-page-active) #mmhContactLauncherV2#mmhContactLauncherV2{
- position:absolute!important;top:auto!important;
+ touch-action:manipulation;justify-content:center!important;
 }
 }
 }
 </style>
-<script id="mmhIOSMobileViewportSyncV2">
-(()=>{
-'use strict';
-if(!window.CSS?.supports('-webkit-touch-callout','none'))return;
-const mq=matchMedia('(max-width:899px), (max-width:1099px) and (hover:none), (max-width:1099px) and (pointer:coarse)');
-const root=document.documentElement,vv=window.visualViewport;
-let frame=0,last='',timer=0,lateTimer=0;
-function sync(){
- frame=0;
- if(!mq.matches){if(last){root.style.removeProperty('--mmh-ios-shell-height');last=''}return;}
- if(vv&&Math.abs(vv.scale-1)>.02)return;
- // A standalone/fullscreen iOS app has no browser toolbar to reserve.
- // WebKit may retain a shorter visualViewport after reload or restoration.
- // Prefer the layout viewport there, except while an editable field has
- // the keyboard open. In a regular browser keep the visible viewport.
- const visibleHeight=vv?.height||window.innerHeight;
- const layoutHeight=Math.max(window.innerHeight||0,root.clientHeight||0);
- const standalone=navigator.standalone===true||
-   matchMedia('(display-mode: standalone), (display-mode: fullscreen)').matches;
- const focused=document.activeElement;
- const editing=!!focused?.matches?.('textarea,input:not([type=button]):not([type=submit]):not([type=checkbox]):not([type=radio]):not([type=range]):not([type=hidden]),[contenteditable=true]');
- const gap=layoutHeight-visibleHeight;
- const height=Math.floor(standalone&&!editing&&gap>=0&&gap<=120?layoutHeight:visibleHeight);
- if(!Number.isFinite(height)||height<100)return;
- const next=height+'px';
- if(next!==last){root.style.setProperty('--mmh-ios-shell-height',next);last=next;}
-}
-function schedule(){if(!frame)frame=requestAnimationFrame(sync);}
-function settle(){schedule();clearTimeout(timer);clearTimeout(lateTimer);timer=setTimeout(schedule,250);lateTimer=setTimeout(schedule,700);}
-window.addEventListener('resize',schedule,{passive:true});
-vv?.addEventListener('resize',schedule,{passive:true});
-vv?.addEventListener('scroll',schedule,{passive:true});
-window.addEventListener('orientationchange',settle,{passive:true});
-window.addEventListener('pageshow',settle);
-window.addEventListener('mmhvault:page-visible',settle);
-document.addEventListener('visibilitychange',()=>{if(!document.hidden)settle();});
-document.addEventListener('focusout',settle);
-mq.addEventListener?.('change',settle);
-sync();
-})();
-</script>
 </body>
 </html>
