@@ -1017,6 +1017,230 @@ function ledgerInserted(userId,id,values){
     queueSavedLedgerRefresh(target);
   }
 }
+// History V2 presentation only. Native filters, calendar, CSV, ledger
+// renderer and edit/delete/receipt handlers remain authoritative.
+function installHistoryPresentation(){
+  const panel=$('txHistoryPanel'),grid=panel?.querySelector('.filter-grid');
+  if(!panel||!grid)return;
+  const root='html body.mmh-workspace-active #transactions#transactions#transactions#transactions#transactions#transactions#transactions #txHistoryPanel#txHistoryPanel';
+  if(!$('mmhHistoryPresentationV2')){
+    const css=elt('style');css.id='mmhHistoryPresentationV2';
+    css.textContent=`
+      ${root}{width:100%!important;max-width:none!important;margin:0!important;padding:0!important}
+      ${root}>.panel{width:100%!important;max-width:none!important;margin:0!important;min-height:calc(100dvh - var(--wv-shell-top,64px) - 64px)!important;padding:clamp(14px,1.7vw,24px)!important;box-sizing:border-box!important;border:0!important;border-radius:0!important;background:var(--tv-card)!important;box-shadow:none!important}
+      ${root}>.panel>.toolbar{display:flex!important;align-items:center!important;justify-content:space-between!important;gap:12px!important;margin:0 0 16px!important;padding:0!important;background:transparent!important;border:0!important}
+      ${root}>.panel>.toolbar h2{font:650 19px/1.3 system-ui,sans-serif!important;margin:0 0 4px!important}
+      ${root} #txResultCount{color:var(--tv-muted)!important;font-size:12px!important}
+      ${root}>.panel>.toolbar .danger{background:transparent!important;border-color:var(--tv-line)!important;color:var(--tv-negative)!important;font-size:12px!important;font-weight:500!important}
+      ${root} .hc-shell{margin:0 0 14px!important;padding:0!important;background:transparent!important;border:0!important}
+      ${root} .hc-toolbar{display:flex!important;align-items:center!important;justify-content:space-between!important;flex-wrap:wrap!important;gap:8px!important;margin:0 0 8px!important}
+      ${root} .hc-month-controls{display:flex!important;align-items:center!important;gap:6px!important;flex:1 1 300px!important;min-width:0!important}
+      ${root} .hc-toolbar :is(button,input,select){height:38px!important;min-height:38px!important;border-radius:7px!important;background:var(--tv-raised)!important;color:var(--tv-text)!important;border:1px solid var(--tv-line)!important;font-size:13px!important;box-shadow:none!important}
+      ${root} #hcMonth{width:auto!important;flex:0 1 150px!important;min-width:110px!important}
+      ${root} #hcCurrency{width:90px!important;flex:0 0 auto!important}
+      ${root} #hcToggle{flex:0 0 auto!important;color:var(--tv-accent)!important}
+      ${root} #hcCalendar[hidden]{display:none!important}
+      ${root} #hcCalendar:not([hidden]){padding:12px!important;margin:10px 0!important;background:var(--tv-card)!important;border:1px solid var(--tv-line)!important;border-radius:8px!important}
+      ${root} .hc-day{min-height:42px!important;border-radius:6px!important;background:var(--tv-raised)!important;border:1px solid transparent!important}
+      ${root} .hc-day[aria-pressed=true]{background:var(--tv-selected)!important;border-color:var(--tv-accent)!important;color:var(--tv-text)!important}
+      ${root} .hc-totals>div{background:var(--tv-raised)!important;border:1px solid var(--tv-line)!important;border-radius:7px!important}
+      ${root} .hc-selection{margin:4px 0 0!important;color:var(--tv-muted)!important;font-size:12px!important}
+      ${root} .filter-grid{display:grid!important;grid-template-columns:repeat(4,minmax(0,1fr))!important;align-items:end!important;gap:10px!important;margin:0 0 10px!important;padding:0!important;background:transparent!important;border:0!important}
+      ${root} .filter-grid>label:has(#txSearch){grid-column:1/4!important;margin:0!important}
+      ${root} .filter-grid>label{min-width:0!important;color:var(--tv-muted)!important;font-size:12px!important}
+      ${root} .filter-grid :is(input,select){width:100%!important;min-width:0!important;height:40px!important;min-height:40px!important;background:var(--tv-raised)!important;border-color:var(--tv-line)!important;color:var(--tv-text)!important;border-radius:7px!important}
+      ${root} .filter-grid.mmh-history-filters-closed>label:not(:has(#txSearch)){display:none!important}
+      ${root} #mmhHistoryFilterV2{grid-column:4;grid-row:1;justify-self:end;width:100%;min-height:40px!important;border:1px solid var(--tv-line)!important;border-radius:7px!important;background:var(--tv-raised)!important;color:var(--tv-text)!important;font:600 13px/1.3 system-ui,sans-serif!important;cursor:pointer}
+      ${root} #mmhHistoryFilterV2[aria-expanded=true]{background:var(--tv-selected)!important;color:var(--tv-accent)!important}
+      ${root}>.panel>.actions{display:flex!important;justify-content:flex-end!important;gap:8px!important;margin:0 0 12px!important;padding:0!important;border:0!important;background:transparent!important}
+      ${root}>.panel>.actions .btn{min-height:34px!important;padding:5px 10px!important;font-size:12px!important}
+      ${root} #txList{width:100%!important;max-width:none!important;max-height:none!important;min-height:0!important;border:0!important;border-radius:0!important;margin:0!important;padding:0!important;background:transparent!important}
+      ${root} #txList>table{width:100%!important;min-width:860px!important;border-collapse:collapse!important;table-layout:auto!important;font-size:12px!important}
+      ${root} #txList>table :is(th,td){padding:10px 9px!important;vertical-align:middle!important;line-height:1.4!important;border-bottom:1px solid var(--tv-line)!important}
+      ${root} #txList>table th{font-weight:600!important;text-align:left!important;white-space:nowrap!important;background:var(--tv-raised)!important;color:var(--tv-muted)!important}
+      ${root} #txList>table :is(th,td):is(:nth-child(6),:nth-child(8)){text-align:right!important;white-space:nowrap!important;font-variant-numeric:tabular-nums}
+      ${root} #txList>table td:nth-child(1){white-space:nowrap!important;font-variant-numeric:tabular-nums}
+      ${root} #txList>table tr[data-mmh-history-direction=Income] td:nth-child(8),${root} #txList>table tr[data-mmh-history-direction=Income] td:nth-child(2){color:var(--tv-positive)!important}
+      ${root} #txList>table tr[data-mmh-history-direction=Expense] td:nth-child(6),${root} #txList>table tr[data-mmh-history-direction=Expense] td:nth-child(2){color:var(--tv-negative)!important}
+      ${root} #txList>table .icon-actions{white-space:nowrap!important}
+      ${root} #txList>table .btn{min-height:30px!important;padding:4px 8px!important;font-size:11px!important}
+      ${root} #txMobileListV371 .tx-mobile-card-v371{margin:0!important;padding:10px 4px!important;border:0!important;border-bottom:1px solid var(--tv-line)!important;border-radius:0!important;box-shadow:none!important;background:transparent!important;min-height:68px!important}
+      ${root} #txMobileListV371 .tx-mobile-top-v371{gap:8px!important;align-items:center!important}
+      ${root} #txMobileListV371 .tx-mobile-title-v371{font-size:14px!important;font-weight:650!important;color:var(--tv-text)!important}
+      ${root} #txMobileListV371 :is(.tx-mobile-date-v371,.tx-mobile-sub-v371){font-size:11px!important;color:var(--tv-muted)!important}
+      ${root} #txMobileListV371 .tx-mobile-amount-v371{font-size:14px!important;font-weight:650!important;font-variant-numeric:tabular-nums}
+      ${root} #txMobileListV371 [data-mmh-history-direction=Income] .tx-mobile-amount-v371{color:var(--tv-positive)!important}
+      ${root} #txMobileListV371 [data-mmh-history-direction=Expense] .tx-mobile-amount-v371{color:var(--tv-negative)!important}
+      @media(max-width:767px){
+        ${root}>.panel{padding:12px!important;min-height:0!important}
+        ${root}>.panel>.toolbar h2{font-size:17px!important}
+        ${root} .hc-month-controls{flex-basis:100%!important}
+        ${root} .hc-toolbar{justify-content:flex-start!important}
+        ${root} #hcMonth{flex:1 1 auto!important}
+        ${root} .filter-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:8px!important}
+        ${root} .filter-grid>label:has(#txSearch){grid-column:1!important}
+        ${root} #mmhHistoryFilterV2{grid-column:2!important;width:auto!important;min-width:96px!important}
+        ${root} .filter-grid :is(input,select){font-size:16px!important;min-height:44px!important}
+        ${root} #mmhHistoryFilterV2{min-height:44px!important}
+        ${root} #txList>table{min-width:0!important}
+      }
+    `;
+    document.head.append(css);
+    const refStyle=elt('style');refStyle.id='mmhHistoryReferenceV2';
+    refStyle.textContent=`
+      ${root} #mmhHistoryBackV2{display:inline-flex!important;align-items:center;gap:6px;min-height:38px!important;padding:7px 12px!important;border:1px solid var(--tv-line)!important;border-radius:7px!important;background:var(--tv-raised)!important;color:var(--tv-text)!important;font:600 13px/1.4 system-ui,sans-serif!important;cursor:pointer}
+      ${root} .mmh-history-titlebar{display:flex;align-items:center;gap:12px;min-width:0}
+      ${root} #mmhHistorySummaryV2{margin:0 0 16px}
+      ${root} #mmhHistorySummaryV2 .hc-totals{display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr))!important;gap:10px!important;margin:0!important;padding:0!important;border:0!important}
+      ${root} #mmhHistorySummaryV2 .hc-totals>div{padding:14px!important;min-width:0!important;border:1px solid var(--tv-line)!important;border-radius:8px!important;background:var(--tv-card)!important}
+      ${root} #mmhHistorySummaryV2 .hc-totals b{display:block!important;margin-top:6px!important;font-size:clamp(16px,1.8vw,25px)!important;overflow-wrap:anywhere;line-height:1.3!important}
+      ${root} #hcIncome{color:var(--tv-positive)!important}
+      ${root} #hcExpense{color:var(--tv-negative)!important}
+      ${root} #hcRemaining{color:var(--tv-text)!important}
+      ${root} #mmhHistorySummaryV2 #hcCaption{font-size:11px!important;color:var(--tv-muted)!important;margin:6px 0 0!important}
+      ${root} .filter-grid{grid-template-columns:minmax(0,2fr) minmax(0,1fr) minmax(0,1fr) minmax(100px,.65fr)!important}
+      ${root} .filter-grid>label:has(#txSearch){grid-column:1!important}
+      ${root} .filter-grid>label:has(#txFilterType){grid-column:2!important;grid-row:1!important}
+      ${root} .filter-grid>label:has(#txFilterAccount){grid-column:3!important;grid-row:1!important}
+      ${root} .filter-grid.mmh-history-filters-closed>label:has(:is(#txFilterType,#txFilterAccount)){display:flex!important;flex-direction:column!important}
+      ${root} .filter-grid>label:has(#txFilterGroup){grid-column:1!important}
+      ${root} .filter-grid>label:has(#txFilterCategory){grid-column:2/4!important}
+      ${root} #mmhHistoryRecordsV2{width:100%;min-width:0;border:1px solid var(--tv-line);border-radius:8px;background:var(--tv-card);overflow:hidden}
+      ${root} #mmhHistoryRecordsV2 .mh-row{display:grid;grid-template-columns:minmax(90px,.85fr) minmax(0,1.7fr) minmax(0,1.25fr) minmax(0,.85fr) minmax(0,1.3fr) 16px;gap:12px;align-items:center;padding:12px 14px;border-bottom:1px solid var(--tv-line);min-width:0}
+      ${root} #mmhHistoryRecordsV2 .mh-header{font-size:12px;color:var(--tv-muted);background:var(--tv-raised);font-weight:500}
+      ${root} #mmhHistoryRecordsV2 button.mh-row{width:100%!important;text-align:left!important;background:transparent!important;border:0!important;border-bottom:1px solid var(--tv-line)!important;border-radius:0!important;color:var(--tv-text)!important;min-height:56px!important;font:500 13px/1.4 system-ui,sans-serif!important;cursor:pointer;box-shadow:none!important}
+      ${root} #mmhHistoryRecordsV2 button.mh-row:hover{background:var(--tv-raised)!important}
+      ${root} #mmhHistoryRecordsV2 .mh-cell{min-width:0;overflow-wrap:anywhere}
+      ${root} #mmhHistoryRecordsV2 .mh-description{font-weight:650}
+      ${root} #mmhHistoryRecordsV2 .mh-description small{display:block;font-size:11px;font-weight:400;color:var(--tv-muted);margin-top:3px}
+      ${root} #mmhHistoryRecordsV2 .mh-date,${root} #mmhHistoryRecordsV2 .mh-account{color:var(--tv-muted)}
+      ${root} #mmhHistoryRecordsV2 .mh-amount{text-align:right;font-weight:650;font-variant-numeric:tabular-nums}
+      ${root} #mmhHistoryRecordsV2 [data-direction=Income] :is(.mh-type,.mh-amount){color:var(--tv-positive)}
+      ${root} #mmhHistoryRecordsV2 [data-direction=Expense] :is(.mh-type,.mh-amount){color:var(--tv-negative)}
+      ${root} #mmhHistoryRecordsV2 [data-direction=Transfer] .mh-type{color:var(--tv-accent)}
+      ${root} #mmhHistoryRecordsV2 .mh-footer{display:flex;align-items:center;justify-content:flex-end;gap:10px;padding:10px 14px;font-size:12px;color:var(--tv-muted)}
+      ${root} #mmhHistoryRecordsV2 .mh-footer button{min-height:34px!important;padding:5px 12px!important;background:var(--tv-raised)!important;border:1px solid var(--tv-line)!important;border-radius:6px!important;color:var(--tv-text)!important;cursor:pointer}
+      ${root} #mmhHistoryRecordsV2 .mh-footer button:disabled{opacity:.4;cursor:default}
+      ${root} #txList.mmh-history-projection-ready{display:none!important}
+      ${root} #mmhHistoryRecordsV2[hidden]{display:none!important}
+      @media(max-width:767px){
+        ${root} .mmh-history-titlebar{gap:8px;flex-wrap:wrap}
+        ${root} #mmhHistorySummaryV2 .hc-totals{gap:6px!important}
+        ${root} #mmhHistorySummaryV2 .hc-totals>div{padding:8px 6px!important}
+        ${root} #mmhHistorySummaryV2 .hc-totals b{font-size:13px!important}
+        ${root} .filter-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+        ${root} .filter-grid>label:has(#txSearch){grid-column:1!important;grid-row:1!important}
+        ${root} #mmhHistoryFilterV2{grid-column:2!important;grid-row:1!important}
+        ${root} .filter-grid>label:has(#txFilterType){grid-column:1!important;grid-row:2!important}
+        ${root} .filter-grid>label:has(#txFilterAccount){grid-column:2!important;grid-row:2!important}
+        ${root} .filter-grid>label:has(#txFilterGroup){grid-column:1!important}
+        ${root} .filter-grid>label:has(#txFilterCategory){grid-column:2!important}
+        ${root} #mmhHistoryRecordsV2 .mh-header{display:none!important}
+        ${root} #mmhHistoryRecordsV2 button.mh-row{grid-template-columns:minmax(0,1fr) minmax(0,40%) 12px;gap:4px 8px;padding:11px 10px}
+        ${root} #mmhHistoryRecordsV2 .mh-description{grid-column:1;grid-row:1}
+        ${root} #mmhHistoryRecordsV2 .mh-date{grid-column:1;grid-row:2;font-size:11px}
+        ${root} #mmhHistoryRecordsV2 .mh-account,${root} #mmhHistoryRecordsV2 .mh-type{display:none}
+        ${root} #mmhHistoryRecordsV2 .mh-amount{grid-column:2;grid-row:1/3}
+        ${root} #mmhHistoryRecordsV2 .mh-chevron{grid-column:3;grid-row:1/3}
+      }
+    `;
+    document.head.append(refStyle);
+  }
+  const title=panel.querySelector('.toolbar>div:first-child');
+  if(title&&!$('mmhHistoryBackV2')){
+    const back=btn('',()=>{$('txTabAdd')?.click();});back.id='mmhHistoryBackV2';
+    const wrap=elt('div','mmh-history-titlebar');title.before(wrap);wrap.append(back,title);
+  }
+  const back=$('mmhHistoryBackV2');if(back)back.textContent=tr('‹ Add Transaction','‹ 返回记账','‹ ငွေစာရင်း ထည့်ရန်');
+  const totals=panel.querySelector('.hc-totals'),caption=$('hcCaption'),shell=panel.querySelector('.hc-shell');
+  if(totals&&shell&&!$('mmhHistorySummaryV2')){
+    const summary=elt('div');summary.id='mmhHistorySummaryV2';shell.before(summary);summary.append(totals);if(caption)summary.append(caption);
+  }
+  let filter=$('mmhHistoryFilterV2');
+  if(!filter){
+    filter=btn('',()=>{
+      const open=grid.classList.toggle('mmh-history-filters-closed')===false;
+      filter.setAttribute('aria-expanded',String(open));syncHistoryFilterLabel();
+    });
+    filter.id='mmhHistoryFilterV2';grid.id=grid.id||'mmhHistoryFilterGridV2';
+    filter.setAttribute('aria-controls',grid.id);filter.setAttribute('aria-expanded','false');
+    grid.classList.add('mmh-history-filters-closed');grid.append(filter);
+    grid.addEventListener('change',syncHistoryFilterLabel);
+    panel.addEventListener('click',()=>queueMicrotask(syncHistoryFilterLabel));
+  }
+  // Calendar is still the original date filter. Collapse the visual month
+  // grid once per page load, without resetting its selected date or month.
+  const toggle=$('hcToggle'),calendar=$('hcCalendar');
+  if(toggle&&calendar&&!toggle.dataset.mmhV2Initial){
+    toggle.dataset.mmhV2Initial='1';
+    if(!calendar.hidden)toggle.click();
+  }
+  syncHistoryFilterLabel();
+}
+function syncHistoryFilterLabel(){
+  const button=$('mmhHistoryFilterV2');if(!button)return;
+  const count=['txFilterType','txFilterGroup','txFilterCategory','txFilterAccount'].filter(id=>!!$(id)?.value).length;
+  const open=button.getAttribute('aria-expanded')==='true';
+  const text=(open?tr('Hide filters','收起筛选','စစ်ထုတ်မှု ပိတ်ရန်'):tr('Filters','筛选','စစ်ထုတ်ရန်'))+(count?' · '+count:'');
+  if(button.textContent!==text)button.textContent=text;
+}
+let historyPageV2=0,historyKeyV2='';
+function renderHistoryReference(){
+  const list=$('txList');if(!list)return;
+  let view=$('mmhHistoryRecordsV2');
+  if(!view){view=elt('div');view.id='mmhHistoryRecordsV2';list.after(view);}
+  const records=window.transactions,current=owner();
+  if(!ready()||!current||!Array.isArray(records)||window.mmhWalletDataOwnerV191!==current||records.some(t=>t?.user_id!==current)||typeof v28FilteredTx!=='function'){
+    view.hidden=true;view.replaceChildren();list.classList.remove('mmh-history-projection-ready');return;
+  }
+  const rows=safe(()=>v28FilteredTx(),null);
+  if(!Array.isArray(rows)||rows.some(t=>t?.user_id!==current)){view.hidden=true;view.replaceChildren();list.classList.remove('mmh-history-projection-ready');return;}
+  const key=[current,...rows.map(t=>t.id)].join('|');if(key!==historyKeyV2){historyPageV2=0;historyKeyV2=key;}
+  const pageSize=8,pages=Math.max(1,Math.ceil(rows.length/pageSize));historyPageV2=Math.min(historyPageV2,pages-1);
+  const amount=(value,account)=>{
+    if(value==null||value===''||!Number.isFinite(Number(value)))return '—';
+    const meta=safe(()=>mmhVaultAccountMeta(account));
+    const currency=meta&&!String(meta.id||'').startsWith('legacy_')?String(meta.currency||''):'';
+    return (currency?currency+' ':'')+Number(value).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:6});
+  };
+  const head=elt('div','mh-row mh-header');
+  for(const title of [tr('Date','日期','ရက်စွဲ'),tr('Description','描述','ဖော်ပြချက်'),tr('Account','账户','အကောင့်'),tr('Type','类型','အမျိုးအစား'),tr('Amount','金额','ပမာဏ'),''])head.append(elt('span','mh-cell',title));
+  head.children[4].classList.add('mh-amount');view.replaceChildren(head);
+  for(const t of rows.slice(historyPageV2*pageSize,(historyPageV2+1)*pageSize)){
+    const income=t.type==='Income',expense=t.type==='Expense';
+    const account=income?t.to_account:expense?t.from_account:[t.from_account,t.to_account].filter(Boolean).join(' → ');
+    const type=income?tr('Income','收入','ဝင်ငွေ'):expense?tr('Expense','支出','အသုံးစရိတ်'):t.type==='Transfer'?tr('Transfer','转账','ငွေလွှဲ'):String(t.type||'—');
+    const button=btn('',()=>{
+      if(owner()!==current||window.mmhWalletDataOwnerV191!==current)return;
+      const nativeCard=$('txMobileListV371')?.querySelector('[data-tx-id="'+CSS.escape(String(t.id))+'"]');
+      if(nativeCard){nativeCard.click();return;}
+      const nativeEdit=list.querySelector('[data-action="edit-tx"][data-id="'+CSS.escape(String(t.id))+'"]');nativeEdit?.click();
+    },'mh-row');
+    button.dataset.direction=t.type;
+    const desc=elt('span','mh-cell mh-description',String(t.category||type));desc.append(elt('small','',[account,t.transaction_group||type].filter(Boolean).join(' · ')));
+    const value=income?'+'+amount(t.to_amount,t.to_account):expense?'−'+amount(t.from_amount,t.from_account):amount(t.from_amount,t.from_account)+' → '+amount(t.to_amount,t.to_account);
+    button.append(elt('span','mh-cell mh-date',String(t.tx_date||'—')),desc,elt('span','mh-cell mh-account',account||'—'),elt('span','mh-cell mh-type',type),elt('span','mh-cell mh-amount',value),elt('span','mh-chevron','›'));view.append(button);
+  }
+  if(!rows.length){const empty=elt('div','mh-footer',tr('No matching transactions','没有符合条件的记录','ကိုက်ညီသော မှတ်တမ်း မရှိပါ'));view.append(empty);}
+  const footer=elt('div','mh-footer');
+  const previous=btn(tr('Previous','上一页','ယခင်'),()=>{if(historyPageV2>0){historyPageV2--;renderHistoryReference();}});
+  const next=btn(tr('Next','下一页','နောက်သို့'),()=>{if(historyPageV2+1<pages){historyPageV2++;renderHistoryReference();}});
+  previous.disabled=historyPageV2===0;next.disabled=historyPageV2+1>=pages;
+  footer.append(previous,elt('span','',String(historyPageV2+1)+' / '+pages),next);view.append(footer);
+  view.hidden=false;list.classList.add('mmh-history-projection-ready');
+}
+function decorateHistoryPresentation(){
+  if(!$('txTabHistory')?.classList.contains('active'))return;
+  installHistoryPresentation();
+  const records=window.transactions;
+  renderHistoryReference();
+  if(!ready()||!Array.isArray(records)||window.mmhWalletDataOwnerV191!==owner()||records.some(row=>row?.user_id!==owner()))return;
+  const lookup=new Map(records.map(row=>[String(row.id),row.type]));
+  $('txList')?.querySelectorAll('tr[data-mmh-tx-id],.tx-mobile-card-v371[data-tx-id]').forEach(node=>{
+    const direction=lookup.get(node.dataset.mmhTxId||node.dataset.txId);
+    if(direction&&node.dataset.mmhHistoryDirection!==direction)node.dataset.mmhHistoryDirection=direction;
+  });
+}
 function boot(){
   const f=$('txForm');
   style();
@@ -1206,12 +1430,24 @@ function boot(){
     window.transactions.every(row=>row?.user_id===owner())){
     historyReady=true;loadedOwner=owner();
   }
+  // Calendar initialization belongs to the original application. Recheck on
+  // its first insertion and when the native History tab is activated.
+  installHistoryPresentation();
+  if(typeof MutationObserver==='function'){
+    const historyPanel=$('txHistoryPanel')?.querySelector('.panel');
+    const historyTab=$('txTabHistory');
+    if(historyPanel)new MutationObserver(installHistoryPresentation).observe(historyPanel,{childList:true});
+    if(historyTab)new MutationObserver(decorateHistoryPresentation).observe(historyTab,{attributes:true,attributeFilter:['class']});
+  }
+  for(const event of ['mmhvault:rendered','mmhvault:list-rendered','mmhvault:data-loaded','mmhvault:page-visible','mmhvault-language-change','mmhvault:config-owner-changed'])
+    window.addEventListener(event,decorateHistoryPresentation);
+  window.addEventListener('mmhvault:config-owner-changed',()=>{const view=$('mmhHistoryRecordsV2');if(view){view.hidden=true;view.replaceChildren();}historyKeyV2='';historyPageV2=0;});
   // Update after existing ledger rendering; never fetch or mutate transactions here.
   for(const event of ['mmhvault:data-change','mmhvault:rendered','mmhvault:list-rendered'])
     window.addEventListener(event,renderRecentEntry);
   schedule();
 }
-window.MMHV11HierarchyLive={version:'0.10.2-recent-fit',refresh:schedule,onLedgerInserted:ledgerInserted};
+window.MMHV11HierarchyLive={version:'0.12-history-reference',refresh:schedule,onLedgerInserted:ledgerInserted};
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot,{once:true});
 else boot();
 })();
