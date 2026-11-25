@@ -37617,5 +37617,72 @@ window.addEventListener('mmhvault:page-visible',schedule);
 if(typeof ResizeObserver==='function'){const observer=new ResizeObserver(schedule);for(const id of ['header','bottomNav']){const e=document.getElementById(id);if(e)observer.observe(e)}}
 })();
 </script>
+
+<style id="mmhCategoriesEditPickersV2">
+html body #editModal#editModal#editModal#editModal #editTxForm select.mmh-cat-native-v2,
+html body #transactions#transactions#transactions#transactions #category-manage select.mmh-cat-native-v2{display:none!important}
+html body #editModal#editModal#editModal#editModal #editTxForm button.mmh-cat-trigger-v2,
+html body #transactions#transactions#transactions#transactions #category-manage button.mmh-cat-trigger-v2{display:flex!important;align-items:center!important;justify-content:space-between!important;gap:8px!important;width:100%!important;min-width:0!important;min-height:38px!important;padding:7px 10px!important;border:1px solid var(--uv-line)!important;border-radius:7px!important;background:var(--uv-raised)!important;background-image:none!important;color:var(--uv-text)!important;font:500 13px/1.4 var(--mmh-notice-font,system-ui)!important;text-align:left!important;box-shadow:none!important}
+.mmh-cat-trigger-v2>span:first-child{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.mmh-cat-trigger-v2:disabled{opacity:.55!important;cursor:not-allowed!important}
+html body #mmhCategoryPickerV2{position:fixed!important;z-index:2147483646!important;box-sizing:border-box!important;display:flex;flex-direction:column;gap:4px;padding:6px!important;margin:0!important;border:1px solid var(--uv-line)!important;border-radius:8px!important;background:var(--uv-card)!important;background-image:none!important;box-shadow:0 8px 24px #0003!important;color:var(--uv-text)!important;overflow:hidden!important}
+html body #mmhCategoryPickerV2[hidden]{display:none!important}
+html body #mmhCategoryPickerV2 .mmh-cat-options-v2{display:grid;gap:2px;min-height:0;overflow:auto;overscroll-behavior:contain}
+html body #mmhCategoryPickerV2 input{flex:none;width:100%;box-sizing:border-box;min-height:34px;padding:6px 8px;border:1px solid var(--uv-line);border-radius:6px;background:var(--uv-raised);color:var(--uv-text);font:inherit}
+html body #mmhCategoryPickerV2 button{display:flex!important;align-items:center;justify-content:space-between;gap:8px;min-height:36px!important;padding:7px 9px!important;border:1px solid transparent!important;border-radius:6px!important;background:transparent!important;background-image:none!important;color:var(--uv-text)!important;text-align:left!important;font:500 13px/1.4 var(--mmh-notice-font,system-ui)!important;white-space:normal!important;box-shadow:none!important}
+html body #mmhCategoryPickerV2 button:is(:hover,:focus-visible,[aria-selected=true]){background:var(--uv-raised)!important;border-color:var(--uv-line)!important;outline:none!important}
+html body #mmhCategoryPickerV2 button[aria-selected=true]{color:var(--uv-accent)!important}
+html body #transactions#transactions#transactions#transactions#transactions #txManagePanel>#category-manage{max-width:none!important;width:100%!important;margin:0!important;padding:16px!important;background:var(--tv-card)!important;border:0!important;border-radius:0!important;box-shadow:none!important;min-height:calc(100dvh - var(--wv-shell-top,64px) - 70px)!important}
+html body #transactions#transactions#transactions#transactions #category-manage .cm-heading{margin:0 0 10px!important;gap:8px}
+html body #transactions#transactions#transactions#transactions #category-manage .cm-heading p{display:none!important}
+html body #transactions#transactions#transactions#transactions #category-manage .mmh-manager-card-v445{padding:0!important;border:0!important;border-radius:0!important;background:transparent!important;box-shadow:none!important}
+html body #transactions#transactions#transactions#transactions #category-manage .mmh-manager-head-v445 h3{font:600 14px/1.4 var(--mmh-notice-font,system-ui)!important;color:var(--uv-text)!important}
+html body #transactions#transactions#transactions#transactions #category-manage :is(.mmh-manager-head-v445 span,.mmh-manager-main-v445 span,.mmh-manager-note-v445,#cmCount){color:var(--uv-muted)!important;font-size:12px!important}
+html body #transactions#transactions#transactions#transactions #category-manage .mmh-manager-form-v445{display:grid!important;grid-template-columns:minmax(0,1fr) minmax(120px,180px) auto!important;gap:8px!important;margin:12px 0!important}
+html body #transactions#transactions#transactions#transactions #category-manage .mmh-manager-form-v445>span{display:none!important}
+html body #transactions#transactions#transactions#transactions #category-manage .cm-filters{display:grid!important;grid-template-columns:minmax(0,1fr) minmax(120px,180px) auto!important;align-items:center;gap:8px!important;margin:12px 0!important}
+html body #transactions#transactions#transactions#transactions #category-manage #cmCount{grid-column:auto!important;white-space:nowrap}
+html body #transactions#transactions#transactions#transactions #category-manage :is(input,.btn){min-height:38px!important;border:1px solid var(--uv-line)!important;border-radius:7px!important;padding:7px 10px!important;background:var(--uv-raised)!important;background-image:none!important;color:var(--uv-text)!important;box-shadow:none!important;font:500 13px/1.4 var(--mmh-notice-font,system-ui)!important}
+html body #transactions#transactions#transactions#transactions #category-manage .btn.primary{color:var(--uv-accent)!important;border-color:var(--uv-accent)!important}
+html body #transactions#transactions#transactions#transactions #category-manage :is(.mmh-manager-list-v445,.mmh-manager-archive-v445){border:1px solid var(--uv-line)!important;border-radius:8px!important;background:var(--uv-card)!important;background-image:none!important;box-shadow:none!important}
+html body #transactions#transactions#transactions#transactions #category-manage .mmh-manager-row-v445{min-height:48px!important;padding:8px 10px!important;background:transparent!important;background-image:none!important;border:0!important;border-bottom:1px solid var(--uv-line)!important;box-shadow:none!important}
+html body #transactions#transactions#transactions#transactions #category-manage .mmh-manager-row-v445[hidden]{display:none!important}
+html body #transactions#transactions#transactions#transactions #category-manage .mmh-manager-row-v445:last-child{border-bottom:0!important}
+html body #transactions#transactions#transactions#transactions #category-manage .mmh-manager-main-v445 b{color:var(--uv-text)!important;font-size:13px!important}
+html body #transactions#transactions#transactions#transactions #category-manage .mmh-manager-actions-v445 .btn{min-height:32px!important;font-size:12px!important}
+html body #transactions#transactions#transactions#transactions #category-manage .mmh-manager-archive-v445{margin-top:12px!important;padding:10px!important;color:var(--uv-text)!important}
+@media(max-width:620px){
+html body #transactions#transactions#transactions#transactions #category-manage .mmh-manager-form-v445{grid-template-columns:minmax(0,1fr) minmax(0,1fr)!important}
+html body #transactions#transactions#transactions#transactions #category-manage .mmh-manager-form-v445>button.btn{grid-column:1/-1}
+html body #transactions#transactions#transactions#transactions #category-manage .cm-filters{grid-template-columns:minmax(0,1fr) minmax(0,1fr)!important}
+html body #transactions#transactions#transactions#transactions #category-manage #cmCount{grid-column:1/-1!important}
+html body #transactions#transactions#transactions#transactions #category-manage .mmh-manager-actions-v445{width:auto!important;max-width:100%!important}
+}
+@media(pointer:coarse){html body #mmhCategoryPickerV2 button{min-height:44px!important}}
+</style>
+<script id="mmhCategoriesEditPickersLogicV2">
+(()=>{
+'use strict';
+const ids=['eType','eGroup','eCat','eFrom','eTo','cmGroup','mmhNewCategoryGroupV445'];
+const get=id=>document.getElementById(id);
+const pairs=new Map();
+let active=null,menu=null,raf=0;
+function close(focus=false){const a=active;active=null;if(menu)menu.hidden=true;if(a){a.trigger.setAttribute('aria-expanded','false');if(focus&&a.trigger.isConnected)a.trigger.focus({preventScroll:true})}}
+function sync(s,t){const name=s.selectedOptions[0]?.textContent||'';if(t.firstChild.textContent!==name)t.firstChild.textContent=name;t.disabled=s.disabled||!s.options.length;const label=s.closest('label');t.setAttribute('aria-label',((label?.firstChild?.textContent||s.getAttribute('aria-label')||s.id).trim())+': '+name)}
+function place(){if(!active)return;const {trigger,source}=active;if(!trigger.isConnected||!trigger.getClientRects().length||source.disabled||(source.closest('#editModal')&&!get('editModal')?.classList.contains('open'))){close();return}const r=trigger.getBoundingClientRect(),v=window.visualViewport,vl=v?.offsetLeft||0,vt=v?.offsetTop||0,vr=vl+(v?.width||innerWidth),vb=vt+(v?.height||innerHeight);let bounds={left:vl+6,right:vr-6,top:vt+6,bottom:vb-6};const modal=source.closest('#editModal')?.getBoundingClientRect();if(modal){bounds={left:Math.max(bounds.left,modal.left+3),right:Math.min(bounds.right,modal.right-3),top:Math.max(bounds.top,modal.top+3),bottom:Math.min(bounds.bottom,modal.bottom-3)}}if(r.bottom<=bounds.top||r.top>=bounds.bottom){close();return}const width=Math.min(Math.max(r.width,160),bounds.right-bounds.left);const left=Math.max(bounds.left,Math.min(r.left,bounds.right-width));const below=bounds.bottom-r.bottom-5,above=r.top-bounds.top-5,up=below<Math.min(180,above);const height=Math.min(300,Math.max(0,up?above:below));if(height<45||width<60){close();return}Object.assign(menu.style,{width:width+'px',left:left+'px',maxHeight:height+'px',top:up?'auto':r.bottom+5+'px',bottom:up?(innerHeight-r.top+5)+'px':'auto'})}
+function initMenu(){if(menu)return;menu=document.createElement('div');menu.id='mmhCategoryPickerV2';menu.hidden=true;menu.setAttribute('role','listbox');document.body.append(menu)}
+function open(s,t){if(active?.source===s){close(true);return}close();if(s.disabled||!s.options.length)return;initMenu();active={source:s,trigger:t};menu.replaceChildren();menu.hidden=false;menu.setAttribute('aria-label',t.getAttribute('aria-label'));t.setAttribute('aria-expanded','true');const list=document.createElement('div');list.className='mmh-cat-options-v2';const draw=q=>{list.replaceChildren();for(const o of s.options){if(o.hidden||o.disabled||o.parentElement?.disabled||!o.textContent.toLocaleLowerCase().includes(q.toLocaleLowerCase()))continue;const btn=document.createElement('button');btn.type='button';btn.setAttribute('role','option');btn.setAttribute('aria-selected',String(o.selected));const name=document.createElement('span');name.textContent=o.textContent;const tick=document.createElement('span');tick.textContent=o.selected?'✓':'';btn.append(name,tick);btn.addEventListener('click',()=>{if(!active||active.source!==s||s.disabled||!s.isConnected)return;const changed=s.value!==o.value;s.value=o.value;close(true);if(changed){s.dispatchEvent(new Event('input',{bubbles:true}));s.dispatchEvent(new Event('change',{bubbles:true}))}schedule()});list.append(btn)}};
+if(s.options.length>8){const q=document.createElement('input');q.type='search';q.placeholder='Search';q.setAttribute('aria-label','Search');q.addEventListener('input',()=>draw(q.value));menu.append(q)}
+menu.append(list);draw('');place();if(active)(menu.querySelector('input')||list.querySelector('[aria-selected=true]')||list.firstElementChild)?.focus({preventScroll:true})}
+function refresh(){raf=0;for(const [s,t] of pairs){if(!s.isConnected||!t.isConnected){if(active?.source===s)close();pairs.delete(s)}}for(const id of ids){const s=get(id);if(!s||s.tagName!=='SELECT')continue;let t=pairs.get(s);if(!t){t=document.createElement('button');t.type='button';t.className='mmh-cat-trigger-v2';t.setAttribute('aria-haspopup','listbox');t.setAttribute('aria-expanded','false');t.setAttribute('aria-controls','mmhCategoryPickerV2');const val=document.createElement('span'),arrow=document.createElement('span');arrow.textContent='⌄';arrow.setAttribute('aria-hidden','true');t.append(val,arrow);s.after(t);s.classList.add('mmh-cat-native-v2');t.addEventListener('click',e=>{e.preventDefault();open(s,t)});pairs.set(s,t)}sync(s,t)}place()}
+function schedule(){if(!raf)raf=requestAnimationFrame(refresh)}
+const edit=get('editModal'),tx=get('transactions');
+for(const root of [edit,tx])if(root){new MutationObserver(schedule).observe(root,{subtree:true,childList:true,attributes:true,attributeFilter:['disabled','hidden','class','style','selected']});root.addEventListener('change',schedule,true)}
+document.addEventListener('pointerdown',e=>{if(active&&!menu.contains(e.target)&&!active.trigger.contains(e.target))close()},true);
+document.addEventListener('focusin',e=>{if(active&&!menu.contains(e.target)&&!active.trigger.contains(e.target))close()},true);
+document.addEventListener('keydown',e=>{if(!active)return;if(e.key==='Escape'){e.preventDefault();e.stopImmediatePropagation();close(true)}else if(['ArrowDown','ArrowUp','Home','End'].includes(e.key)&&e.target!==menu.querySelector('input')){const options=[...menu.querySelectorAll('button')];if(!options.length)return;e.preventDefault();const i=options.indexOf(document.activeElement);options[e.key==='Home'?0:e.key==='End'?options.length-1:Math.max(0,Math.min(options.length-1,i+(e.key==='ArrowDown'?1:-1)))]?.focus()}},true);
+window.addEventListener('resize',schedule,{passive:true});window.addEventListener('scroll',()=>{if(active)place()},true);window.visualViewport?.addEventListener('resize',schedule);window.visualViewport?.addEventListener('scroll',schedule);window.addEventListener('mmhvault:page-visible',schedule);schedule();
+})();
+</script>
 </body>
 </html>
