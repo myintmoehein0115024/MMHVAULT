@@ -35616,5 +35616,80 @@ html body #gettingStarted#gettingStarted .gs-logo-img{object-fit:contain!importa
 html body #mmhvaultAppBootGuardV3282>div>div{color:inherit!important}
 @media(prefers-reduced-motion:reduce){html body #dataLoadOverlayV384#dataLoadOverlayV384 .data-load-spinner-v384{animation:none!important}}
 </style>
+
+<style id="mmh-v2-workspace-overview-visual">
+/* V2 visual-only layer. Existing navigation targets, auth, financial rendering,
+   market polling, transaction ticker and Exchange remain authoritative. */
+body.mmh-workspace-active{--wv-bg:#0c0c0d;--wv-sidebar:#181818;--wv-card:#111112;--wv-raised:#1c1c1e;--wv-border:#303033;--wv-text:#f0f0f1;--wv-muted:#a3a3a8;--wv-accent:#91adf2;--wv-selected:#252b39;--wv-pos:#39c9a0;--wv-neg:#f18484;--wv-font:Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+body.light.mmh-workspace-active{--wv-bg:#f5f6f8;--wv-sidebar:#fff;--wv-card:#fff;--wv-raised:#f0f2f5;--wv-border:#dfe3e9;--wv-text:#20252e;--wv-muted:#5e6776;--wv-accent:#315eb1;--wv-selected:#e6edf9;--wv-pos:#087d60;--wv-neg:#ba3d49}
+html body.mmh-workspace-active #bottomNav#bottomNav.bottom-nav,html body.mmh-workspace-active #header#header{background:var(--wv-sidebar)!important;background-image:none!important;border-color:var(--wv-border)!important;color:var(--wv-text)!important;box-shadow:none!important;backdrop-filter:none!important;-webkit-backdrop-filter:none!important;font-family:var(--wv-font)!important}
+html body.mmh-workspace-active #bottomNav#bottomNav::before,html body.mmh-workspace-active #bottomNav#bottomNav::after,html body.mmh-workspace-active #header#header::before,html body.mmh-workspace-active #header#header::after{background:none!important;box-shadow:none!important}
+html body.mmh-workspace-active #bottomNav#bottomNav>button{color:var(--wv-muted)!important;background:transparent!important;border:1px solid transparent!important;box-shadow:none!important;border-radius:8px!important;text-shadow:none!important;filter:none!important}
+html body.mmh-workspace-active #bottomNav#bottomNav>button:is(.active,[aria-current="page"],[aria-expanded="true"]){color:var(--wv-accent)!important;background:var(--wv-selected)!important;border-color:transparent!important;box-shadow:none!important}
+html body.mmh-workspace-active #bottomNav#bottomNav>button:focus-visible{outline:2px solid var(--wv-accent)!important;outline-offset:-2px}
+html body.mmh-workspace-active #bottomNav#bottomNav>button .mmh-nav-icon{font-size:0!important;color:inherit!important;background:transparent!important;box-shadow:none!important;border:0!important;text-shadow:none!important}
+html body.mmh-workspace-active #bottomNav#bottomNav>button .mmh-nav-icon::before{content:"";display:block;width:20px;height:20px;background:currentColor;mask:var(--mmh-v2-nav-icon) center/contain no-repeat;-webkit-mask:var(--mmh-v2-nav-icon) center/contain no-repeat}
+html body.mmh-workspace-active #bottomNav#bottomNav>button[data-page="dashboard"] .mmh-nav-icon{--mmh-v2-nav-icon:url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22black%22%20stroke-width%3D%221.8%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Crect%20x%3D%223%22%20y%3D%223%22%20width%3D%227%22%20height%3D%227%22%20rx%3D%221%22%2F%3E%3Crect%20x%3D%2214%22%20y%3D%223%22%20width%3D%227%22%20height%3D%227%22%20rx%3D%221%22%2F%3E%3Crect%20x%3D%223%22%20y%3D%2214%22%20width%3D%227%22%20height%3D%227%22%20rx%3D%221%22%2F%3E%3Crect%20x%3D%2214%22%20y%3D%2214%22%20width%3D%227%22%20height%3D%227%22%20rx%3D%221%22%2F%3E%3C%2Fsvg%3E")}
+html body.mmh-workspace-active #bottomNav#bottomNav>button[data-page="accounts-page"] .mmh-nav-icon{--mmh-v2-nav-icon:url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22black%22%20stroke-width%3D%221.8%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Crect%20x%3D%223%22%20y%3D%225%22%20width%3D%2218%22%20height%3D%2215%22%20rx%3D%222%22%2F%3E%3Cpath%20d%3D%22M16%2012h5m-3%203h.01%22%2F%3E%3C%2Fsvg%3E")}
+html body.mmh-workspace-active #bottomNav#bottomNav>button[data-page="transactions"] .mmh-nav-icon{--mmh-v2-nav-icon:url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22black%22%20stroke-width%3D%221.8%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M4%207h16l-4-4m4%2014H4l4%204M20%207l-4%204M4%2017l4-4%22%2F%3E%3C%2Fsvg%3E")}
+html body.mmh-workspace-active #bottomNav#bottomNav>button[data-page="invest"] .mmh-nav-icon{--mmh-v2-nav-icon:url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22black%22%20stroke-width%3D%221.8%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M3%2019V5m0%2014h18M6%2015l5-5%204%203%206-8m-5%200h5v5%22%2F%3E%3C%2Fsvg%3E")}
+html body.mmh-workspace-active #bottomNav#bottomNav>button#moreNavButton .mmh-nav-icon{--mmh-v2-nav-icon:url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22black%22%20stroke-width%3D%221.8%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Ccircle%20cx%3D%225%22%20cy%3D%2212%22%20r%3D%221%22%2F%3E%3Ccircle%20cx%3D%2212%22%20cy%3D%2212%22%20r%3D%221%22%2F%3E%3Ccircle%20cx%3D%2219%22%20cy%3D%2212%22%20r%3D%221%22%2F%3E%3C%2Fsvg%3E")}
+html body.mmh-workspace-active #bottomNav#bottomNav .mmh-sidebar-brand-v500{background:transparent!important;border:0!important;box-shadow:none!important;border-radius:0!important}
+html body.mmh-workspace-active #bottomNav#bottomNav .mmh-sidebar-brand-v500 img{filter:none!important}
+html body.mmh-workspace-active #bottomNav#bottomNav .mmh-sidebar-brand-v500 strong{color:var(--wv-text)!important;font-family:var(--wv-font)!important;letter-spacing:.01em!important;font-size:15px!important}
+html body.mmh-workspace-active #bottomNav#bottomNav :is(.mmh-sidebar-brand-v500 small,.mmh-sidebar-section-v500){color:var(--wv-muted)!important;letter-spacing:.04em!important}
+html body.mmh-workspace-active #bottomNav#bottomNav .mmh-sidebar-private-v500{background:var(--wv-card)!important;border:1px solid var(--wv-border)!important;box-shadow:none!important;border-radius:9px!important;color:var(--wv-text)!important}
+html body.mmh-workspace-active #bottomNav#bottomNav .mmh-sidebar-private-v500 :is(b,p){color:var(--wv-text)!important}
+html body.mmh-workspace-active #bottomNav#bottomNav .mmh-sidebar-private-v500 :is(.icon,span){color:var(--wv-pos)!important}
+html body.mmh-workspace-active #header#header :is(.mmh-global-search-v500,.header-profile,.mmh-topbar-support-v1520,.mmh-topbar-bell-v500){background:var(--wv-card)!important;background-image:none!important;border:1px solid var(--wv-border)!important;box-shadow:none!important;border-radius:8px!important;color:var(--wv-text)!important}
+html body.mmh-workspace-active #header#header :is(.mmh-global-search-v500 input,.header-profile-copy b,.mmhvault-header-brand .logo>span){color:var(--wv-text)!important;background:transparent!important;box-shadow:none!important;text-shadow:none!important;font-family:var(--wv-font)!important}
+html body.mmh-workspace-active #header#header :is(.mmh-global-search-v500 input::placeholder,.mmh-topbar-date-v500,.header-profile-copy span,.mmhvault-brand-tagline){color:var(--wv-muted)!important}
+html body.mmh-workspace-active #header#header .mmh-global-search-v500 kbd{background:var(--wv-raised)!important;border-color:var(--wv-border)!important;color:var(--wv-muted)!important}
+html body.mmh-workspace-active:has(#dashboard.active){background:var(--wv-bg)!important;background-image:none!important}
+html body.mmh-workspace-active:has(#dashboard.active)::before,html body.mmh-workspace-active:has(#dashboard.active)::after{background:none!important}
+html body.mmh-workspace-active main.wrap>#dashboard.active{background:var(--wv-bg)!important;background-image:none!important;box-shadow:none!important}
+html body.mmh-workspace-active #dashboard #mmhPremiumDashboardV500{font-family:var(--wv-font)!important;color:var(--wv-text)!important;--pf-gold:var(--wv-accent);--pf-green:var(--wv-pos);--pf-red:var(--wv-neg);background:transparent!important}
+html body.mmh-workspace-active #dashboard #mmhPremiumDashboardV500 .pf-hero-v500{background:transparent!important;background-image:none!important;box-shadow:none!important;border:0!important;border-radius:0!important;padding:8px 0 16px!important;min-height:0!important}
+html body.mmh-workspace-active #dashboard #mmhPremiumDashboardV500 .pf-hero-v500::before,html body.mmh-workspace-active #dashboard #mmhPremiumDashboardV500 .pf-hero-v500::after{content:none!important;background:none!important}
+html body.mmh-workspace-active #dashboard #mmhPremiumDashboardV500 :is(.pf-hero-copy-v500 h1,.pf-name-v500){font-family:var(--wv-font)!important;color:var(--wv-text)!important;font-size:clamp(22px,2.2vw,30px)!important;font-weight:650!important;letter-spacing:-.025em!important;text-shadow:none!important}
+html body.mmh-workspace-active #dashboard #mmhPremiumDashboardV500 :is(.pf-eyebrow-v500,.pf-hero-sub-v500,.pf-hero-date-v500,.pf-age-label-v670){color:var(--wv-muted)!important;font-family:var(--wv-font)!important;text-shadow:none!important}
+html body.mmh-workspace-active #dashboard #mmhPremiumDashboardV500 .pf-eyebrow-v500{letter-spacing:.06em!important;font-size:10px!important}
+html body.mmh-workspace-active #dashboard #mmhPremiumDashboardV500 .pf-hero-date-v500{background:transparent!important;border-color:var(--wv-border)!important;border-radius:7px!important;box-shadow:none!important}
+html body.mmh-workspace-active #dashboard #mmhPremiumDashboardV500 :is(.pf-kpi-v500,.pf-card-v500,.pf-planning-card-v117){background:var(--wv-card)!important;background-image:none!important;border:1px solid var(--wv-border)!important;box-shadow:none!important;border-radius:10px!important;backdrop-filter:none!important;-webkit-backdrop-filter:none!important;color:var(--wv-text)!important}
+html body.mmh-workspace-active #dashboard #mmhPremiumDashboardV500 .pf-kpi-v500.gold{border-color:var(--wv-border)!important}
+html body.mmh-workspace-active #dashboard #mmhPremiumDashboardV500 .pf-kpi-v500:first-child{border-color:var(--wv-accent)!important}
+html body.mmh-workspace-active #dashboard #mmhPremiumDashboardV500 .pf-kpi-v500:hover{transform:none!important;box-shadow:none!important}
+html body.mmh-workspace-active #dashboard #mmhPremiumDashboardV500 :is(.pf-kpi-value-v500,.pf-card-head-v500 h2,.pf-trend-summary-v500 strong,.pf-donut-center-v500 strong,.pf-asset-v500 b,.pf-tx-copy-v500 b,.pf-legend-row-v500 b){color:var(--wv-text)!important;font-family:var(--wv-font)!important;text-shadow:none!important;font-weight:650!important;font-variant-numeric:tabular-nums}
+html body.mmh-workspace-active #dashboard #mmhPremiumDashboardV500 .pf-kpi-value-v500{font-size:clamp(20px,2vw,28px)!important;letter-spacing:-.025em!important;padding-right:0!important}
+html body.mmh-workspace-active #dashboard #mmhPremiumDashboardV500 :is(.pf-kpi-label-v500,.pf-kpi-meta-v500,.pf-card-head-v500 p,.pf-market-head-v500,.pf-market-row-v500,.pf-tx-head-v500,.pf-tx-row-v500,.pf-tx-copy-v500 small,.pf-asset-v500 small,.pf-legend-row-v500,.pf-donut-center-v500 small,.pf-donut-center-v500 span){color:var(--wv-muted)!important;font-family:var(--wv-font)!important}
+html body.mmh-workspace-active #dashboard #mmhPremiumDashboardV500 :is(.pf-kpi-icon-v500,.pf-coin-v500,.pf-tx-icon-v500){background:var(--wv-raised)!important;border:1px solid var(--wv-border)!important;color:var(--wv-accent)!important;box-shadow:none!important;text-shadow:none!important}
+html body.mmh-workspace-active #dashboard #mmhPremiumDashboardV500 :is(.pf-range-v500,.pf-market-tabs-v500){background:var(--wv-raised)!important;border:1px solid var(--wv-border)!important;border-radius:7px!important;box-shadow:none!important}
+html body.mmh-workspace-active #dashboard #mmhPremiumDashboardV500 :is(.pf-range-v500,.pf-market-tabs-v500) button{background:transparent!important;border-color:transparent!important;color:var(--wv-muted)!important;box-shadow:none!important;border-radius:5px!important}
+html body.mmh-workspace-active #dashboard #mmhPremiumDashboardV500 :is(.pf-range-v500,.pf-market-tabs-v500) button.active{background:var(--wv-selected)!important;color:var(--wv-accent)!important;border-color:transparent!important;box-shadow:none!important}
+html body.mmh-workspace-active #dashboard #mmhPremiumDashboardV500 :is(.pf-link-v500,.pf-planning-open-v117){background:transparent!important;border-color:var(--wv-border)!important;color:var(--wv-accent)!important;box-shadow:none!important;border-radius:7px!important}
+html body.mmh-workspace-active #dashboard #mmhPremiumDashboardV500 :is(.pos,.pf-trend-summary-v500 span){color:var(--wv-pos)!important}
+html body.mmh-workspace-active #dashboard #mmhPremiumDashboardV500 .neg{color:var(--wv-neg)!important}
+html body.mmh-workspace-active #dashboard #mmhPremiumDashboardV500 .pf-line-v500{stroke:var(--wv-accent)!important;filter:none!important}
+html body.mmh-workspace-active #dashboard #mmhPremiumDashboardV500 #pfAreaGradientV500 stop{stop-color:var(--wv-accent)!important}
+html body.mmh-workspace-active #dashboard #mmhPremiumDashboardV500 .pf-chart-v500 circle{fill:var(--wv-accent)!important;stroke:var(--wv-card)!important}
+html body.mmh-workspace-active #dashboard #mmhPremiumDashboardV500 .pf-grid-line-v500{stroke:var(--wv-border)!important}
+html body.mmh-workspace-active #dashboard #mmhPremiumDashboardV500 .pf-chart-label-v500{fill:var(--wv-muted)!important}
+html body.mmh-workspace-active #dashboard #mmhPremiumDashboardV500 .pf-donut-v500::before{background:var(--wv-card)!important;border-color:var(--wv-border)!important;box-shadow:none!important}
+html body.mmh-workspace-active #dashboard #mmhPremiumDashboardV500 :is(.pf-market-row-v500,.pf-market-head-v500,.pf-tx-head-v500,.pf-tx-row-v500){border-color:var(--wv-border)!important}
+@media(min-width:1100px){
+html body.mmh-workspace-active #bottomNav#bottomNav.bottom-nav{border-radius:12px!important;gap:6px!important}
+html body.mmh-workspace-active #bottomNav#bottomNav>button{min-height:44px!important;padding:9px 12px!important}
+html body.mmh-workspace-active #bottomNav#bottomNav>button span{font-size:13px!important;font-weight:550!important}
+html body.mmh-workspace-active #header#header{border-radius:10px!important}
+}
+@media(max-width:1099px){html body.mmh-workspace-active #bottomNav#bottomNav.bottom-nav{border-radius:12px!important}}
+@media(max-width:620px){
+html body.mmh-workspace-active #dashboard #mmhPremiumDashboardV500 .pf-kpi-value-v500{font-size:clamp(18px,5.1vw,24px)!important}
+html body.mmh-workspace-active #dashboard #mmhPremiumDashboardV500 .pf-kpi-label-v500{font-size:11px!important}
+html body.mmh-workspace-active #dashboard #mmhPremiumDashboardV500 .pf-kpi-meta-v500{font-size:10px!important}
+html body.mmh-workspace-active #dashboard #mmhPremiumDashboardV500 .pf-hero-v500{padding:4px 0 12px!important}
+html body.mmh-workspace-active #bottomNav#bottomNav>button span{font-size:10px!important}
+}
+</style>
 </body>
 </html>
