@@ -35817,7 +35817,7 @@ html body #settings.page.active #stPage_security #mmhA783SecurityCenter .mmh-a78
 <!-- Auto MMK is loaded only by the explicit release gate below. -->
 <!-- APP V11.7: owner-linked Manage replaces the former field-layout loader.
      The original V11 script remains in Git history for rollback; no DB migration. -->
-<script type="module" src="js/mmhvault-v11-manage-hierarchy-live.mjs?v=0.8.0"></script>
+<script type="module" src="js/mmhvault-v11-manage-hierarchy-live.mjs?v=0.8.1"></script>
 <link rel="stylesheet" href="css/mmhvault-transaction-onboarding-v1.css?v=1.0.0">
 <script type="module" src="js/mmhvault-transaction-onboarding-live-v1.mjs?v=1.0.0"></script>
 
@@ -37301,12 +37301,11 @@ html body.mmh-workspace-active #transactions#transactions#transactions#transacti
 html body.mmh-workspace-active #transactions#transactions#transactions#transactions#transactions #txForm #mmhHierarchyDirection button[data-mmh-direction]:focus-visible{outline:2px solid var(--tv-accent)!important;outline-offset:-2px!important}
 html body.mmh-workspace-active #transactions#transactions#transactions#transactions#transactions #txForm .formgrid{grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:12px 18px!important;align-items:start!important;grid-auto-flow:row!important;margin:0!important}
 html body.mmh-workspace-active #transactions#transactions#transactions#transactions#transactions #txForm .formgrid>.mmh-form-section-v1{display:none!important}
-html body.mmh-workspace-active #transactions#transactions#transactions#transactions#transactions #txForm:has(#mmhHierarchyDirection) .formgrid>label.tx-native-selector-v141:has(#txType):not([hidden]),
 html body.mmh-workspace-active #transactions#transactions#transactions#transactions#transactions #txForm:has(#mmhHierarchyDirection) .formgrid>label.tx-native-selector-v141:has(#txGroup):not([hidden]){display:flex!important;flex-direction:column!important;visibility:visible!important;opacity:1!important;min-width:0!important;gap:6px!important}
 html body.mmh-workspace-active #transactions#transactions#transactions#transactions#transactions #txForm .formgrid>label:not([hidden]):not(.tx-field-hidden-v141):not(.mmh-p24-side-inactive){gap:6px!important;min-width:0!important;font-size:12px!important;color:var(--tv-text)!important}
 html body.mmh-workspace-active #transactions#transactions#transactions#transactions#transactions #txForm .formgrid>label:has(#txDate){order:1}
 html body.mmh-workspace-active #transactions#transactions#transactions#transactions#transactions #txForm .formgrid>label:has(#fromAccount){order:2}
-html body.mmh-workspace-active #transactions#transactions#transactions#transactions#transactions #txForm .formgrid>label:has(#txType){order:3}
+html body.mmh-workspace-active #transactions#transactions#transactions#transactions#transactions #txForm#txForm:has(#mmhHierarchyDirection) .formgrid>label:has(#txType){display:none!important;visibility:hidden!important;grid-column:auto!important}
 html body.mmh-workspace-active #transactions#transactions#transactions#transactions#transactions #txForm .formgrid>label:has(#txGroup){order:4}
 html body.mmh-workspace-active #transactions#transactions#transactions#transactions#transactions #txForm .formgrid>label:has(#txCategory){order:5}
 html body.mmh-workspace-active #transactions#transactions#transactions#transactions#transactions #txForm .formgrid>label:has(#fromAmount){order:6}
