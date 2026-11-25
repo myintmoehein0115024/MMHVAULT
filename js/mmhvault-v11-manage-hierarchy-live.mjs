@@ -210,6 +210,7 @@ function drawModal(){
   close(false);
   const overlayNode=elt('div','mmh-hier-overlay'),dialog=elt('section','mmh-hier-dialog');
   overlayNode.append(dialog);
+  dialog.dataset.mmhCoachField=modalField;dialog.dataset.mmhCoachMode='list';
   dialog.setAttribute('role','dialog');dialog.setAttribute('aria-modal','true');
   const head=elt('header'),title=elt('h3','',tr('Manage ','管理 ','စီမံရန် ')+label(modalField));
   title.id='mmhHierarchyDialogTitle';dialog.setAttribute('aria-labelledby',title.id);
@@ -296,6 +297,7 @@ function drawModal(){
 function drawDelete(item){
   if(!overlay)return;
   const dialog=overlay.querySelector('.mmh-hier-dialog');dialog.replaceChildren();
+  dialog.dataset.mmhCoachMode='delete';
   const title=elt('h3','',tr('Delete unused item?','删除未使用的项目？','မသုံးရသေးသော အရာကိုဖျက်မလား'));
   title.id='mmhHierarchyDialogTitle';dialog.append(title);
   dialog.append(elt('p','mmh-hier-muted',item.label));
@@ -308,6 +310,7 @@ function drawEditor(item){
   if(!overlay||modalField==='type'||cloudConflict)return;
   const field=modalField,graph=controller.read();
   const dialog=overlay.querySelector('.mmh-hier-dialog');dialog.replaceChildren();
+  dialog.dataset.mmhCoachMode=item?'edit':'add';
   const title=elt('h3','',tr(item?'Edit ':'Add ',item?'编辑 ':'添加 ',item?'ပြင်ရန် ':'အသစ်ထည့်ရန် ')+label(field));
   title.id='mmhHierarchyDialogTitle';dialog.append(title);
   const form=elt('form','mmh-hier-form');
