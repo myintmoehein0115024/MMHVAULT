@@ -35844,7 +35844,7 @@ html body #settings.page.active #stPage_security #mmhA783SecurityCenter .mmh-a78
 <!-- Auto MMK is loaded only by the explicit release gate below. -->
 <!-- APP V11.7: owner-linked Manage replaces the former field-layout loader.
      The original V11 script remains in Git history for rollback; no DB migration. -->
-<script type="module" src="js/mmhvault-v11-manage-hierarchy-live.mjs?v=0.16.1"></script>
+<script type="module" src="js/mmhvault-v11-manage-hierarchy-live.mjs?v=0.16.2"></script>
 <link rel="stylesheet" href="css/mmhvault-transaction-onboarding-v1.css?v=2.1.0">
 <script type="module" src="js/mmhvault-transaction-onboarding-live-v1.mjs?v=2.1.0"></script>
 
@@ -37398,7 +37398,7 @@ html body.mmh-workspace-active #transactions#transactions#transactions#transacti
 
 /* V2 unified transaction entry controls; original native selects retain values and locks. */
 @media(min-width:900px){
-html body.mmh-workspace-active:has(#transactions#transactions.active) main.wrap.wrap.wrap{padding-top:calc(var(--wv-shell-top,var(--wv-top,60px)) + var(--wv-shell-gap,22px))!important;padding-left:var(--wv-shell-rail,var(--wv-nav,240px))!important;padding-right:0!important;padding-bottom:0!important}
+html body.mmh-workspace-active:has(#transactions#transactions.active) main.wrap.wrap.wrap{padding-top:var(--wv-shell-top,var(--wv-top,60px))!important;padding-left:var(--wv-shell-rail,var(--wv-nav,240px))!important;padding-right:0!important;padding-bottom:0!important}
 }
 html body.mmh-workspace-active #transactions#transactions#transactions#transactions#transactions >.mmh-tx-entry-tools-v2{padding-block:6px!important}
 html body.mmh-workspace-active #transactions#transactions#transactions#transactions#transactions #txAddPanel>.panel{min-height:calc(100dvh - 112px)!important;padding:clamp(14px,2vw,26px)!important}
@@ -37669,10 +37669,10 @@ const pairs=new Map();
 let active=null,menu=null,raf=0;
 function close(focus=false){const a=active;active=null;if(menu)menu.hidden=true;if(a){a.trigger.setAttribute('aria-expanded','false');if(focus&&a.trigger.isConnected)a.trigger.focus({preventScroll:true})}}
 function sync(s,t){const name=s.selectedOptions[0]?.textContent||'';if(t.firstChild.textContent!==name)t.firstChild.textContent=name;t.disabled=s.disabled||!s.options.length;const label=s.closest('label');t.setAttribute('aria-label',((label?.firstChild?.textContent||s.getAttribute('aria-label')||s.id).trim())+': '+name)}
-function place(){if(!active)return;const {trigger,source}=active;if(!trigger.isConnected||!trigger.getClientRects().length||source.disabled||(source.closest('#editModal')&&!get('editModal')?.classList.contains('open'))){close();return}const r=trigger.getBoundingClientRect(),v=window.visualViewport,vl=v?.offsetLeft||0,vt=v?.offsetTop||0,vr=vl+(v?.width||innerWidth),vb=vt+(v?.height||innerHeight);let bounds={left:vl+6,right:vr-6,top:vt+6,bottom:vb-6};const modal=source.closest('.mmh-hier-dialog,#editModal')?.getBoundingClientRect();if(modal){bounds={left:Math.max(bounds.left,modal.left+3),right:Math.min(bounds.right,modal.right-3),top:Math.max(bounds.top,modal.top+3),bottom:Math.min(bounds.bottom,modal.bottom-3)}}if(r.bottom<=bounds.top||r.top>=bounds.bottom){close();return}const width=Math.min(Math.max(r.width,160),bounds.right-bounds.left);const left=Math.max(bounds.left,Math.min(r.left,bounds.right-width));const below=bounds.bottom-r.bottom-5,above=r.top-bounds.top-5,up=below<Math.min(180,above);const height=Math.min(300,Math.max(0,up?above:below));if(height<45||width<60){close();return}Object.assign(menu.style,{width:width+'px',left:left+'px',maxHeight:height+'px',top:up?'auto':r.bottom+5+'px',bottom:up?(innerHeight-r.top+5)+'px':'auto'})}
+function place(){if(!active)return;const {trigger,source}=active;if(!trigger.isConnected||!trigger.getClientRects().length||source.disabled||(source.closest('#editModal')&&!get('editModal')?.classList.contains('open'))){close();return}const r=trigger.getBoundingClientRect(),v=window.visualViewport,vl=v?.offsetLeft||0,vt=v?.offsetTop||0,vr=vl+(v?.width||innerWidth),vb=vt+(v?.height||innerHeight);let bounds={left:vl+6,right:vr-6,top:vt+6,bottom:vb-6};const modal=source.closest('.mmh-hier-dialog,#editModal')?.getBoundingClientRect();if(modal){const w=source.closest('.mmh-hier-dialog')?window.MMHWorkspaceDialogBoundsV2?.(null):null;bounds={left:Math.max(bounds.left,modal.left+3),right:Math.min(bounds.right,modal.right-3),top:Math.max(bounds.top,w?.top??modal.top+3),bottom:Math.min(bounds.bottom,w?.bottom??modal.bottom-3)}}if(r.bottom<=bounds.top||r.top>=bounds.bottom){close();return}const width=Math.min(Math.max(r.width,160),bounds.right-bounds.left);const left=Math.max(bounds.left,Math.min(r.left,bounds.right-width));const below=bounds.bottom-r.bottom-5,above=r.top-bounds.top-5,up=below<Math.min(180,above);const height=Math.min(300,Math.max(0,up?above:below));if(height<45||width<60){close();return}Object.assign(menu.style,{width:width+'px',left:left+'px',maxHeight:height+'px',top:up?'auto':r.bottom+5+'px',bottom:up?(innerHeight-r.top+5)+'px':'auto'});menu.classList.toggle('mmh-hier-picker-v3',!!source.closest('.mmh-hier-form'))}
 function initMenu(){if(menu)return;menu=document.createElement('div');menu.id='mmhCategoryPickerV2';menu.hidden=true;menu.setAttribute('role','listbox');document.body.append(menu)}
 function open(s,t){if(active?.source===s){close(true);return}close();if(s.disabled||!s.options.length)return;initMenu();active={source:s,trigger:t};menu.replaceChildren();menu.hidden=false;menu.setAttribute('aria-label',t.getAttribute('aria-label'));t.setAttribute('aria-expanded','true');const list=document.createElement('div');list.className='mmh-cat-options-v2';const draw=q=>{list.replaceChildren();for(const o of s.options){if(o.hidden||o.disabled||o.parentElement?.disabled||!o.textContent.toLocaleLowerCase().includes(q.toLocaleLowerCase()))continue;const btn=document.createElement('button');btn.type='button';btn.setAttribute('role','option');btn.setAttribute('aria-selected',String(o.selected));const name=document.createElement('span');name.textContent=o.textContent;const tick=document.createElement('span');tick.textContent=o.selected?'✓':'';btn.append(name,tick);btn.addEventListener('click',()=>{if(!active||active.source!==s||s.disabled||!s.isConnected)return;const changed=s.value!==o.value;s.value=o.value;close(true);if(changed){s.dispatchEvent(new Event('input',{bubbles:true}));s.dispatchEvent(new Event('change',{bubbles:true}))}schedule()});list.append(btn)}};
-if(s.options.length>8){const q=document.createElement('input');q.type='search';q.placeholder='Search';q.setAttribute('aria-label','Search');q.addEventListener('input',()=>draw(q.value));menu.append(q)}
+if(s.options.length>8){const q=document.createElement('input');q.type='search';const locale=(localStorage.getItem('mmhvault_language_v3363')||'en').toLowerCase();const searchLabel=locale.startsWith('zh')?'搜索':/^(my|mm)/.test(locale)?'ရှာရန်':'Search';q.placeholder=searchLabel;q.setAttribute('aria-label',searchLabel);q.addEventListener('input',()=>{draw(q.value);list.scrollTop=0});menu.append(q)}
 menu.append(list);draw('');place();if(active)(menu.querySelector('input')||list.querySelector('[aria-selected=true]')||list.firstElementChild)?.focus({preventScroll:true})}
 function refresh(){raf=0;for(const [s,t] of pairs){if(!s.isConnected||!t.isConnected){if(active?.source===s)close();pairs.delete(s)}}for(const s of [...ids.map(get),...document.querySelectorAll('.mmh-hier-dialog .mmh-hier-form select')]){if(!s||s.tagName!=='SELECT')continue;let t=pairs.get(s);if(!t){t=document.createElement('button');t.type='button';t.className='mmh-cat-trigger-v2';t.setAttribute('aria-haspopup','listbox');t.setAttribute('aria-expanded','false');t.setAttribute('aria-controls','mmhCategoryPickerV2');const val=document.createElement('span'),arrow=document.createElement('span');arrow.textContent='⌄';arrow.setAttribute('aria-hidden','true');t.append(val,arrow);s.after(t);s.classList.add('mmh-cat-native-v2');if(s.closest('.mmh-hier-form')){s.tabIndex=-1;s.addEventListener('invalid',()=>{if(t.isConnected)t.focus()});s.closest('label')?.addEventListener('click',e=>{if(e.target===t||t.contains(e.target))return;if(e.target===s||!e.target.closest('button,input,select,a')){e.preventDefault();t.focus()}})}t.addEventListener('click',e=>{e.preventDefault();open(s,t)});pairs.set(s,t)}sync(s,t)}place()}
 function schedule(){if(!raf)raf=requestAnimationFrame(refresh)}
@@ -37793,15 +37793,18 @@ html body .mmh-hier-overlay .mmh-hier-dialog .mmh-hier-form input[type=checkbox]
 </style>
 
 <style id="mmhTransactionReceiptAndSpacingV2">
-/* Shared top rhythm, preserve edge-to-edge Transaction workspace. */
-html body.mmh-workspace-active:has(#transactions#transactions.active) main.wrap.wrap.wrap{background:var(--tv-card,var(--uv-card))!important;background-image:none!important}
+/* Transaction workspace starts directly at the fixed header edge.
+   The existing panel/toolbar gutter is the only top spacing. */
+html body.mmh-workspace-active:has(#transactions#transactions#transactions#transactions.active) main.wrap.wrap.wrap{--tx-shell-surface:#1c2531;background:var(--tx-shell-surface)!important;background-image:none!important;box-shadow:none!important}
+html body.light.mmh-workspace-active:has(#transactions#transactions#transactions#transactions.active) main.wrap.wrap.wrap{--tx-shell-surface:#fff}
+html body.mmh-workspace-active #transactions#transactions#transactions#transactions#transactions#transactions#transactions.active{margin-top:0!important}
 @media(min-width:900px){
+html body.mmh-workspace-active:has(#transactions#transactions#transactions#transactions.active) main.wrap.wrap.wrap{padding-top:var(--wv-shell-top,var(--wv-top,64px))!important}
 html body.mmh-workspace-active #transactions#transactions#transactions#transactions#transactions#transactions#transactions.active,
-html body.mmh-workspace-active #transactions#transactions#transactions#transactions#transactions#transactions#transactions:has(#txTabAdd.active) #txAddPanel>.panel{min-height:calc(100dvh - var(--wv-shell-top,var(--wv-top,64px)) - var(--wv-shell-gap,22px))!important}
+html body.mmh-workspace-active #transactions#transactions#transactions#transactions#transactions#transactions#transactions:has(#txTabAdd.active) #txAddPanel>.panel{min-height:calc(100dvh - var(--wv-shell-top,var(--wv-top,64px)))!important}
 }
-@media(max-width:899px){
-html body.mmh-workspace-active #transactions#transactions#transactions#transactions#transactions#transactions#transactions.active{margin-top:12px!important}
-}
+html body.mmh-workspace-active #transactions#transactions#transactions#transactions#transactions#transactions#transactions#transactions#transactions #txHistoryPanel#txHistoryPanel#txHistoryPanel,
+html body.mmh-workspace-active #transactions#transactions#transactions#transactions#transactions#transactions#transactions#transactions#transactions #txHistoryPanel#txHistoryPanel#txHistoryPanel>.panel{margin-top:0!important;background:var(--tv-card)!important;background-image:none!important}
 html body #editModal#editModal#editModal#editModal #editTxForm #editReceiptManageV3309{padding:0!important;margin:8px 0 0!important;border:0!important;background:transparent!important;box-shadow:none!important}
 html body #editModal#editModal#editModal#editModal #editTxForm #editReceiptManageV3309:empty{display:none!important}
 html body #editModal#editModal#editModal#editModal #editTxForm .receipt-manage-empty-v3309{padding:8px 10px!important;border:0!important;border-radius:6px!important;background:var(--uv-raised)!important;background-image:none!important;color:var(--uv-muted)!important;box-shadow:none!important;text-align:left!important;font:400 12px/1.45 var(--mmh-notice-font,system-ui)!important}
@@ -37867,5 +37870,114 @@ window.addEventListener('keydown',e=>{
 schedule();
 })();
 </script>
+
+<style id="mmhContactCenterV2Style">
+html body #moreNavMenu [data-more-href="ai-chat.html"],html body #settings #stSettingsHomeV3 :is(.fb-nav,.cs-entry-v1518){display:none!important}
+html body #mmhContactLauncherV2{display:none!important;position:fixed!important;right:max(18px,env(safe-area-inset-right))!important;bottom:max(18px,env(safe-area-inset-bottom))!important;width:48px!important;height:48px!important;min-height:48px!important;padding:0!important;border:1px solid var(--uv-accent)!important;border-radius:50%!important;background:var(--uv-accent)!important;background-image:none!important;color:var(--uv-card)!important;box-shadow:0 6px 18px #0003!important;z-index:1200!important;place-items:center;cursor:pointer}
+html body.mmh-workspace-active:not(.auth-page-active) #mmhContactLauncherV2{display:grid!important}
+html body:has(#mmhContactLayerV2.is-open) #mmhContactLauncherV2,html body:has(.mmh-hier-overlay) #mmhContactLauncherV2,html body:has(.mmh-onboard-stage-v1) #mmhContactLauncherV2{visibility:hidden!important}
+#mmhContactLauncherV2 svg{width:23px;height:23px}
+#mmhContactLayerV2{position:fixed;inset:0;z-index:2147482000;visibility:hidden;pointer-events:none;transition:visibility .24s}
+#mmhContactLayerV2.is-open{visibility:visible;pointer-events:auto}
+#mmhContactLayerV2 .mc-scrim{position:absolute;inset:0;background:rgba(0,0,0,.48);opacity:0;transition:opacity .22s}
+#mmhContactLayerV2.is-open .mc-scrim{opacity:1}
+#mmhContactLayerV2 .mc-drawer{position:absolute;right:0;top:0;bottom:0;width:min(480px,100%);display:flex;flex-direction:column;min-height:0;background:var(--uv-card);color:var(--uv-text);border-left:1px solid var(--uv-line);transform:translateX(100%);transition:transform .24s ease;box-sizing:border-box;font:400 13px/1.5 system-ui,sans-serif}
+#mmhContactLayerV2.is-open .mc-drawer{transform:none}
+#mmhContactLayerV2 .mc-head{display:flex;align-items:center;gap:8px;flex:none;padding:14px 16px;border-bottom:1px solid var(--uv-line);background:var(--uv-card)}
+#mmhContactLayerV2 .mc-heading{min-width:0;flex:1}
+#mmhContactLayerV2 .mc-heading strong{display:block;font-size:16px;color:var(--uv-text)}
+#mmhContactLayerV2 .mc-heading small{display:block;color:var(--uv-muted)}
+#mmhContactLayerV2 button{font:500 13px/1.4 system-ui;cursor:pointer;box-shadow:none!important;text-transform:none!important}
+#mmhContactLayerV2 .mc-icon{display:grid;place-items:center;width:34px;height:34px;min-height:34px;padding:0;border:1px solid var(--uv-line);border-radius:7px;background:var(--uv-raised);color:var(--uv-text)}
+#mmhContactLayerV2 .mc-body{flex:1;min-height:0;overflow:auto;padding:14px 16px;overscroll-behavior:contain}
+#mmhContactLayerV2 .mc-choice{display:flex;align-items:center;gap:12px;text-align:left;width:100%;min-height:60px;padding:12px;margin-bottom:8px;border:1px solid var(--uv-line);border-radius:8px;background:var(--uv-card);color:var(--uv-text)}
+#mmhContactLayerV2 .mc-choice:hover{background:var(--uv-raised)}
+#mmhContactLayerV2 .mc-choice>span:first-child{font-size:23px;color:var(--uv-accent)}
+#mmhContactLayerV2 .mc-choice>span:nth-child(2){flex:1;min-width:0}
+#mmhContactLayerV2 .mc-choice b,#mmhContactLayerV2 .mc-choice small{display:block}
+#mmhContactLayerV2 .mc-choice small{color:var(--uv-muted);margin-top:3px}
+#mmhContactLayerV2 .mc-choice>span:last-child{color:var(--uv-muted)}
+#mmhContactLayerV2 .mc-text{color:var(--uv-muted);margin:4px 0 14px}
+#mmhContactLayerV2 .mc-link{display:inline-flex;margin:0 0 10px;padding:6px 10px;border:1px solid var(--uv-line);border-radius:6px;background:var(--uv-raised);color:var(--uv-accent);text-decoration:none}
+#mmhContactLayerV2 .mc-body.mc-ai{display:flex;flex-direction:column;padding:8px}
+#mmhContactLayerV2 iframe{display:block;width:100%;flex:1;min-height:0;border:0;background:var(--uv-card)}
+#mmhContactLayerV2 .st-page{display:block!important;max-width:none!important;width:100%!important;margin:0!important;padding:0!important;background:transparent!important}
+#mmhContactLayerV2 .st-page[hidden],#mmhContactLayerV2 [hidden]{display:none!important}
+#mmhContactLayerV2 .st-page-head{display:none!important}
+#mmhContactLayerV2 :is(.cs-panel-v1518,.fb-panel){border:1px solid var(--uv-line)!important;border-radius:8px!important;padding:12px!important;margin:0 0 10px!important;background:var(--uv-card)!important;color:var(--uv-text)!important;box-shadow:none!important;min-width:0!important}
+#mmhContactLayerV2 .cs-thread-v1518{display:flex;flex-direction:column;gap:9px;min-height:180px;max-height:42dvh;overflow:auto;padding:8px 0;overscroll-behavior:contain}
+#mmhContactLayerV2 .cs-row-v1518{max-width:92%}
+#mmhContactLayerV2 .cs-row-v1518.user{align-self:flex-end}
+#mmhContactLayerV2 .cs-row-v1518:is(.admin,.system){align-self:flex-start}
+#mmhContactLayerV2 .cs-bubble-v1518{background:var(--uv-raised);color:var(--uv-text);border:1px solid var(--uv-line);border-radius:8px;padding:9px;overflow-wrap:anywhere}
+#mmhContactLayerV2 .cs-bubble-v1518 p{white-space:pre-wrap;margin:0}
+#mmhContactLayerV2 :is(.cs-meta-v1518,.cs-hint-v1518,.cs-result-v1518,.cs-compose-meta-v1518,.fb-note,.cs-agent-copy-v1518 small){font-size:11px;color:var(--uv-muted);overflow-wrap:anywhere}
+#mmhContactLayerV2 :is(.cs-agent-avatar-v1518,.cs-live-v1518){display:none!important}
+#mmhContactLayerV2 .cs-compose-v1518{border-top:1px solid var(--uv-line);padding-top:10px}
+#mmhContactLayerV2 :is(textarea,input:not([type=file]),select){box-sizing:border-box;width:100%;min-height:38px;padding:8px;background:var(--uv-raised)!important;color:var(--uv-text)!important;border:1px solid var(--uv-line)!important;border-radius:7px!important;box-shadow:none!important;font:inherit}
+#mmhContactLayerV2 textarea{min-height:76px;resize:vertical}
+#mmhContactLayerV2 :is(.cs-tools-v1518,.cs-compose-bottom-v1518,.fb-pagination){display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-top:6px}
+#mmhContactLayerV2 :is(.cs-tool-v1518,.cs-send-v1518,.fb-panel button){min-height:34px;padding:6px 9px;border:1px solid var(--uv-line);border-radius:6px;background:var(--uv-raised)!important;color:var(--uv-text)!important}
+#mmhContactLayerV2 :is(.cs-send-v1518,#fbSubmitV14){color:var(--uv-accent)!important}
+#mmhContactLayerV2 :is(.cs-preview-v1518,.cs-attachments-v1518){display:flex;gap:6px;flex-wrap:wrap}
+#mmhContactLayerV2 :is(.cs-preview-v1518,.cs-attachments-v1518) img{max-width:80px;max-height:80px;object-fit:cover;border-radius:6px}
+#mmhContactLayerV2 .fb-fields{display:grid;gap:8px;margin-bottom:8px}
+#mmhContactLayerV2 .fb-heading{margin-bottom:10px}
+#mmhContactLayerV2 .fb-heading h3{font-size:14px;margin:0}
+#mmhContactLayerV2 .fb-my-toggle-v136{display:flex;align-items:center;gap:8px;width:100%;text-align:left}
+#mmhContactLayerV2 .fb-my-copy-v136{flex:1}
+#mmhContactLayerV2 .fb-my-copy-v136 small{display:block;color:var(--uv-muted)}
+html body #mmhCategoryPickerV2.mmh-hier-picker-v3{display:flex!important;flex-direction:column!important;align-items:stretch!important;gap:6px!important;padding:6px!important}
+html body #mmhCategoryPickerV2.mmh-hier-picker-v3[hidden]{display:none!important}
+html body #mmhCategoryPickerV2.mmh-hier-picker-v3 input{position:relative!important;inset:auto!important;flex:0 0 auto!important;min-height:36px!important;height:36px!important;margin:0!important;box-sizing:border-box!important;outline:none!important;box-shadow:none!important;border:1px solid var(--uv-line)!important;border-radius:6px!important}
+html body #mmhCategoryPickerV2.mmh-hier-picker-v3 input:focus{outline:1px solid var(--uv-accent)!important;outline-offset:0!important;border-color:var(--uv-accent)!important;box-shadow:none!important}
+html body #mmhCategoryPickerV2.mmh-hier-picker-v3 .mmh-cat-options-v2{display:flex!important;flex:1 1 auto!important;flex-direction:column!important;min-height:0!important;overflow:auto!important;gap:3px!important;margin:0!important;padding:0!important;overscroll-behavior:contain}
+html body #mmhCategoryPickerV2.mmh-hier-picker-v3 .mmh-cat-options-v2 button{flex:0 0 auto!important;min-height:36px!important;max-width:100%!important;margin:0!important;outline:none!important}
+html body #mmhCategoryPickerV2.mmh-hier-picker-v3 .mmh-cat-options-v2 button:focus-visible{border-color:var(--uv-accent)!important}
+@media(max-width:767px){html body #mmhContactLauncherV2{bottom:calc(78px + env(safe-area-inset-bottom))!important;right:12px!important;width:44px!important;height:44px!important;min-height:44px!important}#mmhContactLayerV2 .mc-drawer{width:100%;border:0}#mmhContactLayerV2 .mc-head{padding-top:max(12px,env(safe-area-inset-top))}}
+@media(prefers-reduced-motion:reduce){#mmhContactLayerV2,#mmhContactLayerV2 .mc-drawer,#mmhContactLayerV2 .mc-scrim{transition:none!important}}
+</style>
+<script id="mmhContactCenterV2Logic">
+(()=>{
+'use strict';
+const $=id=>document.getElementById(id), lang=()=>{const l=(localStorage.getItem('mmhvault_language_v3363')||'en').toLowerCase();return l.startsWith('zh')?1:/^(my|mm)/.test(l)?2:0};
+const t=(en,zh,my)=>[en,zh,my][lang()];
+const make=(tag,cls,txt)=>{const el=document.createElement(tag);if(cls)el.className=cls;if(txt)el.textContent=txt;return el};
+const launcher=make('button');launcher.id='mmhContactLauncherV2';launcher.type='button';launcher.innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 11.5a8.5 8.5 0 0 1-8.5 8.5 8.7 8.7 0 0 1-3.8-.9L3 21l1.9-5.7a8.7 8.7 0 0 1-.9-3.8A8.5 8.5 0 0 1 12.5 3H13a8.5 8.5 0 0 1 8 8.5z"/></svg>';launcher.setAttribute('aria-haspopup','dialog');
+const layer=make('div');layer.id='mmhContactLayerV2';layer.inert=true;layer.setAttribute('aria-hidden','true');
+const scrim=make('div','mc-scrim'),drawer=make('aside','mc-drawer'),head=make('div','mc-head'),heading=make('div','mc-heading'),body=make('div','mc-body');
+drawer.setAttribute('role','dialog');drawer.setAttribute('aria-modal','true');drawer.setAttribute('aria-labelledby','mmhContactTitleV2');
+const back=make('button','mc-icon','‹'),x=make('button','mc-icon','×');back.type=x.type='button';const title=make('strong');title.id='mmhContactTitleV2';const sub=make('small');heading.append(title,sub);head.append(back,heading,x);drawer.append(head,body);layer.append(scrim,drawer);document.body.append(launcher,layer);
+let mode='home',mounted=null,previousFocus=null,settingsSnapshot=null,originalSupport=null,originalFeedback=null,frame=null;
+function labels(){launcher.title=t('Contact MMHVAULT','联系 MMHVAULT','MMHVAULT ကို ဆက်သွယ်ရန်');launcher.setAttribute('aria-label',launcher.title);x.setAttribute('aria-label',t('Close','关闭','ပိတ်ရန်'));back.setAttribute('aria-label',t('Back','返回','နောက်သို့'));back.hidden=mode==='home';title.textContent=mode==='ai'?t('AI Assistant','AI 助手','AI အကူအညီ'):mode==='support'?t('Customer Support','人工客服','ဖောက်သည် ဝန်ဆောင်မှု'):mode==='feedback'?t('Feedback & replies','反馈与回复','အကြံပြုချက်များ'):launcher.title;sub.textContent=mode==='home'?t('Choose AI assistance or customer support.','选择 AI 助手或人工客服。','AI အကူအညီ သို့မဟုတ် ဖောက်သည်ဝန်ဆောင်မှုကို ရွေးပါ။'):''}
+function signedIn(){try{return !!currentSessionUser?.id}catch(_){return false}}
+function release(){if(mounted){const {page,parent,next,backId}=mounted;mounted=null;$(backId)?.click();page.hidden=true;if(parent.isConnected){if(next?.parentNode===parent)parent.insertBefore(page,next);else parent.append(page)}if(settingsSnapshot){for(const [el,hidden] of settingsSnapshot.pages)if(el.isConnected)el.hidden=hidden;settingsSnapshot.settings.classList.toggle('st-in-subpage',settingsSnapshot.sub);settingsSnapshot=null;}}if(frame){frame.remove();frame=null;}body.replaceChildren();body.classList.remove('mc-ai')}
+function choice(icon,name,desc,fn){const b=make('button','mc-choice'),copy=make('span');b.type='button';copy.append(make('b','',name),make('small','',desc));b.append(make('span','',icon),copy,make('span','','›'));b.onclick=fn;body.append(b)}
+function buttonLink(text,fn){const b=make('button','mc-link',text);b.type='button';b.onclick=fn;body.append(b);return b}
+function show(which='home'){release();mode=which;labels();
+ if(which==='home'){body.append(make('p','mc-text',t('How can we help?','需要什么帮助？','မည်သို့ ကူညီပေးရမည်နည်း။')));choice('✧',t('Ask AI Assistant','联系 AI 助手','AI ကို မေးရန်'),t('Finance questions & app guides','财务问答和使用指南','ငွေစာရင်းနှင့် အသုံးပြုနည်း'),()=>show('ai'));choice('♧',t('Contact Customer Support','联系人工客服','ဖောက်သည်ဝန်ဆောင်မှု'),t('Account questions, issues & feedback','账户问题、故障及反馈','အကောင့် ပြဿနာနှင့် အကြံပြုချက်'),()=>show('support'));return}
+ if(!signedIn()){body.append(make('p','mc-text',t('Sign in to use this service.','请登录后使用此服务。','အသုံးပြုရန် အကောင့်ဝင်ပါ။')));return}
+ if(which==='ai'){body.classList.add('mc-ai');const a=make('a','mc-link',t('Open full AI page','打开完整 AI 页面','AI စာမျက်နှာအပြည့်'));a.href='ai-chat.html';a.onclick=()=>{try{window.mmhWriteAISnapshotV1115?.()}catch(_){}};body.append(a);try{window.mmhWriteAISnapshotV1115?.()}catch(_){}frame=make('iframe');frame.title=title.textContent;frame.src='ai-chat.html';frame.addEventListener('load',()=>{try{const doc=frame?.contentDocument;if(!doc)return;const b=doc.getElementById('backApp');if(b)b.onclick=e=>{e.preventDefault();show('home')}}catch(_){}});body.append(frame);return}
+ const settings=$('settings'),page=$(which==='support'?'stPage_supportV1518':'stPage_feedback'),open=which==='support'?originalSupport:originalFeedback;
+ if(which==='support')buttonLink(t('Feedback & replies','反馈与回复','အကြံပြုချက်များ'),()=>show('feedback'));
+ if(!settings||!page||!open){body.append(make('p','mc-text',t('Service is not ready. Close and reopen this panel.','服务尚未准备好，请关闭后重新打开。','ဝန်ဆောင်မှု အဆင်သင့် မဖြစ်သေးပါ။')));return}
+ settingsSnapshot={settings,sub:settings.classList.contains('st-in-subpage'),pages:[...settings.querySelectorAll('.st-page,#stSettingsHomeV3')].filter(p=>p!==page).map(p=>[p,p.hidden])};
+ mounted={page,parent:page.parentNode,next:page.nextSibling,backId:which==='support'?'csBackV1518':'fbBackV14'};body.append(page);open();
+ // Opening the old service should not change the underlying workspace.
+ for(const [el,hidden] of settingsSnapshot.pages)if(el.isConnected)el.hidden=hidden;
+ settings.classList.toggle('st-in-subpage',settingsSnapshot.sub);
+}
+function open(which='home'){if(!document.body.classList.contains('mmh-workspace-active'))return;previousFocus=layer.classList.contains('is-open')?previousFocus:document.activeElement;layer.inert=false;layer.setAttribute('aria-hidden','false');layer.classList.add('is-open');show(which);if(which==='home')x.focus({preventScroll:true})}
+function close(){if(!layer.classList.contains('is-open'))return;release();layer.classList.remove('is-open');layer.inert=true;layer.setAttribute('aria-hidden','true');if(previousFocus?.isConnected&&previousFocus.getClientRects().length)previousFocus.focus({preventScroll:true});previousFocus=null}
+launcher.onclick=()=>open();back.onclick=()=>show('home');x.onclick=close;scrim.onclick=close;
+document.addEventListener('keydown',e=>{if(!layer.classList.contains('is-open'))return;if(e.key==='Escape'){e.preventDefault();e.stopPropagation();close()}else if(e.key==='Tab'&&drawer.contains(document.activeElement)){const nodes=[...drawer.querySelectorAll('button:not(:disabled),a[href],input:not(:disabled),textarea:not(:disabled),select:not(:disabled),iframe')].filter(n=>n.getClientRects().length&&n.tabIndex>=0);if(nodes.length&&e.shiftKey&&document.activeElement===nodes[0]){e.preventDefault();nodes.at(-1).focus()}else if(nodes.length&&!e.shiftKey&&document.activeElement===nodes.at(-1)){e.preventDefault();nodes[0].focus()}}},true);
+function bind(){if(!originalSupport&&typeof window.mmhOpenSupportV1518==='function'){originalSupport=window.mmhOpenSupportV1518;window.mmhOpenSupportV1518=()=>open('support')}if(!originalFeedback&&typeof window.mmhOpenFeedbackV136==='function'){originalFeedback=window.mmhOpenFeedbackV136;window.mmhOpenFeedbackV136=()=>open('feedback')}if(layer.classList.contains('is-open')&&!document.body.classList.contains('mmh-workspace-active'))close()}
+new MutationObserver(bind).observe(document.body,{childList:true,subtree:true,attributes:true,attributeFilter:['class']});
+window.addEventListener('mmhvault:config-owner-changed',close);window.addEventListener('pagehide',close);
+for(const event of ['mmhvault-language-change','languagechange'])window.addEventListener(event,()=>{labels();if(mode==='home'&&layer.classList.contains('is-open'))show('home')});
+labels();bind();
+})();
+</script>
+
 </body>
 </html>
