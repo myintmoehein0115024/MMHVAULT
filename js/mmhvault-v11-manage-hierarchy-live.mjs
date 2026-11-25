@@ -817,9 +817,18 @@ function fitRecentEntry(){
   const panel=$('txAddPanel')?.querySelector('.panel');
   const padding=panel?parseFloat(getComputedStyle(panel).paddingBottom)||0:0;
   const used=list.getBoundingClientRect().top-section.getBoundingClientRect().top;
-  const available=Math.max(108,Math.floor(bottom-top-used-padding));
-  list.style.height=available+'px';
-  list.style.maxHeight='none';
+  const available=Math.max(0,Math.floor(bottom-top-used-padding));
+  // Measure whole rows at their real responsive width; never show a clipped
+  // record, force a minimum list height, or introduce an inner scrollbar.
+  const records=Array.from(list.querySelectorAll('.mmh-recent-row'));
+  for(const row of records)row.hidden=false;
+  let occupied=0,exhausted=false;
+  const heights=records.map(row=>row.getBoundingClientRect().height);
+  records.forEach((row,i)=>{
+    const fits=!exhausted&&heights[i]>0&&occupied+heights[i]<=available;
+    row.hidden=!fits;
+    if(fits)occupied+=heights[i];else exhausted=true;
+  });
 }
 function renderRecentEntry(){
   const f=$('txForm');if(!f)return;
@@ -827,16 +836,19 @@ function renderRecentEntry(){
   if(!section){
     section=elt('section');section.id='mmhRecentEntryV2';
     const heading=elt('div','mmh-recent-heading');
-    const title=elt('strong');title.id='mmhRecentEntryHeadingV2';heading.append(title);
+    const title=elt('strong');title.id='mmhRecentEntryHeadingV2';
+    const history=btn('',()=>{$('txTabHistory')?.click();},'mmh-recent-history');
+    heading.append(title,history);
     section.setAttribute('aria-labelledby',title.id);
     section.append(heading,elt('div','mmh-recent-list'));f.after(section);
     if(typeof ResizeObserver==='function')new ResizeObserver(fitRecentEntry).observe(f);
     window.addEventListener('resize',fitRecentEntry);
   }
   section.querySelector('strong').textContent=tr('Recent Transactions','最近交易记录','လတ်တလော ငွေစာရင်းများ');
+  const history=section.querySelector('.mmh-recent-history');
+  history.textContent=tr('View history →','前往记录 →','မှတ်တမ်းများ ကြည့်ရန် →');
   const list=section.querySelector('.mmh-recent-list');
   list.replaceChildren();
-  fitRecentEntry();
   const current=owner(),rows=window.transactions;
   if(!ready()||!current||window.mmhWalletDataOwnerV191!==current||!Array.isArray(rows)||rows.some(row=>row?.user_id!==current)){
     list.append(elt('div','mmh-recent-empty',tr('Loading recent records…','正在加载最近记录…','နောက်ဆုံးမှတ်တမ်းများ ဖတ်နေပါသည်…')));return;
@@ -861,6 +873,7 @@ function renderRecentEntry(){
     const total=elt('div','mmh-recent-amount',income?'+'+amount(t.to_amount,t.to_account):expense?'−'+amount(t.from_amount,t.from_account):amount(t.from_amount,t.from_account)+' → '+amount(t.to_amount,t.to_account));
     row.append(glyph,primary,secondary,total);list.append(row);
   }
+  fitRecentEntry();
 }
 function schedule(){
   if(queued)return;queued=true;
@@ -1051,9 +1064,12 @@ function boot(){
       ${root} #mmhRecentEntryV2{display:flex!important;flex-direction:column;min-width:0;flex:1 1 auto;margin-top:32px!important;padding-top:16px!important;border-top:1px solid var(--tv-line);color:var(--tv-text)}
       ${root} #mmhRecentEntryV2 .mmh-recent-heading{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:0 0 8px}
       ${root} #mmhRecentEntryV2 .mmh-recent-heading strong{font-size:14px;font-weight:650}
-      ${root} #mmhRecentEntryV2 .mmh-recent-list{min-height:108px;overflow:auto;max-height:none;overscroll-behavior:contain;scrollbar-gutter:stable;flex:1 1 auto}
+      ${root} #mmhRecentEntryV2 .mmh-recent-list{min-height:0!important;height:auto!important;max-height:none!important;overflow:hidden!important;overflow:clip!important;flex:0 0 auto!important}
       ${root} #mmhRecentEntryV2 .mmh-recent-row{display:grid;grid-template-columns:30px minmax(0,1.1fr) minmax(0,1.25fr) minmax(100px,.55fr) minmax(0,1fr);align-items:center;gap:12px;padding:9px 8px;border-bottom:1px solid var(--tv-line);min-width:0;min-height:46px;box-sizing:border-box}
+      ${root} #mmhRecentEntryV2 .mmh-recent-row[hidden]{display:none!important}
       ${root} #mmhRecentEntryV2 .mmh-recent-row:last-child{border-bottom:0}
+      ${root} #mmhRecentEntryV2 .mmh-recent-history{display:inline-flex!important;align-items:center;justify-content:center;min-height:32px!important;padding:5px 10px!important;border:1px solid var(--tv-line)!important;border-radius:6px!important;background:var(--tv-raised)!important;color:var(--tv-accent)!important;font:600 12px/1.4 system-ui,sans-serif!important;cursor:pointer;white-space:nowrap}
+      ${root} #mmhRecentEntryV2 .mmh-recent-history:hover{background:var(--tv-selected)!important}
       ${root} #mmhRecentEntryV2 .mmh-recent-icon{display:grid;place-items:center;width:28px;height:28px;background:var(--tv-raised);border-radius:6px;font-size:16px;color:var(--tv-accent)}
       ${root} #mmhRecentEntryV2 .mmh-recent-row[data-direction=Income] :is(.mmh-recent-icon,.mmh-recent-amount){color:var(--tv-positive)}
       ${root} #mmhRecentEntryV2 .mmh-recent-row[data-direction=Expense] :is(.mmh-recent-icon,.mmh-recent-amount){color:var(--tv-negative)}
@@ -1073,7 +1089,7 @@ function boot(){
         ${form} .actions{display:grid!important;grid-template-columns:2fr 3fr!important;gap:8px!important}
         ${form} .actions>button{min-height:44px!important;width:100%!important}
         ${root} #mmhRecentEntryV2{margin-top:24px!important;padding-top:12px!important}
-        ${root} #mmhRecentEntryV2 .mmh-recent-list{max-height:none;overflow:auto}
+        ${root} #mmhRecentEntryV2 .mmh-recent-history{min-height:40px!important}
         ${root} #mmhRecentEntryV2 .mmh-recent-row{grid-template-columns:28px minmax(0,1fr) minmax(0,40%);column-gap:8px;row-gap:3px;padding:9px 2px}
         ${root} #mmhRecentEntryV2 .mmh-recent-secondary{display:flex;flex-wrap:wrap;gap:2px 6px;grid-column:2;grid-row:2;align-items:center}
         ${root} #mmhRecentEntryV2 .mmh-recent-account{min-width:0}
@@ -1195,7 +1211,7 @@ function boot(){
     window.addEventListener(event,renderRecentEntry);
   schedule();
 }
-window.MMHV11HierarchyLive={version:'0.10.1-recent-alignment',refresh:schedule,onLedgerInserted:ledgerInserted};
+window.MMHV11HierarchyLive={version:'0.10.2-recent-fit',refresh:schedule,onLedgerInserted:ledgerInserted};
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot,{once:true});
 else boot();
 })();
