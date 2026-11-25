@@ -48,7 +48,8 @@
   }
   function open(select,trigger) {
     close();
-    if (!mobile.matches || select.disabled || trigger.disabled) return;
+    if (select.disabled || trigger.disabled) return;
+    document.dispatchEvent(new Event('mmh:tx-picker-open'));
     const menu=document.createElement('div');
     menu.className='mmh-p24-account-menu';
     menu.setAttribute('role','listbox');
@@ -60,7 +61,7 @@
       b.type='button';
       b.setAttribute('role','option');
       b.setAttribute('aria-selected',String(index===select.selectedIndex));
-      b.disabled=option.disabled;
+      b.disabled=option.disabled || !!option.closest('optgroup')?.disabled;
       const name=document.createElement('span');
       name.textContent=option.textContent||option.value;
       const check=document.createElement('span');
@@ -71,7 +72,7 @@
       b.addEventListener('click',(event)=>{
         event.preventDefault();
         event.stopPropagation();
-        if (select.disabled || trigger.disabled || option.disabled) {close();return;}
+        if (select.disabled || trigger.disabled || b.disabled || select.options[index]!==option) {close();return;}
         const changed=select.selectedIndex!==index;
         select.selectedIndex=index;
         if (changed) {
@@ -113,6 +114,7 @@
     select.parentNode.insertBefore(wrap,select);
     wrap.appendChild(select);
     select.classList.add('mmh-p24-native');
+    select.tabIndex=-1;
     const btn=document.createElement('button');
     btn.type='button';
     btn.className='mmh-p24-account-trigger';
@@ -137,6 +139,7 @@
     window.requestAnimationFrame?.(()=>ids.forEach(id=>{
       const select=document.getElementById(id);if(select)update(select);
     }));
+    document.addEventListener('mmh:tx-picker-open',()=>close());
     document.addEventListener('click',e=>{if(current&&!current.menu.contains(e.target)&&!current.trigger.contains(e.target))close();});
     document.addEventListener('keydown',e=>{
       if(!current)return;

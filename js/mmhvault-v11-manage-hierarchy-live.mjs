@@ -559,7 +559,11 @@ function syncDirectionButtons(){
     const active=node.dataset.mmhDirection===directionFilter;
     node.setAttribute('aria-pressed',active?'true':'false');
     const d=directions.find(x=>x[0]===node.dataset.mmhDirection);
-    if(d)node.textContent=d[1]+' '+d[2]();
+    if(d){
+      const glyph=elt('span','mmh-direction-glyph-v2',d[0]==='Income'?'↙':d[0]==='Expense'?'↗':'⇄');
+      glyph.setAttribute('aria-hidden','true');
+      node.replaceChildren(glyph,elt('span','mmh-direction-caption-v2',d[2]()));
+    }
   }
   const help=panel.querySelector('.mmh-direction-help');
   if(help)help.textContent=tr(
@@ -722,7 +726,12 @@ function form(){
           'ငွေလက်ကျန် ပြောင်းလဲမှုအတွက် Type ကို ရွေးပါ။');
     }
     for(const s of [t,g,c])s.disabled=!s.options.length;
-    if(typeof updateAccountLocks==='function'&&types.length)updateAccountLocks();
+    if(typeof updateAccountLocks==='function'&&types.length){
+      updateAccountLocks();
+      // Direction changes update the native select without a change event.
+      // Refresh the existing visual side/label state after the native locks.
+      window.mmhSyncTxAddV141?.();
+    }
     // V321 native saving and V344 balance protection own separate locks.
     // Never re-enable their shared button while a transaction is in flight
     // or a funding account lacks enough money, even when Manage is valid.

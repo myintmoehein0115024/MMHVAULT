@@ -11,7 +11,7 @@
 
   const getLabel = select => {
     const chosen = select.options[select.selectedIndex];
-    return String(chosen?.textContent || select.options[0]?.textContent || 'Select').trim();
+    return String(chosen?.textContent || '—').trim();
   };
   const refresh = select => {
     const trigger = enhanced.get(select);
@@ -35,7 +35,8 @@
   }
   function open(select, trigger) {
     dismiss();
-    if (!compact.matches || select.disabled) return;
+    if (select.disabled) return;
+    document.dispatchEvent(new Event('mmh:tx-picker-open'));
     const menu = document.createElement('div');
     menu.className = 'mmh-p25-picker-menu';
     const menuId = `mmhP25List${++serial}`;
@@ -59,7 +60,7 @@
       entry.append(title,tick);
       entry.addEventListener('click',e => {
         e.preventDefault();e.stopPropagation();
-        if(entry.disabled)return;
+        if(entry.disabled || select.disabled || select.options[index]!==option){dismiss();return;}
         const different = select.selectedIndex !== index;
         select.selectedIndex = index;
         dismiss(true);
@@ -103,6 +104,7 @@
     select.parentNode.insertBefore(shell,select);
     shell.appendChild(select);
     select.classList.add('mmh-p25-picker-source');
+    select.tabIndex=-1;
     const trigger=document.createElement('button');
     trigger.type='button';trigger.className='mmh-p25-picker-trigger';
     trigger.setAttribute('aria-haspopup','listbox');
@@ -121,6 +123,7 @@
   }
   function init() {
     fields.forEach(id=>install(document.getElementById(id)));
+    document.addEventListener('mmh:tx-picker-open',()=>dismiss());
     document.addEventListener('click',event=>{
       if(openState && !openState.menu.contains(event.target) && !openState.trigger.contains(event.target))dismiss();
     });

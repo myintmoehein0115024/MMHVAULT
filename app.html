@@ -35205,9 +35205,9 @@ html body.mmh-workspace-active #moreNavMenu .mmh-more-list-v153:focus-visible{ou
 <link rel="stylesheet" href="css/mmhvault-liquid-transactions-p22.css?v=2.2.0" data-mmh-liquid-transactions="p2.2">
 <link rel="stylesheet" href="css/mmhvault-liquid-transactions-p23.css?v=2.3.0" data-mmh-liquid-transactions="p2.3">
 <link rel="stylesheet" href="css/mmhvault-liquid-transactions-p24.css?v=6.2.2" data-mmh-liquid-transactions="p2.4">
-<script src="js/mmhvault-liquid-transactions-p24.js?v=6.2.2" defer></script>
+<script src="js/mmhvault-liquid-transactions-p24.js?v=6.2.3" defer></script>
 <link rel="stylesheet" href="css/mmhvault-liquid-transactions-p25.css?v=2.5.0" data-mmh-liquid-transactions="p2.5">
-<script src="js/mmhvault-liquid-transactions-p25.js?v=2.5.0" defer></script>
+<script src="js/mmhvault-liquid-transactions-p25.js?v=2.5.1" defer></script>
 <link rel="stylesheet" href="css/mmhvault-liquid-invest-p30.css?v=3.0.0" data-mmh-liquid-invest="p3.0">
 <link rel="stylesheet" href="css/mmhvault-liquid-invest-p31.css?v=3.1.0" data-mmh-liquid-invest="p3.1">
 <link rel="stylesheet" href="css/mmhvault-liquid-invest-p32.css?v=3.2.0" data-mmh-liquid-invest="p3.2">
@@ -35817,7 +35817,7 @@ html body #settings.page.active #stPage_security #mmhA783SecurityCenter .mmh-a78
 <!-- Auto MMK is loaded only by the explicit release gate below. -->
 <!-- APP V11.7: owner-linked Manage replaces the former field-layout loader.
      The original V11 script remains in Git history for rollback; no DB migration. -->
-<script type="module" src="js/mmhvault-v11-manage-hierarchy-live.mjs?v=0.7.0"></script>
+<script type="module" src="js/mmhvault-v11-manage-hierarchy-live.mjs?v=0.7.1"></script>
 <link rel="stylesheet" href="css/mmhvault-transaction-onboarding-v1.css?v=1.0.0">
 <script type="module" src="js/mmhvault-transaction-onboarding-live-v1.mjs?v=1.0.0"></script>
 
@@ -37367,6 +37367,33 @@ html body.mmh-workspace-active #transactions#transactions#transactions#transacti
 html body.mmh-workspace-active #transactions#transactions#transactions#transactions#transactions #txForm .formgrid>label{grid-column:1!important}
 html body.mmh-workspace-active #transactions#transactions#transactions#transactions#transactions >.mmh-tx-entry-tools-v2 .mmh-tx-entry-copy-v2{flex-basis:85px!important}
 html body.mmh-workspace-active #transactions#transactions#transactions#transactions#transactions #txForm .receipt-upload-footer-v3300{flex-wrap:wrap!important}
+}
+
+/* V2 unified transaction entry controls; original native selects retain values and locks. */
+@media(min-width:900px){
+html body.mmh-workspace-active:has(#transactions#transactions.active) main.wrap.wrap.wrap{padding-top:var(--wv-shell-top,var(--wv-top,60px))!important;padding-left:var(--wv-shell-rail,var(--wv-nav,240px))!important;padding-right:0!important;padding-bottom:0!important}
+}
+html body.mmh-workspace-active #transactions#transactions#transactions#transactions#transactions >.mmh-tx-entry-tools-v2{padding-block:6px!important}
+html body.mmh-workspace-active #transactions#transactions#transactions#transactions#transactions #txAddPanel>.panel{min-height:calc(100dvh - 112px)!important;padding:clamp(14px,2vw,26px)!important}
+html body.mmh-workspace-active #transactions#transactions#transactions#transactions#transactions #txForm #mmhHierarchyDirection button[data-mmh-direction]{font-size:14px!important;gap:8px!important;padding-inline:20px!important}
+html body.mmh-workspace-active #transactions#transactions#transactions#transactions#transactions #txForm #mmhHierarchyDirection .mmh-direction-glyph-v2{font-size:19px!important;line-height:1!important;color:var(--tv-muted)!important}
+html body.mmh-workspace-active #transactions#transactions#transactions#transactions#transactions #txForm #mmhHierarchyDirection [data-mmh-direction=Income] .mmh-direction-glyph-v2{color:var(--tv-positive)!important}
+html body.mmh-workspace-active #transactions#transactions#transactions#transactions#transactions #txForm #mmhHierarchyDirection [data-mmh-direction=Expense] .mmh-direction-glyph-v2{color:var(--tv-negative)!important}
+html body.mmh-workspace-active #transactions#transactions#transactions#transactions#transactions #txForm .formgrid>label:not([hidden]):not(.tx-field-hidden-v141):not(.mmh-p24-side-inactive){font-size:13px!important}
+html body.mmh-workspace-active #transactions#transactions#transactions#transactions#transactions #txForm :is(.mmh-p24-account-wrap,.mmh-p25-picker-shell){display:block!important;position:relative!important;width:100%!important;min-width:0!important;margin:0!important}
+html body.mmh-workspace-active #transactions#transactions#transactions#transactions#transactions #txForm :is(.mmh-p24-account-wrap,.mmh-p25-picker-shell)>select:is(.mmh-p24-native,.mmh-p25-picker-source){position:absolute!important;inset:0 auto auto 0!important;width:1px!important;height:1px!important;min-height:0!important;opacity:0!important;pointer-events:none!important;padding:0!important;margin:0!important;border:0!important;overflow:hidden!important}
+html body.mmh-workspace-active #transactions#transactions#transactions#transactions#transactions #txForm button:is(.mmh-p24-account-trigger,.mmh-p25-picker-trigger){display:flex!important;align-items:center!important;justify-content:space-between!important;gap:10px!important;min-height:46px!important;text-align:left!important;cursor:pointer!important;font-size:14px!important}
+html body.mmh-workspace-active #transactions#transactions#transactions#transactions#transactions #txForm button:is(.mmh-p24-account-trigger,.mmh-p25-picker-trigger):disabled{opacity:.6!important;cursor:not-allowed!important}
+html body.mmh-workspace-active #transactions#transactions#transactions#transactions#transactions #txForm :is(.mmh-p24-account-name,.mmh-p25-picker-value){flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+html body.mmh-workspace-active #transactions#transactions#transactions#transactions#transactions #txForm button:is(.mmh-p24-account-trigger,.mmh-p25-picker-trigger)[aria-expanded=true]{border-color:var(--tv-accent)!important;box-shadow:none!important}
+html body:has(#transactions.active) :is(.mmh-p24-account-menu,.mmh-p25-picker-menu){display:grid!important;gap:2px!important;padding:5px!important}
+html body:has(#transactions.active) :is(.mmh-p24-account-menu,.mmh-p25-picker-menu)>button{min-height:36px!important;padding:7px 10px!important;font-size:13px!important;font-weight:500!important}
+html body:has(#transactions.active) :is(.mmh-p24-check,.mmh-p25-option-tick){color:var(--wv-accent,#9bb7fb)!important}
+@media(max-width:767px){
+html body.mmh-workspace-active #transactions#transactions#transactions#transactions#transactions #txAddPanel>.panel{min-height:0!important;padding:14px 12px!important}
+html body.mmh-workspace-active #transactions#transactions#transactions#transactions#transactions #txForm #mmhHierarchyDirection button[data-mmh-direction]{padding-inline:3px!important;font-size:12px!important;gap:5px!important}
+html body.mmh-workspace-active #transactions#transactions#transactions#transactions#transactions #txForm button:is(.mmh-p24-account-trigger,.mmh-p25-picker-trigger){font-size:16px!important}
+html body:has(#transactions.active) :is(.mmh-p24-account-menu,.mmh-p25-picker-menu)>button{min-height:44px!important}
 }
 </style>
 </body>
