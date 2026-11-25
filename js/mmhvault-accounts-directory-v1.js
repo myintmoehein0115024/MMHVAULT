@@ -5,7 +5,7 @@
   'use strict';
   if (window.MMHAccountsDirectoryV1) return;
   const ROOT = 'accounts-page';
-  const flags = {THB:'🇹🇭',MMK:'🇲🇲',USD:'🇺🇸',AMD:'🇦🇲',CNY:'🇨🇳',EUR:'🇪🇺',JPY:'🇯🇵',SGD:'🇸🇬',HKD:'🇭🇰',INR:'🇮🇳',MYR:'🇲🇾'};
+  const flags = {"THB":"🇹🇭","MMK":"🇲🇲","USD":"🇺🇸","AMD":"🇦🇲","CNY":"🇨🇳","RMB":"🇨🇳","EUR":"🇪🇺","JPY":"🇯🇵","SGD":"🇸🇬","HKD":"🇭🇰","INR":"🇮🇳","MYR":"🇲🇾","KRW":"🇰🇷","KPW":"🇰🇵","MOP":"🇲🇴","TWD":"🇹🇼","MNT":"🇲🇳","BND":"🇧🇳","IDR":"🇮🇩","KHR":"🇰🇭","LAK":"🇱🇦","PHP":"🇵🇭","VND":"🇻🇳","AFN":"🇦🇫","BDT":"🇧🇩","BTN":"🇧🇹","LKR":"🇱🇰","MVR":"🇲🇻","NPR":"🇳🇵","PKR":"🇵🇰","KGS":"🇰🇬","KZT":"🇰🇿","TJS":"🇹🇯","TMT":"🇹🇲","UZS":"🇺🇿","AZN":"🇦🇿","GEL":"🇬🇪","AED":"🇦🇪","BHD":"🇧🇭","ILS":"🇮🇱","IQD":"🇮🇶","IRR":"🇮🇷","JOD":"🇯🇴","KWD":"🇰🇼","LBP":"🇱🇧","OMR":"🇴🇲","QAR":"🇶🇦","SAR":"🇸🇦","SYP":"🇸🇾","TRY":"🇹🇷","YER":"🇾🇪","RUB":"🇷🇺","EGP":"🇪🇬","AUD":"🇦🇺"};
   const names = {THB:['Thai Baht','泰铢','ထိုင်းဘတ်'],MMK:['Myanmar Kyat','缅甸元','မြန်မာကျပ်'],USD:['US Dollar','美元','အမေရိကန်ဒေါ်လာ'],AMD:['Armenian Dram','亚美尼亚德拉姆','အာမေးနီးယားဒရမ်']};
   // Offline default-artwork fallback only. Customer-uploaded logos and custom icons win.
   // Keys are exact synthetic-safe brand+currency+type combinations, never financial account IDs.
@@ -34,11 +34,12 @@
     units:['currencies','种货币',' ငွေကြေး'],
     noMatch:['No accounts in this currency or search.','此币种或搜索条件下没有账户。','ဤငွေကြေးတွင် အကောင့်မရှိပါ။'],
     choose:['All currencies','全部货币','ငွေကြေးအားလုံး'],
-    hideCurrencies:['Hide currencies','隐藏币种','ငွေကြေးများ ဖျောက်ရန်'],
-    showCurrencies:['Show currencies','显示币种','ငွေကြေးများ ပြရန်']
+    hideCurrencies:['Currencies −','币种 −','ငွေကြေး −'],
+    showCurrencies:['Currencies +','币种 +','ငွေကြေး +'],
+    total:['Total balance','总余额','စုစုပေါင်း လက်ကျန်'], display:['Display currency','显示币种','ပြသမည့် ငွေကြေး'], search:['Search accounts','搜索账户','အကောင့်ရှာရန်'], breakdown:['Assets and liabilities','资产与负债','ပိုင်ဆိုင်မှုနှင့် ကြွေးမြီ'], allTypes:['All types','全部类型','အမျိုးအစားအားလုံး'], originalOrder:['Original','默认顺序','မူလအစဉ်'], high:['High to low','从高到低','အများမှအနည်း'], low:['Low to high','从低到高','အနည်းမှအများ'], portfolio:['Portfolio','投资组合','ရင်းနှီးမြှုပ်နှံမှု'], type_cash:['Cash','现金','ငွေသား'],type_wallet:['Wallet','钱包','ပိုက်ဆံအိတ်'],type_bank:['Bank','银行','ဘဏ်'],type_credit:['Credit Card','信用卡','အကြွေးဝယ်ကတ်'],type_crypto:['Crypto','加密货币','ခရစ်ပတို'],type_investment:['Investment','投资','ရင်းနှီးမြှုပ်နှံမှု'],type_other:['Other','其他','အခြား']
   };
   let currency = 'ALL', listObserver = null, currentShell = null, scheduled = false;
-  let currencyPanelHidden = false; // UI-only, never saved to user finance settings or browser storage.
+  let currencyPanelHidden = true; // UI-only, never saved to user finance settings or browser storage.
   const $ = id => document.getElementById(id);
   function language() {
     const s = String(document.documentElement.lang || 'en').toLowerCase();
@@ -130,12 +131,8 @@
     if (!shell || !home || !heading || !$('amList') || !$('amAdd')) return false;
     if (shell === currentShell) return true;
     if (listObserver) listObserver.disconnect();
-    currentShell = shell; currency = 'ALL';
+    currentShell = shell; currency = 'ALL'; currencyPanelHidden = true;
     shell.classList.add('am-directory-ready-v1');
-    const actions = el('div','am-directory-heading-actions-v1');
-    actions.append($('amAdd'));
-    heading.querySelector('.am-directory-heading-actions-v1')?.remove();
-    heading.append(actions);
     const oldTop = home.querySelector(':scope > .am-top');
     const summary = home.querySelector(':scope > .am-summary');
     const find = home.querySelector(':scope > .am-find');
@@ -147,7 +144,17 @@
     statAccounts.append(el('strong','am-directory-account-total-v1','0'),el('small','',t('accounts')));
     statCurrencies.append(el('strong','am-directory-currency-total-v1','0'),el('small','',t('units')));
     stats.append(statAccounts,statCurrencies);
-    summary.insertBefore(stats,summary.querySelector('.am-summary-grid'));
+    const left=el('div','am-v2-balance-main'), right=el('div','am-v2-balance-controls');
+    const top=summary.querySelector('.am-top'), net=$('amNet'), note=summary.querySelector('.am-help'), breakdownGrid=summary.querySelector('.am-summary-grid');
+    const title=top.querySelector('span');title.classList.add('am-v2-total-label');title.textContent=t('total');
+    left.append(top,net,note);
+    const display=el('div','am-v2-display-row'), displayLabel=el('span','am-v2-display-label',t('display'));
+    display.append(displayLabel,$('apCurrencyPickerV2'));
+    const breakdown=el('details','am-v2-breakdown'), breakdownTitle=el('summary','am-v2-breakdown-label',t('breakdown'));
+    breakdown.append(breakdownTitle,breakdownGrid);
+    right.append(display,stats,breakdown);
+    summary.append(left,right);
+    heading.hidden=true;
     const directory = el('div','am-directory-layout-v1');
     const sidebar = el('aside','am-directory-sidebar-v1');
     sidebar.setAttribute('aria-label',t('currencies'));
@@ -162,16 +169,23 @@
     const headText = el('div','am-directory-head-text-v1');
     headText.append(el('h2','am-directory-title-v1',t('directory')),el('p','am-directory-visible-v1',''));
     const toolbar = el('div','am-directory-toolbar-v1');
-    const toggle = el('button','am-directory-toggle-v1',t('hideCurrencies'));
+    const toggle = el('button','am-directory-toggle-v1',t('showCurrencies'));
     toggle.type = 'button';
     toggle.setAttribute('aria-controls','amDirectoryCurrenciesV1');
     toggle.setAttribute('aria-expanded',String(!currencyPanelHidden));
     toggle.addEventListener('click',toggleCurrencyPanel);
-    toolbar.append(toggle,$('amFilter'));
+    const searchToggle=el('button','am-v2-search-toggle'); searchToggle.type='button';
+    searchToggle.innerHTML='<svg aria-hidden="true" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="11" cy="11" r="6.5"/><path d="m16 16 4 4"/></svg>';
+    searchToggle.setAttribute('aria-label',t('search'));searchToggle.setAttribute('aria-expanded','false');
+    const searchWrap=find.querySelector('.am-search-wrap');searchWrap.hidden=true;searchWrap.id='amV2SearchWrap';searchToggle.setAttribute('aria-controls',searchWrap.id);
+    searchToggle.onclick=()=>{const open=searchWrap.hidden;if(!open&&$('amSearch').value){$('amSearch').value='';$('amSearch').dispatchEvent(new Event('input',{bubbles:true}))}searchWrap.hidden=!open;searchToggle.setAttribute('aria-expanded',String(open));if(open)$('amSearch').focus();else searchToggle.focus()};
+    const typeLabel=el('label','am-v2-type-label',t('type'));typeLabel.htmlFor='amFilter';
+    const balanceLabel=el('label','am-v2-sort-label',t('balance'));balanceLabel.htmlFor='amSort';
+    toolbar.append(searchToggle,toggle,typeLabel,$('amFilter'),balanceLabel,$('amSort'),$('amAdd'));
     head.append(headText,toolbar);
     const columns = el('div','am-directory-columns-v1');
     [t('account'),t('type'),t('currency'),t('balance')].forEach(v => columns.append(el('span','',v)));
-    main.append(head,find,columns,count,list);
+    main.append(head,searchWrap,columns,count,list); find.remove();
     directory.append(sidebar,main);
     home.append(directory);
     applyCurrencyPanelState();
@@ -190,11 +204,7 @@
       if (c) counts.set(c,(counts.get(c)||0)+1);
     });
     if (currency !== 'ALL' && !counts.has(currency)) currency = 'ALL';
-    const ranked = [...counts.keys()].sort((a,b) => {
-      const priority=['THB','MMK','USD','AMD'];
-      const ai=priority.indexOf(a),bi=priority.indexOf(b);
-      return (ai < 0 ? 99 : ai) - (bi < 0 ? 99 : bi) || a.localeCompare(b);
-    });
+    const ranked = [...counts.keys()].sort((a,b) => counts.get(b)-counts.get(a) || a.localeCompare(b));
     const focusedCurrency = document.activeElement?.closest?.('.am-directory-currency-v1')?.dataset?.currency || null;
     menu.replaceChildren();
     function add(codeValue, name, symbol, n) {
@@ -227,6 +237,8 @@
     if (!list) return;
     const accounts = liveAccounts(), byId = new Map(accounts.map(a => [String(a.id),a]));
     updateMenu(accounts); // Keep selection and counts consistent before filtering rows.
+    const totalAccounts=(()=>{try{return MMHVAULT_CONFIG.accounts.filter(a=>a&&a.active!==false)}catch(_){return accounts}})();
+    const statA=currentShell.querySelector('.am-directory-account-total-v1'),statC=currentShell.querySelector('.am-directory-currency-total-v1');if(statA)statA.textContent=String(totalAccounts.length);if(statC)statC.textContent=String(new Set(totalAccounts.map(a=>code(a.currency)).filter(Boolean)).size);
     const rows=[...list.querySelectorAll(':scope > .am-row')];
     let visibleAccounts=0, visiblePortfolio=0;
     for(const row of rows) {
@@ -237,9 +249,9 @@
       let currencyCell=row.querySelector(':scope > .am-directory-currency-cell-v1');
       if (!typeCell) {typeCell=el('span','am-directory-type-v1'); row.insertBefore(typeCell,row.querySelector('.am-row-value'));}
       if (!currencyCell) {currencyCell=el('span','am-directory-currency-cell-v1');row.insertBefore(currencyCell,row.querySelector('.am-row-value'));}
-      const type = row.classList.contains('am-portfolio') ? 'Portfolio' : typeOf(row,byId);
+      const type = row.classList.contains('am-portfolio') ? t('portfolio') : (byId.get(row.dataset.accountId)?.type ? t('type_'+byId.get(row.dataset.accountId).type) : typeOf(row,byId));
       typeCell.textContent=type;
-      currencyCell.textContent=c ? (flags[c] ? flags[c]+' ' : '')+c : '—';
+      currencyCell.textContent=c ? (flags[c] ? flags[c]+' ' : '')+c : (row.classList.contains('am-portfolio')?'—':'');
       const show=currency==='ALL' || c===currency;
       row.hidden=!show;
       if(show){if(row.classList.contains('am-portfolio'))visiblePortfolio++;else visibleAccounts++;}
@@ -253,6 +265,10 @@
       if(empty) empty.textContent=t('noMatch');
       else list.append(el('p','am-directory-empty-v1',t('noMatch')));
     } else if(empty) empty.remove();
+    for(const [selector,key] of [['.am-v2-total-label','total'],['.am-v2-display-label','display'],['.am-v2-breakdown-label','breakdown'],['.am-v2-type-label','type'],['.am-v2-sort-label','balance']]){const n=currentShell.querySelector(selector);if(n)n.textContent=t(key)}
+    const searchBtn=currentShell.querySelector('.am-v2-search-toggle');if(searchBtn)searchBtn.setAttribute('aria-label',t('search'));
+    const allOption=$('amFilter')?.querySelector('option[value="all"]');if(allOption)allOption.textContent=t('allTypes');
+    for(const [value,key] of [['original','originalOrder'],['balance-desc','high'],['balance-asc','low']]){const opt=$('amSort')?.querySelector('option[value="'+value+'"]');if(opt)opt.textContent=t(key)}
     const subtitle=document.querySelector('#'+ROOT+' .am-directory-sidebar-title-v1');
     if(subtitle) subtitle.textContent=t('currencies');
     const title=document.querySelector('#'+ROOT+' .am-directory-title-v1');
@@ -274,6 +290,7 @@
     new MutationObserver(() => { if($('amShell')!==currentShell) schedule(); }).observe(host,{childList:true});
     new MutationObserver(schedule).observe(document.documentElement,{attributes:true,attributeFilter:['lang']});
     window.addEventListener('languagechange',schedule,{passive:true});
+    window.addEventListener('mmhvault:config-owner-changed',()=>{currency='ALL';currencyPanelHidden=true;const wrap=$('amV2SearchWrap'),btn=currentShell?.querySelector('.am-v2-search-toggle');if(wrap)wrap.hidden=true;if(btn)btn.setAttribute('aria-expanded','false');schedule()},{passive:true});
     ['mmhvault:data-loaded','mmhvault:data-change','mmhvault:cache-restored','mmhvault:sync-complete'].forEach(name=>window.addEventListener(name,schedule,{passive:true}));
     schedule();
   }
