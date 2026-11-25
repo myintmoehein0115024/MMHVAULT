@@ -25,8 +25,7 @@ html.mmh-p960-quiet-loading body #dataLoadOverlayV384.show .data-load-card-v384{
   text-align:center!important;
 }
 html.mmh-p960-quiet-loading body #dataLoadOverlayV384.show .data-load-card-v384::before{
-  content:'MMHVAULT';display:block!important;margin:0 auto 13px;color:#edc570!important;
-  font-family:Georgia,serif;font-size:20px;font-weight:700;letter-spacing:.13em;
+  content:none!important;display:none!important;
 }
 html.mmh-p960-quiet-loading body #dataLoadOverlayV384.show .data-load-title-v384{font-size:14px!important;line-height:1.5!important;}
 html.mmh-p960-quiet-loading body #dataLoadOverlayV384.show .data-load-sub-v384{font-size:11px!important;opacity:.76!important;}
@@ -48,7 +47,7 @@ html.mmh-p960-quiet-loading body #dataLoadOverlayV384.show .data-load-sub-v384{f
 </script>
 
 <meta content="width=device-width,initial-scale=1,viewport-fit=cover" name="viewport"/>
-<link href="images/icon-512.png" rel="icon" sizes="512x512" type="image/png"/>
+<link href="images/mmhvault-v2-auth-mark.webp" rel="icon" type="image/webp"/>
 <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png?v=pwa25-20261029"/>
 
 <meta content="#06111f" name="theme-color"/>
@@ -10957,12 +10956,13 @@ html.mmh-desktop-compact-v11110 body.mmh-workspace-active #moreNavMenu.more-nav-
 
 <div id="mmhvaultAppBootGuardV3282" style="position:fixed;inset:0;z-index:30000;display:none;align-items:center;justify-content:center;background:#050a18;color:#dce8ff;font-family:Arial,sans-serif;padding:24px;text-align:center;">
 <div style="max-width:420px;border:1px solid rgba(78,164,255,.25);border-radius:18px;padding:24px 22px;background:rgba(10,20,42,.92);box-shadow:0 18px 60px rgba(0,0,0,.4);">
-<div style="font-size:18px;font-weight:800;letter-spacing:.02em;">MMHVAULT</div>
+<img class="mmh-v2-transition-logo" src="images/mmhvault-v2-auth-mark.webp" width="48" height="48" alt="">
 <div style="margin-top:8px;color:#9db0cf;font-size:13px;line-height:1.5;">Loading your private finance workspace…</div>
 </div>
 </div>
 <div aria-hidden="true" class="data-load-overlay-v384" id="dataLoadOverlayV384">
 <div class="data-load-card-v384">
+<img class="mmh-v2-transition-logo" src="images/mmhvault-v2-auth-mark.webp" width="48" height="48" alt="">
 <div class="data-load-spinner-v384"></div>
 <div class="data-load-title-v384">Loading your finance data…</div>
 <div class="data-load-sub-v384" id="dataLoadSubV384">Syncing your private cloud records.</div>
@@ -10973,7 +10973,7 @@ html.mmh-desktop-compact-v11110 body.mmh-workspace-active #moreNavMenu.more-nav-
 <button class="btn" onclick="retryLoadAllV384()" type="button">Retry</button>
 </div>
 <header id="header" style="display:none">
-<div class="mmhvault-header-brand"><div class="logo"><img alt="MMHVAULT logo" class="mmhvault-header-logo-img" decoding="async" src="data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs=" data-mmh-brand-v11="true"/><span>MMHVAULT</span> <span class="version">V4.7.1</span></div><div class="mmhvault-brand-tagline">Personal Finance &amp; Wealth Management</div></div>
+<div class="mmhvault-header-brand"><div class="logo"><img alt="MMHVAULT logo" class="mmhvault-header-logo-img" decoding="async" src="images/mmhvault-v2-auth-mark.webp"/><span>MMHVAULT</span> <span class="version">V4.7.1</span></div><div class="mmhvault-brand-tagline">Personal Finance &amp; Wealth Management</div></div>
 <div class="header-spacer"></div>
 <div aria-label="Signed in user" class="header-profile" id="headerProfile">
 <div class="header-avatar" id="headerAvatar">MF</div>
@@ -11005,7 +11005,7 @@ html.mmh-desktop-compact-v11110 body.mmh-workspace-active #moreNavMenu.more-nav-
 </style>
 <div aria-hidden="true" class="welcome-screen" id="welcomeScreen">
 <div class="welcome-card">
-<img alt="MMHVAULT logo" class="welcome-logo-img" decoding="async" src="data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs=" data-mmh-brand-v11="true"/>
+<img alt="MMHVAULT logo" class="welcome-logo-img" decoding="async" src="images/mmhvault-v2-auth-mark.webp"/>
 <h1 class="welcome-title">Welcome back</h1>
 <div class="welcome-sub">Your MMHVAULT dashboard is getting ready.</div>
 <div class="welcome-line"></div>
@@ -11014,7 +11014,7 @@ html.mmh-desktop-compact-v11110 body.mmh-workspace-active #moreNavMenu.more-nav-
 </div>
 <div aria-hidden="true" class="getting-started-backdrop" id="gettingStarted">
 <div aria-labelledby="gsTitle" aria-modal="true" class="getting-started-card" role="dialog">
-<div class="gs-head"><div class="gs-badge"><img alt="MMHVAULT logo" class="gs-logo-img" decoding="async" src="data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs=" data-mmh-brand-v11="true"/></div><div><h2 id="gsTitle">Welcome to MMHVAULT</h2><div class="sub">Let’s get your personal wealth workspace ready.</div></div><button class="btn gs-close" onclick="window.myFinanceCloseGettingStarted()" type="button">Skip</button></div>
+<div class="gs-head"><div class="gs-badge"><img alt="MMHVAULT logo" class="gs-logo-img" decoding="async" src="images/mmhvault-v2-auth-mark.webp"/></div><div><h2 id="gsTitle">Welcome to MMHVAULT</h2><div class="sub">Let’s get your personal wealth workspace ready.</div></div><button class="btn gs-close" onclick="window.myFinanceCloseGettingStarted()" type="button">Skip</button></div>
 <div aria-hidden="true" class="gs-progress"><span class="gs-dot active"></span><span class="gs-dot"></span><span class="gs-dot"></span></div>
 <div class="gs-body">
 <section class="gs-step active" data-gs-step="0"><h3>1. Your account is ready</h3><p>Your Customer ID is created automatically and your account stays connected to your own cloud data.</p><div class="gs-checks"><div class="gs-check"><span>✓</span> Secure sign-in with Google or Email / Password</div><div class="gs-check"><span>✓</span> Personal Customer ID such as MF0001</div><div class="gs-check"><span>✓</span> Your finance records remain separated by account</div></div></section>
@@ -12895,7 +12895,7 @@ const SUPABASE_URL="https://vrypucmyrztxgiqhjspd.supabase.co";
 const SUPABASE_KEY="sb_publishable_H38v4XbO0ARnSJToD42wGg_27-SZ3Ao";
 if(!window.supabase){
   const g=document.getElementById("mmhvaultAppBootGuardV3282");
-  if(g)g.innerHTML='<div style="max-width:460px;border:1px solid rgba(255,112,112,.28);border-radius:18px;padding:24px 22px;background:rgba(42,16,32,.94);font-family:Arial,sans-serif;text-align:center;"><div style="font-size:18px;font-weight:800;color:#fff;">MMHVAULT cannot start</div><div style="margin-top:8px;color:#ffb7b7;font-size:13px;line-height:1.5;">The authentication service could not be loaded. Please refresh once. Your cloud data is not being changed.</div></div>';
+  if(g)g.innerHTML='<div style="max-width:460px;border:1px solid rgba(255,112,112,.28);border-radius:18px;padding:24px 22px;background:rgba(42,16,32,.94);font-family:Arial,sans-serif;text-align:center;"><img class="mmh-v2-transition-logo" src="images/mmhvault-v2-auth-mark.webp" width="48" height="48" alt=""><div style="font-size:18px;font-weight:800;color:#fff;">MMHVAULT cannot start</div><div style="margin-top:8px;color:#ffb7b7;font-size:13px;line-height:1.5;">The authentication service could not be loaded. Please refresh once. Your cloud data is not being changed.</div></div>';
   throw new Error("Supabase SDK failed to load.");
 }
 const db=supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
@@ -12922,7 +12922,7 @@ function mmhvaultFinishAuthBootV3285(session){
     }).catch(err=>{
       console.error('MMHVAULT app startup failed',err);
       const g=document.getElementById('mmhvaultAppBootGuardV3282');
-      if(g)g.innerHTML='<div style="max-width:480px;border:1px solid rgba(255,112,112,.28);border-radius:18px;padding:24px 22px;background:rgba(42,16,32,.94);font-family:Arial,sans-serif;text-align:center;"><div style="font-size:18px;font-weight:800;color:#fff;">MMHVAULT could not finish starting</div><div style="margin-top:8px;color:#ffb7b7;font-size:13px;line-height:1.5;">The app loaded, but one startup component failed. Your cloud data has not been changed.</div><button type="button" style="margin-top:16px;padding:10px 16px;border-radius:10px;border:1px solid rgba(90,190,255,.35);background:#102a49;color:#fff;font-weight:700;cursor:pointer;" onclick="location.reload()">Refresh</button></div>';
+      if(g)g.innerHTML='<div style="max-width:480px;border:1px solid rgba(255,112,112,.28);border-radius:18px;padding:24px 22px;background:rgba(42,16,32,.94);font-family:Arial,sans-serif;text-align:center;"><img class="mmh-v2-transition-logo" src="images/mmhvault-v2-auth-mark.webp" width="48" height="48" alt=""><div style="font-size:18px;font-weight:800;color:#fff;">MMHVAULT could not finish starting</div><div style="margin-top:8px;color:#ffb7b7;font-size:13px;line-height:1.5;">The app loaded, but one startup component failed. Your cloud data has not been changed.</div><button type="button" style="margin-top:16px;padding:10px 16px;border-radius:10px;border:1px solid rgba(90,190,255,.35);background:#102a49;color:#fff;font-weight:700;cursor:pointer;" onclick="location.reload()">Refresh</button></div>';
       });
     },0);
   }else{
@@ -12938,22 +12938,25 @@ function mmhP947GuardV947(phase='switch'){
     layer=document.createElement('div');
     layer.id='mmhP947AccountGuard';
     layer.setAttribute('role','status');layer.setAttribute('aria-live','polite');
-    layer.style.cssText='position:fixed;inset:0;z-index:2147483647;display:flex;align-items:center;justify-content:center;padding:24px;background:#050d17;color:#eaf3fa;font:14px/1.6 system-ui,sans-serif;text-align:center;';
+    layer.style.cssText='position:fixed;inset:0;z-index:2147483647;display:flex;align-items:center;justify-content:center;padding:24px;background:#111720;color:#eef1f6;font:14px/1.6 system-ui,sans-serif;text-align:center;';
     const card=document.createElement('div');
-    card.style.cssText='max-width:430px;width:100%;border:1px solid #52657a;border-radius:18px;padding:24px 20px;background:#0b1c2b;box-shadow:0 20px 60px #0008;';
+    card.style.cssText='max-width:360px;width:100%;padding:24px 16px;box-sizing:border-box;';
+    const mark=document.createElement('img');mark.src='images/mmhvault-v2-auth-mark.webp';mark.alt='';mark.width=48;mark.height=48;mark.className='mmh-v2-transition-logo';mark.style.cssText='display:block;margin:0 auto 16px;object-fit:contain;border-radius:8px;';
     const title=document.createElement('strong'); title.id='mmhP947AccountGuardTitle';
-    title.style.cssText='display:block;font-size:17px;margin-bottom:8px;color:#ffe1a4;';
-    const info=document.createElement('div');info.id='mmhP947AccountGuardInfo';
+    title.style.cssText='display:block;font-size:19px;font-weight:650;margin-bottom:6px;color:inherit;';
+    const info=document.createElement('div');info.id='mmhP947AccountGuardInfo';info.style.cssText='font-size:13px;line-height:1.5;opacity:.78;';
     const retry=document.createElement('button');retry.type='button';retry.id='mmhP947AccountGuardRetry';
-    retry.style.cssText='margin-top:18px;padding:10px 18px;border:1px solid #697f96;border-radius:10px;background:#17334c;color:#fff;cursor:pointer;';
-    retry.addEventListener('click',()=>location.reload());card.append(title,info,retry);layer.appendChild(card);document.body.appendChild(layer);
+    retry.style.cssText='margin-top:18px;padding:10px 18px;border:1px solid currentColor;border-radius:8px;background:transparent;color:inherit;cursor:pointer;';
+    retry.addEventListener('click',()=>location.reload());card.append(mark,title,info,retry);layer.appendChild(card);document.body.appendChild(layer);
   }
   const zh=(document.documentElement.lang||'').toLowerCase().startsWith('zh')||localStorage.getItem('mmhvault_language_v3363')==='zh';
   const failed=phase==='error';
-  document.getElementById('mmhP947AccountGuardTitle').textContent=zh?(failed?'登录身份校验失败':'正在保护账户数据'):(failed?'Sign-in verification failed':'Protecting your private data');
-  document.getElementById('mmhP947AccountGuardInfo').textContent=zh?(failed?'无法确认当前账号，数据已隐藏。请检查网络并刷新页面。':'正在核实新账号并重新读取云端记录，完成前不会显示上一个账号的内容。'):(failed?'Your account could not be verified. Data remains hidden. Check your network and refresh.':'Verifying the new account and loading cloud data before showing any account content.');
+  const light=document.body.classList.contains('light');layer.style.background=light?'#f4f7fb':'#111720';layer.style.color=light?'#202b3d':'#eef1f6';
+  const my=!zh&&(document.documentElement.lang==='my'||localStorage.getItem('mmhvault_language_v3363')==='my');
+  document.getElementById('mmhP947AccountGuardTitle').textContent=zh?(failed?'登录身份校验失败':'正在安全连接'):(my?(failed?'ဝင်ရောက်မှု အတည်ပြုခြင်း မအောင်မြင်ပါ':'လုံခြုံစွာ ချိတ်ဆက်နေပါသည်'):(failed?'Sign-in verification failed':'Connecting securely'));
+  document.getElementById('mmhP947AccountGuardInfo').textContent=zh?(failed?'无法确认当前账号，数据已隐藏。请检查网络并刷新页面。':'正在验证会话并同步您的数据。'):(my?(failed?'အကောင့်ကို အတည်မပြုနိုင်ပါ။ ဒေတာကို ဝှက်ထားသည်။ ပြန်လည်ကြိုးစားပါ။':'သင့်အကောင့်နှင့် ဒေတာကို စစ်ဆေးနေပါသည်။'):(failed?'Your account could not be verified. Data remains hidden. Check your network and refresh.':'Verifying your session and syncing your data.'));
   const retry=document.getElementById('mmhP947AccountGuardRetry');
-  retry.textContent=zh?'重新连接':'Retry';retry.hidden=!failed;
+  retry.textContent=zh?'重新连接':my?'ထပ်မံကြိုးစားပါ':'Retry';retry.hidden=!failed;
   layer.hidden=false;layer.style.display='flex';
 }
 function mmhP947UnlockV947(){const layer=document.getElementById('mmhP947AccountGuard');if(layer){layer.hidden=true;layer.style.display='none';}}
@@ -13048,7 +13051,7 @@ db.auth.onAuthStateChange((event,session)=>{
 mmhvaultAuthBootTimerV3285=setTimeout(()=>{
   if(mmhvaultAuthBootSettledV3285)return;
   const g=document.getElementById('mmhvaultAppBootGuardV3282');
-  if(g)g.innerHTML='<div style="max-width:480px;border:1px solid rgba(255,193,7,.28);border-radius:18px;padding:24px 22px;background:rgba(25,24,12,.96);font-family:Arial,sans-serif;text-align:center;"><div style="font-size:18px;font-weight:800;color:#fff;">MMHVAULT is still connecting…</div><div style="margin-top:8px;color:#d8cfa1;font-size:13px;line-height:1.5;">Supabase Auth has not finished initializing. Please refresh once. Your cloud data is not being changed.</div><button type="button" style="margin-top:16px;padding:10px 16px;border-radius:10px;border:1px solid rgba(90,190,255,.35);background:#102a49;color:#fff;font-weight:700;cursor:pointer;" onclick="location.reload()">Refresh</button></div>';
+  if(g)g.innerHTML='<div style="max-width:480px;border:1px solid rgba(255,193,7,.28);border-radius:18px;padding:24px 22px;background:rgba(25,24,12,.96);font-family:Arial,sans-serif;text-align:center;"><img class="mmh-v2-transition-logo" src="images/mmhvault-v2-auth-mark.webp" width="48" height="48" alt=""><div style="font-size:18px;font-weight:800;color:#fff;">MMHVAULT is still connecting…</div><div style="margin-top:8px;color:#d8cfa1;font-size:13px;line-height:1.5;">Supabase Auth has not finished initializing. Please refresh once. Your cloud data is not being changed.</div><button type="button" style="margin-top:16px;padding:10px 16px;border-radius:10px;border:1px solid rgba(90,190,255,.35);background:#102a49;color:#fff;font-weight:700;cursor:pointer;" onclick="location.reload()">Refresh</button></div>';
 },10000);
 /* MMHVAULT V4.4.10 · Dynamic Dashboard Accounts
    Accounts/categories are configuration, not hard-coded UI. Existing transactions keep
@@ -14402,8 +14405,9 @@ async function loadAll(opts={}){
   const task=(async()=>{
     const loadOwner=requestedOwner,loadEpoch=requestedEpoch;
     const hadExisting=transactions.length>0||investments.length>0;
+    const quietPresentation=opts.quietResume===true&&mmhVaultCanQuietVerifyV1239(loadOwner);
     setDataErrorV384("");
-    setDataLoadingV384(true,hadExisting?"Refreshing your private cloud records…":"Loading your private cloud records…");
+    if(!quietPresentation)setDataLoadingV384(true,hadExisting?"Refreshing your private cloud records…":"Loading your private cloud records…");
     try{
       /* Transaction + investment data are authoritative. Rate/render issues should not
          be reported as a generic cloud connection failure. */
@@ -14444,7 +14448,7 @@ async function loadAll(opts={}){
       try{window.dispatchEvent(new CustomEvent("mmhvault:data-loaded",{detail:{ok:false,restored,at:Date.now()}}));}catch(_e){}
       return {ok:false,restored,errors:[err?.message||String(err)]};
     }finally{
-      if(loadAllPromiseOwnerV1239===loadOwner&&loadAllPromiseEpochV1239===loadEpoch)setDataLoadingV384(false);
+      if(!quietPresentation&&loadAllPromiseOwnerV1239===loadOwner&&loadAllPromiseEpochV1239===loadEpoch)setDataLoadingV384(false);
     }
   })();
   loadAllPromiseV384=task;loadAllPromiseOwnerV1239=requestedOwner;loadAllPromiseEpochV1239=requestedEpoch;
@@ -14630,7 +14634,8 @@ async function mmhVaultReconcileSessionV1239(reason='resume',opts={}){
       const needsCloud=(masked&&(opts.authMaskWasNew!==true||!hasVerifiedCloud))||
         (opts.refreshData&&(!Number.isFinite(staleFor)||staleFor>15000));
       if(needsCloud){
-        const cloud=await window.loadAll?.({force:true});
+        const quietResume=opts.quietResume===true&&!masked&&mmhVaultCanQuietVerifyV1239(owner);
+        const cloud=await window.loadAll?.({force:true,quietResume});
         if(startTicket!==mmhP947AuthGateTicket||startEpoch!==(Number(window.__mmhSessionEpochV1239)||0)||currentSessionUser?.id!==owner)return {ok:false,superseded:true};
         if(cloud?.ok!==true){mmhP947GuardV947('error');return {ok:false,cloudUnavailable:true};}
       }
@@ -14680,7 +14685,7 @@ function mmhVaultResumeLifecycleV1239(reason){
     return;
   }
   const reconcile=mmhVaultReconcileSessionV1239(reason,{
-    forceRealtime:!realtimeReady,refreshData:staleFor>120000
+    forceRealtime:!realtimeReady,refreshData:staleFor>120000,quietResume
   });
   if(quietResume)Promise.resolve(reconcile).then(result=>{
     if(result?.ok!==true&&!result?.superseded&&!result?.mfaRequired)
@@ -29508,7 +29513,7 @@ html body:not(#mmh-brand-a):not(#mmh-brand-b):not(#mmh-brand-c):not(#mmh-brand-d
 </style>
 <script id="mmhvault-transparent-brand-v11-script">
 (()=>{'use strict';
-const art='images/mmhvault-logo-transparent.png';
+const art='images/mmhvault-v2-auth-mark.webp';
 document.documentElement.style.setProperty('--mmh-brand-art-v11','url("'+art+'")');
 const observer=typeof IntersectionObserver==='function'?new IntersectionObserver(entries=>{for(const e of entries)e.target.classList.toggle('mmh-brand-paused-v11',!e.isIntersecting)},{threshold:0}):null;
 for(const img of document.querySelectorAll('img[data-mmh-brand-v11]')){
@@ -29518,8 +29523,8 @@ for(const img of document.querySelectorAll('img[data-mmh-brand-v11]')){
   img.before(wrap);wrap.append(img);img.src=art;observer?.observe(wrap);
 }
 for(const link of document.querySelectorAll('link[rel="icon"],link[rel="apple-touch-icon"]')){
-  link.href=link.relList?.contains('apple-touch-icon')?'/apple-touch-icon.png?v=pwa25-20261029':'./images/icon-192.png?v=pwa25-20261029';
-  link.type='image/png';
+  const touch=link.relList?.contains('apple-touch-icon');link.href=touch?'/apple-touch-icon.png?v=pwa25-20261029':'./images/mmhvault-v2-auth-mark.webp';
+  link.type=touch?'image/png':'image/webp';
 }
 const visibility=()=>document.documentElement.classList.toggle('mmh-brand-hidden-v11',document.hidden);
 document.addEventListener('visibilitychange',visibility);visibility();
@@ -29774,7 +29779,7 @@ function lang(){return (localStorage.getItem('mmhvault_language_v3363')||'en')==
 function pageActive(){return $('dashboard')?.classList.contains('active')}
 function addSidebar(){
  const nav=$('bottomNav');if(!nav||nav.querySelector('.mmh-sidebar-brand-v500'))return;
- const brand=document.createElement('div');brand.className='mmh-sidebar-brand-v500';brand.innerHTML='<img src="images/mmhvault-logo-transparent.png" alt=""><div><strong>MMHVAULT</strong><small>Personal Finance · Wealth</small></div>';nav.prepend(brand);
+ const brand=document.createElement('div');brand.className='mmh-sidebar-brand-v500';brand.innerHTML='<img src="images/mmhvault-v2-auth-mark.webp" alt=""><div><strong>MMHVAULT</strong><small>Personal Finance · Wealth</small></div>';nav.prepend(brand);
  const section=document.createElement('div');section.className='mmh-sidebar-section-v500';section.textContent='Workspace';brand.after(section);
  const card=document.createElement('div');card.className='mmh-sidebar-private-v500';card.innerHTML='<div class="icon">◈</div><b>Private Wealth Workspace</b><p>Your finance data stays connected to your authenticated MMHVAULT account.</p><span>Cloud workspace active</span>';nav.append(card);
 }
@@ -30231,7 +30236,7 @@ function polishBrand(){
  const brand=document.querySelector('#bottomNav .mmh-sidebar-brand-v500');
  if(!brand)return;
  const img=brand.querySelector('img');
- if(img){img.src='images/mmhvault-logo-transparent.png';img.alt='MMHVAULT';img.decoding='async';}
+ if(img){img.src='images/mmhvault-v2-auth-mark.webp';img.alt='MMHVAULT';img.decoding='async';}
 }
 function tagPage(page,title,kicker){
  if(!page||page.querySelector('.mmh-pf-kicker-v510'))return;
@@ -30633,7 +30638,7 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
     rail.querySelectorAll('.mmh-side-extra-v500,.mmh-direct-nav-v530').forEach(el=>el.remove());
     const brand=rail.querySelector('.mmh-sidebar-brand-v500');
     if(brand){
-      const img=brand.querySelector('img');if(img)img.src='images/mmhvault-logo-transparent.png';
+      const img=brand.querySelector('img');if(img)img.src='images/mmhvault-v2-auth-mark.webp';
       const strong=brand.querySelector('strong'),small=brand.querySelector('small');
       if(strong)strong.textContent='MMHVAULT';
       if(small)small.textContent=(localStorage.getItem('mmhvault_language_v3363')==='zh'?'个人财务 · 财富管理':'PERSONAL FINANCE · WEALTH');
@@ -34221,25 +34226,10 @@ html body.mmh-workspace-active #moreNavMenu.more-nav-menu{
 </style>
 
 <script id="mmhvault-v11110-safari-resume-refresh">
-/* Safari aggressively restores pages from BFCache. Revalidate cloud data after a real
-   BFCache restore or after returning to a stale tab, but keep the refresh throttled. */
-(function(){
-  if(window.__mmhSafariResumeRefreshV11110)return;window.__mmhSafariResumeRefreshV11110=true;
-  let busy=false,lastAttempt=0;
-  async function refresh(reason,force){
-    if(busy||document.hidden||typeof currentSessionUser==='undefined'||!currentSessionUser?.id)return;
-    const now=Date.now();
-    if(now-lastAttempt<3500)return;
-    const lastCloud=Number(window.__mmhLastCloudLoadAtV1235||0);
-    if(!force&&lastCloud&&now-lastCloud<20000){try{window.mmhvaultForceRenderAllV34421?.(reason)}catch(_e){}return;}
-    lastAttempt=now;busy=true;
-    try{if(typeof window.loadAll==='function')await window.loadAll({force:true});else window.mmhvaultForceRenderAllV34421?.(reason)}
-    catch(err){console.warn('[MMHVAULT] Safari resume refresh skipped',err)}
-    finally{busy=false}
-  }
-  addEventListener('pageshow',e=>{if(e.persisted)refresh('safari-bfcache',true)},{passive:true});
-  addEventListener('focus',()=>refresh('window-focus',false),{passive:true});
-})();
+/* V2 resume: the primary lifecycle already handles visibility, focus and BFCache,
+   including remote identity, MFA and owner-scoped cloud refresh. Do not start a
+   competing unconditional loadAll from this old Safari compatibility listener. */
+window.__mmhSafariResumeRefreshV11110=true;
 </script>
 
 
@@ -35596,5 +35586,35 @@ if ((isStaging || (isProduction && release.exchangeV2)) && typeof db !== 'undefi
   }
 }
 </script>
+
+<style id="mmh-v2-transition-visual">
+/* Visual only: existing show/hide, safety mask, retry, timers and auth flow remain authoritative. */
+body{--mmh-v2-load-bg:#111720;--mmh-v2-load-text:#eef1f6;--mmh-v2-load-muted:#a3afbf;--mmh-v2-load-accent:#a9c0f1}
+body.light{--mmh-v2-load-bg:#f4f7fb;--mmh-v2-load-text:#202b3d;--mmh-v2-load-muted:#596778;--mmh-v2-load-accent:#315fba}
+html body #mmhvaultAppBootGuardV3282#mmhvaultAppBootGuardV3282,
+html body #mmhP947AccountGuard#mmhP947AccountGuard,
+html body #dataLoadOverlayV384#dataLoadOverlayV384,
+html.mmh-p960-quiet-loading body #dataLoadOverlayV384#dataLoadOverlayV384.show,
+html body #welcomeScreen#welcomeScreen{background:var(--mmh-v2-load-bg)!important;color:var(--mmh-v2-load-text)!important;box-shadow:none!important;backdrop-filter:none!important;-webkit-backdrop-filter:none!important}
+html body #mmhvaultAppBootGuardV3282>div,
+html body #dataLoadOverlayV384#dataLoadOverlayV384 .data-load-card-v384,
+html.mmh-p960-quiet-loading body #dataLoadOverlayV384#dataLoadOverlayV384.show .data-load-card-v384,
+html body #welcomeScreen#welcomeScreen .welcome-card{background:transparent!important;border:0!important;box-shadow:none!important;max-width:360px!important;width:100%!important;padding:24px 16px!important;color:var(--mmh-v2-load-text)!important;backdrop-filter:none!important;-webkit-backdrop-filter:none!important;text-align:center!important}
+html body #dataLoadOverlayV384#dataLoadOverlayV384 .data-load-card-v384::before,
+html.mmh-p960-quiet-loading body #dataLoadOverlayV384#dataLoadOverlayV384.show .data-load-card-v384::before{content:none!important;display:none!important}
+html body .mmh-v2-transition-logo,html body #welcomeScreen#welcomeScreen .welcome-logo-img{display:block!important;width:48px!important;height:48px!important;object-fit:contain!important;margin:0 auto 16px!important;filter:none!important;animation:none!important;box-shadow:none!important;border-radius:8px!important}
+html body #dataLoadOverlayV384#dataLoadOverlayV384 .data-load-title-v384,
+html.mmh-p960-quiet-loading body #dataLoadOverlayV384#dataLoadOverlayV384.show .data-load-title-v384,
+html body #welcomeScreen#welcomeScreen .welcome-title{color:var(--mmh-v2-load-text)!important;font:650 19px/1.4 system-ui,sans-serif!important;letter-spacing:0!important;text-shadow:none!important}
+html body #dataLoadOverlayV384#dataLoadOverlayV384 .data-load-sub-v384,
+html.mmh-p960-quiet-loading body #dataLoadOverlayV384#dataLoadOverlayV384.show .data-load-sub-v384,
+html body #welcomeScreen#welcomeScreen :is(.welcome-sub,.welcome-ready){color:var(--mmh-v2-load-muted)!important;font:400 13px/1.5 system-ui,sans-serif!important;filter:none!important;opacity:1!important}
+html body #dataLoadOverlayV384#dataLoadOverlayV384 .data-load-spinner-v384{width:24px!important;height:24px!important;margin:0 auto 12px!important;border:2px solid var(--mmh-v2-load-muted)!important;border-right-color:var(--mmh-v2-load-accent)!important;box-shadow:none!important}
+html body #welcomeScreen#welcomeScreen::before,html body #welcomeScreen#welcomeScreen::after{background:none!important;animation:none!important}
+html body #welcomeScreen#welcomeScreen .welcome-line{background:var(--mmh-v2-load-accent)!important;box-shadow:none!important}
+html body #gettingStarted#gettingStarted .gs-logo-img{object-fit:contain!important;filter:none!important}
+html body #mmhvaultAppBootGuardV3282>div>div{color:inherit!important}
+@media(prefers-reduced-motion:reduce){html body #dataLoadOverlayV384#dataLoadOverlayV384 .data-load-spinner-v384{animation:none!important}}
+</style>
 </body>
 </html>
