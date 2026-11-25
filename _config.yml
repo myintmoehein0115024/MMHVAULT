@@ -1,5 +1,8 @@
 # MMHVAULT GitHub Pages Jekyll exclusions — security review, NO DEPLOY.
 # Keep analytics-worker/ui/ because the production admin-analytics.html loads it.
+# Explicitly include only the public security information page.
+# Preserve the exclusion of the internal security directory.
+include: [security.html]
 exclude:
   - Gemfile
   - Gemfile.lock
