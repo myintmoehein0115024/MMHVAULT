@@ -20,6 +20,7 @@ const infoIcon='<svg aria-hidden="true" width="17" height="17" viewBox="0 0 24 2
 const historyIcon='<svg aria-hidden="true" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M8 8h8M8 12h8M8 16h5"/></svg>';
 const assetIcon='<svg aria-hidden="true" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>';
 let detailPanel='';
+Object.assign(MY,{'Close':'ပိတ်ရန်','Daily P/L':'နေ့စဉ် အမြတ်/အရှုံး','Assets':'ပိုင်ဆိုင်မှုများ','More assets':'အခြား ပိုင်ဆိုင်မှုများ','No verified data':'အတည်ပြုထားသော ဒေတာ မရှိပါ'});
 const coinMarks={BTC:'₿',ETH:'◆',BNB:'❖',SOL:'≋',TRX:'▽',USDT:'₮'};
 const coinMark=sym=>'<span class="idv1-coin-mark" aria-hidden="true">'+safe(Object.prototype.hasOwnProperty.call(coinMarks,sym)?coinMarks[sym]:String(sym).slice(0,1))+'</span>';
 const records=()=>Array.isArray(window.investments)?window.investments.filter(x=>x&&['Crypto','Gold'].includes(x.asset)):[];
@@ -70,12 +71,16 @@ function money(v,type){if(!v||!v.valid)return'<span class="idv1-missing">—</sp
 function base(){const host=el('mmhFiveoverview');if(!host)return null;let box=el('mmhInvestDailyV1');if(box)return box;
  box=document.createElement('section');box.id='mmhInvestDailyV1';box.className='idv1-root';box.innerHTML=`<div class="idv1-head"><div><h2>${T('Crypto 每日盈亏','Daily Crypto P/L')}</h2><p hidden>${T('逐日核对 Crypto（USD）的盈亏与买卖资金流，Gold 不参与没有可信历史报价的数据计算。','Track Crypto (USD) daily P/L and trade cash flows. Gold is excluded until trustworthy automatic historical pricing is available.')}</p></div><button type="button" class="idv1-refresh" data-idv-refresh aria-label="${T('刷新行情','Refresh prices')}" title="${T('刷新行情','Refresh prices')}">${refreshIcon}</button></div>
 
- <div class="idv1-cards" id="idv1Summary"></div><div class="idv1-history-panel"><div class="idv1-controls"><b>${T('盈亏历史','P/L History')}</b><div class="idv1-toolbar"><div class="idv1-period"><button type="button" data-idv-days="7">7D</button><button type="button" data-idv-days="30">30D</button><button type="button" data-idv-days="month">${T('本月','Month')}</button></div><div class="idv1-view-tools"><button type="button" class="idv1-view-icon" data-idv-panel="history" aria-controls="idv1History" aria-expanded="false">${historyIcon}</button><button type="button" class="idv1-view-icon" data-idv-panel="assets" aria-controls="idv1Breakdown" aria-expanded="false">${assetIcon}</button></div></div></div>
- <div id="idv1Trend" class="idv1-trend"></div><div id="idv1History" class="idv1-history" hidden></div></div><div id="idv1Breakdown" class="idv1-breakdown" hidden></div>
+ <div class="idv1-cards" id="idv1Summary"></div><div class="idv1-history-panel"><div class="idv1-controls"><b>${T('盈亏历史','P/L History')}</b><div class="idv1-toolbar"><div class="idv1-period"><button type="button" data-idv-days="7">7D</button><button type="button" data-idv-days="30">30D</button><button type="button" data-idv-days="month">${T('本月','Month')}</button></div><div class="idv1-view-tools"><button type="button" class="idv1-view-icon" data-idv-panel="history" aria-controls="idv1DetailDialog" aria-haspopup="dialog" aria-expanded="false">${historyIcon}</button><button type="button" class="idv1-view-icon" data-idv-panel="assets" aria-controls="idv1DetailDialog" aria-haspopup="dialog" aria-expanded="false">${assetIcon}</button></div></div></div>
+ <div id="idv1Trend" class="idv1-trend"></div></div>
+ <dialog id="idv1DetailDialog" class="idv1-dialog" aria-labelledby="idv1DialogTitle"><div class="idv1-dialog-head"><h3 id="idv1DialogTitle"></h3><button type="button" data-idv-close autofocus aria-label="${T('关闭','Close')}">×</button></div><div class="idv1-dialog-body"><div id="idv1History" class="idv1-history" hidden></div><div id="idv1Breakdown" class="idv1-breakdown" hidden></div></div></dialog>
  <details class="idv1-info"><summary aria-label="${T('每日盈亏说明','About daily P/L')}" title="${T('每日盈亏说明','About daily P/L')}">${infoIcon}<span class="idv1-info-label">${T('每日盈亏说明','About daily P/L')}</span></summary><p class="idv1-gold-note" id="idv1GoldNotice">${T('Gold 历史金价暂无法自动可靠核实，因此已取消手动录入及 Gold 每日盈亏模块。黄金持仓、市值和累计盈亏仍保留在原有 Invest 总览中；不会删除已有历史金价记录。','Reliable automatic historical Gold (MMK) pricing is not yet available, so manual quote entry and Gold daily P/L have been removed. Existing Gold positions and their portfolio values remain unchanged; old saved quote records are retained.')}</p>
  <p class="idv1-note" id="idv1Note"></p></details><p class="idv1-status" id="idv1Status" aria-live="polite"></p>`;
  const notice=el('mmhFiveOverviewNotice');if(notice)notice.before(box);else host.prepend(box);
- box.addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;if(b.dataset.idvPanel){detailPanel=detailPanel===b.dataset.idvPanel?'':b.dataset.idvPanel;draw();}else if(b.dataset.idvDays){daysView=b.dataset.idvDays==='month'?'month':Number(b.dataset.idvDays);const scroller=el('idv1History')?.querySelector('.idv1-table-scroll');if(scroller)scroller.scrollTop=0;draw();}else if(b.dataset.idvDate){selectedDay=b.dataset.idvDate;draw();}else if(b.dataset.idvResetSymbol){selectedSymbol='';draw();}else if(b.dataset.idvSym){selectedSymbol=selectedSymbol===b.dataset.idvSym?'':b.dataset.idvSym;draw();}else if(b.hasAttribute('data-idv-refresh'))load(true);});
+ box.addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;if(b.hasAttribute('data-idv-close')){detailPanel='';draw();}else if(b.dataset.idvPanel){if(!currentOwner)return;detailPanel=b.dataset.idvPanel;draw();}else if(b.dataset.idvDays){daysView=b.dataset.idvDays==='month'?'month':Number(b.dataset.idvDays);const scroller=el('idv1History')?.querySelector('.idv1-table-scroll');if(scroller)scroller.scrollTop=0;draw();}else if(b.dataset.idvDate){const fromChart=b.classList.contains('idv1-chart-hit');selectedDay=b.dataset.idvDate;draw();if(fromChart)el('idv1Trend').querySelector('[data-idv-date="'+selectedDay+'"]')?.focus({preventScroll:true});}else if(b.dataset.idvResetSymbol){selectedSymbol='';draw();}else if(b.dataset.idvSym){selectedSymbol=selectedSymbol===b.dataset.idvSym?'':b.dataset.idvSym;draw();}else if(b.hasAttribute('data-idv-refresh'))load(true);});
+ const dialog=el('idv1DetailDialog');
+ dialog.addEventListener('close',()=>{if(dialog.open)return;detailPanel='';box.querySelectorAll('[data-idv-panel]').forEach(b=>{b.setAttribute('aria-expanded','false');b.classList.remove('active');});});
+ dialog.addEventListener('click',e=>{if(e.target!==dialog)return;const r=dialog.getBoundingClientRect();if(e.clientX<r.left||e.clientX>r.right||e.clientY<r.top||e.clientY>r.bottom){detailPanel='';draw();}});
  return box;
 }
 function summary(){const c=el('idv1Summary');if(!c)return;
@@ -86,24 +91,49 @@ function summary(){const c=el('idv1Summary');if(!c)return;
 }
 function trendMarkup(points){
  const vals=points.filter(p=>p.report.valid&&Number.isFinite(p.report.total)).map(p=>p.report.total);
- const low=Math.min(0,...vals),high=Math.max(0,...vals),span=high-low||1,pad=span*.1;
- const min=low-pad,max=high+pad, y=v=>8+(max-v)/(max-min)*104, x=i=>(i+.5)*640/points.length;
- let path='',open=false;const dots=[];
- points.forEach((p,i)=>{if(!p.report.valid||!Number.isFinite(p.report.total)){open=false;return;}const xx=x(i).toFixed(2),yy=y(p.report.total).toFixed(2);path+=(open?' L':' M')+xx+' '+yy;open=true;dots.push('<circle cx="'+xx+'" cy="'+yy+'" r="2.7" class="'+(p.report.total>=0?'idv1-chart-pos':'idv1-chart-neg')+'"/>');});
- const picked=points.find(p=>p.date===selectedDay)||points[points.length-1];
- const label=T('每日盈亏 · USD','Daily P/L · USD');
- const readout='<div class="idv1-trend-readout" aria-live="polite"><span>'+safe(picked.date)+' · '+safe(selectedSymbol||'Crypto')+'</span><b>'+money(picked.report,'crypto')+'</b></div>';
- const ticks=[max,0,min].map(v=>'<span style="top:'+((y(v)/120)*100).toFixed(2)+'%">'+safe((v<0?'−':'')+'$'+fmt(Math.abs(v),0))+'</span>').join('');
- const hits=points.map((p,i)=>{const v=p.report.valid&&Number.isFinite(p.report.total)?(p.report.total>=0?'+':'−')+'$'+fmt(Math.abs(p.report.total)):'—';const title=safe(p.date+' · '+v);return '<button type="button" class="idv1-chart-hit" data-idv-date="'+p.date+'" aria-label="'+title+'" title="'+title+'" aria-pressed="'+(p.date===selectedDay)+'"></button>';}).join('');
+ const low=Math.min(0,...vals),high=Math.max(0,...vals),span=high-low||1,pad=span*.12;
+ const min=low-pad,max=high+pad,y=v=>8+(max-v)/(max-min)*104,x=i=>(i+.5)*640/points.length;
+ let path='',open=false;const isolated=[];
+ points.forEach((p,i)=>{if(!p.report.valid||!Number.isFinite(p.report.total)){open=false;return;}const xx=x(i).toFixed(2),yy=y(p.report.total).toFixed(2);path+=(open?' L':' M')+xx+' '+yy;open=true;if(!points[i-1]?.report.valid&&!points[i+1]?.report.valid)isolated.push('<circle cx="'+xx+'" cy="'+yy+'" r="1.5" class="'+(p.report.total>=0?'idv1-chart-pos':'idv1-chart-neg')+'"/>');});
+ const picked=points.find(p=>p.date===selectedDay)||points[points.length-1],zero=y(0)/120*100;
+ const levels=[max,(max+min)/2,min,0].sort((a,b)=>b-a).filter((v,i,a)=>!i||Math.abs(y(v)-y(a[i-1]))>9);
+ const ticks=levels.map(v=>'<span style="top:'+((y(v)/120)*100).toFixed(2)+'%">'+safe((v<0?'−':'')+'$'+fmt(Math.abs(v),0))+'</span>').join('');
+ const grid=levels.filter(v=>v!==0).map(v=>'M0 '+y(v).toFixed(2)+'H640').join(' ');
+ const hits=points.map((p,i)=>{const valid=p.report.valid&&Number.isFinite(p.report.total),v=valid?(p.report.total>=0?'+':'−')+'$'+fmt(Math.abs(p.report.total)):'—';return '<button type="button" class="idv1-chart-hit" data-idv-date="'+p.date+'" data-chart-y="'+(valid?(y(p.report.total)/120*100).toFixed(3):'')+'" aria-label="'+safe(p.date+' · '+v)+'" aria-pressed="'+(p.date===selectedDay)+'"></button>';}).join('');
  const labels=[points[0],points[Math.floor((points.length-1)/2)],points[points.length-1]].filter((p,i,a)=>a.indexOf(p)===i).map(p=>'<span>'+safe(p.date.slice(5))+'</span>').join('');
- return '<div class="idv1-trend-meta"><small>'+label+'</small>'+readout+'</div><div class="idv1-plot-wrap"><div class="idv1-plot"><svg aria-hidden="true" viewBox="0 0 640 120" preserveAspectRatio="none"><path class="idv1-chart-grid" d="M0 8H640 M0 112H640"/><path class="idv1-chart-zero" d="M0 '+y(0).toFixed(2)+'H640"/><path class="idv1-chart-line" d="'+path+'"/>'+dots.join('')+'</svg><div class="idv1-chart-hits">'+hits+'</div>'+(!vals.length?'<span class="idv1-chart-empty">'+T('暂无可核实每日盈亏','No verified daily P/L')+'</span>':'')+'</div><div class="idv1-chart-axis">'+ticks+'</div></div><div class="idv1-chart-dates">'+labels+'</div>';
+ const readout='<div class="idv1-trend-readout"><b>'+money(picked.report,'crypto')+'</b><span>'+safe(picked.date)+' · '+safe(selectedSymbol||'Crypto')+'</span></div>';
+ return '<div class="idv1-trend-meta">'+readout+'<small>'+T('每日盈亏 · USD','Daily P/L · USD')+'</small></div><div class="idv1-plot-wrap"><div class="idv1-plot"><svg aria-hidden="true" viewBox="0 0 640 120" preserveAspectRatio="none"><defs><linearGradient id="idv1LineColor" x1="0%" y1="0%" x2="0%" y2="100%" gradientUnits="userSpaceOnUse"><stop offset="'+zero.toFixed(3)+'%" stop-color="var(--uv-positive)"/><stop offset="'+zero.toFixed(3)+'%" stop-color="var(--uv-negative)"/></linearGradient></defs><path class="idv1-chart-grid" d="'+grid+'"/><path class="idv1-chart-zero" d="M0 '+y(0).toFixed(2)+'H640"/><path class="idv1-chart-line" d="'+path+'"/>'+isolated.join('')+'</svg><div class="idv1-chart-hits">'+hits+'</div><div class="idv1-crosshair" hidden aria-hidden="true"><i class="idv1-cross-x"></i><i class="idv1-cross-y"></i><i class="idv1-cross-dot"></i><span class="idv1-cross-date"></span></div><div class="idv1-tooltip" hidden role="tooltip"></div>'+(!vals.length?'<span class="idv1-chart-empty">'+T('暂无可核实每日盈亏','No verified daily P/L')+'</span>':'')+'</div><div class="idv1-chart-axis">'+ticks+'</div></div><div class="idv1-chart-dates">'+labels+'</div>';
+}
+function bindTrend(trend,points){
+ const plot=trend.querySelector('.idv1-plot'),tip=plot.querySelector('.idv1-tooltip'),cross=plot.querySelector('.idv1-crosshair'),hits=[...plot.querySelectorAll('.idv1-chart-hit')];
+ const hide=()=>{tip.hidden=true;cross.hidden=true;};
+ const show=hit=>{
+  const i=hits.indexOf(hit);if(i<0)return;
+  const p=points[i],valid=p.report.valid&&Number.isFinite(p.report.total),px=(i+.5)/points.length*100,py=valid?Number(hit.dataset.chartY):50;
+  const parts=valid?p.report.parts.filter(q=>q.valid&&Number.isFinite(q.pl)).sort((a,b)=>Math.abs(b.pl)-Math.abs(a.pl)):[];
+  const row=(label,value)=>'<div class="idv1-tip-row"><span>'+label+'</span><b>'+value+'</b></div>';
+  tip.innerHTML='<strong>'+safe(p.date)+'</strong>'+row(T('每日盈亏','Daily P/L'),money(p.report,'crypto'))+(valid?row(T('资产数','Assets'),String(parts.length))+parts.slice(0,4).map(q=>row(safe(q.sym),money({valid:true,total:q.pl},'crypto'))).join('')+(parts.length>4?row(T('其他资产','More assets'),String(parts.length-4)):''):'<small>'+T('暂无可核实数据','No verified data')+'</small>');
+  cross.style.setProperty('--cross-x',px+'%');cross.style.setProperty('--cross-y',py+'%');cross.classList.toggle('idv1-cross-missing',!valid);cross.querySelector('.idv1-cross-date').textContent=p.date;
+  cross.hidden=false;tip.hidden=false;
+  const w=plot.clientWidth,h=plot.clientHeight,tw=tip.offsetWidth,th=tip.offsetHeight,left=px*w/100;
+  tip.style.left=Math.max(0,Math.min(w-tw,left+12+tw<=w?left+12:left-tw-12))+'px';
+  tip.style.top=Math.max(0,Math.min(h-th,py*h/100-th/2))+'px';
+ };
+ plot.addEventListener('pointermove',e=>{if(e.pointerType==='touch')return;const hit=e.target.closest('.idv1-chart-hit');if(hit)show(hit);});
+ plot.addEventListener('pointerleave',e=>{if(e.pointerType!=='touch')hide();});
+ plot.addEventListener('focusin',e=>{const hit=e.target.closest('.idv1-chart-hit');if(hit)show(hit);});
+ plot.addEventListener('focusout',e=>{if(!plot.contains(e.relatedTarget))hide();});
+ plot.addEventListener('keydown',e=>{if(e.key==='Escape'){hide();return;}if(e.key==='ArrowLeft'||e.key==='ArrowRight'){const i=hits.indexOf(e.target);if(i>=0){e.preventDefault();hits[Math.max(0,Math.min(hits.length-1,i+(e.key==='ArrowLeft'?-1:1)))].focus({preventScroll:true});}}});
 }
 function draw(){const root=base();if(!root)return;
  const locale=[['.idv1-head h2','Crypto 每日盈亏','Daily Crypto P/L'],['.idv1-head p','逐日核对 Crypto（USD）的盈亏与买卖资金流，Gold 不参与没有可信历史报价的数据计算。','Track Crypto (USD) daily P/L and trade cash flows. Gold is excluded until trustworthy automatic historical pricing is available.'],['.idv1-info-label','每日盈亏说明','About daily P/L'],['.idv1-controls>b','盈亏历史','P/L History'],['[data-idv-days=month]','本月','Month'],['#idv1GoldNotice','Gold 历史金价暂无法自动可靠核实，因此已取消手动录入及 Gold 每日盈亏模块。黄金持仓、市值和累计盈亏仍保留在原有 Invest 总览中；不会删除已有历史金价记录。','Reliable automatic historical Gold (MMK) pricing is not yet available, so manual quote entry and Gold daily P/L have been removed. Existing Gold positions and their portfolio values remain unchanged; old saved quote records are retained.']];
  for(const [selector,zh,en] of locale){const target=root.querySelector(selector);if(target)target.textContent=T(zh,en)}
  for(const [selector,zh,en] of [['[data-idv-refresh]','刷新行情','Refresh prices'],['.idv1-info summary','每日盈亏说明','About daily P/L']]){const b=root.querySelector(selector);if(b){b.title=T(zh,en);b.setAttribute('aria-label',T(zh,en));}}
  for(const [mode,zh,en] of [['history','每日盈亏记录','Daily P/L records'],['assets','币种盈亏明细','Asset P/L details']]){const b=root.querySelector('[data-idv-panel="'+mode+'"]');b.title=T(zh,en);b.setAttribute('aria-label',T(zh,en));b.setAttribute('aria-expanded',String(detailPanel===mode));b.classList.toggle('active',detailPanel===mode);}
- el('idv1History').hidden=detailPanel!=='history';el('idv1Breakdown').hidden=detailPanel!=='assets';
+ const dialog=el('idv1DetailDialog');el('idv1History').hidden=detailPanel!=='history';el('idv1Breakdown').hidden=detailPanel!=='assets';
+ el('idv1DialogTitle').textContent=detailPanel==='history'?T('每日盈亏记录','Daily P/L records'):T('币种盈亏明细','Asset P/L details');
+ dialog.querySelector('[data-idv-close]').setAttribute('aria-label',T('关闭','Close'));
+ if((!currentOwner||!detailPanel)&&dialog.open)dialog.close();
  root.querySelectorAll('[data-idv-days]').forEach(b=>{const active=String(daysView)===b.dataset.idvDays;b.classList.toggle('active',active);b.setAttribute('aria-pressed',String(active));});
  if(!currentOwner){el('idv1Status').hidden=true;el('idv1Summary').innerHTML='';el('idv1Breakdown').innerHTML='';el('idv1History').replaceChildren();el('idv1Trend').textContent=T('请先登录以查看自己的投资记录。','Sign in to see your own investment history.');return;}
  summary();const today=todayLocal(),count=daysView==='month'?Number(today.slice(8,10)):daysView;
@@ -111,7 +141,7 @@ function draw(){const root=base();if(!root)return;
  if(!dates.includes(selectedDay))selectedDay=today;
  const points=dates.map(date=>({date,report:cryptoDaily(date,selectedSymbol||'')}));
  const trend=el('idv1Trend'),focusDate=trend.contains(document.activeElement)?document.activeElement.dataset.idvDate:'';
- trend.innerHTML=trendMarkup(points);if(focusDate)trend.querySelector('[data-idv-date="'+focusDate+'"]')?.focus({preventScroll:true});
+ trend.innerHTML=trendMarkup(points);bindTrend(trend,points);if(focusDate)trend.querySelector('[data-idv-date="'+focusDate+'"]')?.focus({preventScroll:true});
  const rows=[...points].reverse().map(({date,report:cr})=>{return `<tr class="${date===selectedDay?'idv1-highlight':''}"><td><button type="button" class="idv1-date-link" data-idv-date="${date}" aria-label="${T('查看这一天','View day')} ${date}" aria-pressed="${date===selectedDay}">${date}</button></td><td>${money(cr,'crypto')}</td></tr>`;});
  const history=el('idv1History'), previousScroll=history.querySelector('.idv1-table-scroll')?.scrollTop||0;
  history.innerHTML=`<div class="idv1-table-scroll"><table><thead><tr><th>${T('日期','Date')}</th><th>${selectedSymbol?safe(selectedSymbol):'Crypto'} · USD</th></tr></thead><tbody>${rows.join('')}</tbody></table></div>`;
@@ -129,6 +159,7 @@ function draw(){const root=base();if(!root)return;
  breakdown.innerHTML=`<div class="idv1-break-head"><h3>${T('币种盈亏','Asset P/L')}</h3><time datetime="${safe(selectedDay)}">${safe(selectedDay)}</time></div>${sections.join('')}`;
  el('idv1Note').textContent=T('Crypto 每日盈亏使用买卖现金流和手续费修正，并以交易所历史日线及最新报价为参考。缺少行情或交易金额时显示「—」。Gold 未纳入此页的每日盈亏统计；原有持仓信息不受影响。','Crypto daily P/L adjusts for trades and fees using historical exchange bars and fresh quotes. Missing trades or prices show “—”. Gold is excluded from daily P/L here; existing holdings remain unchanged.');
  const s=el('idv1Status');s.textContent=error||'';s.hidden=!error;
+ if(detailPanel&&currentOwner&&!dialog.open)dialog.showModal();
 }
 async function loadCrypto(owner,force){const symbols=[...new Set(accountCrypto().map(x=>String(x.symbol||'').toUpperCase()).filter(x=>/^[A-Z0-9]{2,12}$/.test(x)))];
  const key=zoneParam()+'|'+symbols.sort().join('|');if(!force&&Date.now()-cryptoCache.at<300000&&cryptoCache.key===key)return;

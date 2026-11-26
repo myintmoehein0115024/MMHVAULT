@@ -1,4 +1,4 @@
-/* Invest V2.0.10 Daily P/L — compact daily trend with on-demand history and asset detail. */
+/* Invest V2.0.11 Daily P/L — interactive trend and independent detail dialogs. */
 html body #invest#invest#invest#invest#invest#invest#invest#invest #mmhInvestDailyV1{box-sizing:border-box;display:grid!important;grid-template-columns:minmax(0,1fr) minmax(0,1fr)!important;gap:8px 14px!important;max-width:100%;min-width:0;margin:0!important;padding:10px!important;border:1px solid var(--uv-line)!important;border-radius:8px!important;background:var(--uv-card)!important;color:var(--uv-text)!important;box-shadow:none!important}
 html body #invest#invest#invest#invest#invest#invest#invest#invest #mmhInvestDailyV1 *{box-sizing:border-box;min-width:0}
 html body #invest#invest#invest#invest#invest#invest#invest#invest #mmhInvestDailyV1 > :is(.idv1-head,.idv1-cards,.idv1-info,.idv1-status){grid-column:1/-1!important;margin:0!important;min-width:0}
@@ -81,10 +81,54 @@ html body #invest#invest#invest#invest#invest#invest#invest#invest #mmhInvestDai
 html body #invest#invest#invest#invest#invest#invest#invest#invest #mmhInvestDailyV1 .idv1-chart-hits{position:absolute;inset:0;display:flex;z-index:1}
 html body #invest#invest#invest#invest#invest#invest#invest#invest #mmhInvestDailyV1 .idv1-chart-hit{flex:1;min-width:0!important;width:auto!important;min-height:0!important;height:100%!important;border:0!important;border-radius:0!important;padding:0!important;background:transparent!important;position:relative;cursor:crosshair}
 html body #invest#invest#invest#invest#invest#invest#invest#invest #mmhInvestDailyV1 .idv1-chart-hit:hover,html body #invest#invest#invest#invest#invest#invest#invest#invest #mmhInvestDailyV1 .idv1-chart-hit[aria-pressed=true]{background:transparent!important}
-html body #invest#invest#invest#invest#invest#invest#invest#invest #mmhInvestDailyV1 .idv1-chart-hit:hover::after,html body #invest#invest#invest#invest#invest#invest#invest#invest #mmhInvestDailyV1 .idv1-chart-hit[aria-pressed=true]::after,html body #invest#invest#invest#invest#invest#invest#invest#invest #mmhInvestDailyV1 .idv1-chart-hit:focus-visible::after{content:'';position:absolute;top:0;bottom:0;left:50%;border-left:1px dashed var(--uv-muted);pointer-events:none}
 html body #invest#invest#invest#invest#invest#invest#invest#invest #mmhInvestDailyV1 .idv1-chart-axis{position:relative;color:var(--uv-muted);font-size:10px;font-variant-numeric:tabular-nums}
 html body #invest#invest#invest#invest#invest#invest#invest#invest #mmhInvestDailyV1 .idv1-chart-axis span{position:absolute;right:0;transform:translateY(-50%);white-space:nowrap}
 html body #invest#invest#invest#invest#invest#invest#invest#invest #mmhInvestDailyV1 .idv1-chart-dates{display:flex;justify-content:space-between;padding-right:62px;color:var(--uv-muted);font-size:10px;font-variant-numeric:tabular-nums}
 html body #invest#invest#invest#invest#invest#invest#invest#invest #mmhInvestDailyV1 .idv1-chart-empty{position:absolute;inset:0;display:grid;place-items:center;color:var(--uv-muted);font-size:12px;pointer-events:none}
 html body #invest#invest#invest#invest#invest#invest#invest#invest #mmhInvestDailyV1 .idv1-history:not([hidden]){border-top:1px solid var(--uv-line)!important;padding-top:5px!important}
 @media(max-width:760px){html body #invest#invest#invest#invest#invest#invest#invest#invest #mmhInvestDailyV1 .idv1-view-icon{width:44px!important;min-height:44px!important}html body #invest#invest#invest#invest#invest#invest#invest#invest #mmhInvestDailyV1 .idv1-plot{height:144px}html body #invest#invest#invest#invest#invest#invest#invest#invest #mmhInvestDailyV1 .idv1-toolbar{max-width:100%}}
+
+/* Independent detail dialogs: no inline expansion of the chart. */
+html body #invest#invest#invest#invest#invest#invest#invest#invest #mmhInvestDailyV1 .idv1-dialog{position:fixed!important;inset:0!important;margin:auto!important;width:min(480px,calc(100vw - 28px))!important;max-width:none!important;height:fit-content!important;max-height:min(70dvh,540px)!important;padding:12px!important;overflow:auto!important;overscroll-behavior:contain;background:var(--uv-card)!important;color:var(--uv-text)!important;border:1px solid var(--uv-line)!important;border-radius:10px!important;box-shadow:0 12px 36px #0004!important;box-sizing:border-box!important}
+html body #invest#invest#invest#invest#invest#invest#invest#invest #mmhInvestDailyV1 .idv1-dialog:not([open]){display:none!important}
+html body #invest#invest#invest#invest#invest#invest#invest#invest #mmhInvestDailyV1 .idv1-dialog::backdrop{background:#0005}
+html body #invest#invest#invest#invest#invest#invest#invest#invest #mmhInvestDailyV1 .idv1-dialog-head{display:flex;align-items:center;justify-content:space-between;gap:12px;padding-bottom:8px;border-bottom:1px solid var(--uv-line);position:sticky;top:0;z-index:3;background:var(--uv-card)}
+html body #invest#invest#invest#invest#invest#invest#invest#invest #mmhInvestDailyV1 .idv1-dialog-head h3{font-size:15px!important;margin:0!important;color:var(--uv-text)!important}
+html body #invest#invest#invest#invest#invest#invest#invest#invest #mmhInvestDailyV1 .idv1-dialog-head button{width:32px!important;min-height:32px!important;font-size:22px!important;padding:0!important}
+html body #invest#invest#invest#invest#invest#invest#invest#invest #mmhInvestDailyV1 .idv1-dialog-body{padding-top:8px}
+html body #invest#invest#invest#invest#invest#invest#invest#invest #mmhInvestDailyV1 .idv1-dialog #idv1History:not([hidden]){border:0!important;padding:0!important}
+html body #invest#invest#invest#invest#invest#invest#invest#invest #mmhInvestDailyV1 .idv1-dialog #idv1Breakdown:not([hidden]){border:0!important;padding:0!important}
+html body #invest#invest#invest#invest#invest#invest#invest#invest #mmhInvestDailyV1 .idv1-dialog .idv1-table-scroll{max-height:min(48dvh,370px)!important}
+html body #invest#invest#invest#invest#invest#invest#invest#invest #mmhInvestDailyV1 .idv1-dialog .idv1-break-head h3{display:none!important}
+html body #invest#invest#invest#invest#invest#invest#invest#invest #mmhInvestDailyV1 .idv1-trend{border:1px solid var(--uv-line);border-radius:8px;padding:10px;gap:8px;background:var(--uv-card)}
+html body #invest#invest#invest#invest#invest#invest#invest#invest #mmhInvestDailyV1 .idv1-trend-readout{justify-content:flex-start!important;gap:9px!important}
+html body #invest#invest#invest#invest#invest#invest#invest#invest #mmhInvestDailyV1 .idv1-trend-readout b{font-size:clamp(19px,2vw,25px)!important;line-height:1.15}
+html body #invest#invest#invest#invest#invest#invest#invest#invest #mmhInvestDailyV1 .idv1-plot{height:clamp(210px,24vw,320px)!important;touch-action:pan-y}
+html body #invest#invest#invest#invest#invest#invest#invest#invest #mmhInvestDailyV1 .idv1-chart-line{stroke:url(#idv1LineColor)!important;stroke-width:1.5;vector-effect:non-scaling-stroke}
+html body #invest#invest#invest#invest#invest#invest#invest#invest #mmhInvestDailyV1 .idv1-chart-grid{stroke-dasharray:none;opacity:.45}
+html body #invest#invest#invest#invest#invest#invest#invest#invest #mmhInvestDailyV1 .idv1-chart-hit:focus-visible{outline:none!important}
+html body #invest#invest#invest#invest#invest#invest#invest#invest #mmhInvestDailyV1 .idv1-crosshair{position:absolute;inset:0;z-index:2;pointer-events:none;color:var(--uv-muted)}
+html body #invest#invest#invest#invest#invest#invest#invest#invest #mmhInvestDailyV1 .idv1-cross-x{position:absolute;left:var(--cross-x);top:0;bottom:0;border-left:1px dashed currentColor}
+html body #invest#invest#invest#invest#invest#invest#invest#invest #mmhInvestDailyV1 .idv1-cross-y{position:absolute;top:var(--cross-y);left:0;right:0;border-top:1px dashed currentColor}
+html body #invest#invest#invest#invest#invest#invest#invest#invest #mmhInvestDailyV1 .idv1-cross-dot{position:absolute;left:var(--cross-x);top:var(--cross-y);transform:translate(-50%,-50%);width:8px;height:8px;border:2px solid var(--uv-text);border-radius:50%;background:var(--uv-card)}
+html body #invest#invest#invest#invest#invest#invest#invest#invest #mmhInvestDailyV1 .idv1-cross-missing :is(.idv1-cross-y,.idv1-cross-dot){display:none}
+html body #invest#invest#invest#invest#invest#invest#invest#invest #mmhInvestDailyV1 .idv1-cross-date{position:absolute;bottom:0;left:clamp(44px,var(--cross-x),calc(100% - 44px));transform:translateX(-50%);background:var(--uv-raised);border:1px solid var(--uv-line);border-radius:4px;padding:2px 5px;white-space:nowrap;font-size:10px;color:var(--uv-text)}
+html body #invest#invest#invest#invest#invest#invest#invest#invest #mmhInvestDailyV1 .idv1-tooltip{position:absolute;z-index:3;pointer-events:none;width:min(196px,100%);padding:10px;background:var(--uv-card);border:1px solid var(--uv-line);border-radius:8px;box-shadow:0 5px 18px #0003;font-size:11px;color:var(--uv-text);font-variant-numeric:tabular-nums}
+html body #invest#invest#invest#invest#invest#invest#invest#invest #mmhInvestDailyV1 .idv1-tooltip strong{display:block;font-size:12px;margin-bottom:6px}
+html body #invest#invest#invest#invest#invest#invest#invest#invest #mmhInvestDailyV1 .idv1-tooltip small{color:var(--uv-muted)}
+html body #invest#invest#invest#invest#invest#invest#invest#invest #mmhInvestDailyV1 .idv1-tip-row{display:flex;justify-content:space-between;align-items:center;gap:6px;padding:3px 0}
+html body #invest#invest#invest#invest#invest#invest#invest#invest #mmhInvestDailyV1 .idv1-tip-row>span{color:var(--uv-muted);overflow-wrap:anywhere}
+html body #invest#invest#invest#invest#invest#invest#invest#invest #mmhInvestDailyV1 .idv1-tip-row>b{white-space:nowrap}
+@media(max-width:760px){html body #invest#invest#invest#invest#invest#invest#invest#invest #mmhInvestDailyV1 .idv1-plot{height:210px!important}
+html body #invest#invest#invest#invest#invest#invest#invest#invest #mmhInvestDailyV1 .idv1-dialog-head button{width:44px!important;min-height:44px!important}
+html body #invest#invest#invest#invest#invest#invest#invest#invest #mmhInvestDailyV1 .idv1-trend{padding:6px}
+html body #invest#invest#invest#invest#invest#invest#invest#invest #mmhInvestDailyV1 .idv1-tooltip{width:min(166px,100%);padding:6px}
+}
+/* Desktop Invest only: eliminate legacy exposed root canvas at the end of the workspace. Preserve mobile viewport/nav rules. */
+@media(min-width:1100px),(min-width:900px) and (hover:hover) and (pointer:fine){
+html:has(body.mmh-workspace-active:not(.auth-page-active) #invest.active){background:#19212e!important;background-image:none!important}
+html:has(body.light.mmh-workspace-active:not(.auth-page-active) #invest.active){background:#f2f5fa!important}
+html body.mmh-workspace-active:not(.auth-page-active):has(#invest#invest#invest.active){background:var(--uv-bg,#19212e)!important;background-image:none!important}
+html body.mmh-workspace-active:not(.auth-page-active):has(#invest#invest#invest.active)::before,html body.mmh-workspace-active:not(.auth-page-active):has(#invest#invest#invest.active)::after{background:none!important;content:none!important}
+html body.mmh-workspace-active:not(.auth-page-active):has(#invest#invest#invest.active) main.wrap.wrap.wrap.wrap.wrap.wrap.wrap{background:var(--uv-bg,#19212e)!important;background-image:none!important;min-height:100dvh!important;box-sizing:border-box!important}
+}
