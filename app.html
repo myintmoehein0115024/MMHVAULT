@@ -10940,7 +10940,7 @@ html.mmh-desktop-compact-v11110 body.mmh-workspace-active #moreNavMenu.more-nav-
 <link rel="stylesheet" href="css/mmhvault-invest-auto-v19.css?v=1.9.0">
 <link rel="stylesheet" href="css/mmhvault-invest-auto-pnl-v110.css?v=1.10.0">
 <link rel="stylesheet" href="css/mmhvault-invest-auto-pnl-v111.css?v=1.11.0">
-<link rel="stylesheet" href="css/mmhvault-invest-workspace-v2.css?v=2.0.13">
+<link rel="stylesheet" href="css/mmhvault-invest-workspace-v2.css?v=2.0.14-r2">
 <link rel="stylesheet" href="css/mmhvault-report-period-v201.css?v=2.01.0" />
 </head>
 <!-- MMHVAULT V4.3.6 · iOS JSON import bridge + V4.3.0 Dashboard report relocation + Transaction receipt center + Invest Add precision -->
@@ -12419,6 +12419,56 @@ html.mmh-desktop-compact-v11110 body.mmh-workspace-active #moreNavMenu.more-nav-
   const typeTone=type=>String(type).toUpperCase()==='CRYPTO'?'mmh-asset-crypto':String(type).toUpperCase()==='GOLD'?'mmh-asset-gold':'mmh-asset-custom-'+([...String(type).toUpperCase()].reduce((sum,c)=>sum+c.charCodeAt(0),0)%5);
   const field=(title,value,sub='',kind='')=>'<div class="mmh-overview-field '+kind+'"><small>'+title+'</small><b>'+value+'</b>'+(sub?'<em>'+sub+'</em>':'')+'</div>';
   const valid=v=>v!==null&&v!==undefined&&v!==''&&Number.isFinite(Number(v));
+  function nativeOverview(rows,ready,quote,moves=[]){
+ const eps=1e-9, finite=x=>x!==null&&x!==undefined&&x!==''&&typeof x!=='boolean'&&Number.isFinite(Number(x)), sym=x=>String(x??'').trim().toUpperCase(), missing=()=>({cost:null,value:null,unreal:null,realized:null,total:null});
+ const result={Crypto:missing(),Gold:missing()};if(!ready||!Array.isArray(rows)||!Array.isArray(moves))return result;
+ const order=(a,b)=>String(a.inv_date??'').localeCompare(String(b.inv_date??''))||(finite(a.id)&&finite(b.id)?Number(a.id)-Number(b.id):String(a.created_at??'').localeCompare(String(b.created_at??''))||String(a.id??'').localeCompare(String(b.id??'')));
+ const linked=new Map();let invalidWallet=false;
+ for(const m of moves){
+  if(!m||!finite(m.fee_quantity)||Number(m.fee_quantity)<0){invalidWallet=true;continue;}
+  if(Number(m.fee_quantity)===0)continue;
+  const s=sym(m.fee_asset_symbol||m.asset_symbol);
+  if(s==='USDT')continue; // USDT wallet fees debit the cash account, not an investment disposal.
+  const id=String(m.fee_investment_id??'');
+  if(!s||!id||linked.has(id)){invalidWallet=true;continue;}
+  linked.set(id,{symbol:s,quantity:Number(m.fee_quantity)});
+ }
+ for(const asset of ['Crypto','Gold']){
+  const rr=rows.filter(x=>x?.asset===asset).slice().sort(order), groups=new Map(),seen=new Set(),matched=new Set();let bad=asset==='Crypto'&&invalidWallet;
+  for(const x of rr){
+   const symbol=asset==='Gold'?'GOLD':sym(x.symbol),id=String(x.id??''),currency=sym(x.currency);
+   const weight=asset==='Gold'&&finite(x.weight_kyattha)&&Number(x.weight_kyattha)!==0?x.weight_kyattha:x.quantity;
+   if(!symbol||!finite(weight)||Number(weight)===0||!finite(x.amount)||!finite(x.fee)||!finite(x.other_cost)||!/^\d{4}-\d{2}-\d{2}$/.test(String(x.inv_date??''))||(id&&seen.has(id))||(currency&&currency!==(asset==='Gold'?'MMK':'USD'))){bad=true;break;}
+   if(id)seen.add(id);
+   const side=sym(x.side||x.trade_type),raw=Number(weight),amt=Number(x.amount),sell=side==='SELL'||(!side&&raw<0),q=sell?-Math.abs(raw):raw,fees=Math.abs(Number(x.fee))+Math.abs(Number(x.other_cost));
+   if((side&&side!=='SELL'&&side!=='BUY')||(!sell&&(raw<=0||amt<0))||(sell&&side==='BUY')){bad=true;break;}
+   const p=groups.get(symbol)||{qty:0,cost:0,realized:0};
+   const link=asset==='Crypto'?linked.get(id):null,feeNote=asset==='Crypto'&&/^Wallet (?:Gas|Network) Fee:/i.test(String(x.note??''));
+   if(feeNote&&!link){bad=true;break;}
+   if(link){if(q>=0||link.symbol!==symbol||Math.abs(-q-link.quantity)>eps||fees!==0){bad=true;break;}matched.add(id);}
+   if(q>0){p.qty+=q;p.cost+=Math.abs(amt)+fees;}
+   else{
+    const sold=-q;
+    if(p.qty<=0||sold>p.qty+eps){bad=true;break;}
+    const allocated=p.cost*Math.min(sold,p.qty)/p.qty;
+    // Network-fee disposal yields no cash; count its cost basis once, not the linked movement again.
+    const proceeds=link?0:Math.abs(amt);
+    p.realized+=proceeds-fees-allocated;p.qty-=sold;p.cost-=allocated;
+    if(Math.abs(p.qty)<=eps){p.qty=0;p.cost=0;}
+   }
+   if(![p.qty,p.cost,p.realized].every(Number.isFinite)){bad=true;break;}
+   groups.set(symbol,p);
+  }
+  if(asset==='Crypto'&&matched.size!==linked.size)bad=true;
+  if(bad)continue;
+  let cost=0,value=0,realized=0,priceMissing=false;
+  for(const [symbol,p] of groups){cost+=p.cost;realized+=p.realized;if(p.qty>0){const price=quote(asset,symbol);if(!finite(price)||Number(price)<=0)priceMissing=true;else value+=p.qty*Number(price);}}
+  if(!Number.isFinite(cost)||!Number.isFinite(realized))continue;
+  const known=!priceMissing&&Number.isFinite(value),unreal=known?value-cost:null,total=known?realized+unreal:null;
+  result[asset]={cost,value:known?value:null,unreal:known&&Number.isFinite(unreal)?unreal:null,realized,total:known&&Number.isFinite(total)?total:null};
+ }
+ return result;
+}
   function overviewData(){
     const records=Array.isArray(window.investments)?window.investments:[];
     const live=window.livePrices||(typeof livePrices!=='undefined'?livePrices:{}),fx=num(window.rates?.usd_mmk||(typeof rates!=='undefined'?rates?.usd_mmk:0));
@@ -12446,7 +12496,7 @@ html.mmh-desktop-compact-v11110 body.mmh-workspace-active #moreNavMenu.more-nav-
     if(!el('mmhUnifiedKpisV1'))return;
     const top=el('mmhUnifiedKpisV1').closest('.mmh-ui-panel'),holdings=el('mmhUnifiedListV1')?.closest('.mmh-ui-panel');
     const heading=(panel,title,subtitle)=>{if(!panel)return;const h=panel.querySelector('h2'),p=panel.querySelector('.mmh-ui-heading p');if(h){h.textContent=title;h.dataset.i18nBase=title;}if(p){p.textContent=subtitle;p.dataset.i18nBase=subtitle;}};
-    heading(top,L('投资总览','Investment overview'),L('当前持仓与历史卖出分开统计','Current holdings and past sales, shown separately'));
+    heading(top,(/^(my|mm)/i.test(String(window.getMMHVAULTLanguage?.()||document.documentElement.lang||''))?'ရင်းနှီးမြှုပ်နှံမှု အနှစ်ချုပ်':L('投资总览','Investment overview')),L('当前持仓与历史卖出分开统计','Current holdings and past sales, shown separately'));
     heading(holdings,L('当前持仓','Current holdings'),L('筛选后查看各项目的数量、成本与估值','Filter positions to see quantity, cost and value'));
     const data=overviewData(),active=data.cryptos.filter(x=>x.quantity>1e-12),goldActive=data.gold.quantity>0;
     const valued=[...active,...(goldActive?[data.gold]:[])],unpriced=valued.some(x=>!x.priceKnown),unconverted=goldActive&&!(data.fx>0);
@@ -12455,14 +12505,23 @@ html.mmh-desktop-compact-v11110 body.mmh-workspace-active #moreNavMenu.more-nav-
     const cost=costReady?valued.reduce((sum,x)=>sum+x.cost*toUSD(x),0):null;
     const value=complete?valued.reduce((sum,x)=>sum+x.quantity*x.price*toUSD(x),0):null;
     const unreal=complete?value-cost:null,roi=complete&&cost>0?unreal/cost*100:null;
-    const cryptoRealized=data.cryptos.reduce((sum,x)=>sum+x.realized,0);
-    const realized='<span class="'+tone(cryptoRealized)+'">'+L('加密资产','Crypto')+' '+signed(cryptoRealized,'USD')+'</span>'+(data.hasGold?'<span class="'+tone(data.gold.realized)+'">'+L('黄金','Gold')+' '+signed(data.gold.realized,'MMK')+'</span>':'');
-    const scope=unconverted?L('黄金缺少换算汇率','Gold exchange rate unavailable'):L('持仓缺少估值价格','Position price unavailable');
-    const box=(title,val,hint,tone='')=>'<div class="mmh-ui-kpi"><span>'+title+'</span><strong class="'+tone+'">'+val+'</strong><small>'+hint+'</small></div>';
-    el('mmhUnifiedKpisV1').innerHTML=box(L('持仓成本','Holding cost'),costReady?cash(cost,'USD'):L('暂无法换算','Conversion unavailable'),costReady?L('当前剩余持仓 · USD','Open positions · USD'):scope)+
-      box(L('持仓价值','Holding value'),complete?cash(value,'USD'):L('暂无法估值','Valuation unavailable'),complete?L('当前持仓 · USD','Open positions · USD'):scope)+
-      box(L('未实现盈亏','Unrealized P/L'),complete?signed(unreal,'USD'):'—',complete?(roi===null?L('回报率未提供','Return unavailable'):L('回报率 ','Return ')+(roi>0?'+':roi<0?'−':'')+number(Math.abs(roi))+'%'):scope,complete?tone(unreal):'mmh-pl-flat')+
-      box(L('卖出已实现盈亏','Realized P/L from sales'),realized,L('历史卖出 · 按原币种','Past sales · original currencies'));
+    // Native-currency metrics; allocation below retains its existing USD-only visualization.
+    const uiLang=(()=>{const l=String(window.getMMHVAULTLanguage?.()||document.documentElement.lang||'en').toLowerCase();return /^zh/.test(l)?0:/^(my|mm)/.test(l)?2:1;})();
+    const tr=(cn,en,my)=>[cn,en,my][uiLang];
+    const owner=typeof currentSessionUser!=='undefined'?currentSessionUser?.id:null;
+    const records=window.investments;
+    const nativeReady=!!owner&&window.mmhWalletDataOwnerV191===owner&&Array.isArray(records)&&records.every(x=>x?.user_id===owner)&&Array.isArray(window.mmhWalletMovementsV174)&&window.mmhWalletMovementsV174.every(x=>x?.user_id===owner);
+    const native=nativeOverview(records,nativeReady,(asset,symbol)=>asset==='Gold'?data.gold.price:data.cryptos.find(x=>String(x.name).trim().toUpperCase()===symbol)?.price,window.mmhWalletMovementsV174);
+    const metrics=[['cost',tr('持仓成本','Holding Cost','လက်ရှိပိုင်ဆိုင်မှု ကုန်ကျစရိတ်')],['value',tr('持仓价值','Holding Value','လက်ရှိပိုင်ဆိုင်မှု တန်ဖိုး')],['unreal',tr('未实现盈亏','Unrealized P/L','မရရှိသေးသော အမြတ်/အရှုံး')],['realized',tr('已实现盈亏','Realized P/L','ရရှိပြီးသော အမြတ်/အရှုံး')],['total',tr('累计综合盈亏','Total P/L','စုစုပေါင်း အမြတ်/အရှုံး')]];
+    const unknown=tr('缺少价格或有效记录，无法确认','Price or valid ledger data unavailable','ဈေးနှုန်း သို့မဟုတ် မှန်ကန်သော မှတ်တမ်း မရှိပါ');
+    const cell=(metric,asset,cur)=>{const n=native[asset][metric],isPL=['unreal','realized','total'].includes(metric);return '<td class="'+(n===null?'mmh-pl-flat':isPL?tone(n):'mmh-pl-flat')+'"'+(n===null?' title="'+safe(unknown)+'" aria-label="'+safe(unknown)+'"':'')+'>'+(n===null?'—':isPL?signed(n,cur):cash(n,cur))+'</td>';};
+    const table='<table class="mmh-native-kpi-v214"><thead><tr><th scope="col">'+safe(tr('投资指标','Metric','ရင်းနှီးမြှုပ်နှံမှု'))+'</th><th scope="col">'+safe(tr('加密资产','Crypto','Crypto'))+' · USD</th><th scope="col">'+safe(tr('黄金','Gold','ရွှေ'))+' · MMK</th></tr></thead><tbody>'+metrics.map(([key,label])=>'<tr'+(key==='total'?' class="mmh-native-total-v214"':'')+'><th scope="row">'+safe(label)+'</th>'+cell(key,'Crypto','USD')+cell(key,'Gold','MMK')+'</tr>').join('')+'</tbody></table>';
+    const note=tr('累计盈亏 = 已实现 + 未实现；估值使用现有行情或记录价格。— 表示数据不足。','Total P/L = realized + unrealized; valuations use existing quotes or recorded prices. — means unavailable.','စုစုပေါင်း = ရရှိပြီး + မရရှိသေးသော အမြတ်/အရှုံး။ ရှိပြီးသား ဈေးနှုန်းများကို အသုံးပြုသည်။ — ဒေတာမပြည့်စုံပါ။');
+    // Retain the pre-existing aggregate unrealized return in USD, without adding currencies to Total P/L.
+    const aggregateReturn=roi!==null&&Number.isFinite(roi)?(roi>0?'+':roi<0?'−':'')+number(Math.abs(roi))+'%':'—';
+    const returnLabel=tr('整体持仓回报率 · USD','Portfolio Return · USD','စုစုပေါင်း ပိုင်ဆိုင်မှု ပြန်ရနှုန်း · USD');
+    const returnRow='<div class="mmh-native-roi-v214"><span>'+safe(returnLabel)+'</span><b class="'+(roi!==null&&Number.isFinite(roi)?tone(roi):'mmh-pl-flat')+'">'+safe(aggregateReturn)+'</b></div>';
+    el('mmhUnifiedKpisV1').innerHTML=table+returnRow+'<div class="mmh-native-note-v214">'+safe(note)+'</div>';
     const allocation=complete?valued.map(x=>{
       const percent=value?x.quantity*x.price*toUSD(x)/value*100:null;
       return '<div class="mmh-mix-card"><div class="mmh-mix-label"><b>'+safe(x.name)+'</b><span>'+(percent===null?'—':number(percent))+'%</span></div><div class="mmh-mix-track" role="img" aria-label="'+safe(x.name)+' '+(percent===null?'—':number(percent))+'%"><span style="width:'+Math.max(0,Math.min(100,percent||0))+'%"></span></div></div>';
@@ -35294,10 +35353,10 @@ html body.mmh-workspace-active #moreNavMenu .mmh-more-list-v153:focus-visible{ou
 @media(max-width:620px){#mmhInvestSnapshotsV18 .is18-head,#mmhInvestAutoV19 .iv19-head{flex-wrap:wrap}#mmhInvestSnapshotsV18 .is18-head>[data-is18-reload],#mmhInvestAutoV19 .iv19-head>[data-iv19-refresh]{margin-top:4px}}
 </style>
 <script src="js/mmhvault-invest-daily-v1.js?v=2.0.12" defer></script>
-<script src="js/mmhvault-invest-guidance-v12.js?v=1.2.0" defer></script>
-<script src="js/mmhvault-invest-watch-v13.js?v=2.0.1" defer></script>
-<script src="js/mmhvault-invest-risk-v14.js?v=1.4.0" defer></script>
-<script src="js/mmhvault-invest-plans-v15.js?v=1.5.0" defer></script>
+<script src="js/mmhvault-invest-guidance-v12.js?v=2.0.14-r1" defer></script>
+<script src="js/mmhvault-invest-watch-v13.js?v=2.0.14-r3" defer></script>
+<script src="js/mmhvault-invest-risk-v14.js?v=2.0.14-r1" defer></script>
+<script src="js/mmhvault-invest-plans-v15.js?v=2.0.14-r3" defer></script>
 <script src="js/mmhvault-invest-drawdown-v16.js?v=2.0.1" defer></script>
 <script src="js/mmhvault-invest-snapshots-v18.js?v=1.8.0" defer></script>
 <script src="js/mmhvault-invest-auto-v19.js?v=1.9.0" defer></script>

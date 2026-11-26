@@ -7,7 +7,75 @@ if(window.__mmhInvestPlansV15)return;window.__mmhInvestPlansV15=true;
 const $=id=>document.getElementById(id), TABLE='invest_risk_plans_v15',LIMIT=100,MAX_SAVED=50;
 const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const zh=()=>{try{return window.getMMHVAULTLanguage?.()==='zh'||document.documentElement.lang?.toLowerCase().startsWith('zh')}catch(_){return false}};
-const T=(cn,en)=>zh()?cn:en;
+const locale=()=>{try{const s=String(window.getMMHVAULTLanguage?.()||document.documentElement.lang||'');return /^(my|mm)(?:[-_]|$)/i.test(s)?'my':zh()?'zh':'en'}catch(_){return 'en'}};
+const MY={
+ "Confirmation is unavailable. Reopen the page.": "အတည်ပြုရန် ဝင်းဒိုး မရရှိပါ။ စာမျက်နှာ ပြန်ဖွင့်ပါ။",
+ "staged scenario": "အဆင့်လိုက် နမူနာအစီအစဉ်",
+ "Run the staged-buy calculator above before saving this scenario.": "ဤအစီအစဉ်ကို မသိမ်းမီ အထက်ရှိ အဆင့်လိုက် တွက်ချက်စက်ကို အသုံးပြုပါ။",
+ "Quotes are missing or stale. This scenario cannot be captured.": "ဈေးနှုန်း မရှိပါ သို့မဟုတ် ဟောင်းနေပါသည်။ ဤအစီအစဉ်ကို မှတ်တမ်းတင်၍ မရပါ။",
+ "Selected holding changed. Run the model again.": "ရွေးထားသော ပိုင်ဆိုင်မှု ပြောင်းသွားပါသည်။ ပြန်လည်တွက်ချက်ပါ။",
+ "Inputs or data have changed. Recalculate first.": "ထည့်သွင်းချက် သို့မဟုတ် ဒေတာ ပြောင်းသွားပါသည်။ အရင်ပြန်တွက်ပါ။",
+ "Staged-buy model is not available.": "အဆင့်လိုက် တွက်ချက်စက် မရရှိပါ။",
+ "Data cannot be verified.": "ဒေတာ အတည်မပြုနိုင်ပါ။",
+ "Concentration review needs complete, fresh crypto quotes and reconciled positions. Missing data is not estimated.": "စုစည်းမှု စစ်ဆေးရန် ပြည့်စုံပြီး အသစ်ဖြစ်သော Crypto ဈေးနှုန်းနှင့် ကိုက်ညီသော ပိုင်ဆိုင်မှုများ လိုအပ်သည်။ မရှိသော ဒေတာကို မခန့်မှန်းပါ။",
+ "Single-coin concentration is high. Review your allocation limits.": "Crypto တစ်မျိုးတည်း စုစည်းမှု မြင့်နေပါသည်။ သင့်အချိုးကန့်သတ်ချက်များ စစ်ဆေးပါ။",
+ "Top weight exceeds a 35% reference line. This is a risk flag, not a trade instruction.": "အမြင့်ဆုံးအချိုးသည် 35% ရည်ညွှန်းချက်ထက် ကျော်နေသည်။ အန္တရာယ် သတိပေးချက်သာဖြစ်ပြီး အရောင်းအဝယ် ညွှန်ကြားချက် မဟုတ်ပါ။",
+ "Top weight is below the 35% reference line. Consider other assets and your risk capacity too.": "အမြင့်ဆုံးအချိုးသည် 35% အောက်တွင် ရှိသည်။ အခြားပိုင်ဆိုင်မှုများနှင့် သင့်အန္တရာယ်ခံနိုင်ရည်ကိုလည်း စဉ်းစားပါ။",
+ "Crypto value": "Crypto တန်ဖိုး",
+ "Largest coin weight": "အကြီးဆုံး Crypto အချိုး",
+ "Top-three weight": "အကြီးဆုံး သုံးမျိုး အချိုး",
+ "Weights cover crypto only, not Gold, cash or other assets.": "အချိုးများသည် Crypto အတွက်သာ ဖြစ်ပြီး ရွှေ၊ ငွေသားနှင့် အခြားပိုင်ဆိုင်မှုများ မပါဝင်ပါ။",
+ "Confirm scenario snapshot": "နမူနာအစီအစဉ် မှတ်တမ်း အတည်ပြုရန်",
+ "Captured quote": "မှတ်တမ်းတင်ထားသော ဈေးနှုန်း",
+ "Hypothetical budget": "နမူနာ ဘတ်ဂျက်",
+ "Projected average": "ခန့်မှန်း ပျမ်းမျှကုန်ကျစရိတ်",
+ "Projected weight": "ခန့်မှန်း အချိုး",
+ "Warning: scenario exceeds your weight cap. Saved as a risk scenario only.": "သတိပေးချက် - အစီအစဉ်သည် သင့်အချိုး ကန့်သတ်ချက် ကျော်လွန်သည်။ အန္တရာယ် နမူနာအဖြစ်သာ သိမ်းမည်။",
+ "This is a dated hypothetical scenario and will not update with markets.": "ဤသည်မှာ ရက်စွဲပါ နမူနာအစီအစဉ်ဖြစ်ပြီး ဈေးကွက်နှင့်အတူ အလိုအလျောက် မပြောင်းလဲပါ။",
+ "Confirm save": "သိမ်းရန် အတည်ပြုပါ",
+ "Cancel": "ပယ်ဖျက်ရန်",
+ "Sign in first.": "အရင် ဝင်ရောက်ပါ။",
+ "Confirm or cancel the pending snapshot first.": "စောင့်ဆိုင်းနေသော မှတ်တမ်းကို အရင် အတည်ပြုပါ သို့မဟုတ် ပယ်ဖျက်ပါ။",
+ "Cannot generate secure request ID in this browser.": "ဤ browser တွင် လုံခြုံသော တောင်းဆိုမှု ID မဖန်တီးနိုင်ပါ။",
+ "Review the scenario before saving.": "မသိမ်းမီ အစီအစဉ် စစ်ဆေးပါ။",
+ "Supabase is unavailable.": "Supabase မရရှိနိုင်ပါ။",
+ "Login changed. Reopen the page.": "ဝင်ရောက်မှု ပြောင်းသွားပါသည်။ စာမျက်နှာ ပြန်ဖွင့်ပါ။",
+ "Cloud plans must load completely before saving. Refresh and retry.": "မသိမ်းမီ Cloud အစီအစဉ်များကို အပြည့်အဝ ရယူရပါမည်။ ပြန်လည်ရယူပြီး ထပ်စမ်းပါ။",
+ "Quote or model changed. Discard and rerun the scenario.": "ဈေးနှုန်း သို့မဟုတ် တွက်ချက်မှု ပြောင်းလဲသွားပါသည်။ ပယ်ဖျက်ပြီး ပြန်တွက်ပါ။",
+ "Limit of 50 planning snapshots. Review older records.": "အစီအစဉ်မှတ်တမ်း အများဆုံး ၅၀ ခု။ မှတ်တမ်းဟောင်းများ စစ်ဆေးပါ။",
+ "Scenario saved. No trade was executed.": "အစီအစဉ် သိမ်းဆည်းပြီးပါပြီ။ အရောင်းအဝယ် မလုပ်ခဲ့ပါ။",
+ "Earlier save confirmed; no duplicate created.": "ယခင်သိမ်းဆည်းမှု အတည်ပြုပြီးပါပြီ။ ထပ်နေသော မှတ်တမ်း မဖန်တီးခဲ့ပါ။",
+ "Save outcome unknown. Same request ID retained for safe retry; do not change the model.": "သိမ်းဆည်းမှုရလဒ် မသိရသေးပါ။ လုံခြုံစွာ ပြန်စမ်းရန် တူညီသော တောင်းဆိုမှု ID ကို ထိန်းထားသည်။ တွက်ချက်မှု မပြောင်းပါနှင့်။",
+ "Too many records; refusing an incomplete list.": "မှတ်တမ်း များလွန်းသဖြင့် မပြည့်စုံသော စာရင်းကို မပြပါ။",
+ "Cannot read saved plans: ": "သိမ်းထားသော အစီအစဉ်များ မရယူနိုင်ပါ - ",
+ "Sign in to view your saved private scenarios.": "ကိုယ်ပိုင် သိမ်းထားသော အစီအစဉ်များ ကြည့်ရန် ဝင်ရောက်ပါ။",
+ "Loading planning snapshots…": "အစီအစဉ်မှတ်တမ်းများ ရယူနေပါသည်…",
+ "No saved scenarios yet. Calculate above, then capture a snapshot.": "သိမ်းထားသော အစီအစဉ် မရှိသေးပါ။ အထက်တွင် တွက်ချက်ပြီး မှတ်တမ်းတင်ပါ။",
+ "Saved quote": "သိမ်းထားသော ဈေးနှုန်း",
+ "Scenario budget": "အစီအစဉ် ဘတ်ဂျက်",
+ "Saved basis/qty": "သိမ်းထားသော ကုန်ကျစရိတ် / ပမာဏ",
+ "Stored snapshot needs review": "သိမ်းထားသော မှတ်တမ်းကို စစ်ဆေးရန် လိုအပ်သည်",
+ "tranches": "အဆင့်",
+ "Archived": "သိမ်းဆည်းစာရင်းသို့ ရွှေ့ထားသည်",
+ "Draft": "မူကြမ်း",
+ "Historical what-if inputs, not today’s valuation, verified available cash, or an executed trade.": "သမိုင်းဝင် နမူနာတွက်ချက်ချက်များသာ ဖြစ်ပြီး ယနေ့တန်ဖိုး၊ အတည်ပြုထားသော ရရှိနိုင်ငွေ သို့မဟုတ် ပြုလုပ်ပြီးသော အရောင်းအဝယ် မဟုတ်ပါ။",
+ "Restore": "ပြန်ယူရန်",
+ "Archive": "သိမ်းဆည်းစာရင်းသို့ ရွှေ့ရန်",
+ "Delete": "ဖျက်ရန်",
+ "Another device changed this plan. Refresh.": "အခြားစက်တွင် ဤအစီအစဉ်ကို ပြောင်းထားသည်။ ပြန်လည်ရယူပါ။",
+ "Plan status updated.": "အစီအစဉ် အခြေအနေ ပြောင်းလဲပြီးပါပြီ။",
+ "Delete this saved scenario? Existing investments are unaffected.": "ဤသိမ်းထားသော အစီအစဉ်ကို ဖျက်မည်လား။ မူရင်း ရင်းနှီးမြှုပ်နှံမှုများ မထိခိုက်ပါ။",
+ "Record changed. Refresh.": "မှတ်တမ်း ပြောင်းလဲထားပါသည်။ ပြန်လည်ရယူပါ။",
+ "Portfolio Risk & Saved Plans": "ပိုင်ဆိုင်မှု အန္တရာယ်နှင့် သိမ်းထားသော အစီအစဉ်များ",
+ "Review crypto concentration and save dated staged-buy what-if snapshots.": "Crypto စုစည်းမှုကို စစ်ဆေးပြီး ရက်စွဲပါ အဆင့်လိုက်ဝယ်ယူမှု နမူနာများ သိမ်းပါ။",
+ "Save staged-buy scenario above": "အထက်ရှိ အဆင့်လိုက် နမူနာအစီအစဉ်ကို သိမ်းရန်",
+ "First run the calculator above; then confirm the quote and budget inputs.": "အထက်ရှိ တွက်ချက်စက်ကို အရင်သုံးပြီး ဈေးနှုန်းနှင့် ဘတ်ဂျက်ကို အတည်ပြုပါ။",
+ "Review & save scenario": "အစီအစဉ် စစ်ဆေးပြီး သိမ်းရန်",
+ "My saved scenarios": "ကျွန်ုပ်၏ သိမ်းထားသော အစီအစဉ်များ",
+ "Refresh cloud": "Cloud ပြန်လည်ရယူရန်",
+ "Saved plans do not reserve real funds, place orders, update quotes automatically, or send push. Alternative scenarios may overlap; do not sum them as reserved cash.": "သိမ်းထားသော အစီအစဉ်များသည် တကယ့်ငွေကို မချန်ထားပါ၊ အရောင်းအဝယ် မလုပ်ပါ၊ ဈေးနှုန်း အလိုအလျောက် မပြောင်းပါ၊ အသိပေးချက် မပို့ပါ။ အစီအစဉ်များ ထပ်နိုင်သဖြင့် ကြိုတင်ချန်ထားသောငွေအဖြစ် မပေါင်းပါနှင့်။"
+};
+const T=(cn,en)=>locale()==='my'?(MY[en]??en):locale()==='zh'?cn:en;
 const owner=()=>{try{return typeof currentSessionUser!=='undefined'?String(currentSessionUser?.id||''):''}catch(_){return ''}};
 const getDB=()=>{try{return typeof db!=='undefined'?db:null}catch(_){return null}};
 const dollar=n=>Number.isFinite(Number(n))?'$'+Number(n).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2}):'—';
@@ -31,7 +99,7 @@ function currentPlan(){
  if(!result?.ok)return {ok:false,reason:'changed'};
  if(result.budget<=0||result.budget>999999999||!validSymbol(held.sym))return {ok:false,reason:'changed'};
  // Supabase stores explicitly user-approved historical scenario inputs; not current financial truth.
- const data={title:held.sym+' '+T('分批模拟','staged scenario'),symbol:held.sym,currency:'USD',stages:result.stages,
+ const data={title:held.sym+' '+(zh()?'分批模拟':'staged scenario'),symbol:held.sym,currency:'USD',stages:result.stages,
   budget:+result.budget.toFixed(2),user_cash_reference:+result.cash.toFixed(2),per_order_cap:+result.entries[0].spend.toFixed(2),
   fee_percent:+(result.fee*100).toFixed(4),weight_cap:+result.cap.toFixed(2),quote_price:held.price,
   quote_timestamp:new Date(state.quoteAt).toISOString(),position_qty:held.qty,position_basis:held.basis,portfolio_value:state.total};
@@ -124,7 +192,7 @@ function renderList(){const r=root();if(!r)return;const el=r.querySelector('[dat
  el.innerHTML=records.map(x=>{const old=Number(x.quote_price),budget=Number(x.budget),qty=Number(x.position_qty),basis=Number(x.position_basis),count=Number(x.stages);
   const historical=Number.isFinite(old)&&old>0&&Number.isFinite(qty)&&qty>0&&Number.isFinite(basis)&&Number.isFinite(budget)&&budget>0;
   const summary=historical?`<span>${T('保存时价格','Saved quote')} <b>${dollar(old)}</b></span><span>${T('假设总预算','Scenario budget')} <b>${dollar(budget)}</b></span><span>${T('现有平均成本','Saved basis/qty')} <b>${dollar(basis/qty)}</b></span>`:`<span>${T('历史快照待核对','Stored snapshot needs review')}</span>`;
-  return `<article class="ip15-item ${x.is_archived?'ip15-archived':''}"><div class="ip15-row"><div><b>${esc(x.title)}</b><small>${esc(x.symbol)} · ${esc(String(count))} ${T('批','tranches')} · ${esc(new Date(x.created_at).toLocaleDateString())}</small></div><span class="ip15-chip">${x.is_archived?T('已归档','Archived'):T('草案','Draft')}</span></div><div class="ip15-item-data">${summary}</div><p>${T('保存在当时行情下的模拟参数，不是当前估值、不代表已有现金或真实交易。','Historical what-if inputs, not today’s valuation, verified available cash, or an executed trade.')}</p><div class="ip15-buttons"><button type="button" data-ip15-archive="${esc(x.id)}">${x.is_archived?T('恢复','Restore'):T('归档','Archive')}</button><button type="button" class="ip15-delete" data-ip15-delete="${esc(x.id)}">${T('删除','Delete')}</button></div></article>`;
+  return `<article class="ip15-item ${x.is_archived?'ip15-archived':''}"><div class="ip15-row"><div><b>${esc(x.title)}</b><small>${esc(x.symbol)} · ${esc(String(count))} ${T('批','tranches')} · ${esc(new Date(x.created_at).toLocaleDateString())}</small></div><span class="ip15-chip">${x.is_archived?T('已归档','Archived'):T('草案','Draft')}</span></div><div class="ip15-item-data">${summary}</div><p>${T('保存在当时行情下的模拟参数，不是当前估值、不代表已有现金或真实交易。','Historical what-if inputs, not today’s valuation, verified available cash, or an executed trade.')}</p><div class="ip15-buttons"><button type="button" data-ip15-archive="${esc(x.id)}">${x.is_archived?T('恢复','Restore'):T('归档','Archive')}</button><button type="button" class="ip15-delete" data-ip15-delete="${esc(x.id)}" aria-label="${T('删除','Delete')}" title="${T('删除','Delete')}">${T('删除','Delete')}</button></div></article>`;
  }).join('');
 }
 async function toggle(id){const uid=owner(),row=records.find(x=>x.id===id);if(!uid||!row||busy)return;busy=true;try{const dbc=await session(uid);
@@ -133,7 +201,16 @@ async function toggle(id){const uid=owner(),row=records.find(x=>x.id===id);if(!u
  }catch(e){if(owner()===uid)feedback(String(e?.message||e),true);}finally{busy=false;if(owner()===uid)await load(true);else clear(owner());}
 }
 async function remove(id){const uid=owner(),row=records.find(x=>x.id===id);if(!uid||!row||busy)return;
- if(!confirm(T('确认删除这份模拟计划？不会影响原始投资。','Delete this saved scenario? Existing investments are unaffected.')))return;
+ const modal=$('mmhVaultDialogV449');
+ if(!modal||typeof window.mmhVaultOpenDialogV449!=='function'){feedback(T('确认窗口暂不可用，请重新打开页面。','Confirmation is unavailable. Reopen the page.'),true);return;}
+ if(modal.classList.contains('show'))return;
+ let accepted=false;
+ try{
+  const decision=window.mmhVaultOpenDialogV449({title:T('删除','Delete'),message:T('确认删除这份模拟计划？不会影响原始投资。','Delete this saved scenario? Existing investments are unaffected.'),actions:[{label:T('取消','Cancel'),value:false},{label:T('删除','Delete'),className:'danger',value:true}]});
+  if(modal.classList.contains('show'))$('mmhVaultDialogActionsV449')?.querySelector('button')?.focus({preventScroll:true});
+  accepted=await decision;
+ }catch(_){feedback(T('确认窗口暂不可用，请重新打开页面。','Confirmation is unavailable. Reopen the page.'),true);return;}
+ if(accepted!==true||owner()!==uid||active!==uid||busy||!records.some(x=>x.id===id&&x.version===row.version)||!$('invest')?.classList.contains('active'))return;
  busy=true;try{const dbc=await session(uid);const {data,error}=await dbc.from(TABLE).delete().eq('user_id',uid).eq('id',id).eq('version',row.version).select('id').maybeSingle();if(error)throw error;if(!data)throw Error(T('记录已变化，请刷新。','Record changed. Refresh.'));loaded=false;
  }catch(e){if(owner()===uid)feedback(String(e?.message||e),true);}finally{busy=false;if(owner()===uid)await load(true);else clear(owner());}
 }
@@ -145,6 +222,8 @@ function localize(){const r=root();if(!r)return;
  r.querySelector('[data-ip15-capture]').textContent=T('复核并保存计划','Review & save scenario');
  r.querySelector('[data-ip15-list-title]').textContent=T('我的历史投资计划','My saved scenarios');
  r.querySelector('[data-ip15-reload]').textContent=T('刷新云端','Refresh cloud');
+ r.querySelector('[data-ip15-reload]').setAttribute('aria-label',T('刷新云端','Refresh cloud'));
+ r.querySelector('[data-ip15-reload]').title=T('刷新云端','Refresh cloud');
  r.querySelector('[data-ip15-foot]').textContent=T('保存计划不占用真实资金、不自动交易、不会自动更新价格，也不向外部发出提醒。多个草案可能互斥，不能将其预算简单相加当作资金预留。','Saved plans do not reserve real funds, place orders, update quotes automatically, or send push. Alternative scenarios may overlap; do not sum them as reserved cash.');
 }
 let t=0;function schedule(){clearTimeout(t);t=setTimeout(()=>{if(!$('invest')?.classList.contains('active'))return;

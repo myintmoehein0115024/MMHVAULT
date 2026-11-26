@@ -7,7 +7,53 @@ if(window.__mmhInvestRiskV14)return;window.__mmhInvestRiskV14=true;
 const $=id=>document.getElementById(id);
 const esc=x=>String(x??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const zh=()=>{try{return window.getMMHVAULTLanguage?.()==='zh'||document.documentElement.lang?.toLowerCase().startsWith('zh')}catch(_){return false}};
-const T=(cn,en)=>zh()?cn:en;
+const locale=()=>{try{const s=String(window.getMMHVAULTLanguage?.()||document.documentElement.lang||'');return /^(my|mm)(?:[-_]|$)/i.test(s)?'my':zh()?'zh':'en'}catch(_){return 'en'}};
+const MY={
+ "Inputs changed. Recalculate to update the results.": "ထည့်သွင်းချက် ပြောင်းလဲသွားပါသည်။ ရလဒ်အသစ်အတွက် ပြန်တွက်ပါ။",
+ "Sign in and wait for your own Invest records.": "ဝင်ရောက်ပြီး သင့်ရင်းနှီးမြှုပ်နှံမှု မှတ်တမ်းများ ရရှိသည်အထိ စောင့်ပါ။",
+ "Live quotes are stale or unavailable. Refresh before modeling.": "လက်ရှိဈေးနှုန်း ဟောင်းနေသည် သို့မဟုတ် မရရှိပါ။ မတွက်မီ ပြန်လည်ရယူပါ။",
+ "The current position or cost basis cannot be reconciled.": "လက်ရှိပိုင်ဆိုင်မှု သို့မဟုတ် ကုန်ကျစရိတ်ကို အတည်မပြုနိုင်ပါ။",
+ "A held asset has no valid quote, so portfolio weights cannot be verified.": "ပိုင်ဆိုင်မှုတစ်ခု၏ မှန်ကန်သောဈေး မရှိသဖြင့် အချိုးကို အတည်မပြုနိုင်ပါ။",
+ "No current crypto holding is available for this calculator.": "တွက်ချက်ရန် လက်ရှိ Crypto ပိုင်ဆိုင်မှု မရှိပါ။",
+ "Portfolio valuation is inconsistent. Refresh the data.": "ပိုင်ဆိုင်မှုတန်ဖိုး မကိုက်ညီပါ။ ဒေတာကို ပြန်လည်ရယူပါ။",
+ "Planned spend exceeds your manually entered available cash.": "အစီအစဉ်အသုံးစရိတ်သည် သင်ထည့်သွင်းထားသော ရရှိနိုင်ငွေထက် ကျော်လွန်နေသည်။",
+ "Each tranche exceeds your per-order limit. Increase stages or reduce budget.": "တစ်ကြိမ်စီ အသုံးစရိတ်သည် သတ်မှတ်ထားသည့် ကန့်သတ်ချက်ထက် ကျော်လွန်နေသည်။ အဆင့်တိုးပါ သို့မဟုတ် ဘတ်ဂျက်လျှော့ပါ။",
+ "Check amount, stages, fee and reference limits.": "ပမာဏ၊ အဆင့်၊ အခကြေးငွေနှင့် ကန့်သတ်ချက်များကို စစ်ဆေးပါ။",
+ "Data cannot be verified.": "ဒေတာ အတည်မပြုနိုင်ပါ။",
+ "Held crypto": "ကိုင်ဆောင်ထားသော Crypto",
+ "Illustrative total budget · USD": "နမူနာ စုစုပေါင်း ဘတ်ဂျက် · USD",
+ "Cash you confirm available · USD": "သင်အတည်ပြုထားသော ရရှိနိုင်ငွေ · USD",
+ "Per-order cap · USD": "တစ်ကြိမ်လျှင် အများဆုံး · USD",
+ "Number of tranches": "ဝယ်ယူမည့် အဆင့်အရေအတွက်",
+ "Illustrative fee (%)": "နမူနာ အခကြေးငွေ (%)",
+ "Single-coin weight cap (%)": "တစ်မျိုးတည်း ပိုင်ဆိုင်မှုအချိုး ကန့်သတ်ချက် (%)",
+ "Calculate what-if plan": "နမူနာအစီအစဉ် တွက်ချက်ရန်",
+ "Clear": "ရှင်းလင်းရန်",
+ "Refresh quotes": "ဈေးနှုန်း ပြန်လည်ရယူရန်",
+ "Current average basis": "လက်ရှိ ပျမ်းမျှကုန်ကျစရိတ်",
+ "Projected average basis": "ခန့်မှန်း ပျမ်းမျှကုန်ကျစရိတ်",
+ "Current portfolio share": "လက်ရှိ ပိုင်ဆိုင်မှုအချိုး",
+ "Projected portfolio share": "ခန့်မှန်း ပိုင်ဆိုင်မှုအချိုး",
+ "Illustrative units acquired": "နမူနာ ရရှိမည့်ပမာဏ",
+ "Fees within total spend": "စုစုပေါင်း အသုံးစရိတ်အတွင်း အခကြေးငွေ",
+ "Projected holding exceeds your own weight cap. Review the budget.": "ခန့်မှန်းပိုင်ဆိုင်မှုအချိုးသည် သင်သတ်မှတ်ထားသော ကန့်သတ်ချက်ထက် ကျော်လွန်နေသည်။ ဘတ်ဂျက် စစ်ဆေးပါ။",
+ "Projected allocation stays within your reference cap. That does not establish personal suitability.": "ခန့်မှန်းအချိုးသည် သင့်သတ်မှတ်ချက်အတွင်းရှိသည်။ သင့်အတွက် သင့်လျော်ကြောင်း အတည်ပြုခြင်း မဟုတ်ပါ။",
+ "Stage": "အဆင့်",
+ "Hypothetical price": "နမူနာဈေးနှုန်း",
+ "Spend": "အသုံးစရိတ်",
+ "Estimated units": "ခန့်မှန်း ပမာဏ",
+ "Price-shock illustration": "ဈေးနှုန်းကျဆင်းမှု နမူနာ",
+ "Assume all stages fill and other holdings do not move. If this coin subsequently drops 10% from the current reference, its position would lose approximately": "အဆင့်အားလုံး ပြည့်မီပြီး အခြားပိုင်ဆိုင်မှုများ မပြောင်းလဲဟု ယူဆသည်။ ဤ Crypto သည် လက်ရှိရည်ညွှန်းဈေးမှ 10% ကျဆင်းပါက ခန့်မှန်းဆုံးရှုံးမှုမှာ",
+ "of mark-to-market value versus the current price; this is not a forecast.": "လက်ရှိဈေးနှင့် နှိုင်းယှဉ်ထားသော တန်ဖိုးဖြစ်ပြီး ခန့်မှန်းချက် မဟုတ်ပါ။",
+ "Execution prices are illustrative at 100%, 95%, 90%, 85%, 80% of the current price; fills are not assured. Average cost follows the existing crypto weighted-average ledger and fees are included in each spend. Portfolio weights assume all other coins stay flat. Actual cash or exchange balances have not been verified.": "နမူနာ ဝယ်ယူဈေးများသည် လက်ရှိဈေး၏ 100%, 95%, 90%, 85%, 80% ဖြစ်သည်။ အမှန်တကယ် ဝယ်ယူနိုင်မည်ဟု အာမခံမထားပါ။ ပျမ်းမျှကုန်ကျစရိတ်ကို ရှိပြီးသား Crypto အလေးချိန်ပျမ်းမျှမှတ်တမ်းအတိုင်း တွက်ပြီး အခကြေးငွေကို အဆင့်တိုင်းတွင် ထည့်ထားသည်။ အခြား Crypto ဈေးများ မပြောင်းလဲဟု ယူဆထားသည်။ တကယ့်ငွေ သို့မဟုတ် Exchange လက်ကျန်ကို အတည်မပြုရသေးပါ။",
+ "Holdings changed; select the asset again.": "ပိုင်ဆိုင်မှု ပြောင်းလဲသွားပါသည်။ ပစ္စည်းကို ပြန်ရွေးပါ။",
+ "Staged-buy risk simulator": "အဆင့်လိုက်ဝယ်ယူမှု အန္တရာယ် တွက်ချက်စက်",
+ "Explore projected cost and allocation without placing or reserving any trades.": "အရောင်းအဝယ် မလုပ်ဘဲ ငွေမချန်ထားဘဲ ခန့်မှန်းကုန်ကျစရိတ်နှင့် အချိုးကို လေ့လာပါ။",
+ "An arithmetic planning tool, not personalized trade advice. Verify emergency reserves, cash needs, taxes, slippage and acceptable losses yourself. Gold is excluded until quote and unit data are reliable.": "သင်္ချာအစီအစဉ်တွက်ချက်စက်သာ ဖြစ်ပြီး ကိုယ်ပိုင်ရင်းနှီးမြှုပ်နှံမှု အကြံပေးချက် မဟုတ်ပါ။ အရေးပေါ်ငွေ၊ ငွေလိုအပ်ချက်၊ အခွန်၊ ဈေးကွာဟမှုနှင့် လက်ခံနိုင်သော ဆုံးရှုံးမှုကို သင်ကိုယ်တိုင် စစ်ဆေးပါ။ ယုံကြည်ရသော ဈေးနှုန်းနှင့် ယူနစ်ဒေတာ မရမချင်း ရွှေကို မထည့်ပါ။",
+ "Quotes may have changed. Run the calculator again.": "ဈေးနှုန်း ပြောင်းလဲနိုင်ပါသည်။ ထပ်မံ တွက်ချက်ပါ။",
+ "Quote may have changed. Recalculate.": "ဈေးနှုန်း ပြောင်းလဲနိုင်ပါသည်။ ပြန်တွက်ပါ။"
+};
+const T=(cn,en)=>locale()==='my'?(MY[en]??en):locale()==='zh'?cn:en;
 const money=x=>Number.isFinite(x)?'$'+x.toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2}):'—';
 const qtyFmt=x=>Number.isFinite(x)?x.toLocaleString(undefined,{maximumFractionDigits:9}):'—';
 const percent=x=>Number.isFinite(x)?x.toFixed(2)+'%':'—';
@@ -102,7 +148,7 @@ function formMarkup(rows,old,selected){const chosen=rows.find(x=>x.sym===selecte
  <label>${T('分批数量','Number of tranches')}<select name="stages">${[1,2,3,4,5].map(n=>`<option value="${n}" ${String(get('stages','3'))===String(n)?'selected':''}>${n}</option>`).join('')}</select></label>
  <label>${T('模拟手续费 (%)','Illustrative fee (%)')}<input name="feePercent" type="number" min="0" max="5" step="0.01" inputmode="decimal" value="${esc(get('feePercent','0.1'))}" required></label>
  <label>${T('单一币种仓位参考上限 (%)','Single-coin weight cap (%)')}<input name="weightCap" type="number" min="1" max="100" step="0.1" inputmode="decimal" value="${esc(get('weightCap','35'))}" required></label>
- </div><div class="ivr14-actions"><button type="submit" class="ivr14-primary">${T('模拟补仓后仓位','Calculate what-if plan')}</button><button type="button" data-ivr-clear>${T('清空输入','Clear')}</button><button type="button" data-ivr-refresh>${T('刷新行情','Refresh quotes')}</button></div></form>`;
+ </div><div class="ivr14-actions"><button type="submit" class="ivr14-primary">${T('模拟补仓后仓位','Calculate what-if plan')}</button><button type="button" data-ivr-clear>${T('清空输入','Clear')}</button><button type="button" data-ivr-refresh aria-label="${T('刷新行情','Refresh quotes')}" title="${T('刷新行情','Refresh quotes')}">${T('刷新行情','Refresh quotes')}</button></div></form>`;
 }
 function renderResults(r){const capClass=r.capExceeded?'ivr14-warn':'';
  return `<div class="ivr14-summary"><div><small>${T('目前平均持仓成本','Current average basis')}</small><b>${money(r.currentAvg)}</b></div><div><small>${T('假设补仓后平均成本','Projected average basis')}</small><b>${money(r.projectedAvg)}</b></div><div><small>${T('当前仓位占比','Current portfolio share')}</small><b>${percent(r.currentWeight)}</b></div><div class="${capClass}"><small>${T('补仓后仓位占比','Projected portfolio share')}</small><b>${percent(r.projectedWeight)}</b></div><div><small>${T('预计新增数量','Illustrative units acquired')}</small><b>${qtyFmt(r.addedQty)} ${esc(r.symbol)}</b></div><div><small>${T('预计手续费（含在预算中）','Fees within total spend')}</small><b>${money(r.fees)}</b></div></div>
@@ -119,7 +165,7 @@ function preview(){const box=root();if(!box)return;const form=box.querySelector(
  out.innerHTML=res.ok?renderResults(res):`<p class="ivr14-alert">${esc(unavailable(res.reason))}</p>`;
 }
 function renderForm(forceClear=false){const box=root();if(!box)return;
- const currentOwner=owner(),language=zh()?'zh':'en';const s=snapshot(),state=positions(s);
+ const currentOwner=owner(),language=locale();const s=snapshot(),state=positions(s);
  if(currentOwner!==lastOwner){lastOwner=currentOwner;dirty=false;forceClear=true;box.replaceChildren();lastSymbols='';}
  if(!box.querySelector('[data-ivr-body]')){
  box.innerHTML=`<div class="ivr14-head"><div><div class="ivr14-kicker">INVEST · WHAT-IF RISK BUDGET</div><h2>${T('智能分批补仓模拟','Staged-buy risk simulator')}</h2><p>${T('查看模拟投入后的成本和仓位变化，不会自动买入或占用资金。','Explore projected cost and allocation without placing or reserving any trades.')}</p></div></div><div data-ivr-body></div><div data-ivr-result role="status" aria-live="polite"></div><p class="ivr14-disclaimer">${T('仅为风险预算计算器，不是个性化买卖建议。请自行核实紧急备用金、现金需求、税费、价格滑点和可承受损失。Gold 暂未纳入自动计算。','An arithmetic planning tool, not personalized trade advice. Verify emergency reserves, cash needs, taxes, slippage and acceptable losses yourself. Gold is excluded until quote and unit data are reliable.')}</p>`;
@@ -139,7 +185,7 @@ let scheduled=0;function schedule(){clearTimeout(scheduled);scheduled=setTimeout
  const previousOwner=lastOwner;const r=root();if(!r)return;
  if(owner()!==previousOwner){renderForm(true);return;}
  const form=r.querySelector('[data-ivr-form]');const fresh=positions(snapshot());if(!fresh.ok){renderForm(false);return;}
- if(!form || lastLanguage!==(zh()?'zh':'en') || lastSymbols!==fresh.rows.map(x=>x.sym).join('|'))renderForm(false);
+ if(!form || lastLanguage!==locale() || lastSymbols!==fresh.rows.map(x=>x.sym).join('|'))renderForm(false);
  const result=r.querySelector('[data-ivr-result]');if(result?.textContent&&result.querySelector('.ivr14-summary'))result.innerHTML=`<p class="ivr14-info">${T('行情可能变化，请重新点击“模拟”更新结果。','Quotes may have changed. Run the calculator again.')}</p>`;
  }},170)}
 ['mmhvault:invest-daily-ready','mmhvault:market-updated','mmhvault:data-loaded','mmhvault:page-visible','mmhvault:config-owner-changed','languagechange','mmhvault-language-change'].forEach(event=>window.addEventListener(event,schedule,{passive:true}));

@@ -7,7 +7,75 @@ if(window.__mmhInvestWatchV13)return;window.__mmhInvestWatchV13=true;
 const $=id=>document.getElementById(id);
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const lang=()=>{try{return window.getMMHVAULTLanguage?.()==='zh'||document.documentElement.lang?.toLowerCase().startsWith('zh')}catch(_){return false}};
-const T=(cn,en)=>lang()?cn:en;
+const locale=()=>{try{const s=String(window.getMMHVAULTLanguage?.()||document.documentElement.lang||'');return /^(my|mm)(?:[-_]|$)/i.test(s)?'my':lang()?'zh':'en'}catch(_){return 'en'}};
+const MY={
+ "Confirmation is unavailable. Reopen the page.": "အတည်ပြုရန် ဝင်းဒိုး မရရှိပါ။ စာမျက်နှာ ပြန်ဖွင့်ပါ။",
+ "Watch condition met": "စောင့်ကြည့်ရန် အခြေအနေ ပြည့်မီပါပြီ",
+ "Not reached": "မပြည့်မီသေးပါ",
+ "Manual review only": "ကိုယ်တိုင် စစ်ဆေးရန်သာ",
+ "Paused": "ခေတ္တရပ်ထားသည်",
+ "Needs verification": "အတည်ပြုရန် လိုအပ်သည်",
+ "Live quote is unavailable or older than five minutes.": "လက်ရှိဈေး မရရှိပါ သို့မဟုတ် ၅ မိနစ်ထက် ဟောင်းနေပါသည်။",
+ "Cannot verify every position and quote.": "ပိုင်ဆိုင်မှုနှင့် ဈေးနှုန်း အားလုံးကို အတည်မပြုနိုင်ပါ။",
+ "Gold has no verified automatic MMK market history; this watch condition cannot be evaluated yet.": "ရွှေအတွက် အတည်ပြုထားသော အလိုအလျောက် MMK ဈေးနှုန်းမှတ်တမ်း မရှိသေးသဖြင့် ဤအခြေအနေကို မစစ်ဆေးနိုင်သေးပါ။",
+ "No valid current price for this asset.": "ဤပိုင်ဆိုင်မှုအတွက် မှန်ကန်သော လက်ရှိဈေး မရှိပါ။",
+ "Account or source has not been verified.": "အကောင့် သို့မဟုတ် ရင်းမြစ်ကို အတည်မပြုရသေးပါ။",
+ "This watch is turned off.": "ဤစောင့်ကြည့်မှုကို ပိတ်ထားပါသည်။",
+ "This threshold is for review, not a trading instruction.": "ဤသတ်မှတ်ချက်သည် စစ်ဆေးရန်သာဖြစ်ပြီး အရောင်းအဝယ် ညွှန်ကြားချက် မဟုတ်ပါ။",
+ "Price at or below": "ဈေးနှုန်း အောက် သို့မဟုတ် ညီမျှ",
+ "Price at or above": "ဈေးနှုန်း အထက် သို့မဟုတ် ညီမျှ",
+ "Portfolio weight at or above": "ပိုင်ဆိုင်မှုအချိုး အထက် သို့မဟုတ် ညီမျှ",
+ "Sign in to save your watch plans.": "စောင့်ကြည့်မှုအစီအစဉ်များ သိမ်းရန် ဝင်ရောက်ပါ။",
+ "Cannot load cloud watch plans. Please retry.": "Cloud စောင့်ကြည့်မှုအစီအစဉ်များ မရယူနိုင်ပါ။ ထပ်စမ်းပါ။",
+ "Retry loading": "ထပ်မံရယူရန်",
+ "Loading saved watch plans…": "သိမ်းထားသော အစီအစဉ်များ ရယူနေပါသည်…",
+ "No watch plans yet. Add a price or allocation reference for one asset.": "စောင့်ကြည့်မှု မရှိသေးပါ။ ပိုင်ဆိုင်မှုတစ်ခု၏ ဈေးနှုန်း သို့မဟုတ် အချိုး သတ်မှတ်ပါ။",
+ "Add watch": "ထပ်ဝယ်ရန် စောင့်ကြည့်မှု",
+ "Trim watch": "လျှော့ချရန် စောင့်ကြည့်မှု",
+ "Available reference": "ရရှိနိုင်သော ရည်ညွှန်းချက်",
+ "Edit": "ပြင်ဆင်ရန်",
+ "Pause": "ခေတ္တရပ်ရန်",
+ "Resume": "ပြန်ဖွင့်ရန်",
+ "Delete": "ဖျက်ရန်",
+ "Edit watch plan": "စောင့်ကြည့်မှု ပြင်ဆင်ရန်",
+ "New watch plan": "စောင့်ကြည့်မှု အသစ်",
+ "Close form": "ပုံစံ ပိတ်ရန်",
+ "Asset class": "ပိုင်ဆိုင်မှု အမျိုးအစား",
+ "Asset symbol": "ပိုင်ဆိုင်မှု သင်္ကေတ",
+ "Review intent": "စစ်ဆေးရန် ရည်ရွယ်ချက်",
+ "Add review": "ထပ်ဝယ်ရန် စစ်ဆေးမှု",
+ "Trim review": "လျှော့ချရန် စစ်ဆေးမှု",
+ "Condition": "အခြေအနေ",
+ "Price at/below": "ဈေးနှုန်း ≤",
+ "Price at/above": "ဈေးနှုန်း ≥",
+ "Weight at/above": "ပိုင်ဆိုင်မှုအချိုး ≥",
+ "Your reference threshold": "သင့်ရည်ညွှန်း သတ်မှတ်ချက်",
+ "Watch conditions are checked on this page with fresh Crypto quotes. Gold market conditions cannot be verified automatically yet. No auto-trades or background push.": "ဤစာမျက်နှာပေါ်တွင် Crypto ဈေးနှုန်းအသစ်များဖြင့် စောင့်ကြည့်မှုကို စစ်ဆေးသည်။ ရွှေဈေးကို အလိုအလျောက် အတည်မပြုနိုင်သေးပါ။ အလိုအလျောက် အရောင်းအဝယ် သို့မဟုတ် နောက်ခံအသိပေးချက် မရှိပါ။",
+ "Cancel": "ပယ်ဖျက်ရန်",
+ "Save changes": "ပြောင်းလဲမှု သိမ်းရန်",
+ "Save watch": "စောင့်ကြည့်မှု သိမ်းရန်",
+ "Supabase is unavailable.": "Supabase မရရှိနိုင်ပါ။",
+ "Session changed. Reopen this page.": "ဝင်ရောက်မှု ပြောင်းလဲသွားပါသည်။ စာမျက်နှာ ပြန်ဖွင့်ပါ။",
+ "Too many watches to read safely. Reduce entries.": "လုံခြုံစွာ ရယူရန် စောင့်ကြည့်မှု များလွန်းပါသည်။ အရေအတွက် လျှော့ပါ။",
+ "Could not read watches (saved data is unchanged): ": "စောင့်ကြည့်မှုများ မရယူနိုင်ပါ (သိမ်းထားသော ဒေတာ မပြောင်းလဲပါ) - ",
+ "Check the asset, direction and threshold.": "ပိုင်ဆိုင်မှု၊ ဦးတည်ချက်နှင့် သတ်မှတ်ချက်ကို စစ်ဆေးပါ။",
+ "Limit of 50 watch plans.": "စောင့်ကြည့်မှု အစီအစဉ် အများဆုံး ၅၀ ခု။",
+ "Previous save remains uncertain. Verify cloud data before creating a changed plan.": "ယခင်သိမ်းဆည်းမှု အတည်မပြုရသေးပါ။ အစီအစဉ် ပြောင်းလဲမဖန်တီးမီ Cloud ဒေတာ စစ်ဆေးပါ။",
+ "Cannot generate a secure request ID.": "လုံခြုံသော တောင်းဆိုမှု ID မဖန်တီးနိုင်ပါ။",
+ "This watch was changed elsewhere. Refresh.": "ဤစောင့်ကြည့်မှုကို အခြားနေရာတွင် ပြောင်းထားသည်။ ပြန်လည်ရယူပါ။",
+ "Saved.": "သိမ်းဆည်းပြီးပါပြီ။",
+ "Previous save was confirmed in the cloud.": "ယခင်သိမ်းဆည်းမှုကို Cloud တွင် အတည်ပြုပြီးပါပြီ။",
+ "Save status uncertain; request ID preserved. Retry later or verify cloud data: ": "သိမ်းဆည်းမှု အတည်မပြုရသေးပါ။ တောင်းဆိုမှု ID ကို ထိန်းထားသည်။ နောက်မှ ထပ်စမ်းပါ သို့မဟုတ် Cloud ဒေတာ စစ်ဆေးပါ - ",
+ "Watch changed on another device.": "အခြားစက်တွင် စောင့်ကြည့်မှု ပြောင်းလဲထားပါသည်။",
+ "Delete this watch? No investment trades will be changed.": "ဤစောင့်ကြည့်မှုကို ဖျက်မည်လား။ ရင်းနှီးမြှုပ်နှံမှု အရောင်းအဝယ်များ မပြောင်းလဲပါ။",
+ "Personal Add / Trim Watch Plans": "ကိုယ်ပိုင် ထပ်ဝယ် / လျှော့ချ စောင့်ကြည့်မှုများ",
+ "Set your own price and allocation thresholds; check them on this Invest page.": "သင့်ဈေးနှုန်းနှင့် ပိုင်ဆိုင်မှုအချိုး သတ်မှတ်ချက်များကို ဤ Invest စာမျက်နှာတွင် စစ်ဆေးပါ။",
+ "Hide form": "ပုံစံ ဖျောက်ရန်",
+ "+ Add watch": "+ စောင့်ကြည့်မှု ထည့်ရန်",
+ "For review only: a reached price does not mean you should trade. Gold has no verified automatic quote for evaluating conditions. No scans or push after closing this page.": "စစ်ဆေးရန်သာ ဖြစ်ပါသည်။ သတ်မှတ်ဈေးသို့ ရောက်ခြင်းသည် အရောင်းအဝယ်လုပ်သင့်သည်ဟု မဆိုလိုပါ။ ရွှေအတွက် အတည်ပြုထားသော အလိုအလျောက်ဈေး မရှိသေးပါ။ စာမျက်နှာ ပိတ်ပြီးနောက် စစ်ဆေးခြင်း သို့မဟုတ် အသိပေးခြင်း မရှိပါ။"
+};
+const T=(cn,en)=>locale()==='my'?(MY[en]??en):locale()==='zh'?cn:en;
+let formLocale='';
 const owner=()=>{try{return typeof currentSessionUser!=='undefined'?String(currentSessionUser?.id||''):''}catch(_){return ''}};
 const money=(n,asset)=>`${asset==='Gold'?'K ':'$'}${Number(n).toLocaleString(undefined,{maximumFractionDigits:asset==='Gold'?2:6})}`;
 const table='invest_price_watch_plans';
@@ -87,24 +155,25 @@ function renderRows(){const r=rootUI();if(!r)return;const list=r.querySelector('
  if(!rows.length){list.innerHTML=`<p class="ivw13-empty">${T('暂未设置关注计划。可以先为一种持仓添加价格或仓位参考线。','No watch plans yet. Add a price or allocation reference for one asset.')}</p>`;return;}
  const snapshot=snapshotMatches();
  list.innerHTML=rows.map(row=>{const status=evaluate(row,snapshot),metric=status.current==null?'—':status.unit==='%'?`${status.current.toFixed(2)}%`:money(status.current,row.asset_type);const val=row.condition==='weight_above'?`${Number(row.target_value)}%`:money(row.target_value,row.asset_type);
- return `<article class="ivw13-item ivw13-${status.state}"><div class="ivw13-item-top"><div><b>${esc(row.symbol)}</b><span>${row.intent==='add'?T('补仓关注','Add watch'):T('减仓关注','Trim watch')}</span></div><span class="ivw13-status">${statusText(status)}</span></div><div class="ivw13-datum"><span>${labelCondition(row)} <b>${esc(val)}</b></span><span>${T('最新可用参考','Available reference')} <b>${esc(metric)}</b></span></div><p>${explanation(status)}</p><div class="ivw13-buttons"><button type="button" data-watch-edit="${esc(row.id)}">${T('编辑','Edit')}</button><button type="button" data-watch-toggle="${esc(row.id)}">${row.is_active?T('暂停','Pause'):T('恢复','Resume')}</button><button type="button" class="ivw13-danger" data-watch-delete="${esc(row.id)}">${T('删除','Delete')}</button></div></article>`}).join('');
+ return `<article class="ivw13-item ivw13-${status.state}"><div class="ivw13-item-top"><div><b>${esc(row.symbol)}</b><span>${row.intent==='add'?T('补仓关注','Add watch'):T('减仓关注','Trim watch')}</span></div><span class="ivw13-status">${statusText(status)}</span></div><div class="ivw13-datum"><span>${labelCondition(row)} <b>${esc(val)}</b></span><span>${T('最新可用参考','Available reference')} <b>${esc(metric)}</b></span></div><p>${explanation(status)}</p><div class="ivw13-buttons"><button type="button" data-watch-edit="${esc(row.id)}" aria-label="${T('编辑','Edit')}" title="${T('编辑','Edit')}">${T('编辑','Edit')}</button><button type="button" data-watch-toggle="${esc(row.id)}">${row.is_active?T('暂停','Pause'):T('恢复','Resume')}</button><button type="button" class="ivw13-danger" data-watch-delete="${esc(row.id)}" aria-label="${T('删除','Delete')}" title="${T('删除','Delete')}">${T('删除','Delete')}</button></div></article>`}).join('');
 }
 function formMode(){const form=$('mmhInvestWatchV13')?.querySelector('[data-watch-editor]');if(!form)return;
  const asset=form.elements.asset_type.value,intent=form.elements.intent.value,kind=form.elements.condition;
  for(const option of kind.options){const compatible=asset==='Gold'?option.value!=='weight_above':(intent==='add'?option.value==='price_below':option.value!=='price_below');option.hidden=!compatible;option.disabled=!compatible;}
  if(kind.selectedOptions.length===0||kind.selectedOptions[0].disabled)kind.value=asset==='Gold'?(intent==='add'?'price_below':'price_above'):(intent==='add'?'price_below':'price_above');
  const unit=form.querySelector('[data-watch-unit]');unit.textContent=kind.value==='weight_above'?'%':asset==='Gold'?'MMK / kyattha':'USD';
- const symbol=form.elements.symbol;if(asset==='Gold'){symbol.value='GOLD';symbol.readOnly=true;}else if(symbol.readOnly){symbol.readOnly=false;symbol.value='BTC'}
+ const symbol=form.elements.symbol;if(asset==='Gold'){symbol.value='GOLD';symbol.readOnly=true;}else if(form.elements.asset_type.disabled){symbol.readOnly=true;}else if(symbol.readOnly){symbol.readOnly=false;symbol.value='BTC'}
 }
-function renderForm(){const r=rootUI();if(!r)return;const f=r.querySelector('[data-watch-form]');
+function renderForm(preserve=false){const r=rootUI();if(!r)return;const f=r.querySelector('[data-watch-form]');const previous=preserve?f.querySelector('[data-watch-editor]'):null;formLocale=locale();
  if(!formOpen){f.innerHTML='';return;}
- const row=rows.find(x=>x.id===editing),data=row||{asset_type:'Crypto',symbol:'BTC',intent:'add',condition:'price_below',target_value:'',is_active:true};
+ const row=rows.find(x=>x.id===editing),data={...(row||{asset_type:'Crypto',symbol:'BTC',intent:'add',condition:'price_below',target_value:'',is_active:true})};
+ if(previous){for(const key of ['asset_type','symbol','intent','condition','target_value']){const field=previous.elements.namedItem(key);if(field)data[key]=field.value;}}
  f.innerHTML=`<form class="ivw13-editor" data-watch-editor><div class="ivw13-form-head"><b>${row?T('编辑关注计划','Edit watch plan'):T('新增关注计划','New watch plan')}</b><button type="button" data-watch-cancel aria-label="${T('关闭表单','Close form')}">×</button></div><div class="ivw13-fields">
  <label>${T('投资类型','Asset class')}<select name="asset_type" ${row?'disabled':''}><option value="Crypto" ${data.asset_type==='Crypto'?'selected':''}>Crypto</option><option value="Gold" ${data.asset_type==='Gold'?'selected':''}>Gold</option></select></label>
  <label>${T('投资品种','Asset symbol')}<input name="symbol" value="${esc(data.symbol)}" maxlength="12" required autocomplete="off" ${row?'readonly':''}></label>
  <label>${T('关注目的','Review intent')}<select name="intent"><option value="add" ${data.intent==='add'?'selected':''}>${T('补仓关注','Add review')}</option><option value="trim" ${data.intent==='trim'?'selected':''}>${T('减仓关注','Trim review')}</option></select></label>
  <label>${T('触发条件','Condition')}<select name="condition"><option value="price_below" ${data.condition==='price_below'?'selected':''}>${T('价格低于或等于','Price at/below')}</option><option value="price_above" ${data.condition==='price_above'?'selected':''}>${T('价格高于或等于','Price at/above')}</option><option value="weight_above" ${data.condition==='weight_above'?'selected':''}>${T('仓位占比高于或等于','Weight at/above')}</option></select></label>
- <label class="ivw13-wide">${T('你设置的参考阈值','Your reference threshold')} <small data-watch-unit></small><input name="target_value" inputmode="decimal" type="number" min="0.000001" max="999999999999" step="any" value="${data.target_value||''}" required></label>
+ <label class="ivw13-wide">${T('你设置的参考阈值','Your reference threshold')} <small data-watch-unit></small><input name="target_value" inputmode="decimal" type="number" min="0.000001" max="999999999999" step="any" value="${esc(data.target_value||'')}" required></label>
  </div><p class="ivw13-hint">${T('仅在网页开启且 Crypto 报价新鲜时提示关注条件。Gold 缺少可信自动历史报价，暂不判断其市场条件；不会自动买卖或后台推送。','Watch conditions are checked on this page with fresh Crypto quotes. Gold market conditions cannot be verified automatically yet. No auto-trades or background push.')}</p><div class="ivw13-form-actions"><button type="button" data-watch-cancel>${T('取消','Cancel')}</button><button class="ivw13-primary" type="submit" ${pending?'disabled':''}>${row?T('保存修改','Save changes'):T('保存关注计划','Save watch')}</button></div></form>`;
  formMode();
 }
@@ -150,11 +219,20 @@ async function save(fd){const user=owner();if(!user||pending)return;
 }
 async function toggle(id){const user=owner(),row=rows.find(x=>x.id===id);if(!user||!row||pending)return;pending=true;try{const dbc=await confirmedSession(user);const {data,error}=await dbc.from(table).update({is_active:!row.is_active,version:Number(row.version)+1,updated_at:new Date().toISOString()}).eq('user_id',user).eq('id',id).eq('version',row.version).select('id').maybeSingle();if(error)throw error;if(!data)throw Error(T('数据可能已被其他设备修改。','Watch changed on another device.'));loaded=false;}
  catch(err){if(owner()===user)feedback(String(err.message||err),true);}finally{pending=false;if(owner()===user)await load(true);}}
-async function remove(id){const user=owner(),row=rows.find(x=>x.id===id);if(!user||!row||pending)return;if(!confirm(T('确定删除这项关注计划？不会影响投资交易。','Delete this watch? No investment trades will be changed.')))return;
+async function remove(id){const user=owner(),row=rows.find(x=>x.id===id);if(!user||!row||pending)return;const modal=$('mmhVaultDialogV449');
+ if(!modal||typeof window.mmhVaultOpenDialogV449!=='function'){feedback(T('确认窗口暂不可用，请重新打开页面。','Confirmation is unavailable. Reopen the page.'),true);return;}
+ if(modal.classList.contains('show'))return;
+ let accepted=false;
+ try{
+  const decision=window.mmhVaultOpenDialogV449({title:T('删除','Delete'),message:T('确定删除这项关注计划？不会影响投资交易。','Delete this watch? No investment trades will be changed.'),actions:[{label:T('取消','Cancel'),value:false},{label:T('删除','Delete'),className:'danger',value:true}]});
+  if(modal.classList.contains('show'))$('mmhVaultDialogActionsV449')?.querySelector('button')?.focus({preventScroll:true});
+  accepted=await decision;
+ }catch(_){feedback(T('确认窗口暂不可用，请重新打开页面。','Confirmation is unavailable. Reopen the page.'),true);return;}
+ if(accepted!==true||owner()!==user||activeOwner!==user||pending||!rows.some(x=>x.id===id&&x.version===row.version)||!$('invest')?.classList.contains('active'))return;
  pending=true;try{const dbc=await confirmedSession(user);const {error}=await dbc.from(table).delete().eq('user_id',user).eq('id',id);if(error)throw error;loaded=false;}
  catch(err){if(owner()===user)feedback(String(err.message||err),true);}finally{pending=false;if(owner()===user)await load(true);}}
 function localize(){const r=rootUI();if(!r)return;r.querySelector('h2').textContent=T('自定义补仓／减仓关注计划','Personal Add / Trim Watch Plans');r.querySelector('[data-watch-desc]').textContent=T('为自己的仓位设置关注价位与风险参考线，只在 Invest 页面内核对。','Set your own price and allocation thresholds; check them on this Invest page.');r.querySelector('[data-watch-new]').textContent=formOpen?T('隐藏表单','Hide form'):T('+ 新增关注计划','+ Add watch');r.querySelector('.ivw13-foot').textContent=T('仅供参考：达到关注价不代表应该交易。Gold 暂无可信自动行情用于触发判断；网页关闭后不继续扫描或推送。','For review only: a reached price does not mean you should trade. Gold has no verified automatic quote for evaluating conditions. No scans or push after closing this page.');}
-function paint(){const r=rootUI();if(!r)return;const user=owner();if(user!==activeOwner){reset(user);if(user)load(true);}localize();renderRows();if(formOpen&&r.querySelector('[data-watch-editor]')==null)renderForm();}
+function paint(){const r=rootUI();if(!r)return;const user=owner();if(user!==activeOwner){reset(user);if(user)load(true);}localize();renderRows();if(formOpen&&!pending){if(r.querySelector('[data-watch-editor]')==null)renderForm();else if(formLocale!==locale())renderForm(true);}}
 let delay=0;function schedule(){clearTimeout(delay);delay=setTimeout(()=>{const invest=$('invest');if(invest?.classList.contains('active')){paint();if(owner()&&(!loaded&&!pending))load();}},170)}
 ['mmhvault:invest-daily-ready','mmhvault:data-loaded','mmhvault:page-visible','mmhvault:config-owner-changed','languagechange','mmhvault-language-change'].forEach(n=>window.addEventListener(n,schedule,{passive:true}));
 document.addEventListener('visibilitychange',()=>{if(!document.hidden)schedule();});

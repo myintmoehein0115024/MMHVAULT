@@ -7,7 +7,53 @@ const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&
 const num=x=>Number(x),fine=n=>Number(n).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2});
 const pct=n=>(n>=0?'+':'')+fine(n)+'%';
 const zh=()=>{try{return window.getMMHVAULTLanguage?.()==='zh'||document.documentElement.lang?.toLowerCase().startsWith('zh')}catch(_){return false}};
-const T=(a,b)=>zh()?a:b;
+const myLanguage=()=>{try{return /^(my|mm)(?:[-_]|$)/i.test(String(window.getMMHVAULTLanguage?.()||document.documentElement.lang||''))}catch(_){return false}};
+const MY={
+ "Review add conditions": "ထပ်မံဝယ်ယူရန် အခြေအနေ စစ်ဆေးပါ",
+ "Review trim risk": "လျှော့ချရန် အန္တရာယ် စစ်ဆေးပါ",
+ "Wait / verify": "စောင့်ကြည့် / စစ်ဆေးပါ",
+ "Keep monitoring": "ဆက်လက်စောင့်ကြည့်ပါ",
+ "Insufficient data": "ဒေတာ မလုံလောက်ပါ",
+ "Current quote": "လက်ရှိဈေးနှုန်း",
+ "Crypto allocation": "Crypto ရင်းနှီးမြှုပ်နှံမှု အချိုး",
+ "Versus 21-day MA": "၂၁ ရက် ပျမ်းမျှဈေးနှင့် နှိုင်းယှဉ်မှု",
+ "Previous 7-day move": "ယခင် ၇ ရက် ဈေးနှုန်းပြောင်းလဲမှု",
+ "Required price or portfolio history is incomplete; no directional hint is offered.": "လိုအပ်သော ဈေးနှုန်း သို့မဟုတ် ပိုင်ဆိုင်မှုမှတ်တမ်း မပြည့်စုံသဖြင့် ဦးတည်ချက် မပြပါ။",
+ "Completed daily history": "ပြီးဆုံးခဲ့သော နေ့စဉ်မှတ်တမ်း",
+ "Position Decision Support": "ပိုင်ဆိုင်မှု ဆုံးဖြတ်ချက် အထောက်အကူ",
+ "Review add, trim and wait conditions using transparent trend and concentration rules, not predictions.": "ဈေးနှုန်းလမ်းကြောင်းနှင့် စုစည်းမှုစည်းမျဉ်းများဖြင့် ထပ်ဝယ်၊ လျှော့ချ၊ စောင့်ကြည့်ရန် အခြေအနေများ စစ်ဆေးပါ။ ခန့်မှန်းချက် မဟုတ်ပါ။",
+ "Refresh analysis": "သုံးသပ်ချက် ပြန်လည်တွက်ချက်ရန်",
+ "Position concentration reference": "ပိုင်ဆိုင်မှု စုစည်းမှု ရည်ညွှန်းချက်",
+ "Cautious · 25%": "သတိထား · 25%",
+ "Balanced · 35%": "မျှတ · 35%",
+ "Wider · 45%": "ပိုကျယ်ပြန့် · 45%",
+ "This setting is for visual comparisons only; no trades are made.": "မြင်သာစွာ နှိုင်းယှဉ်ရန်သာ ဖြစ်ပြီး အရောင်းအဝယ် မလုပ်ပါ။",
+ "View rule thresholds": "စည်းမျဉ်းနှင့် သတ်မှတ်ချက်များ ကြည့်ရန်",
+ "Review trim risk when a coin exceeds the concentration reference, or price is at least 12% above its 21-day average with a 7-day gain over 8%. Wait if price is at least 3% below its 21-day average and the 7-day average is lower. Review add conditions if the 7-day average is not lower, price is within −2% to +3% of the 21-day average, and weight is under 60% of the selected cap. Otherwise monitor. These thresholds are transparent heuristics, not a proven trading strategy.": "ရွေးချယ်ထားသော စုစည်းမှုအချိုး ကျော်လွန်လျှင် သို့မဟုတ် ဈေးနှုန်းသည် ၂၁ ရက် ပျမ်းမျှထက် အနည်းဆုံး 12% မြင့်ပြီး ၇ ရက်အတွင်း 8% ထက်ပိုတက်လျှင် လျှော့ချမှုအန္တရာယ် စစ်ဆေးပါ။ ဈေးနှုန်းသည် ၂၁ ရက် ပျမ်းမျှထက် အနည်းဆုံး 3% နိမ့်ပြီး ၇ ရက် ပျမ်းမျှလည်း နိမ့်လျှင် စောင့်ကြည့်ပါ။ ၇ ရက် ပျမ်းမျှ မနိမ့်ဘဲ ဈေးနှုန်းသည် ၂၁ ရက် ပျမ်းမျှ၏ −2% မှ +3% အတွင်းရှိပြီး အချိုးသည် သတ်မှတ်ချက်၏ 60% အောက်တွင်ရှိလျှင် ထပ်ဝယ်ရန် အခြေအနေကို စစ်ဆေးပါ။ မဟုတ်လျှင် ဆက်စောင့်ကြည့်ပါ။ ဤစည်းမျဉ်းများသည် အမြတ်အာမခံသော နည်းဗျူဟာ မဟုတ်ပါ။",
+ "Indicators use historical closes and current market data. They do not assess your cash needs, investment horizon, taxes, fees or risk capacity. Any trade decision remains yours.": "ညွှန်ကိန်းများသည် သမိုင်းဝင် ပိတ်ဈေးနှင့် လက်ရှိဈေးနှုန်းများကို အသုံးပြုသည်။ ငွေလိုအပ်ချက်၊ ရင်းနှီးမြှုပ်နှံမှုကာလ၊ အခွန်၊ အခကြေးငွေ သို့မဟုတ် အန္တရာယ်ခံနိုင်ရည်ကို မစစ်ဆေးပါ။ အရောင်းအဝယ် ဆုံးဖြတ်ချက်သည် သင့်တာဝန်ဖြစ်သည်။",
+ "Sign in to inspect your portfolio.": "သင့်ပိုင်ဆိုင်မှုများ စစ်ဆေးရန် ဝင်ရောက်ပါ။",
+ "No eligible crypto holdings to inspect.": "စစ်ဆေးနိုင်သော Crypto ပိုင်ဆိုင်မှု မရှိပါ။",
+ "Portfolio cannot be verified right now.": "ပိုင်ဆိုင်မှုများကို ယခု အတည်မပြုနိုင်ပါ။",
+ "No trade signal": "အရောင်းအဝယ် အချက်ပြမှု မရှိပါ",
+ "There are currently ": "လက်ရှိတွင်",
+ "manual reference quotes; they are not verified official daily closes. Confirm gold quote source, currency and holding units before drawing conclusions.": "ကိုယ်တိုင်သတ်မှတ်ထားသော ရည်ညွှန်းဈေးနှုန်းများသာ ရှိပါသည်။ တရားဝင် နေ့စဉ်ပိတ်ဈေးများ မဟုတ်ပါ။ ရွှေဈေးရင်းမြစ်၊ ငွေကြေးနှင့် အလေးချိန်ယူနစ်ကို စစ်ဆေးပါ။",
+ "Live quote time": "လက်ရှိဈေးနှုန်း အချိန်",
+ "Feed": "ဒေတာရင်းမြစ်",
+ "Unknown": "မသိရသေးပါ",
+ "Rules: 21 completed daily closes, short-term trend and crypto concentration. No forecast or auto-trading.": "စည်းမျဉ်းများ - ပြီးဆုံးခဲ့သော နေ့စဉ်ပိတ်ဈေး ၂၁ ရက်၊ ကာလတို လမ်းကြောင်းနှင့် Crypto စုစည်းမှု။ ခန့်မှန်းချက် သို့မဟုတ် အလိုအလျောက် အရောင်းအဝယ် မပါဝင်ပါ။",
+ "Coin weight exceeds the selected reference cap; review concentration first.": "ပိုင်ဆိုင်မှုအချိုးသည် သတ်မှတ်ထားသော ရည်ညွှန်းချက်ထက် ကျော်လွန်နေသဖြင့် စုစည်းမှုအန္တရာယ်ကို အရင်စစ်ဆေးပါ။",
+ "Price is well above its 21-day average after a rapid weekly rise; consider reviewing profit-taking exposure.": "တစ်ပတ်အတွင်း လျင်မြန်စွာ ဈေးတက်ပြီး ၂၁ ရက် ပျမ်းမျှထက် သိသိသာသာ မြင့်နေသည်။ အမြတ်ရယူရန် အခြေအနေကို ပြန်လည်စစ်ဆေးပါ။",
+ "Short-term trend remains weak; a drop alone does not make averaging down appropriate.": "ကာလတို လမ်းကြောင်း အားနည်းနေဆဲဖြစ်သည်။ ဈေးကျခြင်းတစ်ခုတည်းကြောင့် ထပ်ဝယ်ရန် သင့်တော်သည်ဟု မဆိုလိုပါ။",
+ "The short-term average is not below the 21-day average, and price is near that reference.": "ကာလတို ပျမ်းမျှသည် ၂၁ ရက် ပျမ်းမျှထက် မနိမ့်ဘဲ ဈေးနှုန်းသည် ရည်ညွှန်းချက်အနီးတွင် ရှိသည်။",
+ "Portfolio share is relatively low; cash availability and risk budget are not verified.": "ပိုင်ဆိုင်မှုအချိုး နည်းပါးသော်လည်း ရရှိနိုင်သောငွေနှင့် အန္တရာယ်ဘတ်ဂျက်ကို အတည်မပြုရသေးပါ။",
+ "Trend and weight do not currently trigger the reference conditions.": "လမ်းကြောင်းနှင့် ပိုင်ဆိုင်မှုအချိုးသည် သတ်မှတ်ထားသော အခြေအနေများ မပြည့်မီပါ။",
+ "Position quantity or transaction sequence looks inconsistent; verify the ledger first.": "ပိုင်ဆိုင်မှုပမာဏ သို့မဟုတ် အရောင်းအဝယ် အစဉ် မကိုက်ညီနိုင်ပါ။ မှတ်တမ်းကို အရင်စစ်ဆေးပါ။",
+ "No validated live quote within five minutes; no current position signal is issued.": "၅ မိနစ်အတွင်း အတည်ပြုထားသော လက်ရှိဈေး မရှိသောကြောင့် အချက်ပြမှု မပြပါ။",
+ "Fewer than 21 consecutive completed daily closes; directional analysis is withheld.": "ဆက်တိုက် ပြီးဆုံးခဲ့သော နေ့စဉ်ပိတ်ဈေး ၂၁ ရက် မပြည့်သဖြင့် ဦးတည်ချက် မသုံးသပ်ပါ။",
+ "Historical quote cache is stale; refresh before reviewing.": "သမိုင်းဝင်ဈေးနှုန်း cache သက်တမ်းကုန်နေသည်။ မသုံးသပ်မီ ပြန်လည်ရယူပါ။",
+ "Some holdings cannot be priced, so concentration cannot be computed reliably.": "ပိုင်ဆိုင်မှုအချို့၏ ဈေးနှုန်း မရှိသဖြင့် စုစည်းမှုအချိုးကို ယုံကြည်စိတ်ချစွာ မတွက်နိုင်ပါ။"
+};
+const T=(a,b)=>myLanguage()?(MY[b]??b):zh()?a:b;
 const dayAdd=(day,offset)=>{const d=new Date(day+'T12:00:00Z');d.setUTCDate(d.getUTCDate()+offset);return d.toISOString().slice(0,10)};
 const currentUid=()=>{try{return typeof currentSessionUser!=='undefined'?String(currentSessionUser?.id||''):''}catch(_){return ''}};
 const settings={cautious:25,balanced:35,active:45};
@@ -97,7 +143,7 @@ const explain={
 };
 function hint(code){return ({add:T('关注补仓条件','Review add conditions'),trim:T('关注减仓风险','Review trim risk'),wait:T('暂时观望','Wait / verify'),watch:T('维持观察','Keep monitoring'),insufficient:T('资料不足','Insufficient data')})[code]||code}
 function renderCard(r){
- const rationale=r.why.map(k=>{const t=explain[k]||[];return zh()?t[0]:t[1]}).filter(Boolean);
+ const rationale=r.why.map(k=>{const t=explain[k]||[];return T(t[0],t[1])}).filter(Boolean);
  const weight=Number.isFinite(r.weight)?fine(r.weight)+'%':'—';
  const stats=r.safe?`<div class="ivg12-metrics"><div><small>${T('实时参考价','Current quote')}</small><b>$${fine(r.price)}</b></div><div><small>${T('仓位占比','Crypto allocation')}</small><b>${weight}</b></div><div><small>${T('较 MA21','Versus 21-day MA')}</small><b>${pct(r.relative)}</b></div><div><small>${T('上周价格变动','Previous 7-day move')}</small><b>${pct(r.weekChange)}</b></div></div>`:
  `<p class="ivg12-muted">${T('持仓占比或价格历史不能完整核实，暂不提供方向性关注信号。','Required price or portfolio history is incomplete; no directional hint is offered.')}</p>`;
@@ -113,6 +159,17 @@ function ensureUI(){const anchor=$('mmhInvestDailyV1');if(!anchor)return null;
  return root;
 }
 function paint(){const root=ensureUI();if(!root)return;
+ root.querySelector('h2').textContent=T('智能仓位观察','Position Decision Support');
+ root.querySelector('.ivg12-head p').textContent=T('用透明的价格趋势与持仓比例检查补仓、减仓和观望条件，不预测未来价格。','Review add, trim and wait conditions using transparent trend and concentration rules, not predictions.');
+ root.querySelector('[data-ivg-refresh]').textContent=T('更新分析','Refresh analysis');
+ root.querySelector('[data-ivg-refresh]').title=T('更新分析','Refresh analysis');
+ root.querySelector('[data-ivg-refresh]').setAttribute('aria-label',T('更新分析','Refresh analysis'));
+ const label=root.querySelector('.ivg12-tools label');label.firstChild.nodeValue=T('仓位集中度参考线','Position concentration reference');
+ [...label.querySelectorAll('option')].forEach((o,i)=>o.textContent=[T('谨慎 · 25%','Cautious · 25%'),T('均衡 · 35%','Balanced · 35%'),T('较宽松 · 45%','Wider · 45%')][i]);
+ root.querySelector('.ivg12-tools>span').textContent=T('设置仅用于本页规则对比，不自动调仓。','This setting is for visual comparisons only; no trades are made.');
+ root.querySelector('.ivg12-rules summary').textContent=T('查看分析规则与阈值','View rule thresholds');
+ root.querySelector('.ivg12-rules p').textContent=T('仓位超过所选参考线，或价格比21日均线高至少12%且过去7日上涨超过8%：检查减仓风险。价格低于21日均线至少3%且7日均线低于21日均线：暂时观望。7日均线不低于21日均线、现价在21日均线下方2%至上方3%内、且仓位不超过参考线60%：关注补仓条件。其它情况继续观察。所有阈值仅为可解释的参考规则，不是保证获利的策略。','Review trim risk when a coin exceeds the concentration reference, or price is at least 12% above its 21-day average with a 7-day gain over 8%. Wait if price is at least 3% below its 21-day average and the 7-day average is lower. Review add conditions if the 7-day average is not lower, price is within −2% to +3% of the 21-day average, and weight is under 60% of the selected cap. Otherwise monitor. These thresholds are transparent heuristics, not a proven trading strategy.');
+ root.querySelector('.ivg12-caution').textContent=T('分析基于历史日线和当前行情，仅供决策辅助。没有检查你的紧急备用金、资金需求、投资期限、手续费税费或风险承受能力；任何补仓或减仓都必须由你自行决定。','Indicators use historical closes and current market data. They do not assess your cash needs, investment horizon, taxes, fees or risk capacity. Any trade decision remains yours.');
  const result=root.querySelector('#ivg12Result');
  // Only accept a snapshot whose owner exactly matches the current authenticated session.
  const input=window.mmhInvestDailyV1?.guidanceSnapshot?.();
@@ -127,15 +184,7 @@ function paint(){const root=ensureUI();if(!root)return;
  if(analysis.gold?.held){pieces.push(`<div class="ivg12-gold"><b>Gold · ${T('暂不生成买卖信号','No trade signal')}</b><p>${T('目前仅有','There are currently ')} ${analysis.gold.count} ${T('条手工参考金价，且不属于可信官方每日结算历史。请先核实金价来源、汇率与持仓单位。','manual reference quotes; they are not verified official daily closes. Confirm gold quote source, currency and holding units before drawing conclusions.')}</p></div>`)}
  pieces.push(`<div class="ivg12-source">${T('最新实时行情','Live quote time')}: ${input.quotedAt?esc(new Date(input.quotedAt).toLocaleString()):'—'} · ${T('数据来源','Feed')}: ${esc(input.quoteSource||T('未知','Unknown'))} · ${T('规则：已结束21日均线、短期趋势、Crypto仓位集中度；不包含预测或自动下单。','Rules: 21 completed daily closes, short-term trend and crypto concentration. No forecast or auto-trading.')}</div>`);
  result.innerHTML=pieces.join('');
- root.querySelector('h2').textContent=T('智能仓位观察','Position Decision Support');
- root.querySelector('.ivg12-head p').textContent=T('用透明的价格趋势与持仓比例检查补仓、减仓和观望条件，不预测未来价格。','Review add, trim and wait conditions using transparent trend and concentration rules, not predictions.');
- root.querySelector('[data-ivg-refresh]').textContent=T('更新分析','Refresh analysis');
- const label=root.querySelector('.ivg12-tools label');label.firstChild.nodeValue=T('仓位集中度参考线','Position concentration reference');
- [...label.querySelectorAll('option')].forEach((o,i)=>o.textContent=[T('谨慎 · 25%','Cautious · 25%'),T('均衡 · 35%','Balanced · 35%'),T('较宽松 · 45%','Wider · 45%')][i]);
- root.querySelector('.ivg12-tools>span').textContent=T('设置仅用于本页规则对比，不自动调仓。','This setting is for visual comparisons only; no trades are made.');
- root.querySelector('.ivg12-rules summary').textContent=T('查看分析规则与阈值','View rule thresholds');
- root.querySelector('.ivg12-rules p').textContent=T('仓位超过所选参考线，或价格比21日均线高至少12%且过去7日上涨超过8%：检查减仓风险。价格低于21日均线至少3%且7日均线低于21日均线：暂时观望。7日均线不低于21日均线、现价在21日均线下方2%至上方3%内、且仓位不超过参考线60%：关注补仓条件。其它情况继续观察。所有阈值仅为可解释的参考规则，不是保证获利的策略。','Review trim risk when a coin exceeds the concentration reference, or price is at least 12% above its 21-day average with a 7-day gain over 8%. Wait if price is at least 3% below its 21-day average and the 7-day average is lower. Review add conditions if the 7-day average is not lower, price is within −2% to +3% of the 21-day average, and weight is under 60% of the selected cap. Otherwise monitor. These thresholds are transparent heuristics, not a proven trading strategy.');
- root.querySelector('.ivg12-caution').textContent=T('分析基于历史日线和当前行情，仅供决策辅助。没有检查你的紧急备用金、资金需求、投资期限、手续费税费或风险承受能力；任何补仓或减仓都必须由你自行决定。','Indicators use historical closes and current market data. They do not assess your cash needs, investment horizon, taxes, fees or risk capacity. Any trade decision remains yours.');
+
 }
 let queued=0;function schedule(){if(queued)clearTimeout(queued);queued=setTimeout(()=>{queued=0;paint();},120)}
 window.addEventListener('mmhvault:invest-daily-ready',schedule,{passive:true});
