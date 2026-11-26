@@ -12361,8 +12361,8 @@ html.mmh-desktop-compact-v11110 body.mmh-workspace-active #moreNavMenu.more-nav-
     const row=window.mmhCustomInvestRecords?.find(x=>String(x.id)===String(id));if(!row)return;
     const user=(await db.auth.getUser()).data.user;if(!user){await window.mmhEditDeleteUI.message('Edit unavailable','Please sign in again.');return;}
     if(action==='delete'){confirmDelete({kind:'custom',id:row.id,name:row.asset_name},user);return;}
-    const modal=document.createElement('dialog');modal.className='mmh-history-edit';
-    modal.innerHTML='<form method="dialog" class="mmh-history-edit-form"><h2>Edit '+esc(row.asset_name||'Investment')+'</h2>'+
+    const modal=document.createElement('dialog');modal.className='mmh-history-edit iw226-custom-edit';
+    modal.innerHTML='<form method="dialog" class="mmh-history-edit-form"><h2>Edit '+esc(row.asset_name||'Investment')+'</h2><div class="iw226-custom-edit-scroll"><div class="iw226-custom-edit-grid">'+
       '<label>Date<input name="date" type="date" required value="'+esc(row.inv_date||'')+'"></label>'+
       '<label>Source Account<select name="account" required>'+(!MMHVAULT_CONFIG.accounts.some(a=>a.name===row.source_account&&a.active!==false)?'<option value="" selected disabled>'+esc(row.source_account||'Unknown account')+' · archived; select an active account</option>':'')+((MMHVAULT_CONFIG.accounts||[]).filter(a=>a.active!==false).map(a=>'<option value="'+esc(a.name)+'" '+(a.name===row.source_account?'selected':'')+'>'+esc(a.name)+' · '+esc(a.currency||'Currency unavailable')+'</option>').join(''))+'</select></label>'+
       '<label>Amount<input name="amount" type="number" step="any" min="0.000001" required value="'+esc(row.amount)+'"></label>'+
@@ -12372,7 +12372,7 @@ html.mmh-desktop-compact-v11110 body.mmh-workspace-active #moreNavMenu.more-nav-
       '<label>Market Price (optional)<input name="market" type="number" step="any" min="0" value="'+esc(row.market_price??'')+'"></label>'+
       '<label>Note<input name="note" value="'+esc(row.note||'')+'"></label>'+
       '<label>Attach receipt (image or PDF, optional)<input name="receipt" type="file" accept="image/*,.pdf"></label>'+
-      '<div data-funds class="mmh-ui-empty"></div>'+
+      '<div data-funds class="mmh-ui-empty"></div></div></div>'+
       '<div class="mmh-history-dialog-actions"><button type="button" data-cancel>Cancel</button><button type="submit">Save Changes</button></div></form>';
     document.getElementById('invest').append(modal);
     modal.querySelector('[data-cancel]').onclick=()=>modal.close();
@@ -39086,6 +39086,19 @@ html body #mmhVaultDialogV449 .mmh-wallet-detail-dialog-v177 :is(.mmh-wallet-det
 @media(max-width:699px){
  html body #invest #mmhHistoryFiltersV1 .iw223-picker{flex:1 1 calc(50% - 8px)!important;min-width:0!important}
 }
+/* Custom investment edit: same frame, spacing, controls and independent scroll as Transaction. */
+html body dialog.mmh-history-edit.iw226-custom-edit[open]{width:min(760px,calc(100vw - 24px))!important;max-width:760px!important;max-height:calc(100dvh - 24px)!important;overflow:hidden!important;border-radius:10px!important;font-family:var(--mmh-notice-font,system-ui)!important}
+html body dialog.mmh-history-edit.iw226-custom-edit[open] .mmh-history-edit-form{flex:1 1 auto!important;width:100%!important;min-height:0!important;overflow:hidden!important;padding:0!important;gap:0!important;margin:0!important}
+html body dialog.mmh-history-edit.iw226-custom-edit[open] h2{position:relative!important;top:auto!important;margin:0!important;padding:12px 16px!important;font:650 17px/1.4 var(--mmh-notice-font,system-ui)!important;overflow-wrap:anywhere}
+html body dialog.mmh-history-edit.iw226-custom-edit[open] .iw226-custom-edit-scroll{flex:1 1 auto;min-height:0;min-width:0;padding:12px 16px;overflow-y:auto;overflow-x:hidden;overscroll-behavior:contain}
+html body dialog.mmh-history-edit.iw226-custom-edit[open] .iw226-custom-edit-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;min-width:0}
+html body dialog.mmh-history-edit.iw226-custom-edit[open] .iw226-custom-edit-grid>label{display:flex!important;flex-direction:column!important;gap:7px!important;margin:0!important;min-width:0!important;font:550 12px/1.4 var(--mmh-notice-font,system-ui)!important}
+html body dialog.mmh-history-edit.iw226-custom-edit[open] .iw226-custom-edit-grid>label:has([name=note]),html body dialog.mmh-history-edit.iw226-custom-edit[open] .iw226-custom-edit-grid>label:has([name=receipt]){grid-column:1/-1}
+html body dialog.mmh-history-edit.iw226-custom-edit[open] :is(input:not([type=file]),select){width:100%!important;min-width:0!important;min-height:38px!important;height:38px!important;padding:7px 10px!important;font:500 13px/1.4 var(--mmh-notice-font,system-ui)!important}
+html body dialog.mmh-history-edit.iw226-custom-edit[open] :is(input,select,button):focus-visible{outline:1px solid var(--uv-accent)!important;outline-offset:1px!important;box-shadow:none!important}
+html body dialog.mmh-history-edit.iw226-custom-edit[open] .mmh-history-dialog-actions{position:relative!important;bottom:auto!important;flex:0 0 auto!important;display:flex!important;justify-content:flex-end!important;gap:8px!important;margin:0!important;padding:12px 16px!important}
+html body dialog.mmh-history-edit.iw226-custom-edit[open] .mmh-history-dialog-actions button{min-height:36px!important;padding:7px 12px!important;font:550 13px/1.4 var(--mmh-notice-font,system-ui)!important}
+@media(max-width:600px){html body dialog.mmh-history-edit.iw226-custom-edit[open]{height:calc(100dvh - 24px)!important}html body dialog.mmh-history-edit.iw226-custom-edit[open] .iw226-custom-edit-grid{grid-template-columns:minmax(0,1fr)}html body dialog.mmh-history-edit.iw226-custom-edit[open] :is(input:not([type=file]),select){font-size:16px!important}}
 </style>
 <script id="mmh-invest-v225-records-js">
 (function(){
