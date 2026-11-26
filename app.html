@@ -15206,11 +15206,12 @@ function renderTransactions(){
 if(!transactions.length){txList.innerHTML='<div class="empty">No transactions.</div>';return}
 txList.innerHTML=`<table><tr><th>Date</th><th>Type</th><th>Category</th><th>From</th><th>From Amount</th><th>To</th><th>To Amount</th><th>Note</th><th></th></tr>${transactions.filter(t=>!isLinkedInvestmentTx(t)).map(t=>`<tr><td>${t.tx_date}</td><td>${t.type}</td><td>${esc(t.category)}</td><td>${esc(t.from_account||"—")}</td><td>${t.from_amount?fmt(t.from_amount):"—"}</td><td>${esc(t.to_account||"—")}</td><td>${t.to_amount?fmt(t.to_amount):"—"}</td><td>${esc(t.note)}</td><td class="icon-actions"><button class="btn" onclick="editTx(${t.id})">Edit</button><button class="btn danger" type="button" onclick="deleteTx(${t.id})">×</button></td></tr>`).join("")}</table>`;
 }
-function closeEditModal(){$('editModal').classList.remove('open');$('editModalBody').innerHTML='';}
+function closeEditModal(){$('editModal').classList.remove('open','mmh-invest-edit-modal-v225');$('editModalBody').innerHTML='';}
 function openEditModal(title,body){
   $('editModalTitle').textContent=title;
   $('editModalBody').innerHTML=body;
   $('editModal').classList.add('open');
+  $('editModal').classList.toggle('mmh-invest-edit-modal-v225',!!$('editInvForm'));
   // Transactions P2.2: real, non-overlapping form-body and footer regions.
   // The action buttons stay INSIDE their original form, so native submit,
   // async validation and existing financial logic remain unchanged.
@@ -39258,5 +39259,124 @@ window.addEventListener('mmhvault-language-change',mountDeleteAll);
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',mountDeleteAll,{once:true});else setTimeout(mountDeleteAll,0);
 })();
 </script>
+<style id="mmh-invest-v225-final-unify">
+/* V2.0.25 final correction: one record surface, one scroll owner, one edit-modal frame. */
+html body #invest#invest#invest #mmhFiveportfolio#mmhFiveportfolio #mmhUnifiedHistoryV1#mmhUnifiedHistoryV1{
+  background:var(--uv-card,#18212d)!important;
+  background-image:none!important;
+  border:1px solid var(--uv-line,#354152)!important;
+  border-radius:10px!important;
+  box-shadow:none!important;
+  backdrop-filter:none!important;
+}
+html body #invest#invest#invest #mmhFiveportfolio#mmhFiveportfolio #mmhHistoryFiltersV1#mmhHistoryFiltersV1{
+  background:var(--uv-card,#18212d)!important;
+  background-image:none!important;
+  border:0!important;
+  border-bottom:1px solid var(--uv-line,#354152)!important;
+  margin:0 0 12px!important;
+  padding:0 0 11px!important;
+}
+html body #invest#invest#invest #mmhFiveportfolio#mmhFiveportfolio #mmhHistoryFiltersV1#mmhHistoryFiltersV1 .iw222-filterbar{
+  display:flex!important;align-items:flex-end!important;gap:8px!important;flex-wrap:wrap!important;
+  background:transparent!important;
+}
+html body #invest#invest#invest #mmhFiveportfolio#mmhFiveportfolio #mmhHistoryRowsV1#mmhHistoryRowsV1{
+  display:block!important;
+  height:min(60dvh,640px)!important;
+  max-height:min(60dvh,640px)!important;
+  overflow-y:scroll!important;
+  overflow-x:hidden!important;
+  overscroll-behavior:contain!important;
+  scrollbar-width:thin!important;
+  scrollbar-color:var(--uv-line,#354152) transparent!important;
+  scrollbar-gutter:stable!important;
+  padding-right:4px!important;
+  background:var(--uv-card,#18212d)!important;
+  background-image:none!important;
+}
+html body #invest#invest#invest #mmhFiveportfolio#mmhFiveportfolio #mmhHistoryRowsV1#mmhHistoryRowsV1 .mmh-history-mobile{
+  display:grid!important;
+  height:auto!important;
+  max-height:none!important;
+  overflow:visible!important;
+  background:var(--uv-card,#18212d)!important;
+  background-image:none!important;
+}
+html body #invest#invest#invest #mmhFiveportfolio#mmhFiveportfolio #mmhHistoryRowsV1#mmhHistoryRowsV1 :is(.mmh-history-card,.iw222-wallet-row){
+  background:var(--uv-card,#18212d)!important;
+  background-image:none!important;
+}
+html body #invest#invest#invest #mmhFiveportfolio#mmhFiveportfolio #mmhHistoryRowsV1#mmhHistoryRowsV1 :is(.mmh-history-card,.iw222-wallet-row):hover{
+  background:var(--uv-raised,#253141)!important;
+}
+html body #editModal.mmh-invest-edit-modal-v225{
+  display:flex!important;align-items:center!important;justify-content:center!important;
+  overflow:hidden!important;padding:12px!important;
+}
+html body #editModal.mmh-invest-edit-modal-v225>.modal{
+  width:min(760px,calc(100vw - 24px))!important;
+  max-width:760px!important;
+  height:min(900px,calc(100dvh - 24px))!important;
+  max-height:calc(100dvh - 24px)!important;
+  min-height:0!important;padding:0!important;
+  display:flex!important;flex-direction:column!important;overflow:hidden!important;
+  background:var(--uv-card,#18212d)!important;background-image:none!important;
+  border:1px solid var(--uv-line,#354152)!important;border-radius:14px!important;
+  color:var(--uv-text,#ecf1f8)!important;
+  box-shadow:0 24px 70px rgba(0,0,0,.45)!important;
+}
+html body #editModal.mmh-invest-edit-modal-v225>.modal>.toolbar{
+  flex:0 0 auto!important;
+  margin:0!important;padding:14px 16px!important;
+  background:var(--uv-card,#18212d)!important;background-image:none!important;
+  border-bottom:1px solid var(--uv-line,#354152)!important;
+  position:sticky!important;top:0!important;z-index:4!important;
+}
+html body #editModal.mmh-invest-edit-modal-v225 #editModalBody{
+  flex:1 1 auto!important;min-height:0!important;
+  display:flex!important;overflow:hidden!important;
+  padding:0!important;background:var(--uv-card,#18212d)!important;background-image:none!important;
+}
+html body #editModal.mmh-invest-edit-modal-v225 #editInvForm{
+  width:100%!important;height:100%!important;min-height:0!important;
+  display:flex!important;flex-direction:column!important;margin:0!important;
+}
+html body #editModal.mmh-invest-edit-modal-v225 #editInvForm .iw222-edit-scroll{
+  flex:1 1 auto!important;min-height:0!important;
+  overflow-y:auto!important;overflow-x:hidden!important;
+  overscroll-behavior:contain!important;-webkit-overflow-scrolling:touch!important;
+  scrollbar-width:thin!important;scrollbar-color:var(--uv-line,#354152) transparent!important;
+  padding:16px!important;background:var(--uv-card,#18212d)!important;background-image:none!important;
+}
+html body #editModal.mmh-invest-edit-modal-v225 #editInvForm>.actions{
+  flex:0 0 auto!important;position:sticky!important;bottom:0!important;z-index:5!important;
+  display:flex!important;justify-content:flex-end!important;gap:8px!important;
+  margin:0!important;padding:12px 16px!important;
+  background:var(--uv-card,#18212d)!important;background-image:none!important;
+  border-top:1px solid var(--uv-line,#354152)!important;
+}
+html body #editModal.mmh-invest-edit-modal-v225 #editInvForm>.actions .btn{
+  min-height:40px!important;border-radius:9px!important;
+  background:var(--uv-raised,#253141)!important;background-image:none!important;
+  border:1px solid var(--uv-line,#354152)!important;color:var(--uv-text,#ecf1f8)!important;
+}
+html body #editModal.mmh-invest-edit-modal-v225 #editInvForm>.actions .btn.primary{
+  background:var(--mmh-notice-active,#183c5c)!important;
+  border-color:var(--uv-accent,#9bb8f8)!important;color:var(--uv-accent,#9bb8f8)!important;
+}
+@media(max-width:699px){
+  html body #invest#invest#invest #mmhFiveportfolio#mmhFiveportfolio #mmhHistoryRowsV1#mmhHistoryRowsV1{
+    height:min(54dvh,520px)!important;max-height:min(54dvh,520px)!important;
+  }
+  html body #editModal.mmh-invest-edit-modal-v225{padding:6px!important}
+  html body #editModal.mmh-invest-edit-modal-v225>.modal{
+    width:calc(100vw - 12px)!important;height:calc(100dvh - 12px)!important;
+    max-height:calc(100dvh - 12px)!important;border-radius:14px!important;
+  }
+  html body #editModal.mmh-invest-edit-modal-v225 #editInvForm .iw222-edit-scroll{padding:12px!important}
+  html body #editModal.mmh-invest-edit-modal-v225 #editInvForm>.actions{padding:10px 12px!important}
+}
+</style>
 </body>
 </html>
