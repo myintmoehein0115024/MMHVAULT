@@ -12314,9 +12314,10 @@ html.mmh-desktop-compact-v11110 body.mmh-workspace-active #moreNavMenu.more-nav-
   window.mmhRenderInvestHistoryV1=render;
   const deleting=new Set();
   function confirmDelete(row,user){
+    const owner=user?.id;if(!owner||currentSessionUser?.id!==owner)return;
     const key=row.kind+':'+row.id;if(deleting.has(key))return;
     const modal=document.createElement('dialog');modal.className='mmh-history-edit mmh-history-confirm';
-    modal.innerHTML='<div class="mmh-history-confirm-body"><h2>Delete Investment</h2><p>Delete "'+esc(row.name||'Investment')+'"? This action cannot be undone.</p><div data-error role="alert" hidden></div><div class="mmh-history-dialog-actions"><button type="button" data-cancel>Cancel</button><button type="button" data-confirm>Confirm Delete</button></div></div>';
+    modal.innerHTML='<div class="mmh-history-confirm-body"><h2>'+recordText('Delete investment','删除投资记录','ရင်းနှီးမြှုပ်နှံမှု မှတ်တမ်းဖျက်ရန်')+'</h2><p>'+recordText('Delete this record?','确定删除这条记录？','ဤမှတ်တမ်းကို ဖျက်မည်လား။')+' <b>'+esc(row.name||recordText('Investment','投资','ရင်းနှီးမြှုပ်နှံမှု'))+'</b><br>'+recordText('This action cannot be undone.','此操作无法撤销。','ဤလုပ်ဆောင်မှုကို ပြန်ပြင်၍မရပါ။')+'</p><div data-error role="alert" hidden></div><div class="mmh-history-dialog-actions"><button type="button" data-cancel autofocus>'+recordText('Cancel','取消','မလုပ်တော့ပါ')+'</button><button type="button" data-confirm>'+recordText('Confirm Delete','确认删除','ဖျက်ရန် အတည်ပြုပါ')+'</button></div></div>';
     document.body.append(modal);
     let busy=false;const close=()=>{if(busy)return;modal.close();};
     modal.querySelector('[data-cancel]').onclick=close;
@@ -12326,13 +12327,16 @@ html.mmh-desktop-compact-v11110 body.mmh-workspace-active #moreNavMenu.more-nav-
     deleting.add(key);
     modal.querySelector('[data-confirm]').onclick=async()=>{
       if(busy)return;busy=true;
-      const ok=modal.querySelector('[data-confirm]'),cancel=modal.querySelector('[data-cancel]');ok.disabled=true;cancel.disabled=true;ok.textContent='Deleting…';
+      const ok=modal.querySelector('[data-confirm]'),cancel=modal.querySelector('[data-cancel]');ok.disabled=true;cancel.disabled=true;ok.textContent=recordText('Deleting…','正在删除…','ဖျက်နေသည်…');
       try{
-        if(!user)throw Error('Please sign in again.');
+        const auth=(await db.auth.getUser()).data.user;
+        if(auth?.id!==owner||currentSessionUser?.id!==owner)throw Error(recordText('Account changed. Cancel and reopen this record.','登录账户已变更，请取消后重新打开记录。','အကောင့်ပြောင်းသွားပါသည်။ ပယ်ဖျက်ပြီး မှတ်တမ်းကို ပြန်ဖွင့်ပါ။'));
+        if(!entries().some(x=>x.kind===row.kind&&String(x.id)===String(row.id)))throw Error(recordText('Record unavailable. Cancel and reload.','记录不可用，请取消并刷新。','မှတ်တမ်းမရနိုင်ပါ။ ပယ်ဖျက်ပြီး ပြန်ဖွင့်ပါ။'));
         const table=row.kind==='custom'?'custom_investments':'investments';
         const result=await db.from(table).delete().eq('id',row.id).eq('user_id',user.id).select('id').single();
         if(result.error)throw result.error;
         busy=false;modal.close();
+        if(currentSessionUser?.id!==owner)return;
         if(row.kind==='custom'){
           window.mmhCustomInvestRecords=window.mmhCustomInvestRecords.filter(x=>String(x.id)!==String(row.id));
           try{window.mmhCustomInvestChanged?.('custom-investment-deleted');}catch(e){console.warn('Custom investment repaint:',e);}
@@ -12349,7 +12353,7 @@ html.mmh-desktop-compact-v11110 body.mmh-workspace-active #moreNavMenu.more-nav-
       }catch(e){
         if(!modal.isConnected){console.error('Post-delete refresh failed:',e);return;}
         const error=modal.querySelector('[data-error]');error.hidden=false;error.textContent='Delete failed: '+(e?.message||String(e))+' You can retry or cancel.';
-        busy=false;ok.disabled=false;cancel.disabled=false;ok.textContent='Retry Delete';
+        busy=false;ok.disabled=false;cancel.disabled=false;ok.textContent=recordText('Retry Delete','重试删除','ထပ်မံဖျက်ရန်');
       }
     };
     modal.showModal();
