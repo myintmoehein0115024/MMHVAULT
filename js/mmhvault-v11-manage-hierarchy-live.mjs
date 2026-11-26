@@ -14,7 +14,7 @@ const configOwner=()=>{try{return String(MMHVAULT_CONFIG_OWNER||'')}catch(_){ret
 const config=()=>{try{return MMHVAULT_CONFIG}catch(_){return null}};
 const language=()=>{try{return String(localStorage.getItem('mmhvault_language_v3363')||document.documentElement.lang||'en').toLowerCase()}catch(_){return'en'}};
 const tr=(en,zh,my)=>language().startsWith('zh')?zh:/^(my|mm|burmese)/.test(language())?my:en;
-const label=field=>field==='type'?'Type':field==='transaction'?'Transaction':'Category';
+const label=field=>field==='type'?tr('Type','类型','အမျိုးအစား'):field==='transaction'?tr('Transaction','交易','ငွေစာရင်း'):tr('Category','分类','အုပ်စုခွဲ');
 const fixedDirections=['Income','Expense','Transfer'];
 const fixedDirectionName=d=>d==='Income'?tr('Income','收入','ဝင်ငွေ'):d==='Expense'?tr('Expense','支出','အသုံးစရိတ်'):tr('Transfer','转账','ငွေလွှဲ');
 const missingDirections=graph=>fixedDirections.filter(d=>!graph?.types.some(t=>!t.archived&&t.ledgerType===d));
@@ -229,7 +229,7 @@ function drawModal(){
     'အသုံးပြုပြီးသော အရာများကို သိမ်းဆည်းနိုင်ပြီး မှတ်တမ်းဟောင်းများ မပြောင်းပါ။'));
   if(modalField==='type'){
     title.textContent=tr('Fixed financial directions','固定财务方向','သတ်မှတ်ထားသော ငွေလမ်းကြောင်းများ');
-    dialog.append(elt('p','mmh-hier-muted',tr('Existing Type links are preserved. Set up a direction only if it is missing.','保留现有 Type 关联，仅在缺少方向时进行初始化。','ရှိပြီးသား Type များကို ထိန်းသိမ်းထားပြီး လိုအပ်သော ငွေလမ်းကြောင်းကိုသာ သတ်မှတ်ပါ။')));
+    dialog.append(elt('p','mmh-hier-muted',tr('Existing Type links are preserved. Set up a direction only if it is missing.','保留现有类型关联，仅在缺少方向时进行初始化。','ရှိပြီးသား အမျိုးအစားများကို ထိန်းသိမ်းထားပြီး လိုအပ်သော ငွေလမ်းကြောင်းကိုသာ သတ်မှတ်ပါ။')));
     for(const d of fixedDirections){
       const row=elt('div','mmh-hier-row'),info=elt('div');
       info.append(elt('strong','',fixedDirectionName(d)),elt('div','mmh-hier-muted',directionLabel(d)));row.append(info);
@@ -324,8 +324,8 @@ function drawEditor(item){
   let typeChoice=null,parentChoice=null,kindChoice=null,advancedToggle=null;
   const calculationHelp=()=>form.append(elt('p','mmh-hier-help',tr(
     'These are calculation rules, not preset Type or Transaction entries. Choose the real financial direction before saving.',
-    '这些只是金额计算规则，不是系统预设的 Type 或 Transaction 项目。保存前请选择正确的收支方向。',
-    'ဤအရာများသည် ငွေပမာဏတွက်ချက်ရန် စည်းမျဉ်းများသာဖြစ်ပြီး ကြိုတင်ထည့်ထားသော Type / Transaction များ မဟုတ်ပါ။'
+    '这些只是金额计算规则，不是系统预设的类型或交易项目。保存前请选择正确的收支方向。',
+    'ဤအရာများသည် ငွေပမာဏတွက်ချက်ရန် စည်းမျဉ်းများသာဖြစ်ပြီး ကြိုတင်ထည့်ထားသော အမျိုးအစား / ငွေစာရင်းများ မဟုတ်ပါ။'
   )));
   if(!item&&field==='type'){
     typeChoice=requireSelection(elt('select'),tr(
@@ -471,13 +471,13 @@ function manager(){
   heading.append(elt('h3','',tr('Manage Transaction Fields','管理记账字段','ငွေစာရင်းအကွက်များ စီမံရန်')));
   heading.append(elt('span','mmh-hier-muted',tr(
     'Step 1 Type → Step 2 Transaction → Step 3 Category',
-    '第 1 步 Type → 第 2 步 Transaction → 第 3 步 Category',
-    'Type → Transaction → Category')));
+    '第 1 步 类型 → 第 2 步 交易 → 第 3 步 分类',
+    'အမျိုးအစား → ငွေစာရင်း → အုပ်စုခွဲ')));
   top.append(heading,elt('span','mmh-hier-step',ready()?
     tr('Linked setup','关联管理','ချိတ်ဆက်စီမံ'):tr('Loading account','正在加载账号','အကောင့်ပြန်ရယူနေ')));root.append(top);
   const graph=safe(()=>controller.read());
   const fixed=elt('div','mmh-hier-fixed-v2');
-  fixed.append(elt('strong','',tr('Fixed Type','固定 Type','သတ်မှတ်ထားသော Type')));
+  fixed.append(elt('strong','',tr('Fixed Type','固定类型','သတ်မှတ်ထားသော အမျိုးအစား')));
   for(const d of fixedDirections)fixed.append(elt('span','mmh-hier-fixed-pill-v2',fixedDirectionName(d)+' '+(d==='Income'?'+':d==='Expense'?'−':'⇄')));
   if(graph&&missingDirections(graph).length){
     const setup=btn(tr('Set up missing directions','初始化缺少的方向','လိုအပ်သော ငွေလမ်းကြောင်း သတ်မှတ်ရန်'),()=>open('type'),'mmh-hier-btn');
@@ -498,8 +498,8 @@ function manager(){
   }
   root.append(elt('p','mmh-hier-muted',tr(
     'Type sets account balance direction (+ / − / transfer). Transaction inherits it; Category is only a name.',
-    'Type 决定账户余额增加、减少或转账；Transaction 自动继承，Category 只负责分类。',
-    'Type သည် အကောင့်ငွေလက်ကျန် တိုး/လျော့/လွှဲခြင်းကို သတ်မှတ်ပြီး Transaction မှ လိုက်နာပါသည်။')));
+    '类型决定账户余额增加、减少或转账；交易自动继承，分类仅用于归类。',
+    'အမျိုးအစားသည် အကောင့်လက်ကျန် တိုးခြင်း၊ လျော့ခြင်း သို့မဟုတ် လွှဲခြင်းကို သတ်မှတ်ပြီး ငွေစာရင်းက ထိုစည်းမျဉ်းအတိုင်း လိုက်နာပါသည်။')));
   root.append(elt('p','mmh-hier-muted',tr(
     'Already-used options: Archive only. Historical transactions are never changed.',
     '已使用的项目只能归档；历史交易记录始终保留。',
@@ -1409,12 +1409,12 @@ function installHistoryControls(panel,grid,root){
       for(const field of filterMenu.querySelectorAll('.mh-filter-field')){
         const select=$(field.dataset.select),heading=field.querySelector('span'),summary=field.querySelector('summary'),list=field.querySelector('.mh-choice-list');if(!select)continue;
         const label=names[Number(heading.dataset.index)];const headingText=tr(...label);if(heading.textContent!==headingText)heading.textContent=headingText;
-        const opts=[...select.options],labelOf=o=>o.value?o.textContent:tr('All','全部','အားလုံး');
-        const chosen=opts.find(o=>o.selected),chosenText=chosen?labelOf(chosen):tr('All','全部','အားလုံး');if(summary.textContent!==chosenText)summary.textContent=chosenText;
+        const opts=[...select.options],labelOf=o=>o.value?(select.id==='txFilterType'&&fixedDirections.includes(o.value)?fixedDirectionName(o.value):o.textContent):tr('All','全部','အားလုံး');
+        const chosen=opts.find(o=>o.selected),chosenText=chosen?labelOf(chosen):tr('All','全部','အားလုံး');summary.setAttribute('data-mmh-tx-user-copy','');if(summary.textContent!==chosenText)summary.textContent=chosenText;
         const signature=JSON.stringify(opts.map(o=>[o.value,labelOf(o),o.selected,o.disabled]));
         if(list.dataset.signature!==signature){
           list.dataset.signature=signature;list.replaceChildren(...opts.map(o=>{
-            const b=btn(labelOf(o),()=>{select.value=o.value;field.querySelector('details').open=false;summary.focus();select.dispatchEvent(new Event('change',{bubbles:true}));refresh();});b.disabled=o.disabled;b.setAttribute('aria-pressed',String(o.selected));return b;
+            const b=btn(labelOf(o),()=>{select.value=o.value;field.querySelector('details').open=false;summary.focus();select.dispatchEvent(new Event('change',{bubbles:true}));refresh();});b.disabled=o.disabled;b.setAttribute('aria-pressed',String(o.selected));b.setAttribute('data-mmh-tx-user-copy','');return b;
           }));
         }
       }
@@ -1639,11 +1639,11 @@ function boot(){
       if(!valid()){
         e.preventDefault();e.stopImmediatePropagation();
         if(cloudConflict){notify(tr('Manage changes are paused until sync conflict is resolved.',
-          'Manage 同步冲突尚未解决，已暂停新增交易。',
-          'Manage ချိတ်ဆက်မှု ပဋိပက္ခ ဖြေရှင်းရန် လိုပါသည်။'));return;}
+          '管理设置同步冲突尚未解决，已暂停新增交易。',
+          'စီမံမှု ချိတ်ဆက်မှု ပဋိပက္ခ ဖြေရှင်းရန် လိုပါသည်။'));return;}
         notify(tr('Configure Type, Transaction and Category in Manage first.',
-          '请先在 Manage 完成 Type、Transaction、Category 的关联设置。',
-          'Manage တွင် Type၊ Transaction၊ Category ကို ချိတ်ဆက်ပါ။'));return;
+          '请先在管理页面完成类型、交易、分类的关联设置。',
+          'စီမံရန် စာမျက်နှာတွင် အမျိုးအစား၊ ငွေစာရင်းနှင့် အုပ်စုခွဲကို ချိတ်ဆက်ပါ။'));return;
       }
       const path=controller.path(selection.type,selection.transaction,selection.category);
       pendingSave={owner:owner(),path,ids:{...selection}};

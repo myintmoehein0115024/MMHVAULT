@@ -11346,7 +11346,7 @@ html.mmh-desktop-compact-v11110 body.mmh-workspace-active #moreNavMenu.more-nav-
 <div class="tx-tab-panel-v371" id="txHistoryPanel" style="display:none"><div class="panel"><div class="toolbar"><div><h2>History</h2><div class="small" id="txResultCount">0 records</div></div><button class="btn danger" onclick="deleteAllTx()">Clear All</button></div>
 <div class="filter-grid" style="display:grid;grid-template-columns:2fr repeat(4,1fr);gap:10px;margin-bottom:12px">
 <label>Search<input id="txSearch" placeholder="Salary / OKX / Dining / note"/></label>
-<label>Type<select id="txFilterType"><option value="">All</option><option>Income</option><option>Expense</option><option>Transfer</option></select></label>
+<label>Type<select id="txFilterType"><option value="">All</option><option value="Income">Income</option><option value="Expense">Expense</option><option value="Transfer">Transfer</option></select></label>
 <label>Transaction<select id="txFilterGroup"><option value="">All</option><option>Income</option><option>Expense</option><option>Personal</option><option>Loans</option><option>Data Adjustment</option><option>Transfer</option></select></label>
 <label>Category<select id="txFilterCategory"><option value="">All</option></select></label>
 <label>Account<select id="txFilterAccount"><option value="">All</option></select></label>
@@ -15215,7 +15215,7 @@ function editTx(id){
     <div class="formgrid">
       <div class="mmh-form-section-v1 full"><span data-en="Basic information" data-zh="基本信息">Basic information</span></div>
       <label>Date<input id="eDate" type="date" value="${esc(t.tx_date)}" required></label>
-      <label>Type<select id="eType"><option ${t.type==='Income'?'selected':''}>Income</option><option ${t.type==='Expense'?'selected':''}>Expense</option><option ${t.type==='Transfer'?'selected':''}>Transfer</option></select></label>
+      <label>Type<select id="eType"><option value="Income" ${t.type==='Income'?'selected':''}>Income</option><option value="Expense" ${t.type==='Expense'?'selected':''}>Expense</option><option value="Transfer" ${t.type==='Transfer'?'selected':''}>Transfer</option></select></label>
       <label>Transaction<select id="eGroup"></select></label>
       <label>Category<select id="eCat"></select></label>
       <div class="mmh-form-section-v1 full"><span data-en="Accounts & amounts" data-zh="账户与金额">Accounts & amounts</span></div>
@@ -19901,14 +19901,42 @@ function myWorkspaceTextV2(base,el){
   if(/^[-+\d.,%]+ momentum$/.test(base))return base.replace(/ momentum$/,' ပြောင်းလဲမှု');
   return base;
 }
+// Transaction V2 copy: only presentation strings; never translate member data or native ledger values.
+const txUiCopyV2=Object.freeze({"Add Transaction":["新增交易","ငွေစာရင်းထည့်ရန်"],"History":["交易记录","မှတ်တမ်း"],"Transactions":["交易","ငွေစာရင်းများ"],"Transaction":["交易","ငွေစာရင်း"],"Manage Categories":["管理分类","အမျိုးအစားများ စီမံရန်"],"Manage":["管理","စီမံရန်"],"Manage Transaction Fields":["管理交易字段","ငွေစာရင်းအကွက်များ စီမံရန်"],"Record transactions and review your history.":["记录交易并查看历史记录。","ငွေစာရင်းသွင်းပြီး မှတ်တမ်းများ ကြည့်ရန်။"],"Record income, expense or transfer":["记录收入、支出或转账","ဝင်ငွေ၊ အသုံးစရိတ် သို့မဟုတ် ငွေလွှဲ မှတ်တမ်းသွင်းရန်"],"Review and filter your records":["查看并筛选记录","မှတ်တမ်းများ ကြည့်ရှုစစ်ထုတ်ရန်"],"Categories and preferences":["分类与偏好设置","အမျိုးအစားနှင့် ဦးစားပေး ဆက်တင်များ"],"Date":["日期","ရက်စွဲ"],"Type":["类型","အမျိုးအစား"],"Category":["分类","အုပ်စုခွဲ"],"Account":["账户","အကောင့်"],"Amount":["金额","ငွေပမာဏ"],"Income":["收入","ဝင်ငွေ"],"Expense":["支出","အသုံးစရိတ်"],"Transfer":["转账","ငွေလွှဲ"],"Basic information":["基本信息","အခြေခံ အချက်အလက်"],"Accounts & amounts":["账户与金额","အကောင့်နှင့် ငွေပမာဏ"],"Note & attachment":["备注与附件","မှတ်ချက်နှင့် ပူးတွဲဖိုင်"],"Note":["备注","မှတ်ချက်"],"From Account":["转出账户","ငွေထွက် အကောင့်"],"From account":["转出账户","ငွေထွက် အကောင့်"],"To Account":["转入账户","ငွေဝင် အကောင့်"],"To account":["转入账户","ငွေဝင် အကောင့်"],"Account From Amount":["转出金额","ငွေထွက် ပမာဏ"],"Account To Amount":["转入金额","ငွေဝင် ပမာဏ"],"From Amount":["转出金额","ငွေထွက် ပမာဏ"],"From amount":["转出金额","ငွေထွက် ပမာဏ"],"To Amount":["转入金额","ငွေဝင် ပမာဏ"],"To amount":["转入金额","ငွေဝင် ပမာဏ"],"Clear":["清空","ရှင်းလင်းရန်"],"Clear All":["清空全部","အားလုံး ရှင်းရန်"],"Search":["搜索","ရှာရန်"],"All":["全部","အားလုံး"],"↺ Clear Filters":["↺ 清除筛选","↺ စစ်ထုတ်မှု ရှင်းရန်"],"Clear Filters":["清除筛选","စစ်ထုတ်မှု ရှင်းရန်"],"Export CSV":["导出 CSV","CSV ထုတ်ယူရန်"],"Filters":["筛选","စစ်ထုတ်ရန်"],"Salary / OKX / Dining / note":["工资 / OKX / 餐饮 / 备注","လစာ / OKX / စားသောက်မှု / မှတ်ချက်"],"No matching transactions.":["没有符合条件的交易。","ကိုက်ညီသော ငွေစာရင်း မရှိပါ။"],"No matching transactions":["没有符合条件的交易","ကိုက်ညီသော ငွေစာရင်း မရှိပါ"],"Description":["描述","ဖော်ပြချက်"],"Current Balance":["当前余额","လက်ရှိ လက်ကျန်"],"Calendar":["日历","ပြက္ခဒိန်"],"Close calendar":["关闭日历","ပြက္ခဒိန် ပိတ်ရန်"],"Hide calendar":["隐藏日历","ပြက္ခဒိန် ဖျောက်ရန်"],"Today":["今天","ယနေ့"],"All dates":["全部日期","ရက်စွဲအားလုံး"],"View whole month":["查看整月","တစ်လလုံး ကြည့်ရန်"],"Previous month":["上个月","ယခင်လ"],"Next month":["下个月","နောက်လ"],"History month":["记录月份","မှတ်တမ်းလ"],"Summary currency":["统计币种","အနှစ်ချုပ် ငွေကြေး"],"Select a transaction date":["选择交易日期","ငွေစာရင်း ရက်စွဲ ရွေးရန်"],"Mon":["周一","တနင်္လာ"],"Tue":["周二","အင်္ဂါ"],"Wed":["周三","ဗုဒ္ဓဟူး"],"Thu":["周四","ကြာသပတေး"],"Fri":["周五","သောကြာ"],"Sat":["周六","စနေ"],"Sun":["周日","တနင်္ဂနွေ"],"Receipt attachment":["收据附件","ပြေစာ ပူးတွဲဖိုင်"],"Optional · add proof, invoice or payment screenshot":["可选 · 添加凭证、发票或付款截图","လိုအပ်ပါက အထောက်အထား၊ ပြေစာ သို့မဟုတ် ငွေပေးချေမှု ဖန်သားပြင်ပုံ ထည့်ပါ"],"Optional":["可选","မဖြစ်မနေ မဟုတ်ပါ"],"Choose a receipt":["选择收据","ပြေစာ ရွေးရန်"],"PNG, JPG, WEBP or PDF · up to 10 MB":["PNG、JPG、WEBP 或 PDF · 最大 10 MB","PNG၊ JPG၊ WEBP သို့မဟုတ် PDF · 10 MB အထိ"],"Browse →":["浏览 →","ဖိုင် ရွေးရန် →"],"Browse files ↗":["浏览文件 ↗","ဖိုင် ရွေးရန် ↗"],"🔒 Stored privately in your secure cloud storage":["🔒 私密存储于安全云空间","🔒 လုံခြုံသော cloud တွင် သီးသန့် သိမ်းဆည်းထားသည်"],"No file selected":["未选择文件","ဖိုင် မရွေးရသေးပါ"],"No new file selected · existing receipt will remain unchanged.":["未选择新文件 · 原收据保持不变。","ဖိုင်အသစ် မရွေးရသေးပါ · မူလပြေစာ မပြောင်းပါ။"],"Receipt selected":["已选择收据","ပြေစာ ရွေးပြီး"],"Click to replace this file":["点击替换文件","ဖိုင် အစားထိုးရန် နှိပ်ပါ"],"Receipt":["收据","ပြေစာ"],"Receipt preview":["收据预览","ပြေစာ အစမ်းကြည့်ရန်"],"📎 Receipt Preview":["📎 收据预览","📎 ပြေစာ အစမ်းကြည့်ရန်"],"Loading receipt…":["正在加载收据…","ပြေစာ ဖတ်နေသည်…"],"Receipt viewer":["收据查看器","ပြေစာ ကြည့်ရန်"],"Zoom in":["放大","ချဲ့ရန်"],"Zoom out":["缩小","ချုံ့ရန်"],"Reset zoom":["重置缩放","အရွယ်အစား ပြန်သတ်မှတ်ရန်"],"Reset":["重置","ပြန်သတ်မှတ်ရန်"],"✕ Close":["✕ 关闭","✕ ပိတ်ရန်"],"Close":["关闭","ပိတ်ရန်"],"Cancel":["取消","မလုပ်တော့ပါ"],"Save Changes":["保存修改","ပြောင်းလဲမှု သိမ်းရန်"],"Edit Transaction":["编辑交易","ငွေစာရင်း ပြင်ရန်"],"Transaction detail":["交易详情","ငွေစာရင်း အသေးစိတ်"],"Transaction Details":["交易详情","ငွေစာရင်း အသေးစိတ်"],"No note":["无备注","မှတ်ချက် မရှိပါ"],"Attached":["已附加","ပူးတွဲပြီး"],"No receipt attached":["未附加收据","ပြေစာ မပါရှိပါ"],"Use Again":["再次使用","ထပ်မံ အသုံးပြုရန်"],"Creates a new transaction with the same category, accounts, amount and note. The date resets to today and the old receipt is never copied.":["使用相同分类、账户、金额和备注创建新交易。日期重置为今天，不复制原收据。","အမျိုးအစား၊ အကောင့်၊ ငွေပမာဏနှင့် မှတ်ချက်တူသော ငွေစာရင်းအသစ် ဖန်တီးမည်။ ရက်စွဲကို ယနေ့သို့ ပြောင်းပြီး ပြေစာဟောင်းကို မကူးပါ။"],"View Receipt":["查看收据","ပြေစာ ကြည့်ရန်"],"Edit":["编辑","ပြင်ရန်"],"Delete":["删除","ဖျက်ရန်"],"Details":["详情","အသေးစိတ်"],"View transaction details":["查看交易详情","ငွေစာရင်း အသေးစိတ် ကြည့်ရန်"],"Select account":["选择账户","အကောင့် ရွေးရန်"],"Select":["选择","ရွေးရန်"],"Help / Tutorial":["新手指南","အသုံးပြုနည်း"]});
+function txUiSurfaceV2(el){
+  return !!el?.closest?.('#transactions,#editModal:has(#editTxForm),#mmhVaultDialogV449:has(.mmh-tx-detail-v800[data-mmh-tx-direction]),#mmhCategoryPickerV2,.mmh-p24-account-menu,.mmh-p25-picker-menu')||
+    (!!document.querySelector('#transactions.active')&&!!el?.closest?.('#receiptViewerModalV3297'));
+}
+function txUiOwnedV2(el){
+  return !!el?.closest?.('#mmhHierarchyManage,.mmh-hier-overlay,#mmhHistoryRecordsV2,#mmhRecentEntryV2,#mmhHierarchyDirection,#mmhHierarchyEntryGuide,#mmhHistoryBackV2,#mmhHistoryHelpV2,#mmhHistoryManageV2,#mmhHistoryFilterV2,#hcIncomeLabelV4,#hcExpenseLabelV4,#hcRemainingLabelV3,#hcCaption');
+}
+function txUiDataV2(el){
+  if(!el)return false;
+  const option=el.closest?.('option');
+  if(option&&txUiSurfaceV2(el)){
+    // Only known system directions in edit/filter can be localized. Never translate a value-less option.
+    return !(option.hasAttribute('value')&&((option.parentElement?.matches('#eType,#txFilterType')&&['Income','Expense','Transfer'].includes(option.value))||(option.parentElement?.matches('#txFilterType,#txFilterGroup,#txFilterCategory,#txFilterAccount')&&option.value==='')));
+  }
+  return !!el.closest?.('[data-mmh-tx-user-copy],#txList td:not(:has(button)),.mmh-tx-detail-title-v800,.mmh-tx-detail-value-v800,.mmh-tx-detail-chip-v800,.mmh-p24-account-name,.mmh-p24-account-menu button,.mmh-p25-picker-value,.mmh-p25-option-label,.mmh-cat-trigger-v2>span:first-child,#mmhCategoryPickerV2 [role=option],#txReceiptPreviewV720 .copy,.mmh-hier-examples');
+}
+function txUiTextV2(base){
+  if(lang==='en')return base;
+  const pair=Object.prototype.hasOwnProperty.call(txUiCopyV2,base)?txUiCopyV2[base]:null;if(pair)return pair[lang==='zh'?0:1];
+  const count=base.match(/^(\d+)(?: of (\d+))? records?$/);
+  if(count)return (count[2]?count[1]+' / '+count[2]:count[1])+(lang==='zh'?' 条记录':' မှတ်တမ်း');
+  const day=base.match(/^(\d{4}-\d{2}-\d{2}) · (\d+) records$/);
+  if(day)return day[1]+' · '+day[2]+(lang==='zh'?' 条记录':' မှတ်တမ်း');
+  return lang==='zh'?translateDynamicText(base):base;
+}
 function translateAttributes(root){
   const applyAttrs=el=>{
     if(!el?.getAttribute||el.closest?.('#apCurrencyPickerV2,#apRowCurrencyPickerV2,#mmhNotifyPopoverV560,.wv-choice-menu-v2,.mmh-notification-dialog-v149,#wvThemeToggle,.wv-flag-wrap,#dataLoadOverlayV384,#mmhP947AccountGuard'))return;
     ['placeholder','title','aria-label'].forEach(a=>{
       const v=el.getAttribute(a); if(!v)return;
+      if(txUiSurfaceV2(el)&&(txUiOwnedV2(el)||txUiDataV2(el)))return;
       const key='i18n'+a.replace(/-([a-z])/g,(_,c)=>c.toUpperCase());
       if(!el.dataset[key]) el.dataset[key]=v;
-      const base=el.dataset[key]; const desired=lang==='zh'?(myWorkspaceUiV2(el)&&zhWorkspaceV2[base]||zh[base]||base):lang==='my'?myWorkspaceTextV2(base,el):base;if(v!==desired)el.setAttribute(a,desired);
+      const base=el.dataset[key]; const desired=txUiSurfaceV2(el)?txUiTextV2(base):lang==='zh'?(myWorkspaceUiV2(el)&&zhWorkspaceV2[base]||zh[base]||base):lang==='my'?myWorkspaceTextV2(base,el):base;if(v!==desired)el.setAttribute(a,desired);
     });
   };
   if(root?.nodeType===Node.ELEMENT_NODE&&root.matches?.('[placeholder],[title],[aria-label]'))applyAttrs(root);
@@ -19986,6 +20014,8 @@ function translateTextNode(n){
   const current=n.nodeValue.trim();if(!current||!n.parentElement||n.parentElement.closest('script,style,textarea,[contenteditable="true"]'))return;
 
   const parent=n.parentElement;
+  if(txUiSurfaceV2(parent)&&(txUiOwnedV2(parent)||txUiDataV2(parent)))return;
+  if(parent.id==='txReceiptHint'&&document.getElementById('txReceipt')?.files?.length)return;
   if(parent.closest('#apCurrencyPickerV2,#apRowCurrencyPickerV2,#accounts-page .am-row[data-account-id] .am-row-copy b,#mmhNotifyPopoverV560,.wv-choice-menu-v2,.mmh-notification-dialog-v149,#dataLoadOverlayV384,#mmhBootWorkspaceTextV2,#welcomeScreen .welcome-title,#welcomeScreen .welcome-sub,#welcomeScreen .welcome-ready,#mmhP947AccountGuard'))return; // These surfaces own their translations and user content.
   // Never translate member-entered account/category names or machine-readable finance types in the new dashboard.
   if(parent.closest('#mmhPremiumDashboardV500 .pf-tx-copy-v500,#mmhPremiumDashboardV500 .pf-tag-v500,#mmhPremiumDashboardV500 .pf-name-v500,#mmhPremiumDashboardV500 .pf-asset-v500,#mmhPremiumDashboardV500 .pf-signal-card-v150[data-signal-action-v150="category"] b,#header .wvLiveClockV2'))return;
@@ -19999,7 +20029,7 @@ function translateTextNode(n){
     rec={base:current,last:current};
   }
 
-  const desired=lang==='zh'?(myWorkspaceUiV2(parent)&&Object.prototype.hasOwnProperty.call(zhWorkspaceV2,rec.base)?zhWorkspaceV2[rec.base]:translateDynamicText(rec.base)):lang==='my'?myWorkspaceTextV2(rec.base,parent):rec.base;
+  const desired=txUiSurfaceV2(parent)?txUiTextV2(rec.base):lang==='zh'?(myWorkspaceUiV2(parent)&&Object.prototype.hasOwnProperty.call(zhWorkspaceV2,rec.base)?zhWorkspaceV2[rec.base]:translateDynamicText(rec.base)):lang==='my'?myWorkspaceTextV2(rec.base,parent):rec.base;
   if(current!==desired){
     const raw=n.nodeValue;
     const lead=raw.match(/^\s*/)?.[0]||'',tail=raw.match(/\s*$/)?.[0]||'';
@@ -20022,7 +20052,7 @@ function apply(){document.documentElement.lang=lang==='zh'?'zh-CN':lang==='my'?'
 function activeTranslationRoots(){
   const roots=[document.getElementById('header'),document.getElementById('bottomNav')].filter(Boolean);
   const page=document.querySelector('.page.active');if(page)roots.push(page);
-  document.querySelectorAll('dialog[open],#mmhVaultDialogV449.show,#mmhNotifyPopoverV560.open,#moreNavMenu.open').forEach(root=>{if(!roots.includes(root))roots.push(root)});
+  document.querySelectorAll('dialog[open],#mmhVaultDialogV449.show,#mmhNotifyPopoverV560.open,#moreNavMenu.open,#editModal.open:has(#editTxForm),#receiptViewerModalV3297.show,#mmhCategoryPickerV2:not([hidden]),.mmh-p24-account-menu,.mmh-p25-picker-menu').forEach(root=>{if(!roots.includes(root))roots.push(root)});
   return roots;
 }
 function applyActive(){activeTranslationRoots().forEach(translateRoot);syncLanguageChoices();}
@@ -24233,7 +24263,7 @@ button[data-mmh-busy="1"],.btn[data-mmh-busy="1"]{position:relative;cursor:wait!
     return '<div class="mmh-tx-detail-v800" data-mmh-tx-direction="'+E(t.type||'')+'">'+
       '<div class="mmh-tx-detail-hero-v800"><div><div class="mmh-tx-detail-eyebrow-v800">Transaction detail</div><div class="mmh-tx-detail-title-v800">'+E(t.category||group(t)||'Transaction')+'</div><span class="mmh-tx-detail-chip-v800">'+E([t.type||'Transaction',group(t)].filter((x,i,a)=>x&&a.indexOf(x)===i).join(' · '))+'</span></div><div class="mmh-tx-detail-amount-v800">'+E(primary(t))+'</div></div>'+
       '<div class="mmh-tx-detail-grid-v800">'+item('Date',t.tx_date||'—')+item('Category',t.category||'—')+item('From account',t.from_account||'—')+item('From amount',N(t.from_amount)?money(t.from_amount,t.from_account):'—')+item('To account',t.to_account||'—')+item('To amount',N(t.to_amount)?money(t.to_amount,t.to_account):'—')+'</div>'+
-      '<div class="mmh-tx-detail-note-v800"><strong style="color:#d9e8f6">Note</strong><br>'+E(t.note||'No note')+'</div>'+
+      '<div class="mmh-tx-detail-note-v800"><strong style="color:#d9e8f6">Note</strong><br>'+(t.note?'<span data-mmh-tx-user-copy>'+E(t.note)+'</span>':'No note')+'</div>'+
       '<div class="mmh-tx-detail-receipt-v800"><span>▧</span><strong>Receipt</strong><span>'+E(receipt?'Attached':'No receipt attached')+'</span></div>'+
       '<div class="mmh-tx-reuse-hint-v142"><span>↻</span><div><strong>Use Again</strong><small>Creates a new transaction with the same category, accounts, amount and note. The date resets to today and the old receipt is never copied.</small></div></div>'+
     '</div>';
@@ -35893,7 +35923,7 @@ html body #settings.page.active #stPage_security #mmhA783SecurityCenter .mmh-a78
 <!-- Auto MMK is loaded only by the explicit release gate below. -->
 <!-- APP V11.7: owner-linked Manage replaces the former field-layout loader.
      The original V11 script remains in Git history for rollback; no DB migration. -->
-<script type="module" src="js/mmhvault-v11-manage-hierarchy-live.mjs?v=0.16.2"></script>
+<script type="module" src="js/mmhvault-v11-manage-hierarchy-live.mjs?v=0.16.4"></script>
 <link rel="stylesheet" href="css/mmhvault-transaction-onboarding-v1.css?v=2.1.0">
 <script type="module" src="js/mmhvault-transaction-onboarding-live-v1.mjs?v=2.2.0"></script>
 
@@ -37732,7 +37762,7 @@ document.body.addEventListener('change',e=>{if(e.target.closest?.('.mmh-hier-for
 document.addEventListener('pointerdown',e=>{if(active&&!menu.contains(e.target)&&!active.trigger.contains(e.target))close()},true);
 document.addEventListener('focusin',e=>{if(active&&!menu.contains(e.target)&&!active.trigger.contains(e.target))close()},true);
 document.addEventListener('keydown',e=>{if(!active)return;if(e.key==='Tab'&&active.source.closest('.mmh-hier-form')){e.preventDefault();close(true);return}if(e.key==='Escape'){e.preventDefault();e.stopImmediatePropagation();close(true)}else if(['ArrowDown','ArrowUp','Home','End'].includes(e.key)&&e.target!==menu.querySelector('input')){const options=[...menu.querySelectorAll('button')];if(!options.length)return;e.preventDefault();const i=options.indexOf(document.activeElement);options[e.key==='Home'?0:e.key==='End'?options.length-1:Math.max(0,Math.min(options.length-1,i+(e.key==='ArrowDown'?1:-1)))]?.focus()}},true);
-window.addEventListener('resize',schedule,{passive:true});window.addEventListener('scroll',()=>{if(active)place()},true);window.visualViewport?.addEventListener('resize',schedule);window.visualViewport?.addEventListener('scroll',schedule);window.addEventListener('mmhvault:page-visible',schedule);schedule();
+window.addEventListener('resize',schedule,{passive:true});window.addEventListener('scroll',()=>{if(active)place()},true);window.visualViewport?.addEventListener('resize',schedule);window.visualViewport?.addEventListener('scroll',schedule);window.addEventListener('mmhvault:page-visible',schedule);window.addEventListener('mmhvault-language-change',()=>{close();schedule()});schedule();
 })();
 </script>
 
