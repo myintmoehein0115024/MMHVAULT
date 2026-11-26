@@ -24,7 +24,7 @@ function mount(){let root=$('mmhInvestAutoV19');if(root)return root;
   if(b.hasAttribute('data-iv19-toggle'))void toggle();else if(b.hasAttribute('data-iv19-refresh'))void load(true);
  });return root;
 }
-function clear(next=''){uid=next;seq++;loaded=false;loading=false;busy=false;enabled=false;offset=0;quoteRows=[];statuses=[];error='';const root=$('mmhInvestAutoV19');if(root){root.querySelector('[data-iv19-quotes]')?.replaceChildren();root.querySelector('[data-iv19-logs]')?.replaceChildren();root.querySelector('[data-iv19-message]')?.replaceChildren();}}
+function clear(next=''){if(capturePrompt?.open)capturePrompt.close();uid=next;seq++;loaded=false;loading=false;busy=false;enabled=false;offset=0;quoteRows=[];statuses=[];error='';const root=$('mmhInvestAutoV19');if(root){root.querySelector('[data-iv19-quotes]')?.replaceChildren();root.querySelector('[data-iv19-logs]')?.replaceChildren();root.querySelector('[data-iv19-message]')?.replaceChildren();}}
 function statusLabel(s){return ({complete:T('报价已归档','Quotes captured'),incomplete:T('部分报价缺失','Partially captured'),empty:T('没有需采集的币种','No eligible crypto'),ledger_review:T('投资账本待核对','Ledger needs review'),fetch_error:T('行情暂不可用','Quotes unavailable'),capacity:T('服务容量不足','Capacity limited')})[s]||T('尚未采集','Not captured');}
 function render(){const root=mount();if(!root)return;
  const words=[['title','自动历史报价记录','Automatic historical quote archive'],['intro','网站关闭后，可按固定时区自动采集已结束日期的 Crypto 日线报价；原始买卖与已审计收益不被修改。','Collect completed-day crypto closes at a fixed time-zone offset even when this site is closed. Trades and audited P/L stay unchanged.'],['switch-title','自动记录历史行情','Scheduled historical market quotes'],['switch-desc','需要你主动开启；后台只读取你自己的 Crypto 投资币种列表，以便选择要采集的公开行情。不会自动买卖。','Explicit opt-in. The backend reads your Crypto symbol list only to fetch public closes. No trading.'],['status-label','服务设置','Capture setting'],['latest-label','最近一次检查','Latest check'],['data-label','已归档报价条目','Stored quote rows shown'],['logs-title','采集情况','Capture status'],['logs-sub','最近 7 天 · 失败不会生成盈亏','Latest 7 · failures do not produce P/L'],['quotes-title','行情采集记录','Captured close prices'],['quotes-sub','最近 20 条 · 保留报价来源','Latest 20 · source retained'],['caveat','重要：自动记录的是“事后获取的历史行情”，并非当日实时抓取的官方结算单，也不是自动审计后的盈亏。自动采集不补齐全部旧历史。采用你开启时的固定 UTC 时差，夏令时变化需关闭后重新开启更新；数据缺失将明确标记。Gold 不在此自动采集中。','Important: these are historical closes fetched after the fact—not official live settlement or automatically audited P/L. Older history is not backfilled automatically. Fixed UTC offset is recorded when enabled; if daylight saving changes, disable and re-enable to update it. Missing data is marked. Gold is excluded.']];
@@ -59,11 +59,25 @@ async function load(force=false){const own=owner();if(!own){if(uid)clear();rende
  }catch(_e){if(cur===seq&&uid===own)error=T('暂时无法读取云端采集记录，请稍后刷新。','Could not load archived market quotes. Retry shortly.');}
  finally{if(cur===seq&&uid===own){loading=false;render();}}
 }
-async function toggle(){if(busy||loading||!uid)return;
+let capturePrompt=null;
+function confirmCapture222(){
+ if(capturePrompt)return Promise.resolve(false);
+ const l=String(window.getMMHVAULTLanguage?.()||document.documentElement.lang||'en').toLowerCase();
+ const t=(en,zh,my)=>/^zh/.test(l)?zh:/^(my|mm)/.test(l)?my:en;
+ const d=document.createElement('dialog');if(typeof d.showModal!=='function')return Promise.resolve(false);
+ d.id='mmhCaptureConfirmV222';d.setAttribute('aria-labelledby','mmhCaptureConfirmTitleV222');
+ const light=document.body.classList.contains('light');
+ d.style.cssText='width:min(440px,calc(100vw - 32px));max-height:80dvh;box-sizing:border-box;padding:0;overflow:auto;overscroll-behavior:contain;border:1px solid '+(light?'#d8e0e9':'#354152')+';border-radius:12px;background:'+(light?'#fff':'#19222e')+';color:'+(light?'#233146':'#edf1f8')+';box-shadow:0 18px 60px #0005;font:inherit;';
+ d.innerHTML='<div style="padding:18px"><small style="font-weight:700;letter-spacing:.08em">MMHVAULT</small><h2 id="mmhCaptureConfirmTitleV222" style="font-size:18px;margin:12px 0">'+esc(t('Enable automatic quotes?','开启自动行情？','အလိုအလျောက် ဈေးနှုန်း ရယူမလား။'))+'</h2><p style="font-size:13px;line-height:1.65;margin:0 0 18px">'+esc(t('Background checking reads your crypto symbol list and stores public historical prices. This may consume Supabase usage quota. No orders or trading will occur.','后台仅读取你的 Crypto 币种列表并存储公开历史价格，可能消耗 Supabase 使用额度，不会下单或自动交易。','နောက်ခံစစ်ဆေးမှုသည် သင့် Crypto စာရင်းကို ဖတ်ပြီး အများပြည်သူသုံး သမိုင်းဝင်ဈေးနှုန်းများကို သိမ်းဆည်းပါမည်။ Supabase အသုံးပြုမှု ကန့်သတ်ချက်ကို သုံးစွဲနိုင်သည်။ အရောင်းအဝယ် မပြုလုပ်ပါ။'))+'</p><div style="display:flex;justify-content:flex-end;gap:8px"><button type="button" data-cancel autofocus>'+esc(t('Cancel','取消','မလုပ်တော့ပါ'))+'</button><button type="button" data-enable>'+esc(t('Enable','开启','ဖွင့်ပါ'))+'</button></div></div>';
+ for(const b of d.querySelectorAll('button'))b.style.cssText='min-height:38px;padding:7px 15px;border-radius:7px;border:1px solid '+(light?'#d8e0e9':'#354152')+';font:inherit;font-size:13px;cursor:pointer;background:'+(b.hasAttribute('data-enable')?'#9bb8f8':light?'#f4f6fa':'#253141')+';color:'+(b.hasAttribute('data-enable')?'#17253a':'inherit');
+ document.body.append(d);capturePrompt=d;
+ return new Promise(resolve=>{let accepted=false;d.querySelector('[data-cancel]').onclick=()=>d.close();d.querySelector('[data-enable]').onclick=()=>{accepted=true;d.close()};d.addEventListener('close',()=>{capturePrompt=null;d.remove();resolve(accepted);},{once:true});try{d.showModal()}catch(_){capturePrompt=null;d.remove();resolve(false)}});
+}
+async function toggle(){if(busy||loading||!uid||capturePrompt)return;
  const current=uid,saveEnabled=!enabled,offsetAtEnable=offsetNow();
  if(saveEnabled&&(!Number.isInteger(offsetAtEnable)||offsetAtEnable<-720||offsetAtEnable>840||offsetAtEnable%15!==0)){
   error=T('设备时区偏移不支持自动采集。','Unsupported device offset.');render();return;}
- if(saveEnabled&&!window.confirm(T('确认开启？后台将按计划读取你自己的 Crypto 币种列表，并存储公开历史价格。可能产生 Supabase 调用额度消耗，不会保存任何买卖订单或自动交易。','Enable background checking of your Crypto symbol list and public historical prices? This may consume Supabase usage quota. No order or trading will occur.')))return;
+ if(saveEnabled){const before=seq;if(!await confirmCapture222()||uid!==current||owner()!==current||seq!==before||busy||loading||enabled)return;}
  const sdk=client();if(!sdk)return;
  busy=true;error='';render();const thisSeq=seq;
  try{const auth=(await sdk.auth.getUser()).data.user;
