@@ -12240,12 +12240,12 @@ html.mmh-desktop-compact-v11110 body.mmh-workspace-active #moreNavMenu.more-nav-
     return {type,side,pl,receipt,actions,account:esc(x.account||'Not recorded'),amount:numeric(x.amount)?esc(currencyMark(x.currency))+' '+dir+esc(moneyDigits(Math.abs(Number(x.amount)))):'Not recorded',price:price(x.buy_price)+(x.type==='Gold'?' / ကျပ်သား':''),qty,
       fees:(numeric(x.fee)&&Number(x.fee)!==0?money(x.fee):'—')+' / '+(numeric(x.other_cost)&&Number(x.other_cost)!==0?money(x.other_cost):'—')};
   }
-  function ledgerLine(date,name,description,account,type,amount){
-    return '<span class="iw226-ledger-line"><time class="iw226-record-date">'+date+'</time><span class="iw226-record-description"><strong class="iw226-record-name">'+name+'</strong>'+description+'</span><span class="iw226-record-account">'+account+'</span><span class="iw226-record-type">'+type+'</span><span class="iw226-record-amount">'+amount+'</span></span>';
+  function ledgerLine(date,name,account,type,amount){
+    return '<span class="iw226-ledger-line"><span class="iw226-record-main"><time class="iw226-record-date">'+date+'</time><span class="iw226-record-description"><strong class="iw226-record-name">'+name+'</strong></span><span class="iw226-record-sub"><span class="iw226-record-type">'+type+'</span><span class="iw226-record-account">'+account+'</span></span></span><span class="iw226-record-amount">'+amount+'</span><span class="iw226-record-chevron" aria-hidden="true">›</span></span>';
   }
   function rowHTML(x){
     const v=display(x),field=(label,value)=>'<div class="mmh-history-detail"><small>'+label+'</small><b>'+value+'</b></div>',fee=v=>numeric(v)&&Number(v)!==0?esc(currencyMark(x.currency))+' '+esc(moneyDigits(v)):'—';
-    return '<article class="iw226-ledger-record iw226-trade-record" tabindex="0" role="button" aria-label="'+esc(recordText('View investment details','查看投资详情','ရင်းနှီးမြှုပ်နှံမှု အသေးစိတ်ကြည့်ရန်'))+'" data-investment-id="'+esc(x.id)+'" data-investment-kind="'+esc(x.kind)+'">'+ledgerLine(esc(x.date||'—'),esc(x.name||'—'),'',v.account,v.type+' '+v.side,'<span class="iw224-record-money">'+v.amount+'</span><small class="iw224-record-qty">'+v.qty+'</small>')+'<div hidden style="display:none!important"><div class="mmh-history-grid">'+
+    return '<article class="iw226-ledger-record iw226-trade-record" tabindex="0" role="button" aria-label="'+esc(recordText('View investment details','查看投资详情','ရင်းနှီးမြှုပ်နှံမှု အသေးစိတ်ကြည့်ရန်'))+'" data-investment-id="'+esc(x.id)+'" data-investment-kind="'+esc(x.kind)+'">'+ledgerLine(esc(x.date||'—'),esc(x.name||'—'),v.account,v.type+' '+v.side,'<span class="iw224-record-money">'+v.amount+'</span><small class="iw224-record-qty">'+v.qty+'</small>')+'<div hidden style="display:none!important"><div class="mmh-history-grid">'+
       field(recordText('Source account','来源账户','မူရင်းအကောင့်'),v.account)+field(recordText('Trade amount','交易金额','အရောင်းအဝယ် ပမာဏ'),v.amount)+field(recordText('Trade price','成交价格','အရောင်းအဝယ် ဈေးနှုန်း'),v.price)+field(recordText('Trade quantity','交易数量','အရေအတွက်'),v.qty)+
       field(recordText('Fee','手续费','ဝန်ဆောင်ခ'),fee(x.fee))+field(recordText('Other costs','其他费用','အခြား ကုန်ကျစရိတ်'),fee(x.other_cost))+field(recordText('Realized P/L','已实现盈亏','ရရှိပြီး အမြတ်/အရှုံး'),v.pl)+
       field(recordText('Note','备注','မှတ်ချက်'),esc(x.note||'—'))+'</div><div class="mmh-history-actions">'+(x.receipt?v.receipt+' ':'')+v.actions+'</div></div></article>';
@@ -12259,7 +12259,7 @@ html.mmh-desktop-compact-v11110 body.mmh-workspace-active #moreNavMenu.more-nav-
   function walletRow222(r){
     const x=r.x,transfer=r.side==='Transfer',sym=String((transfer?x.asset_symbol:(x.fee_asset_symbol||x.asset_symbol))||''),rawQty=transfer?x.quantity:x.fee_quantity,qty=rawQty==null||rawQty===''?NaN:Number(rawQty);
     const label=transfer?recordText('Transfer','转账','လွှဲပြောင်းမှု'):recordText('Gas fee','链上手续费','ကွန်ရက် ဝန်ဆောင်ခ');
-    return '<button type="button" class="iw226-ledger-record" data-iw224-side="'+(transfer?'transfer':'gas')+'" data-iw222-wallet-id="'+esc(x.id)+'">'+ledgerLine(esc(r.date||'—'),esc(sym||'—'),'',esc((x.from_wallet||'—')+(transfer?' → '+(x.to_wallet||'—'):'')),esc(label),(Number.isFinite(qty)?esc(qty.toLocaleString(undefined,{maximumFractionDigits:8})):'—')+' '+esc(sym)+(transfer&&Number(x.fee_quantity)>0?'<small class="iw224-record-qty">'+esc(recordText('Fee','手续费','ဝန်ဆောင်ခ'))+' '+esc(Number(x.fee_quantity).toLocaleString(undefined,{maximumFractionDigits:8}))+' '+esc(x.fee_asset_symbol||sym)+'</small>':''))+'</button>';
+    return '<button type="button" class="iw226-ledger-record" data-iw224-side="'+(transfer?'transfer':'gas')+'" data-iw222-wallet-id="'+esc(x.id)+'">'+ledgerLine(esc(r.date||'—'),esc(sym||'—'),esc((x.from_wallet||'—')+(transfer?' → '+(x.to_wallet||'—'):'')),esc(label),(Number.isFinite(qty)?esc(qty.toLocaleString(undefined,{maximumFractionDigits:8})):'—')+' '+esc(sym)+(transfer&&Number(x.fee_quantity)>0?'<small class="iw224-record-qty">'+esc(recordText('Fee','手续费','ဝန်ဆောင်ခ'))+' '+esc(Number(x.fee_quantity).toLocaleString(undefined,{maximumFractionDigits:8}))+' '+esc(x.fee_asset_symbol||sym)+'</small>':''))+'</button>';
   }
   const categoryOf=x=>x?.side==='Transfer'?'Transfer':x?.side==='Gas'?'Fee':x?.kind==='custom'?'Custom':'Trade';
   function render(){
@@ -12280,9 +12280,8 @@ html.mmh-desktop-compact-v11110 body.mmh-workspace-active #moreNavMenu.more-nav-
     const filterMarkup='<div class="iw222-filterbar">'+picker('iw222-asset',recordText('Asset','资产','ပိုင်ဆိုင်မှု'),types,filter,t=>t==='ALL'?recordText('All assets','全部资产','ပိုင်ဆိုင်မှု အားလုံး'):t)+picker('iw222-activity',recordText('Activity','活动','လုပ်ဆောင်မှု'),sides,sideFilter,t=>labels[t])+picker('iw222-category',recordText('Category','分类','အမျိုးအစား'),categories,categoryFilter,t=>categoryLabels[t])+'<button type="button" id="iw222-reset" aria-label="'+recordText('Reset filters','重置筛选','စစ်ထုတ်မှု ပြန်သတ်မှတ်')+'">'+recordText('Reset','重置','ပြန်သတ်မှတ်')+'</button><span class="iw222-count"></span></div>';
     replaceRecordMarkup(filters,filterMarkup,renderedFilters,'.iw222-filterbar');renderedFilters=filterMarkup;
     const count=filters.querySelector('.iw222-count'),countText=cards.length+' / '+(rows.length+wallet.length);if(count&&count.textContent!==countText)count.textContent=countText;
-    const headings=[recordText('Date','日期','ရက်စွဲ'),recordText('Description','说明','ဖော်ပြချက်'),recordText('Account','账户','အကောင့်'),recordText('Type','类型','အမျိုးအစား'),recordText('Amount','金额','ပမာဏ')];
     list.setAttribute('role','region');list.setAttribute('aria-label',title);list.tabIndex=0;
-    let ledgerMarkup=cards.length?'<div class="iw226-ledger-header" aria-hidden="true"><span class="iw226-ledger-line">'+headings.map(h=>'<span>'+esc(h)+'</span>').join('')+'</span></div><div class="iw226-ledger-list">'+cards.map(x=>x.isWallet?walletRow222(x.row):rowHTML(x.row)).join('')+'</div>':'<div class="mmh-ui-empty">'+recordText('No matching records.','没有符合筛选条件的记录。','ကိုက်ညီသော မှတ်တမ်း မရှိပါ။')+'</div>';
+    let ledgerMarkup=cards.length?'<div class="iw226-ledger-list">'+cards.map(x=>x.isWallet?walletRow222(x.row):rowHTML(x.row)).join('')+'</div>':'<div class="mmh-ui-empty">'+recordText('No matching records.','没有符合筛选条件的记录。','ကိုက်ညီသော မှတ်တမ်း မရှိပါ။')+'</div>';
     if(uid&&!walletReady&&(filter==='ALL'||filter==='Crypto')&&['ALL','Wallet','Transfer','Gas'].includes(sideFilter))ledgerMarkup='<div class="mmh-ui-empty" role="status">'+recordText('Wallet records are not loaded yet.','钱包记录尚未加载。','ပိုက်ဆံအိတ် မှတ်တမ်းများ မရရှိသေးပါ။')+'</div>'+ledgerMarkup;
     if(window.mmhCustomInvestLoaded!==true)ledgerMarkup='<div class="mmh-ui-empty">'+recordText('Custom records are unavailable or still loading.','自定义记录尚未加载。','စိတ်ကြိုက် မှတ်တမ်းများ ရယူနေဆဲ ဖြစ်သည်။')+'</div>'+ledgerMarkup;
     const active=document.activeElement;
@@ -39148,31 +39147,33 @@ html body #invest#invest#invest #mmhHistoryFiltersV1#mmhHistoryFiltersV1 .iw222-
 }
 /* One scroll viewport and one ledger row structure. */
 html body #invest #mmhUnifiedHistoryV1 #mmhHistoryRowsV1{display:block!important;box-sizing:border-box!important;min-width:0!important;min-height:0!important;max-width:100%!important;height:min(60dvh,640px)!important;max-height:min(60dvh,640px)!important;overflow-y:auto!important;overflow-x:hidden!important;overscroll-behavior-y:contain!important;touch-action:pan-y pinch-zoom!important;-webkit-overflow-scrolling:touch;scrollbar-width:thin;scrollbar-gutter:stable;scrollbar-color:var(--uv-line,#354152) transparent;background:var(--uv-card)!important;background-image:none!important;border:1px solid var(--uv-line);border-radius:8px;padding:0!important}
-#invest #mmhHistoryRowsV1 .iw226-ledger-list{display:block;min-width:0;overflow:visible}
-#invest #mmhHistoryRowsV1 .iw226-ledger-header{position:sticky;top:0;z-index:2;padding:8px 10px;background:var(--uv-card);border-bottom:1px solid var(--uv-line);font-size:11px;font-weight:650;color:var(--uv-muted)}
-#invest #mmhUnifiedHistoryV1 #mmhHistoryRowsV1 .iw226-ledger-record{display:block!important;width:100%!important;min-width:0!important;box-sizing:border-box!important;min-height:56px!important;padding:8px 10px!important;margin:0!important;border:0!important;border-bottom:1px solid var(--uv-line)!important;border-radius:0!important;background:var(--uv-card)!important;background-image:none!important;color:var(--uv-text)!important;text-align:left!important;box-shadow:none!important;cursor:pointer;font:inherit;appearance:none!important;-webkit-appearance:none!important;touch-action:pan-y pinch-zoom!important}
-#invest #mmhUnifiedHistoryV1 #mmhHistoryRowsV1 .iw226-ledger-record:last-child{border-bottom:0!important}
+/* Match Transaction record cards: date/title/subtitle, right amount, detail chevron. */
+#invest #mmhHistoryRowsV1 .iw226-ledger-list{display:grid;grid-template-columns:minmax(0,1fr);gap:8px;min-width:0;overflow:visible;padding:1px}
+#invest #mmhUnifiedHistoryV1 #mmhHistoryRowsV1 .iw226-ledger-record{display:block!important;width:100%!important;min-width:0!important;box-sizing:border-box!important;min-height:72px!important;padding:12px 14px!important;margin:0!important;border:1px solid var(--uv-line)!important;border-radius:12px!important;background:var(--uv-card)!important;background-image:none!important;color:var(--uv-text)!important;text-align:left!important;box-shadow:none!important;cursor:pointer;font:inherit;appearance:none!important;-webkit-appearance:none!important;touch-action:pan-y pinch-zoom!important}
 @media(hover:hover) and (pointer:fine){#invest #mmhUnifiedHistoryV1 #mmhHistoryRowsV1 .iw226-ledger-record:hover{background:var(--uv-raised)!important}}
 #invest #mmhHistoryRowsV1 .iw226-ledger-record:focus-visible,#invest #mmhHistoryRowsV1:focus-visible{outline:2px solid var(--uv-accent);outline-offset:-2px}
-#invest #mmhHistoryRowsV1 .iw226-ledger-line{display:grid;grid-template-columns:minmax(70px,.8fr) minmax(0,1.4fr) minmax(0,1.2fr) minmax(0,.8fr) minmax(0,1.2fr);gap:8px;align-items:center;width:100%;min-width:0}
-#invest #mmhHistoryRowsV1 .iw226-ledger-line>*{min-width:0;overflow-wrap:anywhere;line-height:1.4}
-#invest #mmhHistoryRowsV1 .iw226-record-name{display:block;font-size:13px;font-weight:650}
-#invest #mmhHistoryRowsV1 :is(.iw226-record-date,.iw226-record-note,.iw224-record-qty){display:block;color:var(--uv-muted);font-size:11px;font-weight:400}
-#invest #mmhHistoryRowsV1 .iw226-record-note{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-#invest #mmhHistoryRowsV1 :is(.iw226-record-account,.iw226-record-type){font-size:12px}
-#invest #mmhHistoryRowsV1 .iw226-record-type>span{display:block;background:none!important;border:0!important;padding:0!important;box-shadow:none!important}
+#invest #mmhHistoryRowsV1 .iw226-ledger-line{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,auto) 12px;gap:12px;align-items:center;width:100%;min-width:0}
+#invest #mmhHistoryRowsV1 .iw226-record-main{display:grid;grid-template-columns:100px minmax(0,1fr);align-items:center;gap:3px 12px;min-width:0}
+#invest #mmhHistoryRowsV1 .iw226-record-date{grid-column:1;grid-row:1/span 2;white-space:nowrap;font-size:12px;color:var(--uv-muted)}
+#invest #mmhHistoryRowsV1 .iw226-record-description{grid-column:2;grid-row:1;min-width:0}
+#invest #mmhHistoryRowsV1 .iw226-record-name{display:block;font-size:14px;font-weight:650;line-height:1.45;overflow-wrap:anywhere}
+#invest #mmhHistoryRowsV1 .iw226-record-sub{grid-column:2;grid-row:2;display:flex;flex-wrap:wrap;gap:2px 6px;min-width:0;font-size:12px;line-height:1.5;color:var(--uv-muted);overflow-wrap:anywhere}
+#invest #mmhHistoryRowsV1 .iw226-record-type{display:inline-flex;flex-wrap:wrap;gap:4px;min-width:0;max-width:100%}
+#invest #mmhHistoryRowsV1 .iw226-record-account{min-width:0;max-width:100%}
+#invest #mmhHistoryRowsV1 .iw226-record-type>span{display:inline;background:none!important;border:0!important;padding:0!important;box-shadow:none!important;font-size:inherit!important}
 #invest #mmhHistoryRowsV1 .iw226-record-type .mmh-side-buy{color:var(--uv-positive)!important}
 #invest #mmhHistoryRowsV1 .iw226-record-type .mmh-side-sell{color:var(--uv-negative)!important}
-#invest #mmhHistoryRowsV1 .iw226-record-amount,#invest #mmhHistoryRowsV1 .iw226-ledger-header .iw226-ledger-line>span:last-child{text-align:right;font-variant-numeric:tabular-nums}
-#invest #mmhHistoryRowsV1 .iw226-record-amount{font-size:13px;font-weight:650}
+#invest #mmhHistoryRowsV1 .iw226-record-amount{min-width:0;max-width:190px;text-align:right;font-variant-numeric:tabular-nums;font-size:17px;font-weight:650;line-height:1.4;overflow-wrap:anywhere;white-space:normal}
+#invest #mmhHistoryRowsV1 .iw224-record-qty{display:block;color:var(--uv-muted);font-size:11px;font-weight:400;line-height:1.4;overflow-wrap:anywhere}
+#invest #mmhHistoryRowsV1 .iw226-record-chevron{text-align:right;font-size:16px;color:var(--uv-accent)}
 @media(max-width:620px){
- #invest #mmhHistoryRowsV1 .iw226-ledger-header{display:none}
- #invest #mmhHistoryRowsV1 .iw226-ledger-line{grid-template-columns:minmax(0,1fr) minmax(0,.85fr) minmax(0,1fr);grid-template-areas:"date type amount" "desc account amount";gap:3px 7px}
- #invest #mmhHistoryRowsV1 .iw226-record-date{grid-area:date}
- #invest #mmhHistoryRowsV1 .iw226-record-description{grid-area:desc}
- #invest #mmhHistoryRowsV1 .iw226-record-account{grid-area:account}
- #invest #mmhHistoryRowsV1 .iw226-record-type{grid-area:type}
- #invest #mmhHistoryRowsV1 .iw226-record-amount{grid-area:amount}
+ #invest #mmhUnifiedHistoryV1 #mmhHistoryRowsV1 .iw226-ledger-record{padding:11px 12px!important}
+ #invest #mmhHistoryRowsV1 .iw226-record-main{grid-template-columns:minmax(0,1fr);gap:3px}
+ #invest #mmhHistoryRowsV1 :is(.iw226-record-date,.iw226-record-description,.iw226-record-sub){grid-column:1;grid-row:auto}
+}
+@media(max-width:899px),(max-width:1099px) and (hover:none),(max-width:1099px) and (pointer:coarse){
+ #invest #mmhHistoryRowsV1 .iw226-ledger-line{grid-template-columns:minmax(0,1fr) minmax(0,46%) auto;gap:8px}
+ #invest #mmhHistoryRowsV1 .iw226-record-amount{max-width:100%;font-size:clamp(12px,3.5vw,15px);line-height:1.35}
 }
 @media(max-width:699px){
   html body #invest #mmhUnifiedHistoryV1 #mmhHistoryRowsV1{
