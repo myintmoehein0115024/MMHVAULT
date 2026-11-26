@@ -11566,6 +11566,9 @@ html.mmh-desktop-compact-v11110 body.mmh-workspace-active #moreNavMenu.more-nav-
 <button type="button" class="invest-subtab-v371" id="investSubPortfolioV371" role="tab">Portfolio</button>
 <button type="button" class="invest-subtab-v371" id="investSubManageV1" role="tab">Manage Projects</button>
 <button type="button" class="invest-subtab-v371" id="investSubLiveV1" role="tab">Live Prices</button>
+<button type="button" class="invest-subtab-v371" data-iw2-top="returns" role="tab" aria-selected="false" aria-controls="iw2-pane-returns" hidden>Performance</button>
+<button type="button" class="invest-subtab-v371" data-iw2-top="strategy" role="tab" aria-selected="false" aria-controls="iw2-pane-strategy" hidden>Strategy</button>
+<button type="button" class="invest-subtab-v371" data-iw2-top="data" role="tab" aria-selected="false" aria-controls="iw2-pane-data" hidden>Data Center</button>
 </div></div></div>
 <div id="mmhUnifiedInvestV1" aria-label="All investments">
   <div class="mmh-ui-panel"><div class="mmh-ui-heading"><div><h2 class="mmh-hint-anchor-v195 mmh-context-title-v199" data-mmh-hint-source="next" tabindex="0">Investment Portfolio Overview</h2><p class="mmh-context-desc-v199">Crypto / Gold 当前持仓与历史卖出分开统计 · 合计用 USD</p></div></div><div class="mmh-ui-kpis" id="mmhUnifiedKpisV1"></div><div class="mmh-overview-mix-wrap"><div class="mmh-ui-allocation" id="mmhUnifiedAllocationV1"></div><span class="mmh-overview-mix-hint" aria-hidden="true">›</span></div></div>
@@ -20271,6 +20274,7 @@ html body #invest .invest-subtabs-v371{display:grid!important;grid-template-colu
   root.classList.remove('v371-gold');root.classList.add('v371-crypto');
   names.forEach(name=>{const section=I('mmhFive'+name);if(section)section.hidden=name!==tab;
    const button=I(ids[name]);if(button){button.classList.toggle('active',name===tab);button.setAttribute('aria-selected',name===tab?'true':'false');}});
+  window.mmhInvestWorkspaceV2?.syncTop?.();
   const label=I(ids[tab])?.textContent?.trim()||'Overview';
   const current=I('mmhInvestPageCurrentV1');if(current)current.textContent=label;
   if(trigger)trigger.setAttribute('aria-label','选择页面：'+label);
@@ -20295,6 +20299,7 @@ html body #invest .invest-subtabs-v371{display:grid!important;grid-template-colu
   if(!names.includes(name))name='overview';localStorage.setItem(storage,name);
   localStorage.setItem('myfinance_invest_subtab_v371',name==='add'?'add':name==='portfolio'?'portfolio':'overview');
   const wasOpen=picker?.classList.contains('open');closePicker(wasOpen);show();
+  if(name==='overview')window.mmhInvestWorkspaceV2?.activate?.('overview');
  }
  window.renderInvestNavigationHardFixV371=show;
  window.setInvestSubtabV371=select;
@@ -35301,7 +35306,7 @@ html body.mmh-workspace-active #moreNavMenu .mmh-more-list-v153:focus-visible{ou
 <script src="js/mmhvault-invest-auto-v19.js?v=1.9.0" defer></script>
 <script src="js/mmhvault-invest-auto-pnl-v110.js?v=1.10.1" defer></script>
 <script src="js/mmhvault-invest-auto-pnl-v111.js?v=1.11.0" defer></script>
-<script src="js/mmhvault-invest-workspace-v2.js?v=2.0.2" defer></script>
+<script src="js/mmhvault-invest-workspace-v2.js?v=2.0.3" defer></script>
 
 <!-- MMHVAULT Liquid Glass v2 · loaded AFTER legacy inline styles so the premium dashboard wins the cascade. -->
 <link rel="stylesheet" href="css/mmhvault-liquid-dashboard-v2.css?v=9.7.0" data-mmh-liquid-dashboard="v2">
@@ -38164,6 +38169,28 @@ html body #invest#invest#invest#invest #mmhUnifiedAllocationV1>span{color:var(--
 html body #invest#invest#invest#invest #mmhUnifiedAllocationV1 .mmh-mix-track{background:var(--uv-line)!important}
 html body #invest#invest#invest#invest #mmhUnifiedAllocationV1 .mmh-mix-track>span{background:var(--uv-accent)!important}
 @media(max-width:760px){html body #invest#invest#invest#invest #mmhInvestPageOptionsV1>button{flex:1 1 85px!important;font-size:11px!important;min-height:42px!important}}
+</style>
+
+<style id="mmhInvestUnifiedNavigationV2">
+/* One Invest navigation; keep shared workspace chrome and data renderers unchanged. */
+html body.mmh-workspace-active:has(#invest#invest#invest.active) main.wrap.wrap.wrap{background:var(--uv-bg,#19212e)!important;background-image:none!important;box-shadow:none!important}
+html body.mmh-workspace-active:has(#invest#invest#invest.active) main.wrap.wrap.wrap::before,html body.mmh-workspace-active:has(#invest#invest#invest.active) main.wrap.wrap.wrap::after{content:none!important;background:none!important;box-shadow:none!important}
+html body #invest#invest#invest#invest#invest::before,html body #invest#invest#invest#invest#invest::after{content:none!important;display:none!important}
+html body #invest#invest#invest#invest#invest>.toolbar.v371-head{display:block!important;box-sizing:border-box!important;width:100%!important;max-width:none!important;min-height:0!important;height:auto!important;margin:0 0 14px!important;padding:0!important;background:transparent!important;background-image:none!important;border:0!important;border-radius:0!important;box-shadow:none!important;backdrop-filter:none!important;overflow:visible!important}
+html body #invest#invest#invest#invest#invest>.toolbar.v371-head::before,html body #invest#invest#invest#invest#invest>.toolbar.v371-head::after{content:none!important;display:none!important}
+html body #invest#invest#invest#invest#invest>.toolbar.v371-head>div:first-child,html body #invest#invest#invest#invest#invest>.toolbar.v371-head>.v371-switch{display:none!important}
+html body #invest#invest#invest#invest#invest #mmhInvestPagePickerV1{display:block!important;box-sizing:border-box!important;width:100%!important;max-width:none!important;min-width:0!important;margin:0!important;padding:0!important;position:static!important}
+html body #invest#invest#invest#invest#invest #mmhInvestPageOptionsV1{display:grid!important;grid-template-columns:repeat(8,minmax(0,1fr))!important;align-items:stretch!important;box-sizing:border-box!important;width:100%!important;max-width:none!important;min-width:0!important;gap:4px!important;padding:4px!important;margin:0!important;border:1px solid var(--uv-line)!important;border-radius:8px!important;background:var(--uv-card)!important;background-image:none!important;box-shadow:none!important}
+html body #invest#invest#invest#invest#invest #mmhInvestPageOptionsV1>button{box-sizing:border-box!important;display:flex!important;align-items:center!important;justify-content:center!important;width:100%!important;min-width:0!important;max-width:none!important;min-height:42px!important;height:auto!important;padding:7px 5px!important;margin:0!important;border:1px solid transparent!important;border-radius:6px!important;background:transparent!important;background-image:none!important;box-shadow:none!important;font:600 12px/1.4 var(--mmh-notice-font,system-ui)!important;color:var(--uv-muted)!important;text-align:center!important;white-space:normal!important;overflow-wrap:anywhere!important}
+html body #invest#invest#invest#invest#invest #mmhInvestPageOptionsV1>button[hidden]{display:none!important}
+html body #invest#invest#invest#invest#invest #mmhInvestPageOptionsV1>button::before,html body #invest#invest#invest#invest#invest #mmhInvestPageOptionsV1>button::after{content:none!important;display:none!important}
+html body #invest#invest#invest#invest#invest #mmhInvestPageOptionsV1>button:hover{background:var(--uv-raised)!important;color:var(--uv-text)!important}
+html body #invest#invest#invest#invest#invest #mmhInvestPageOptionsV1>button[aria-selected=true]{background:var(--uv-raised)!important;border-color:var(--uv-line)!important;color:var(--uv-accent)!important}
+html body #invest#invest#invest#invest#invest #mmhInvestPageOptionsV1>button:focus-visible{outline:2px solid var(--uv-accent)!important;outline-offset:-2px!important}
+html body #invest#invest#invest#invest#invest.mmh-invest-nav-ready #mmhInvestQuickV144,html body #invest#invest#invest#invest#invest.mmh-invest-nav-ready #mmhInvestWorkspaceV2 :is(.iw2-intro,.iw2-tabbar,.iw2-quicklinks,.iw2-footer),html body #invest#invest#invest#invest#invest.mmh-invest-nav-ready #iw2-pane-overview>.iw2-section-heading{display:none!important}
+html body #invest#invest#invest#invest#invest.mmh-invest-nav-ready #mmhInvestWorkspaceV2{margin-top:0!important}
+@media(max-width:1050px){html body #invest#invest#invest#invest#invest #mmhInvestPageOptionsV1{grid-template-columns:repeat(4,minmax(0,1fr))!important}}
+@media(max-width:620px){html body #invest#invest#invest#invest#invest #mmhInvestPageOptionsV1>button{font-size:11px!important;min-height:44px!important}}
 </style>
 
 <style id="mmhWorkspaceMobileSafeAreaV2">

@@ -70,9 +70,21 @@
    const next=e.key==='Home'?0:e.key==='End'?KEYS.length-1:(index+(e.key==='ArrowRight'?1:-1)+KEYS.length)%KEYS.length;
    activate(KEYS[next],true);$('iw2-tab-'+KEYS[next])?.focus();
   });
-  translate();return true;
+  translate();bindTop();return true;
  }
- function translate(){if(!host)return;for(const el of host.querySelectorAll('[data-iw2-t]'))el.textContent=tr(el.dataset.iw2T)}
+ function translate(){if(!host)return;for(const el of host.querySelectorAll('[data-iw2-t]'))el.textContent=tr(el.dataset.iw2T);const language=String(document.documentElement.lang||'').toLowerCase();const my={returns:'အမြတ်အစွန်း',strategy:'ရင်းနှီးမြှုပ်နှံမှု မဟာဗျူဟာ',data:'ဒေတာစင်တာ'};for(const el of root.querySelectorAll('[data-iw2-top]'))el.textContent=/^(my|mm)/.test(language)?my[el.dataset.iw2Top]:tr(el.dataset.iw2Top)}
+ function syncTop(){
+  const shown=!!$('mmhFiveoverview')&&!$('mmhFiveoverview').hidden;
+  const overview=$('investSubOverviewV371');
+  if(overview&&shown){overview.classList.toggle('active',active==='overview');overview.setAttribute('aria-selected',String(active==='overview'));}
+  for(const el of root.querySelectorAll('[data-iw2-top]')){const selected=shown&&active===el.dataset.iw2Top;el.classList.toggle('active',selected);el.setAttribute('aria-selected',String(selected));}
+ }
+ function bindTop(){
+  const menu=$('mmhInvestPageOptionsV1');if(!menu||!host)return;
+  if(!menu.dataset.iw2Bound){menu.dataset.iw2Bound='1';menu.addEventListener('click',e=>{const b=e.target.closest('[data-iw2-top]');if(!b||!KEYS.includes(b.dataset.iw2Top))return;window.setInvestSubtabV371?.('overview');window.requestAnimationFrame(()=>activate(b.dataset.iw2Top,true));});}
+  for(const el of menu.querySelectorAll('[data-iw2-top]'))el.hidden=false;
+  root.classList.add('mmh-invest-nav-ready');syncTop();
+ }
  function activate(key,userInitiated){
   active=KEYS.includes(key)?key:'overview';
   if(!host)return;
@@ -81,7 +93,8 @@
    if(button){button.setAttribute('aria-selected',String(selected));button.tabIndex=selected?0:-1;}
    if(panel)panel.hidden=!selected;
   }
-  if(userInitiated){$('iw2-tab-'+active)?.scrollIntoView({block:'nearest',inline:'nearest',behavior:'auto'});
+  syncTop();
+  if(userInitiated){const top=active==='overview'?$('investSubOverviewV371'):root.querySelector('[data-iw2-top="'+active+'"]');top?.scrollIntoView({block:'nearest',inline:'nearest',behavior:'auto'});
    // The source modules remain mounted and retain their event handlers / input state.
    // A resize event lets responsive charts settle after their pane becomes visible.
    window.requestAnimationFrame(()=>window.dispatchEvent(new Event('resize')));
@@ -142,5 +155,5 @@
  }
  // The 5-page legacy navigation creates its sections on demand.
  // Wrapping is unnecessary and brittle; the root observer catches creation.
- window.mmhInvestWorkspaceV2={activate:(key)=>{schedule();window.requestAnimationFrame(()=>activate(key,true))},relocate};
+ window.mmhInvestWorkspaceV2={activate:(key)=>{schedule();window.requestAnimationFrame(()=>activate(key,true))},relocate,syncTop};
 })();
