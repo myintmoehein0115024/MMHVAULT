@@ -19,23 +19,32 @@ export function createExchangeV2SessionV1({db,getLegacyRates=()=>null,getMarketR
     if(r?.error)throw Error('Account validation unavailable');
     return typeof r?.data?.user?.id==='string'?r.data.user.id:'';
   }
-  async function ensure(){
+  function assertGeneration(stamp){
+    if(generation!==stamp)throw Error('Account changed; reload Saved Rates');
+  }
+  async function checkedOwner(stamp){
     let owner;
-    try{owner=await authUid()}catch(e){clear();throw e}
-    if(!owner){clear();throw Error('Sign-in required')}
-    if(uid!==owner){generation++;uid=owner;pairs=[];status='loading'}
-    return {owner,stamp:generation};
+    try{owner=await authUid()}catch(error){if(generation===stamp)clear();throw error}
+    assertGeneration(stamp);
+    return owner;
+  }
+  async function verifyOwner(owner,stamp){
+    const after=await checkedOwner(stamp);
+    if(after!==owner){clear();throw Error('Account changed; reload Saved Rates')}
   }
   async function refresh(){
-    const {owner,stamp}=await ensure();
+    if(busy)throw Error('Another rate edit is in progress');
+    // Latest refresh wins, including overlapping requests for the same owner.
+    const started=++generation;
     status='loading';
+    const owner=await checkedOwner(started);
+    if(!owner){clear();throw Error('Sign-in required')}
+    if(uid!==owner){uid=owner;pairs=[]}
+    const stamp=started;
     try{
       const loaded=await store.list(owner);
-      const after=await authUid();
-      if(generation!==stamp||after!==owner){
-        clear();throw Error('Account changed; reload Saved Rates');
-      }
-      // Store only the current owner's normalized rows, never transfer between users.
+      await verifyOwner(owner,stamp);
+      assertGeneration(stamp);
       pairs=loaded;
       status='ready';onPairsChanged(owner,[...pairs]);
       return [...pairs];
@@ -46,18 +55,19 @@ export function createExchangeV2SessionV1({db,getLegacyRates=()=>null,getMarketR
   }
   async function mutate(action,args){
     if(busy)throw Error('Another rate edit is in progress');
-    const {owner,stamp}=await ensure();
+    // Bind the operation to the ready session BEFORE the first await.
+    // Never adopt a different authenticated owner for an existing UI action.
+    const owner=uid,stamp=generation;
+    if(!owner||status!=='ready')throw Error('Saved Rates not ready');
     busy=true;status='saving';
     try{
+      await verifyOwner(owner,stamp);
+      assertGeneration(stamp);
       const result=await store[action](args,owner);
-      if(generation!==stamp||await authUid()!==owner){
-        clear();throw Error('Account changed; reload Saved Rates');
-      }
-      // A fresh owner-scoped SELECT is authoritative; do not guess success locally.
+      await verifyOwner(owner,stamp);
       const loaded=await store.list(owner);
-      if(generation!==stamp||await authUid()!==owner){
-        clear();throw Error('Account changed; reload Saved Rates');
-      }
+      await verifyOwner(owner,stamp);
+      assertGeneration(stamp);
       pairs=loaded;status='ready';onPairsChanged(owner,[...pairs]);
       return result;
     }catch(error){
