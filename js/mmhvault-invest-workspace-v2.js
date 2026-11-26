@@ -1,4 +1,4 @@
-/* MMHVAULT Invest 2.0.15 — lifecycle-safe investment workspaces.
+/* MMHVAULT Invest 2.0.18 — lifecycle-safe investment workspaces.
  * Reparents existing modules; local hypothetical calculations only.
  * Never writes financial data, requests market data, or touches Supabase.
  */
@@ -8,18 +8,29 @@
  const root=document.getElementById('invest');
  if(!root)return;
  const $=id=>document.getElementById(id);
- const KEYS=['overview','strategy','data'];
+ const KEYS=['overview','strategy'];
+ const iconPaths={
+  overview:'<path d="M3 3v18h18M7 15l4-4 4 3 5-7"/>',
+  strategy:'<circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1"/>',
+  data:'<ellipse cx="12" cy="5" rx="8" ry="3"/><path d="M4 5v14c0 4 16 4 16 0V5M4 12c0 4 16 4 16 0"/>',
+  mix:'<path d="M12 3v9h9M21 12a9 9 0 1 1-9-9"/><path d="M15 3.5a9 9 0 0 1 5.5 5.5"/>',
+  close:'<path d="m6 6 12 12M18 6 6 18"/>',
+  chevron:'<path d="m6 9 6 6 6-6"/>'
+ };
+ const icon=key=>'<svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">'+iconPaths[key]+'</svg>';
+
  const SLOTS={
   overview:['mmhFiveOverviewNotice','mmhInvestDailyV1','mmhInvestDrawdownV16'],
-  strategy:['mmhInvestWatchV13'],
-  data:['mmhInvestSnapshotsV18','mmhInvestAutoV19','mmhInvestAutoPnlV110','mmhInvestPnlArchiveV111','mmhInvestGuidanceV12','mmhInvestRiskV14','mmhInvestPlansV15']
+  strategy:['mmhInvestWatchV13','mmhInvestGuidanceV12','mmhInvestRiskV14','mmhInvestPlansV15','mmhInvestAutoV19','mmhInvestPnlArchiveV111','mmhInvestAutoPnlV110','mmhInvestSnapshotsV18']
  };
  const ARCHIVED=new Set(['mmhInvestGuidanceV12','mmhInvestRiskV14','mmhInvestPlansV15']);
+ const QUOTE_HISTORY=new Set(['mmhInvestAutoV19','mmhInvestPnlArchiveV111']);
+ const VERIFICATION=new Set(['mmhInvestAutoPnlV110','mmhInvestSnapshotsV18']);
  const TARGETS=new Map(Object.entries(SLOTS).flatMap(([key,ids])=>ids.map(id=>[id,key])));
  const STRINGS={
   overview:{zh:'概况与收益',en:'Summary & P/L',my:'အနှစ်ချုပ်နှင့် အမြတ်အရှုံး'},strategy:{zh:'投资策略',en:'Strategy',my:'ရင်းနှီးမြှုပ်နှံမှု မဟာဗျူဟာ'},data:{zh:'数据中心',en:'Data Center',my:'ဒေတာစင်တာ'},
   heading:{zh:'投资工作区',en:'Investment Workspace'},
-  headingSub:{zh:'总览合并持仓和收益，策略与数据中心独立查看。',en:'Holdings and performance together, with separate strategy and data views.'},
+  headingSub:{zh:'总览展示持仓与收益，策略集中投资工具及数据核对。',en:'Holdings and performance together; strategy includes tools and data verification.'},
   overviewTitle:{zh:'我的投资概况',en:'Investment overview'},
   overviewDesc:{zh:'持仓、市值和累计盈亏集中在这里。其他详细分析按需切换。',en:'Holdings, market value and cumulative P/L, without the long scroll.'},
   returnsTitle:{zh:'每日收益与回撤',en:'Performance & P/L'},
@@ -28,11 +39,14 @@
   strategyDesc:{zh:'观察补仓或减仓条件、设置关注价、模拟分批投入。不会自动交易。',en:'Review watch conditions and staged-buy scenarios; never auto-trades.'},
   dataTitle:{zh:'投资数据与核对中心',en:'Data & Reconciliation'},
   dataDesc:{zh:'历史报价、自动采集、独立复核和审计记录集中查看。',en:'Historical quotes, automated capture, P/L checks and audit archives.'},
-  dataHint:{zh:'收益显示“待核实”时，请在数据中心查看报价和交易核对状态。',en:'If P/L is unverified, review quote coverage and ledger checks in Data Center.'},
+  dataHint:{zh:'收益待核实时，请在投资策略的数据与核对中查看报价和交易核对。',en:'If P/L is unverified, open Strategy → Data & verification.'},
   toReturns:{zh:'查看收益明细',en:'View performance'},
   toStrategy:{zh:'打开投资策略',en:'Open strategies'},
   toData:{zh:'查看数据状态',en:'Review data status'},
-  archive:{zh:'旧版策略工具（可展开）',en:'Previous strategy tools',my:'ယခင် မဟာဗျူဟာ ကိရိယာများ'},
+  archive:{zh:'高级投资策略',en:'Advanced strategy',my:'အဆင့်မြင့် ရင်းနှီးမြှုပ်နှံမှု မဟာဗျူဟာ'},
+  dataTools:{zh:'数据与核对',en:'Data & verification',my:'ဒေတာနှင့် စစ်ဆေးအတည်ပြုမှု'},
+  quoteHistory:{zh:'自动行情与盈亏记录',en:'Automatic quote & P/L archives',my:'အလိုအလျောက် ဈေးနှုန်းနှင့် အမြတ်အရှုံး မှတ်တမ်းများ'},
+  verifyHistory:{zh:'历史盈亏复核',en:'Historical P/L verification',my:'ယခင် အမြတ်အရှုံး စစ်ဆေးအတည်ပြုမှု'},
   calculator:{zh:'分批投资计算器',en:'Staged investment calculator',my:'အဆင့်လိုက် ရင်းနှီးမြှုပ်နှံမှု တွက်ချက်စက်'},
   holding:{zh:'持仓',en:'Holding',my:'ပိုင်ဆိုင်မှု'},
   capital:{zh:'追加投入',en:'Additional capital',my:'ထပ်မံ ရင်းနှီးငွေ'},
@@ -42,6 +56,7 @@
   average:{zh:'模拟买入后平均成本 · 不含新增手续费',en:'New average cost · excludes new fees',my:'ထပ်ဝယ်ပြီးနောက် ပျမ်းမျှကုန်ကျစရိတ် · အခကြေးငွေ အသစ်မပါ'},
   averageChange:{zh:'相对当前均价变动',en:'Change vs current average cost',my:'လက်ရှိ ပျမ်းမျှကုန်ကျစရိတ်နှင့် ပြောင်းလဲမှု'},
   mixTitle:{zh:'持仓集中度 · USD',en:'Position concentration · USD',my:'ပိုင်ဆိုင်မှု စုစည်းမှု · USD'},
+  close:{zh:'关闭',en:'Close',my:'ပိတ်ရန်'},
   noHolding:{zh:'暂无已核实的持仓',en:'No verified holdings available',my:'အတည်ပြုထားသော ပိုင်ဆိုင်မှု မရှိပါ'},
   moreMenu:{zh:'右上角可打开投资记录、新增数据及项目管理。',en:'Use the top-right icons for records, adding data and project management.'}
  };
@@ -56,7 +71,17 @@
  function drawCalc(){const p=calcPanel();if(!p)return;const pick=p.querySelector('select'),cap=p.querySelector('[data-calc-cap]'),price=p.querySelector('[data-calc-price]'),selected=pick.value;const available=ownData(calcOwner)?calcRows:[];const keys=JSON.stringify(available.map(x=>x.key));if(p.dataset.keys!==keys){pick.replaceChildren();for(const x of available){const o=document.createElement('option');o.value=x.key;o.textContent=x.name+' · '+x.currency;pick.append(o);}if(available.some(x=>x.key===selected))pick.value=selected;else{cap.value='';price.value='';}p.dataset.keys=keys;}const row=available.find(x=>x.key===pick.value);for(const input of [pick,cap,price])input.disabled=!row;p.querySelector('[data-calc-cap-label]').textContent=tr('capital')+(row?' ('+row.currency+')':'');p.querySelector('[data-calc-price-label]').textContent=tr('price')+(row?' ('+row.currency+'/'+row.unit+')':'');const n=row&&calculateAverage(row.quantity,Number(cap.value),row.cost,Number(price.value));const fmt=(x,d)=>x.toLocaleString(undefined,{maximumFractionDigits:d});p.querySelector('[data-calc-units]').textContent=!row?tr('noHolding'):n?tr('added')+': '+fmt(n.added,10)+' · '+tr('totalUnits')+': '+fmt(n.total,10):'—';const change=n&&row.cost>0?(n.avg/(row.cost/row.quantity)-1)*100:null;p.querySelector('[data-calc-change]').textContent=change!==null&&Number.isFinite(change)?tr('averageChange')+': '+(change>0?'+':'')+fmt(change,2)+'%':'';p.querySelector('[data-calc-average]').textContent=n?(row.currency==='USD'?'$ ':'K ')+n.avg.toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:6}):'—';}
  function clearPositionMix(){const mix=$('mmhUnifiedAllocationV1');if(!mix)return;const title=tr('mixTitle'),message=tr('noHolding');if(mix.children.length===2&&mix.firstElementChild?.textContent===title&&mix.lastElementChild?.textContent===message)return;const h=document.createElement('span'),msg=document.createElement('span');h.textContent=title;msg.textContent=message;mix.replaceChildren(h,msg);}
  function updateStrategy(uid,rows){if(!ownData(uid)){uid=null;rows=[];clearPositionMix();}if(uid!==calcOwner){const p=calcPanel();if(p){p.querySelector('[data-calc-cap]').value='';p.querySelector('[data-calc-price]').value='';p.dataset.keys='';}}calcOwner=uid;calcRows=Array.isArray(rows)?rows.filter(x=>x&&['USD','MMK'].includes(x.currency)&&typeof x.key==='string'&&typeof x.name==='string'&&Number.isFinite(x.quantity)&&x.quantity>0&&Number.isFinite(x.cost)&&x.cost>=0):[];drawCalc();}
- function destinationFor(id,key){return ARCHIVED.has(id)?$('iw2-archive-body'):$('iw2-slot-'+key);}
+ function destinationFor(id,key){
+  if(ARCHIVED.has(id))return $('iw2-archive-body');
+  if(QUOTE_HISTORY.has(id))return $('iw218-quote-body');
+  if(VERIFICATION.has(id))return $('iw218-verify-body');
+  return $('iw2-slot-'+key);
+ }
+ function makeFold(id,label,ico,bodyId){
+  const d=document.createElement('details');d.id=id;d.className='iw218-fold';
+  const sum=document.createElement('summary');sum.innerHTML=icon(ico)+'<span data-iw2-t="'+label+'"></span><i class="iw218-fold-arrow">'+icon('chevron')+'</i>';
+  const body=document.createElement('div');body.id=bodyId;body.className='iw218-fold-body';d.append(sum,body);return d;
+ }
  function build(){
   const parent=$('mmhFiveoverview');if(!parent)return false;
   // The original Invest page creates #mmhFiveoverview asynchronously.
@@ -67,7 +92,7 @@
   host.innerHTML=`
    <div class="iw2-intro"><div><span class="iw2-eyebrow">MMHVAULT / INVEST</span><h2 data-iw2-t="heading"></h2><p data-iw2-t="headingSub"></p></div></div>
    <div class="iw2-tabbar" role="tablist" aria-label="Investment workspace">
-    ${KEYS.map((k,i)=>`<button type="button" class="iw2-tab" role="tab" id="iw2-tab-${k}" aria-controls="iw2-pane-${k}" aria-selected="${i===0?'true':'false'}" tabindex="${i===0?'0':'-1'}" data-iw2-tab="${k}"><span class="iw2-tab-mark" aria-hidden="true">${['◈','◇','▤'][i]}</span><span data-iw2-t="${k}"></span></button>`).join('')}
+    ${KEYS.map((k,i)=>`<button type="button" class="iw2-tab" role="tab" id="iw2-tab-${k}" aria-controls="iw2-pane-${k}" aria-selected="${i===0?'true':'false'}" tabindex="${i===0?'0':'-1'}" data-iw2-tab="${k}"><span class="iw2-tab-mark" aria-hidden="true">${icon(k)}</span><span data-iw2-t="${k}"></span></button>`).join('')}
    </div>
    ${KEYS.map((k,i)=>`<section class="iw2-pane" id="iw2-pane-${k}" role="tabpanel" tabindex="0" aria-labelledby="iw2-tab-${k}" ${i?'hidden':''}>
     <div class="iw2-section-heading"><h3 data-iw2-t="${k}Title"></h3><p data-iw2-t="${k}Desc"></p></div>
@@ -78,12 +103,20 @@
   parent.prepend(host);
   const calc=document.createElement('section');calc.id='mmhInvestSimpleCalcV215';calc.innerHTML='<h3 data-iw2-t="calculator"></h3><label><span data-iw2-t="holding"></span><select id="mmhInvestCalcHoldingV217"></select></label><div class="iw215-inputs"><label><span data-calc-cap-label></span><input type="number" min="0" step="any" inputmode="decimal" data-calc-cap></label><label><span data-calc-price-label></span><input type="number" min="0" step="any" inputmode="decimal" data-calc-price></label></div><p data-iw2-t="average" class="iw215-result-label"></p><strong data-calc-average aria-live="polite">—</strong><p data-calc-units></p><p data-calc-change></p>';$('iw2-slot-strategy').append(calc);
   calc.addEventListener('input',drawCalc);calc.querySelector('select').addEventListener('change',()=>{calc.querySelector('[data-calc-cap]').value='';calc.querySelector('[data-calc-price]').value='';drawCalc();});
-  const archive=document.createElement('details');archive.id='iw2-archive';archive.innerHTML='<summary data-iw2-t="archive"></summary><div id="iw2-archive-body"></div>';$('iw2-slot-data').append(archive);
+  const archive=makeFold('iw2-archive','archive','strategy','iw2-archive-body');
+  const data=makeFold('iw218-data-tools','dataTools','data','iw218-data-body');
+  const quote=makeFold('iw218-quote-tools','quoteHistory','data','iw218-quote-body');
+  const verify=makeFold('iw218-verify-tools','verifyHistory','overview','iw218-verify-body');
+  data.lastElementChild.append(quote,verify);
+  $('iw2-slot-strategy').append(archive,data);
+  // Keep one secondary section expanded at a time, preserving existing tools.
+  const accordion=(items)=>items.forEach(d=>d.addEventListener('toggle',()=>{if(d.open)for(const other of items)if(other!==d)other.open=false;}));
+  accordion([archive,data]);accordion([quote,verify]);
   drawCalc();
   host.addEventListener('click',e=>{
    const button=e.target.closest('button[data-iw2-tab],button[data-iw2-go]');if(!button||!host.contains(button))return;
    const key=button.dataset.iw2Tab||button.dataset.iw2Go;
-   if(!KEYS.includes(key))return;
+   if(!KEYS.includes(key)&&key!=='data')return;
    activate(key,true);
   });
   host.querySelector('.iw2-tabbar').addEventListener('keydown',e=>{
@@ -96,7 +129,7 @@
   });
   translate();bindTop();if(root.classList.contains('active'))window.mmhRenderUnifiedInvestV1?.();return true;
  }
- function translate(){if(!host)return;for(const el of host.querySelectorAll('[data-iw2-t]')){const value=tr(el.dataset.iw2T);if(el.textContent!==value)el.textContent=value;}syncTop();drawCalc();}
+ function translate(){if(!host)return;syncMixLabels();syncWatchPickers();for(const el of host.querySelectorAll('[data-iw2-t]')){const value=tr(el.dataset.iw2T);if(el.textContent!==value)el.textContent=value;}syncTop();drawCalc();}
  function syncTop(){
   const labels={
    investSubOverviewV371:{en:'Overview',zh:'总览',my:'ခြုံငုံသုံးသပ်ချက်'},
@@ -110,7 +143,8 @@
  }
  function bindTop(){if(!$('mmhInvestPageOptionsV1')||!host)return;root.classList.add('mmh-invest-nav-ready');syncTop();}
  function activate(key,userInitiated){
-  active=KEYS.includes(key)?key:'overview';
+  const legacyData=key==='data';
+  active=legacyData?'strategy':KEYS.includes(key)?key:'overview';
   if(!host)return;
   for(const k of KEYS){
    const selected=active===k,button=$('iw2-tab-'+k),panel=$('iw2-pane-'+k);
@@ -118,10 +152,12 @@
    if(panel)panel.hidden=!selected;
   }
   syncTop();
+  if(active!=='overview')closeMix();
+  if(legacyData){const data=$('iw218-data-tools');if(data)data.open=true;}
   if(userInitiated){$('iw2-tab-'+active)?.scrollIntoView({block:'nearest',inline:'nearest',behavior:'auto'});
    // The source modules remain mounted and retain their event handlers / input state.
    // A resize event lets responsive charts settle after their pane becomes visible.
-   window.requestAnimationFrame(()=>window.dispatchEvent(new Event('resize')));
+   window.requestAnimationFrame(()=>{window.dispatchEvent(new Event('resize'));if(legacyData)$('iw218-data-tools')?.scrollIntoView({block:'nearest',behavior:'auto'});});
   }
  }
  function relocate(){
@@ -146,6 +182,12 @@
   const note=$('mmhFiveOverviewNotice');
   if(note){const routine=['Based on recorded investments; unavailable prices are marked.','仅统计已记录的投资；价格不可用时会注明。'].includes(note.textContent.trim());note.dataset.iw2Routine=String(routine);}
   if(!ownData(calcOwner))updateStrategy(null,[]);
+  ensureMixDialog();syncWatchPickers();
+  // Stable source order, without re-appending already ordered children.
+  for(const ids of [ARCHIVED,QUOTE_HISTORY,VERIFICATION]){
+   let previous=null;
+   for(const id of ids){const el=$(id);if(!el)continue;if(previous&&el.parentNode===previous.parentNode&&!(previous.compareDocumentPosition(el)&Node.DOCUMENT_POSITION_FOLLOWING))previous.after(el);previous=el;}
+  }
   activate(active,false);
  }
  function schedule(){
@@ -162,6 +204,93 @@
     [...TARGETS.keys()].map(id=>'[id="'+id+'"]').join(','));
  }
 
+ // The allocation renderer continues to own the same original node. No copied
+ // financial data, duplicate IDs, or new data requests.
+ function closeMix(){const d=$('iw218-mix-dialog');if(d?.open)d.close();}
+ function syncMixLabels(){
+  const t=$('iw218-mix-trigger'),d=$('iw218-mix-dialog');if(!t||!d)return;
+  t.title=tr('mixTitle');t.setAttribute('aria-label',tr('mixTitle'));
+  d.setAttribute('aria-label',tr('mixTitle'));
+  const c=d.querySelector('.iw218-mix-close');if(c){c.title=tr('close');c.setAttribute('aria-label',tr('close'));}
+ }
+ function ensureMixDialog(){
+  const mix=$('mmhInvestPositionMixV215'),list=$('mmhUnifiedListV1'),panel=list?.closest('.mmh-ui-panel');
+  const heading=panel?.querySelector('.mmh-ui-heading');if(!mix||!panel||!heading||!mix.contains($('mmhUnifiedAllocationV1')))return;
+  let d=$('iw218-mix-dialog'),t=$('iw218-mix-trigger');
+  if(d&&d.parentNode!==panel){closeMix();d.remove();d=null;}
+  if(t&&t.parentNode!==heading){t.remove();t=null;}
+  if(!d){
+   d=document.createElement('dialog');d.id='iw218-mix-dialog';d.className='iw218-mix-dialog';
+   const c=document.createElement('button');c.type='button';c.className='iw218-mix-close';c.innerHTML=icon('close');
+   c.addEventListener('click',()=>d.close());d.append(c);panel.append(d);
+   d.addEventListener('close',()=>{const trigger=$('iw218-mix-trigger');trigger?.setAttribute('aria-expanded','false');if(trigger?.getClientRects().length&&active==='overview'&&root.classList.contains('active'))trigger.focus({preventScroll:true});});
+  }
+  if(mix.parentNode!==d)d.append(mix);
+  if(!t){
+   t=document.createElement('button');t.type='button';t.id='iw218-mix-trigger';t.innerHTML=icon('mix');t.setAttribute('aria-haspopup','dialog');t.setAttribute('aria-controls',d.id);t.setAttribute('aria-expanded','false');heading.append(t);
+   t.addEventListener('click',()=>{const dialog=$('iw218-mix-dialog');if(!dialog||dialog.open||typeof dialog.showModal!=='function')return;dialog.showModal();t.setAttribute('aria-expanded','true');});
+  }
+  syncMixLabels();
+ }
+ // Native dialog top layer cannot display the shared body-mounted picker.
+ // Reuse its visual vocabulary locally, preserving native select values and
+ // input/change handlers; no global picker or financial logic modifications.
+ const watchPairs=new Map();let watchActive=null,watchFrame=0;
+ function closeWatch(focus=false){
+  const p=watchActive;if(!p)return;watchActive=null;p.menu.hidden=true;p.trigger.setAttribute('aria-expanded','false');
+  if(focus&&p.trigger.isConnected&&!p.trigger.disabled)p.trigger.focus({preventScroll:true});
+ }
+ function optionsFor(s){return [...s.options].filter(o=>!o.hidden&&!o.disabled&&!o.parentElement?.disabled);}
+ function syncWatch(p){
+  const {source:s,trigger:t,value:v,wrap:w}=p;
+  const label=s.closest('label')?.firstChild?.textContent?.trim()||s.getAttribute('aria-label')||s.id||s.name||tr('holding');
+  const val=s.selectedOptions[0]?.textContent||'—';if(v.textContent!==val)v.textContent=val;
+  t.disabled=s.disabled||!optionsFor(s).length;t.setAttribute('aria-label',label+': '+val);
+  w.hidden=s.hidden||s.getAttribute('aria-hidden')==='true'||getComputedStyle(s).display==='none'||getComputedStyle(s).visibility==='hidden';
+  if(w.hidden||t.disabled||!s.closest('dialog')?.open){if(watchActive===p)closeWatch();}
+ }
+ function openWatch(p){
+  if(watchActive===p){closeWatch(true);return;}closeWatch();
+  const {source:s,trigger:t,menu:m}=p;if(t.disabled||!s.closest('dialog')?.open)return;
+  m.replaceChildren();m.setAttribute('aria-label',t.getAttribute('aria-label'));watchActive=p;
+  for(const o of optionsFor(s)){
+   const b=document.createElement('button');b.type='button';b.setAttribute('role','option');b.setAttribute('aria-selected',String(o.selected));
+   const name=document.createElement('span'),tick=document.createElement('span');name.textContent=o.textContent;tick.textContent=o.selected?'✓':'';tick.setAttribute('aria-hidden','true');b.append(name,tick);
+   b.addEventListener('click',()=>{if(watchActive!==p||!s.isConnected||s.disabled||!optionsFor(s).includes(o))return;const old=s.value;s.selectedIndex=o.index;closeWatch(true);if(s.value!==old){s.dispatchEvent(new Event('input',{bubbles:true}));s.dispatchEvent(new Event('change',{bubbles:true}));}if(s.isConnected)syncWatch(p);});m.append(b);
+  }
+  m.hidden=false;t.setAttribute('aria-expanded','true');(m.querySelector('[aria-selected="true"]')||m.firstElementChild)?.focus({preventScroll:true});
+ }
+ function syncWatchPickers(){
+  for(const [s,p] of watchPairs){if(!s.isConnected||!p.wrap.isConnected){if(watchActive===p)closeWatch();p.wrap.remove();if(s.isConnected){s.classList.remove('iw218-native');if(p.tab===null)s.removeAttribute('tabindex');else s.setAttribute('tabindex',p.tab);if(p.aria===null)s.removeAttribute('aria-hidden');else s.setAttribute('aria-hidden',p.aria);}watchPairs.delete(s);}}
+  for(const s of root.querySelectorAll('#mmhInvestWatchV13 dialog.ivw216-dialog[open] select')){
+   if(s.multiple||s.size>1||s.matches('.mmh-cat-native-v2,.mmh-p24-native,.mmh-p25-picker-source'))continue;
+   let p=watchPairs.get(s);
+   if(!p){
+    const w=document.createElement('div'),t=document.createElement('button'),v=document.createElement('span'),m=document.createElement('div');
+    w.className='iw218-picker';t.type='button';t.className='mmh-cat-trigger-v2 iw218-picker-trigger';t.setAttribute('aria-haspopup','listbox');t.setAttribute('aria-expanded','false');t.append(v);t.insertAdjacentHTML('beforeend',icon('chevron'));
+    m.className='iw218-picker-options';m.hidden=true;m.setAttribute('role','listbox');w.append(t,m);
+    p={source:s,wrap:w,trigger:t,value:v,menu:m,tab:s.getAttribute('tabindex'),aria:s.getAttribute('aria-hidden')};
+    s.after(w);s.classList.add('iw218-native');s.tabIndex=-1;watchPairs.set(s,p);
+    t.addEventListener('click',e=>{e.preventDefault();openWatch(p);});
+    s.addEventListener('invalid',()=>{if(t.isConnected&&!w.hidden)t.focus();});
+    m.addEventListener('keydown',e=>{
+     if(e.key==='Escape'){e.preventDefault();e.stopPropagation();closeWatch(true);return;}
+     if(e.key==='Tab'){closeWatch(true);return;}
+     if(!['ArrowDown','ArrowUp','Home','End'].includes(e.key))return;
+     const items=[...m.querySelectorAll('button')],i=items.indexOf(document.activeElement);if(!items.length)return;
+     e.preventDefault();items[e.key==='Home'?0:e.key==='End'?items.length-1:Math.max(0,Math.min(items.length-1,i+(e.key==='ArrowDown'?1:-1)))]?.focus();
+    });
+   }
+   syncWatch(p);
+  }
+ }
+ function scheduleWatch(){if(!watchFrame)watchFrame=requestAnimationFrame(()=>{watchFrame=0;syncWatchPickers();if(watchActive&&!watchActive.source.closest('dialog')?.open)closeWatch();});}
+ function installWatchLifecycle(){
+  new MutationObserver(records=>{if(records.some(r=>{const e=r.target.nodeType===1?r.target:r.target.parentElement;return e?.matches?.('#mmhInvestWatchV13 dialog')||e?.closest?.('#mmhInvestWatchV13 select')||[...r.addedNodes,...r.removedNodes].some(n=>n.nodeType===1&&(n.matches?.('select,#mmhInvestWatchV13,dialog.ivw216-dialog')||n.querySelector?.('#mmhInvestWatchV13,dialog.ivw216-dialog,select'))&&e?.closest?.('#mmhInvestWatchV13'));}))scheduleWatch();}).observe(root,{subtree:true,childList:true,characterData:true,attributes:true,attributeFilter:['open','disabled','selected','hidden','aria-hidden','style']});
+  root.addEventListener('change',e=>{if(e.target.closest?.('#mmhInvestWatchV13 dialog'))scheduleWatch();},true);
+  document.addEventListener('pointerdown',e=>{if(watchActive&&!watchActive.wrap.contains(e.target))closeWatch();},true);
+  document.addEventListener('focusin',e=>{if(watchActive&&!watchActive.wrap.contains(e.target))closeWatch();},true);
+ }
  // Compact Overview only: preserve all source nodes, calculations and event handlers.
  function installCompactOverview(){
   if(!$('mmhInvestCompactOverviewStyleV207')){
@@ -339,13 +468,64 @@ html body #invest#invest#invest#invest#invest#invest#invest#invest #mmhInvestWat
 html body #invest#invest#invest#invest#invest#invest#invest#invest #mmhInvestWatchV13 .ivw13-buttons{grid-column:1;grid-row:auto;justify-content:flex-end!important}
 }
 
+
+/* V2.0.18: compact icon tabs, allocation dialog, dialog-local V2 picker. */
+html body #invest#invest#invest#invest#invest#invest#invest#invest #mmhInvestWorkspaceV2 .iw2-tabbar{display:flex!important;align-items:stretch!important;gap:4px!important;padding:4px!important;margin:0 0 10px!important;min-height:0!important;background:var(--uv-card)!important;background-image:none!important;border:1px solid var(--uv-line)!important;border-radius:8px!important;box-shadow:none!important}
+html body #invest#invest#invest#invest#invest#invest#invest#invest #mmhInvestWorkspaceV2 .iw2-tab{display:flex!important;flex:1 1 0!important;align-items:center!important;justify-content:center!important;gap:7px!important;min-width:0!important;min-height:38px!important;height:auto!important;padding:7px 8px!important;margin:0!important;background:transparent!important;background-image:none!important;border:1px solid transparent!important;border-radius:6px!important;box-shadow:none!important;color:var(--uv-muted)!important;font:600 12px/1.35 var(--mmh-notice-font,system-ui)!important;text-align:center!important;white-space:normal!important}
+html body #invest#invest#invest#invest#invest#invest#invest#invest #mmhInvestWorkspaceV2 .iw2-tab[aria-selected=true]{color:var(--uv-accent)!important;background:var(--uv-raised)!important;border-color:var(--uv-line)!important}
+html body #invest#invest#invest#invest#invest#invest#invest#invest #mmhInvestWorkspaceV2 .iw2-tab-mark{display:inline-flex!important;flex:none!important;align-items:center!important;justify-content:center!important;width:17px!important;height:17px!important;color:inherit!important;background:none!important}
+html body #invest#invest#invest#invest#invest#invest#invest#invest #mmhInvestWorkspaceV2 .iw2-tab-mark svg{display:block!important;width:17px!important;height:17px!important}
+html body #invest #mmhInvestWorkspaceV2 .iw2-tab:focus-visible,html body #invest #iw218-mix-trigger:focus-visible,html body #invest .iw218-picker button:focus-visible{outline:2px solid var(--uv-accent)!important;outline-offset:2px!important}
+@media(hover:hover){html body #invest#invest#invest#invest#invest#invest#invest#invest #mmhInvestWorkspaceV2 .iw2-tab:hover{color:var(--uv-accent)!important;background:var(--uv-raised)!important}}
+html body #invest#invest#invest#invest#invest#invest#invest#invest :is(#iw218-mix-trigger,.iw218-mix-close){display:inline-flex!important;align-items:center!important;justify-content:center!important;flex:none!important;width:32px!important;height:32px!important;min-width:32px!important;min-height:32px!important;padding:5px!important;margin:0!important;background:var(--uv-raised)!important;background-image:none!important;color:var(--uv-accent)!important;border:1px solid var(--uv-line)!important;border-radius:7px!important;box-shadow:none!important}
+#iw218-mix-trigger{margin-inline-start:auto!important}
+html body #invest#invest#invest#invest#invest#invest#invest#invest #iw218-mix-dialog{position:fixed!important;inset:0!important;margin:auto!important;width:min(440px,calc(100vw - 28px))!important;max-height:calc(100dvh - 28px)!important;overflow:auto!important;box-sizing:border-box!important;padding:14px!important;background:var(--uv-card)!important;background-image:none!important;color:var(--uv-text)!important;border:1px solid var(--uv-line)!important;border-radius:12px!important;box-shadow:0 16px 48px #0004!important}
+#iw218-mix-dialog::backdrop{background:#0006}
+html body #invest#invest#invest#invest#invest#invest#invest#invest #iw218-mix-dialog:not([open]){display:none!important}
+html body #invest#invest#invest#invest#invest#invest#invest#invest #iw218-mix-dialog .iw218-mix-close{float:inline-end!important;margin:0 0 6px 8px!important}
+html body #invest#invest#invest#invest#invest#invest#invest#invest #iw218-mix-dialog #mmhInvestPositionMixV215{display:block!important;min-height:0!important;margin:0!important;padding:0!important;border:0!important;background:none!important;box-shadow:none!important;overflow:visible!important}
+html body #invest#invest#invest#invest#invest#invest#invest#invest #iw218-mix-dialog #mmhUnifiedAllocationV1{clear:both!important}
+html body #invest#invest#invest#invest#invest#invest#invest#invest #mmhInvestSimpleCalcV215 :is(select,input,button[aria-haspopup=listbox]){background:var(--uv-raised,var(--uv-card))!important;background-image:none!important;border-color:var(--uv-line)!important;border-radius:7px!important;color:var(--uv-text)!important;box-shadow:none!important}
+html body #invest#invest#invest#invest#invest#invest#invest#invest #mmhInvestWatchV13 dialog select.iw218-native{position:absolute!important;clip-path:inset(50%)!important;opacity:0!important;width:1px!important;height:1px!important;min-width:0!important;min-height:0!important;padding:0!important;border:0!important;pointer-events:none!important}
+#mmhInvestWatchV13 .iw218-picker{min-width:0;position:relative}
+#mmhInvestWatchV13 .iw218-picker[hidden],#mmhInvestWatchV13 .iw218-picker-options[hidden]{display:none!important}
+html body #invest#invest#invest#invest#invest#invest#invest#invest #mmhInvestWatchV13 dialog .iw218-picker-trigger{display:flex!important;align-items:center!important;justify-content:space-between!important;gap:8px!important;width:100%!important;min-width:0!important;min-height:38px!important;padding:7px 10px!important;background:var(--uv-raised)!important;background-image:none!important;border:1px solid var(--uv-line)!important;border-radius:7px!important;color:var(--uv-text)!important;font:500 13px/1.4 var(--mmh-notice-font,system-ui)!important;box-shadow:none!important;text-align:left!important}
+#mmhInvestWatchV13 .iw218-picker-trigger>span{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#mmhInvestWatchV13 .iw218-picker-trigger svg{flex:none}
+html body #invest#invest#invest#invest#invest#invest#invest#invest #mmhInvestWatchV13 dialog .iw218-picker-options:not([hidden]){display:grid!important;gap:3px!important;margin-top:4px!important;padding:4px!important;max-height:168px!important;overflow:auto!important;background:var(--uv-card)!important;border:1px solid var(--uv-line)!important;border-radius:7px!important}
+html body #invest#invest#invest#invest#invest#invest#invest#invest #mmhInvestWatchV13 dialog .iw218-picker-options button{display:flex!important;justify-content:space-between!important;align-items:center!important;min-width:0!important;min-height:34px!important;padding:5px 8px!important;border:1px solid transparent!important;border-radius:5px!important;background:transparent!important;background-image:none!important;color:var(--uv-text)!important;box-shadow:none!important;text-align:left!important;font:500 12px/1.4 var(--mmh-notice-font,system-ui)!important}
+html body #invest#invest#invest#invest#invest#invest#invest#invest #mmhInvestWatchV13 dialog .iw218-picker-options button[aria-selected=true]{background:var(--uv-raised)!important;color:var(--uv-accent)!important;border-color:var(--uv-line)!important}
+@media(max-width:760px){html body #invest#invest#invest#invest#invest#invest#invest#invest #mmhInvestWorkspaceV2 .iw2-tab{min-height:44px!important;gap:4px!important;padding:5px!important;font-size:11px!important}html body #invest#invest#invest#invest#invest#invest#invest#invest :is(#iw218-mix-trigger,.iw218-mix-close){width:44px!important;height:44px!important;min-width:44px!important;min-height:44px!important}html body #invest#invest#invest#invest#invest#invest#invest#invest #mmhInvestWatchV13 dialog :is(.iw218-picker-trigger,.iw218-picker-options button){min-height:44px!important}}
+@media(max-width:380px){html body #invest#invest#invest#invest#invest#invest#invest#invest #mmhInvestWorkspaceV2 .iw2-tab{flex-direction:column!important;gap:2px!important}}
+
+
+/* Strategy absorbs Data Center. Preserve source panels and all action/safety copy;
+   remove redundant decorative kickers only. */
+html body #invest#invest#invest#invest#invest#invest#invest#invest #iw2-slot-strategy>.iw218-fold{grid-column:1/-1;min-width:0!important;margin:0!important;padding:0!important;border:1px solid var(--uv-line)!important;border-radius:8px!important;background:var(--uv-card)!important;background-image:none!important;box-shadow:none!important;color:var(--uv-text)!important}
+#iw2-slot-strategy>#iw2-archive{order:4}
+#iw2-slot-strategy>#iw218-data-tools{order:5}
+html body #invest#invest#invest#invest#invest#invest#invest#invest .iw218-fold>summary{display:flex!important;align-items:center!important;gap:8px!important;list-style:none!important;min-height:40px!important;padding:8px 12px!important;margin:0!important;cursor:pointer;color:var(--uv-text)!important;font:600 13px/1.4 var(--mmh-notice-font,system-ui)!important;background:none!important;border:0!important;box-shadow:none!important;box-sizing:border-box!important}
+.iw218-fold>summary::-webkit-details-marker{display:none}
+.iw218-fold>summary>svg{color:var(--uv-accent);flex:none}
+.iw218-fold>summary>span{flex:1;min-width:0}
+.iw218-fold-arrow{display:flex;color:var(--uv-muted);flex:none}
+.iw218-fold[open]>summary>.iw218-fold-arrow{transform:rotate(180deg)}
+.iw218-fold>summary:focus-visible{outline:2px solid var(--uv-accent);outline-offset:-2px;border-radius:7px}
+html body #invest#invest#invest#invest#invest#invest#invest#invest .iw218-fold>.iw218-fold-body{display:grid!important;grid-template-columns:minmax(0,1fr)!important;gap:8px!important;margin:0!important;padding:0 10px 10px!important;min-width:0!important}
+html body #invest#invest#invest#invest#invest#invest#invest#invest .iw218-fold:not([open])>.iw218-fold-body{display:none!important}
+html body #invest#invest#invest#invest#invest#invest#invest#invest #iw218-data-body>.iw218-fold{min-width:0!important;margin:0!important;padding:0!important;background:var(--uv-raised)!important;background-image:none!important;border:1px solid var(--uv-line)!important;border-radius:7px!important;box-shadow:none!important}
+html body #invest#invest#invest#invest#invest#invest#invest#invest .iw218-fold-body>:is(#mmhInvestGuidanceV12,#mmhInvestRiskV14,#mmhInvestPlansV15,#mmhInvestAutoV19,#mmhInvestPnlArchiveV111,#mmhInvestAutoPnlV110,#mmhInvestSnapshotsV18){min-width:0!important;min-height:0!important;height:auto!important;margin:0!important;padding:10px!important;box-sizing:border-box!important;background:var(--uv-card)!important;background-image:none!important;border:1px solid var(--uv-line)!important;border-radius:7px!important;box-shadow:none!important;color:var(--uv-text)!important}
+html body #invest#invest#invest#invest#invest#invest#invest#invest .iw218-fold-body :is(.ivg12-kicker,.ivr14-kicker,.ip15-kicker,.iv19-kicker,.iv110-eyebrow,.is18-kicker,.iv111-head>div>small){display:none!important}
+html body #invest#invest#invest#invest#invest#invest#invest#invest .iw218-fold-body :is(.ivg12-head,.ivr14-head,.ip15-title,.iv19-head,.iv110-head,.is18-head,.iv111-head) h2{font:650 14px/1.4 var(--mmh-notice-font,system-ui)!important;margin:0 0 4px!important;color:var(--uv-text)!important}
+@media(max-width:760px){html body #invest#invest#invest#invest#invest#invest#invest#invest .iw218-fold>summary{min-height:44px!important}}
+
 `;
    document.head.append(style);
   }
   root.classList.add('mmh-invest-summary-compact');
  }
  function initialize(){
-  installCompactOverview();
+  installCompactOverview();installWatchLifecycle();
   // Observe #invest BEFORE trying to build. The five-page navigation may
   // create its overview after DOMContentLoaded, or after data becomes ready.
   if(!observer){
@@ -364,7 +544,7 @@ html body #invest#invest#invest#invest#invest#invest#invest#invest #mmhInvestWat
  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',initialize,{once:true});else initialize();
  // Recover after any original Invest render without changing its handlers.
  for(const event of ['mmhvault:page-visible','mmhvault:data-loaded','mmhvault:cache-restored','mmhvault:market-updated','mmhvault:invest-daily-ready','mmhvault:config-owner-changed','languagechange','mmhvault-language-change']){
-  window.addEventListener(event,()=>{if(event.includes('language'))translate();if(!ownData(calcOwner))updateStrategy(null,[]);schedule();},{passive:true});
+  window.addEventListener(event,()=>{if(event.includes('language'))translate();if(event==='mmhvault:config-owner-changed'){closeMix();closeWatch();}if(!ownData(calcOwner))updateStrategy(null,[]);schedule();scheduleWatch();},{passive:true});
  }
  // The 5-page legacy navigation creates its sections on demand.
  // Wrapping is unnecessary and brittle; the root observer catches creation.
