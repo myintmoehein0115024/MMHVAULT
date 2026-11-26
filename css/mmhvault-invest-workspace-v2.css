@@ -43,3 +43,34 @@
  #invest #mmhInvestWorkspaceV2 :is(.idv1-head,.ivg12-head,.ivw13-title,.is18-head,.iv19-head,.iv110-head,.iv111-head,.idd16-head){flex-wrap:wrap}
 }
 @media(prefers-reduced-motion:reduce){#invest #mmhInvestWorkspaceV2 *{animation:none!important;transition:none!important}}
+
+/* Invest V2.0.13 — Strategy only. Original modules, data, listeners and safety messages remain intact. */
+html body.mmh-workspace-active #invest #mmhInvestWorkspaceV2 #iw2-pane-strategy .iw2-section-heading{display:none!important}
+#invest #mmhInvestWorkspaceV2 #iw2-pane-strategy .iw2-content{gap:8px!important;grid-template-columns:minmax(0,1fr)!important;min-width:0}
+html body.mmh-workspace-active #invest #mmhInvestWorkspaceV2 #iw2-pane-strategy :is(#mmhInvestGuidanceV12,#mmhInvestWatchV13,#mmhInvestRiskV14,#mmhInvestPlansV15){box-sizing:border-box;min-width:0;max-width:100%;margin:0!important;padding:10px!important;background:var(--uv-card)!important;background-image:none!important;color:var(--uv-text)!important;border:1px solid var(--uv-line)!important;border-radius:8px!important;box-shadow:none!important;backdrop-filter:none!important;-webkit-backdrop-filter:none!important}
+html body.mmh-workspace-active #invest #mmhInvestWorkspaceV2 #iw2-pane-strategy :is(#mmhInvestGuidanceV12,#mmhInvestWatchV13,#mmhInvestRiskV14,#mmhInvestPlansV15) *{box-sizing:border-box;min-width:0}
+html body.mmh-workspace-active #invest #mmhInvestWorkspaceV2 #iw2-pane-strategy :is(.ivg12-kicker,.ivw13-kicker,.ivr14-kicker,.ip15-kicker,.ivg12-head p,[data-watch-desc],.ivr14-head p,[data-ip15-desc],.ivg12-tools>span){display:none!important}
+html body.mmh-workspace-active #invest #mmhInvestWorkspaceV2 #iw2-pane-strategy :is(.ivg12-head,.ivw13-title,.ivr14-head,.ip15-title){display:flex!important;align-items:center!important;justify-content:space-between;flex-direction:row!important;gap:8px!important;margin:0 0 8px!important;min-height:0!important}
+html body.mmh-workspace-active #invest #mmhInvestWorkspaceV2 #iw2-pane-strategy :is(.ivg12-head,.ivw13-title,.ivr14-head,.ip15-title) h2{font:650 14px/1.4 var(--mmh-notice-font,system-ui)!important;margin:0!important;color:var(--uv-text)!important;letter-spacing:0!important;overflow-wrap:anywhere}
+html body.mmh-workspace-active #invest #mmhInvestWorkspaceV2 #iw2-pane-strategy :is(#mmhInvestGuidanceV12,#mmhInvestWatchV13,#mmhInvestRiskV14,#mmhInvestPlansV15) :is(button,input,select){font:inherit;font-size:12px!important;min-height:32px!important;max-width:100%;border:1px solid var(--uv-line)!important;border-radius:6px!important;padding:5px 8px!important;background:var(--uv-raised,var(--uv-card))!important;color:var(--uv-text)!important;box-shadow:none!important}
+html body.mmh-workspace-active #invest #mmhInvestWorkspaceV2 #iw2-pane-strategy :is(#mmhInvestGuidanceV12,#mmhInvestWatchV13,#mmhInvestRiskV14,#mmhInvestPlansV15) :is(button,select){cursor:pointer}
+html body.mmh-workspace-active #invest #mmhInvestWorkspaceV2 #iw2-pane-strategy :is(#mmhInvestGuidanceV12,#mmhInvestWatchV13,#mmhInvestRiskV14,#mmhInvestPlansV15) :is(button,input,select):focus-visible{outline:2px solid var(--uv-text)!important;outline-offset:2px}
+html body.mmh-workspace-active #invest #mmhInvestWorkspaceV2 #iw2-pane-strategy :is(#mmhInvestGuidanceV12,#mmhInvestWatchV13,#mmhInvestRiskV14,#mmhInvestPlansV15) button:disabled{opacity:.5;cursor:not-allowed}
+html body.mmh-workspace-active #invest #mmhInvestWorkspaceV2 #iw2-pane-strategy :is(#mmhInvestGuidanceV12,#mmhInvestWatchV13,#mmhInvestRiskV14,#mmhInvestPlansV15) :is(.ivw13-primary,.ivr14-primary,.ip15-gold){background:var(--uv-text)!important;color:var(--uv-bg)!important}
+html body.mmh-workspace-active #invest #mmhInvestWorkspaceV2 #iw2-pane-strategy :is(.ivw13-danger,.ip15-delete,.ivw13-error,.ip15-error){color:var(--uv-negative)!important}
+html body.mmh-workspace-active #invest #mmhInvestWorkspaceV2 #iw2-pane-strategy :is(.ivg12-caution,.ivw13-foot,.ivr14-disclaimer,.ip15-foot){font-size:11px!important;color:var(--uv-muted)!important;line-height:1.55!important;margin:8px 0 0!important;padding:7px 0 0!important;border-top:1px solid var(--uv-line)!important}
+html body.mmh-workspace-active #invest #mmhInvestWorkspaceV2 #iw2-pane-strategy :is(.ivg12-empty,.ivw13-empty,.ivr14-alert,.ivr14-info,.ip15-missing){margin:6px 0!important;padding:8px!important;background:var(--uv-raised,var(--uv-card))!important;border:1px solid var(--uv-line)!important;border-radius:6px!important;color:var(--uv-muted)!important;font-size:12px!important;line-height:1.5!important;overflow-wrap:anywhere}
+html body.mmh-workspace-active #invest #mmhInvestWorkspaceV2 #iw2-pane-strategy :is(.ivr14-alert,.ivr14-warn,.ip15-error,.ivw13-error){color:var(--uv-negative)!important}
+html body.mmh-workspace-active #invest #mmhInvestWorkspaceV2 #iw2-pane-strategy :is(.ivg12-recheck,[data-watch-new]){width:auto!important;flex:0 0 auto!important;white-space:normal!important;max-width:55%!important}
+html body.mmh-workspace-active #invest #mmhInvestWorkspaceV2 #iw2-pane-strategy :is(.ivw13-feedback,[data-ip15-status]):empty{display:none!important}
+html body.mmh-workspace-active #invest #mmhInvestWorkspaceV2 #iw2-pane-strategy :is([data-watch-form],[data-ip15-preview],[data-ivr-result]):empty{display:none!important}
+@media(max-width:760px){
+html body.mmh-workspace-active #invest #mmhInvestWorkspaceV2 #iw2-pane-strategy :is(#mmhInvestGuidanceV12,#mmhInvestWatchV13,#mmhInvestRiskV14,#mmhInvestPlansV15){padding:8px!important}
+html body.mmh-workspace-active #invest #mmhInvestWorkspaceV2 #iw2-pane-strategy :is(#mmhInvestGuidanceV12,#mmhInvestWatchV13,#mmhInvestRiskV14,#mmhInvestPlansV15) :is(button,input,select){min-height:44px!important}
+html body.mmh-workspace-active #invest #mmhInvestWorkspaceV2 #iw2-pane-strategy :is(.ivg12-head,.ivw13-title,.ivr14-head,.ip15-title){flex-wrap:wrap}
+html body.mmh-workspace-active #invest #mmhInvestWorkspaceV2 #iw2-pane-strategy :is(.ivg12-recheck,[data-watch-new]){max-width:100%!important}
+}
+
+/* Strategy surfaces must outrank the legacy authenticated Liquid theme, in both themes. */
+html body.mmh-workspace-active #invest #mmhInvestWorkspaceV2 #iw2-pane-strategy :is(.ivg12-card,.ivw13-editor,.ivr14-form,.ip15-root .ip15-risk-grid>div){background:var(--uv-raised,var(--uv-card))!important;background-image:none!important;color:var(--uv-text)!important;border-color:var(--uv-line)!important;border-radius:6px!important;box-shadow:none!important}
+html body.mmh-workspace-active #invest #mmhInvestWorkspaceV2 #iw2-pane-strategy :is(#mmhInvestGuidanceV12,#mmhInvestWatchV13,#mmhInvestRiskV14,#mmhInvestPlansV15) :is(button.active,button[aria-pressed="true"],button[aria-selected="true"]){background:var(--uv-text)!important;color:var(--uv-bg)!important;border-color:var(--uv-text)!important;box-shadow:none!important}
