@@ -554,6 +554,67 @@ html.mmh-contact-embedded .foot{background:var(--panel)!important;padding:0 14px
 html.mmh-contact-embedded :is(button,textarea,select):focus-visible{outline:2px solid var(--blue)!important;outline-offset:1px;box-shadow:none!important}
 @media(max-height:420px){html.mmh-contact-embedded .chathead{padding:6px!important}html.mmh-contact-embedded .compose{padding:5px!important}html.mmh-contact-embedded .foot{font-size:9px!important}}
 
+/* Contact V2.0.1 — compact chat; advanced controls remain accessible. */
+.contact-ai-only{display:none}
+html.mmh-contact-embedded .contact-ai-only{display:flex}
+html.mmh-contact-embedded body{--bg:#151516;--bg2:#19191b;--panel:#151516;--panel2:#222224;--line:#343436;--text:#f0f0f1;--muted:#a5a5a8;--blue:#91adf2}
+html.mmh-contact-embedded body.light{--bg:#fff;--bg2:#f7f8fa;--panel:#fff;--panel2:#f0f2f5;--line:#dce0e6;--text:#20242c;--muted:#596372;--blue:#315fba}
+html.mmh-contact-embedded .chathead{min-height:42px;padding:6px 12px!important;justify-content:flex-end}
+html.mmh-contact-embedded .chathead>div:first-child{flex:1;min-width:0}
+html.mmh-contact-embedded .chathead>div:first-child>b{display:none!important}
+html.mmh-contact-embedded #mode:not(.status-error){display:none!important}
+html.mmh-contact-embedded #mode.status-error{display:block!important;color:var(--muted)!important;font-size:11px!important}
+html.mmh-contact-embedded .chathead button{width:34px;min-height:34px;display:grid;place-items:center;padding:0!important;background:transparent!important;border:0!important;font-size:18px!important}
+html.mmh-contact-embedded #refreshData{font-size:11px!important;width:auto;padding:0 5px!important}
+html.mmh-contact-embedded #clear{font-size:11px!important;width:auto;padding:0 5px!important}
+html.mmh-contact-embedded .thread{min-height:0;overflow:auto;overscroll-behavior:contain;overflow-x:hidden;scrollbar-width:thin}
+html.mmh-contact-embedded .contact-ai-welcome{min-height:100%;flex-direction:column;justify-content:center;align-items:center;gap:8px;text-align:center;color:var(--text)}
+html.mmh-contact-embedded .contact-ai-welcome[hidden]{display:none!important}
+html.mmh-contact-embedded .contact-ai-mark{font-size:30px;color:var(--blue)}
+html.mmh-contact-embedded .contact-ai-welcome h2{font-size:22px;font-weight:600;margin:0}
+html.mmh-contact-embedded #appGuide{display:none!important;background:var(--panel)!important;border:0!important;box-shadow:none!important}
+html.mmh-contact-embedded #appGuide.contact-guide-open{display:block!important}
+html.mmh-contact-embedded #modelDock{display:none!important}
+html.mmh-contact-embedded #modelDock.contact-settings-open{display:block!important;max-height:38dvh;overflow:auto;border:1px solid var(--line)!important;border-radius:12px;padding:10px;margin-bottom:8px}
+html.mmh-contact-embedded .compose{border:0!important;padding:8px 12px!important}
+html.mmh-contact-embedded .compose-main{grid-template-columns:auto minmax(0,1fr) auto!important;align-items:end;border:1px solid var(--line);border-radius:18px;padding:6px;background:var(--panel2)}
+html.mmh-contact-embedded #contactAIGuide{display:grid;place-items:center;width:32px;height:36px;border:0;border-radius:50%;background:transparent;color:var(--text);font-size:20px;padding:0}
+html.mmh-contact-embedded .compose textarea{min-width:0;max-width:100%;min-height:46px!important;border:0!important;background:transparent!important;border-radius:0!important;font-size:16px!important;resize:none}
+html.mmh-contact-embedded .send{border-radius:20px!important;min-width:38px;padding:8px!important}
+html.mmh-contact-embedded .msg.user .bubble{border:0!important;border-radius:16px 16px 4px 16px!important;background:var(--panel2)!important}
+html.mmh-contact-embedded .msg.assistant .bubble{border:0!important;background:transparent!important;padding-inline:0!important}
+html.mmh-contact-embedded .meta{display:none!important}
+html.mmh-contact-embedded .foot{font-size:10px!important;text-align:center;padding:0 12px 8px!important}
+html.mmh-contact-embedded .chat{position:relative}
+html.mmh-contact-embedded #clear{width:34px!important;font-size:18px!important}
+html.mmh-contact-embedded .chattools svg{width:19px;height:19px;stroke:currentColor;fill:none;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+.contact-history{display:none}
+html.mmh-contact-embedded .contact-history:not([hidden]){display:flex;position:absolute;z-index:5;inset:44px 0 0;flex-direction:column;min-height:0;background:var(--panel);color:var(--text);padding:14px;gap:10px}
+.contact-history header{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.contact-history button{font:inherit;color:var(--text);background:var(--panel2);border:1px solid var(--line);border-radius:9px;padding:9px;cursor:pointer}
+.contact-history p{font-size:12px;color:var(--muted);margin:0;line-height:1.45}
+#contactHistoryList{flex:1;min-height:0;overflow:auto;overscroll-behavior:contain}
+.contact-history-row{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:6px;margin:0 0 8px}
+.contact-history-row button:first-child{text-align:left;min-width:0}
+.contact-history-row b,.contact-history-row small{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.contact-history-row small{font-size:11px;color:var(--muted);margin-top:4px}
+.contact-history-row button[aria-current="true"]{border-color:var(--blue)}
+.contact-history-row button:disabled,.contact-history button:disabled{opacity:.55;cursor:default}
+/* Contact V2.0.3 — embedded conversation layout only. */
+html.mmh-contact-embedded .thread{max-height:none!important;min-height:0!important;overflow-anchor:none;scroll-padding-bottom:12px!important}
+html.mmh-contact-embedded .msg.assistant{max-width:100%;margin-bottom:18px}
+html.mmh-contact-embedded .msg.user{max-width:86%;margin-bottom:18px}
+html.mmh-contact-embedded .bubble{font-size:14px!important;line-height:1.65;overflow-wrap:anywhere}
+html.mmh-contact-embedded .compose textarea{box-sizing:border-box;height:46px;max-height:min(132px,30dvh)!important;overflow-y:auto;padding:10px 4px!important}
+html.mmh-contact-embedded .send{width:36px;min-width:36px!important;height:36px;min-height:36px!important;padding:0!important;display:grid;place-items:center;font-size:20px!important}
+html.mmh-contact-embedded .send:disabled{cursor:default;opacity:.45}
+#contactJumpLatest{display:none}
+html.mmh-contact-embedded #contactJumpLatest:not([hidden]){display:block;justify-self:center;border:1px solid var(--line);border-radius:18px;background:var(--panel2);color:var(--text);padding:5px 12px;font-size:11px;cursor:pointer}
+html.mmh-contact-embedded .contact-history:not([hidden]){inset:0;padding:16px}
+html.mmh-contact-embedded .contact-history-row{margin:0;border-bottom:1px solid var(--line);padding:5px 0}
+html.mmh-contact-embedded .contact-history-row button{background:transparent;border-color:transparent}
+html.mmh-contact-embedded .contact-history-row button[aria-current="true"]{background:var(--panel2);border-color:var(--line)}
+@media(prefers-reduced-motion:reduce){html.mmh-contact-embedded .typing i,html.mmh-contact-embedded .type-caret{animation:none!important}}
 </style>
 </head>
 <body>
@@ -566,7 +627,7 @@ html.mmh-contact-embedded :is(button,textarea,select):focus-visible{outline:2px 
   <section class="metrics" id="metrics" aria-live="polite"></section>
   <section class="layout">
     <section class="chat">
-      <div class="chathead"><div><b data-en="Private finance chat" data-zh="私人财务对话">Private finance chat</b><small id="mode" data-en="Checking your signed-in account…" data-zh="正在检查当前登录账号……">Checking your signed-in account…</small></div><div class="chattools"><button id="refreshData" type="button" data-en="Refresh data" data-zh="刷新数据">Refresh data</button><button id="clear" type="button" data-en="Clear chat" data-zh="清空对话">Clear chat</button></div></div><div class="thread" id="thread" role="log" aria-live="polite">
+      <div class="chathead"><div><b data-en="Private finance chat" data-zh="私人财务对话">Private finance chat</b><small id="mode" data-en="Checking your signed-in account…" data-zh="正在检查当前登录账号……">Checking your signed-in account…</small></div><div class="chattools"><button class="contact-ai-only" id="contactAISettings" type="button" aria-controls="modelDock" aria-expanded="false" aria-label="AI settings" title="AI settings">⚙</button><button id="refreshData" type="button" data-en="Refresh data" data-zh="刷新数据">Refresh data</button><button class="contact-ai-only" id="contactAIHistory" type="button" aria-controls="contactHistory" aria-expanded="false" aria-label="Chat history" title="Chat history"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12a9 9 0 1 0 3-6.7M3 4v6h6m3-3v5l3 2"/></svg></button><button id="clear" type="button" data-en="Clear chat" data-zh="清空对话">Clear chat</button></div></div><div class="thread" id="thread" role="log" aria-live="polite"><div class="contact-ai-welcome contact-ai-only" id="contactAIWelcome"><span class="contact-ai-mark" aria-hidden="true">✧</span><h2 data-en="How can I help?" data-zh="有什么可以帮您？">How can I help?</h2></div>
         <div class="guidebar" id="appGuide">
           <div class="guide-intro">
             <span class="guide-ai-icon" aria-hidden="true">AI</span>
@@ -582,7 +643,8 @@ html.mmh-contact-embedded :is(button,textarea,select):focus-visible{outline:2px 
           </div>
         </div>
         <div id="messageList"></div>
-      </div><div class="compose">
+      </div><section id="contactHistory" class="contact-history" hidden aria-labelledby="contactHistoryTitle"><header><strong id="contactHistoryTitle">Chat history</strong><button id="contactHistoryClose" type="button" aria-label="Close history">×</button></header><p id="contactHistoryNotice"></p><div id="contactHistoryList"></div><button id="contactHistoryDeleteAll" type="button">Delete all chats</button></section><div class="compose">
+        <button id="contactJumpLatest" type="button" hidden>↓ Latest</button>
         <div class="model-dock" id="modelDock">
           <div class="model-dock-row">
             <select id="modelChoice" aria-label="Local AI model"><option value="Qwen3-0.6B-q4f16_1-MLC" data-en="Recommended · Qwen3 0.6B · Chinese-friendly · ~0.35 GB download" data-zh="推荐 · Qwen3 0.6B · 中文更好 · 约 0.35 GB 下载">Recommended · Qwen3 0.6B · Chinese-friendly · ~0.35 GB download</option><option value="Llama-3.2-1B-Instruct-q4f16_1-MLC" data-en="Compatibility · Llama 3.2 1B · ~0.9 GB memory" data-zh="兼容 · Llama 3.2 1B · 约 0.9 GB 内存">Compatibility · Llama 3.2 1B · ~0.9 GB memory</option><option value="Qwen3-1.7B-q4f16_1-MLC" data-en="Advanced · Qwen3 1.7B · ~1.0 GB download · regular window recommended" data-zh="增强 · Qwen3 1.7B · 约 1.0 GB 下载 · 建议普通窗口">Advanced · Qwen3 1.7B · ~1.0 GB download · regular window recommended</option></select>
@@ -598,7 +660,7 @@ html.mmh-contact-embedded :is(button,textarea,select):focus-visible{outline:2px 
           </div>
           <div class="progress" id="modelProgress"><i id="modelProgressBar"></i></div>
         </div>
-        <div class="compose-main">
+        <div class="compose-main"><button class="contact-ai-only" id="contactAIGuide" type="button" aria-label="App guides" title="App guides" aria-expanded="false" aria-controls="appGuide">＋</button>
           <textarea id="input" rows="2" maxlength="1600" data-en-placeholder="Ask MMHVAULT anything…" data-zh-placeholder="询问 MMHVAULT 任何问题……" placeholder="Ask MMHVAULT anything…"></textarea>
           <button class="send" id="send" type="button" data-en="Send ↑" data-zh="发送 ↑">Send ↑</button>
         </div>
@@ -614,8 +676,10 @@ import * as webllm from "https://cdn.jsdelivr.net/npm/@mlc-ai/web-llm@0.2.85/+es
 const SUPABASE_URL="https://vrypucmyrztxgiqhjspd.supabase.co",SUPABASE_KEY="sb_publishable_H38v4XbO0ARnSJToD42wGg_27-SZ3Ao";
 const $=id=>document.getElementById(id),N=v=>Number.isFinite(Number(v))?Number(v):0,lc=v=>String(v??'').trim().toLowerCase();
 const db=typeof supabase!=='undefined'?supabase.createClient(SUPABASE_URL,SUPABASE_KEY):null;
+const contactEmbedded=document.documentElement.classList.contains('mmh-contact-embedded');
 const state={user:null,scopeUserId:'',data:null,canonical:null,loadedAt:0,messages:[],sending:false,engine:null,engineModel:'',engineReady:false,engineLoading:false,authSubscription:null,cacheStatus:'loading',replyLang:'',lastIntent:'',pendingTxId:'',txSaving:false};
 function lang(){try{return (localStorage.getItem('mmhvault_language_v3363')||'en')==='zh'?'zh':'en'}catch(_e){return'en'}}function T(en,zh){return lang()==='zh'?zh:en}
+const chatText=(en,zh,my)=>{let l='en';try{l=(localStorage.getItem('mmhvault_language_v3363')||'en').toLowerCase()}catch(_){}return l.startsWith('zh')?zh:/^(my|mm)/.test(l)?my:en};
 function applyTheme(){let t='dark';try{t=localStorage.getItem('myfinance_theme')||'dark'}catch(_e){}document.body.classList.toggle('light',t==='light'||(t!=='dark'&&window.matchMedia('(prefers-color-scheme: light)').matches))}
 function translate(){
   document.documentElement.lang=lang()==='zh'?'zh-CN':'en';
@@ -624,8 +688,18 @@ function translate(){
   const ta=$('input');if(ta){ta.placeholder=T(ta.dataset.enPlaceholder,ta.dataset.zhPlaceholder);ta.setAttribute('aria-label',T('Ask MMHVAULT AI','询问 MMHVAULT AI'))}
   const model=$('modelChoice');if(model)model.setAttribute('aria-label',T('Local AI model','本地 AI 模型'));
   const guide=$('appGuide')?.querySelector('.guidegrid');if(guide)guide.setAttribute('aria-label',T('MMHVAULT App Guide','MMHVAULT 新用户指南'));
-  renderMetrics();renderThread();
+  renderMetrics();if(!contactEmbedded||!state.sending)renderThread();
   refreshLocalizedRuntimeUI();
+  if(contactEmbedded){
+    renderContactHistory();
+    const send=$('send');send.textContent='↑';send.title=chatText('Send','发送','ပို့ရန်');send.setAttribute('aria-label',send.title);
+    $('contactJumpLatest').textContent=chatText('↓ Latest','↓ 最新消息','↓ နောက်ဆုံးစာ');
+    $('contactAISettings').title=chatText('AI settings','AI 设置','AI ဆက်တင်');$('contactAISettings').setAttribute('aria-label',$('contactAISettings').title);
+    $('contactAIGuide').title=chatText('App guides','使用指南','အသုံးပြုနည်း');$('contactAIGuide').setAttribute('aria-label',$('contactAIGuide').title);
+    $('contactAIWelcome').querySelector('h2').textContent=chatText('How can I help?','有什么可以帮您？','ဘာကူညီပေးရမလဲ။');
+    document.querySelector('.foot').textContent=chatText('Read-only finance analysis · Local AI','只读财务分析 · 本地 AI','ငွေစာရင်း ဖတ်ရှုသုံးသပ်မှု · စက်တွင်း AI');
+    updateContactComposer();
+  }
 }
 function usd(v){return '$'+N(v).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}function pct(v){return N(v).toLocaleString(undefined,{minimumFractionDigits:1,maximumFractionDigits:1})+'%'}
 function requestedCurrency(q){const x=lc(q);if(/泰铢|thb|baht|บาท/.test(x))return'THB';if(/缅币|mmk|kyat/.test(x))return'MMK';if(/人民币|rmb|cny|yuan|元/.test(x))return'CNY';if(/美元|usd|usdt|dollar/.test(x))return'USD';return''}
@@ -784,8 +858,67 @@ async function verifiedAuthUser(){
   // round-trip is required here, avoiding Safari/Supabase auth-lock stalls during page navigation.
   return session.user
 }
+// Session-only transcript storage: no financial snapshots, no cloud writes.
+const HISTORY_MAX=20,HISTORY_MESSAGES=24;
+let chatOwner='',chatId='',chatRows=[],chatGeneration=0,historyStorageFailed=false;
+const historyKey=uid=>'mmhvault_contact_chat_session_v201:'+uid;
+function sanitizeHistoryMessages(messages){
+  return (Array.isArray(messages)?messages:[]).filter(m=>m&&['user','assistant'].includes(m.role)&&!m.kind&&typeof m.text==='string').slice(-HISTORY_MESSAGES).map(m=>({role:m.role,text:m.text.slice(0,12000),mode:typeof m.mode==='string'?m.mode.slice(0,180):''}));
+}
+function readHistory(uid){
+  try{const raw=JSON.parse(sessionStorage.getItem(historyKey(uid))||'null');if(!raw||raw.owner!==uid||!Array.isArray(raw.rows))return {rows:[],active:''};
+    return {active:typeof raw.active==='string'?raw.active:'',rows:raw.rows.filter(r=>r&&typeof r.id==='string'&&Number.isFinite(r.updated)).slice(0,HISTORY_MAX).map(r=>({id:r.id,updated:r.updated,messages:sanitizeHistoryMessages(r.messages)})).filter(r=>r.messages.length)};
+  }catch(_){historyStorageFailed=true;return {rows:[],active:''}}
+}
+function writeHistory(){
+  if(!contactEmbedded||!chatOwner||state.scopeUserId!==chatOwner)return;
+  try{sessionStorage.setItem(historyKey(chatOwner),JSON.stringify({owner:chatOwner,active:chatId,rows:chatRows}));historyStorageFailed=false}catch(_){historyStorageFailed=true}
+}
+function saveContactChat(){
+  if(!contactEmbedded||!chatOwner||state.scopeUserId!==chatOwner||!chatId)return;
+  const messages=sanitizeHistoryMessages(state.messages);if(!messages.length)return;
+  chatRows=[{id:chatId,updated:Date.now(),messages},...chatRows.filter(r=>r.id!==chatId)].slice(0,HISTORY_MAX);writeHistory();
+}
+function freshChatId(){return crypto.randomUUID?.()||Date.now().toString(36)+'-'+Math.random().toString(36).slice(2)}
+function resetChatState(messages=[]){chatGeneration++;state.messages=sanitizeHistoryMessages(messages);state.replyLang='';state.lastIntent='';state.pendingTxId='';state.txSaving=false;const input=$('input');if(input)input.value='';updateContactComposer()}
+function initContactHistory(uid){
+  if(!contactEmbedded||!uid||chatOwner===uid)return;
+  chatOwner=uid;const saved=readHistory(uid);chatRows=saved.rows;
+  const active=chatRows.find(r=>r.id===saved.active);
+  chatId=active?.id||freshChatId();resetChatState(active?.messages);renderContactHistory();
+}
+function setContactHistoryOpen(open){
+  const panel=$('contactHistory');if(!panel)return;
+  panel.hidden=!open;$('contactAIHistory').setAttribute('aria-expanded',String(open));
+  for(const el of [$('thread'),document.querySelector('.compose'),document.querySelector('.chathead')])if(el)el.inert=open;
+}
+function closeContactHistory(){setContactHistoryOpen(false)}
+function renderContactHistory(){
+  if(!contactEmbedded)return;
+  const b=$('contactAIHistory'),clear=$('clear'),panel=$('contactHistory'),list=$('contactHistoryList');if(!b||!panel||!list)return;
+  const label=chatText('Chat history','聊天记录','စကားပြောမှတ်တမ်း'),newLabel=chatText('New chat','新建对话','စကားပြောအသစ်');
+  b.title=label;b.setAttribute('aria-label',label);clear.title=newLabel;clear.setAttribute('aria-label',newLabel);
+  clear.innerHTML='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5H5v14h14v-7M10 14l1-4 7-7 3 3-7 7-4 1z"/></svg>';
+  $('contactHistoryTitle').textContent=label;$('contactHistoryClose').setAttribute('aria-label',chatText('Close history','关闭历史','မှတ်တမ်းပိတ်ရန်'));
+  $('contactHistoryNotice').textContent=historyStorageFailed?chatText('Session storage unavailable; chats may be lost when closed.','会话存储不可用，关闭后记录可能丢失。','မှတ်တမ်း သိမ်းဆည်း၍ မရပါ။'):chatText('Only on this browser tab, up to 20 chats. Closing the tab may erase them.','仅保留在当前浏览器标签页，最多20个对话。关闭标签页可能清除记录。','ဤ browser tab တွင်သာ စကားပြော ၂၀ အထိ သိမ်းထားသည်။');
+  const all=$('contactHistoryDeleteAll');all.textContent=chatText('Delete all chats','删除所有对话','မှတ်တမ်းအားလုံးဖျက်ရန်');all.disabled=!chatOwner||!chatRows.length||state.sending;
+  b.disabled=!chatOwner||state.sending;clear.disabled=!chatOwner||state.sending;
+  list.replaceChildren();
+  if(!chatRows.length){const p=document.createElement('p');p.textContent=chatText('No previous chats','暂无历史对话','မှတ်တမ်းမရှိသေးပါ');list.append(p)}
+  for(const r of chatRows){
+    const row=document.createElement('div');row.className='contact-history-row';
+    const open=document.createElement('button'),del=document.createElement('button'),title=document.createElement('b'),date=document.createElement('small');
+    open.type=del.type='button';title.textContent=(r.messages.find(m=>m.role==='user')?.text||chatText('Chat','对话','စကားပြော')).slice(0,100);date.textContent=new Date(r.updated).toLocaleString();open.append(title,date);open.disabled=del.disabled=state.sending;
+    if(r.id===chatId)open.setAttribute('aria-current','true');
+    del.textContent='×';del.setAttribute('aria-label',chatText('Delete chat','删除对话','စကားပြောဖျက်ရန်'));
+    open.onclick=()=>{if(state.sending||!chatOwner||chatOwner!==state.scopeUserId)return;chatId=r.id;resetChatState(r.messages);writeHistory();closeContactHistory();renderThread(true);updateContactComposer();$('input').focus()};
+    del.onclick=()=>{if(state.sending||!chatOwner||chatOwner!==state.scopeUserId||!confirm(chatText('Delete this chat?','删除这个对话？','ဤစကားပြောကို ဖျက်မလား။')))return;chatRows=chatRows.filter(x=>x.id!==r.id);if(chatId===r.id){chatId=freshChatId();resetChatState();renderThread()}writeHistory();renderContactHistory()};
+    row.append(open,del);list.append(row)
+  }
+}
 function clearFinancialScope(reason='scope-cleared'){
   state.user=null;state.scopeUserId='';state.data=null;state.canonical=null;state.loadedAt=0;state.messages=[];
+  if(contactEmbedded){chatOwner='';chatId='';chatRows=[];resetChatState();closeContactHistory();renderContactHistory()}
   const badge=$('scopeBadge');if(badge)badge.classList.remove('scope-ok');
   renderMetrics();renderThread();
   setMode(reason==='account-changed'?T('Account changed · reloading current account only','账号已切换 · 正在重新读取当前账号'):T('Signed-in account required','需要登录当前账号'),true)
@@ -869,7 +1002,7 @@ async function loadData(options={}){
   };
   const badge=$('scopeBadge');if(badge)badge.classList.add('scope-ok');
   if(!silent)setMode(T('Verified current account data ready · prepare Local AI','已验证当前登录账号数据 · 请准备本地 AI'));
-  renderMetrics();renderThread();return state.data
+  initContactHistory(uid);renderMetrics();renderThread();return state.data
 }
 async function ensureCurrentScope(){
   const verified=await assertCurrentScope(state.scopeUserId||'');
@@ -878,10 +1011,26 @@ async function ensureCurrentScope(){
 }
 function renderMetrics(){const box=$('metrics');if(!box)return;if(!state.data){box.innerHTML=`<article class="metric"><span>${T('Status','状态')}</span><strong>—</strong><small>${T('Sign in required','需要登录')}</small></article>`;return}const f=financeFacts(),m=f.current_month,p=f.previous_month,delta=p.expense?((m.expense-p.expense)/p.expense*100):null,canon=state.canonical,net=canon?N(canon.account_net_assets_usd):null,count=canon&&Number.isFinite(Number(canon.active_account_count))?N(canon.active_account_count):f.accounts.length;box.innerHTML=`<article class="metric"><span>${T('Income · this month','本月收入')}</span><strong>${usd(m.income)}</strong><small>${T('Ordinary income only','仅正常收入')}</small></article><article class="metric"><span>${T('Spending · this month','本月开销')}</span><strong>${usd(m.expense)}</strong><small>${delta===null?T('No prior-month baseline','上月无可比基线'):(delta>=0?'+':'')+pct(delta)+' '+T('vs last month','对比上月')}</small></article><article class="metric"><span>${T('Savings rate','储蓄率')}</span><strong>${pct(m.savings_rate)}</strong><small>${usd(m.remaining)} ${T('remaining','剩余')}</small></article><article class="metric"><span>${T('Account net assets','账户净资产')}</span><strong>${canon?usd(net):'—'}</strong><small>${canon?T(`${count} accounts · synced from MMHVAULT`,`${count} 个账户 · 与 MMHVAULT 同步`):T('Open AI from MMHVAULT to sync exact total','请从 MMHVAULT 内进入 AI 以同步精确总额')}</small></article>`}
 function setMode(t,error=false){const el=$('mode');if(el){el.textContent=t;el.classList.toggle('status-error',!!error)}}
-function addMessage(role,text,mode=''){state.messages.push({role,text:String(text||''),mode});if(state.messages.length>24)state.messages=state.messages.slice(-24);renderThread()}
-function renderThread(){
+function nearChatBottom(el){return !el||el.scrollHeight-el.scrollTop-el.clientHeight<=48}
+function updateContactJump(){if(!contactEmbedded)return;const b=$('contactJumpLatest');if(b)b.hidden=nearChatBottom($('thread'))}
+function followChat(el,follow){if(!el)return;if(!contactEmbedded||follow)el.scrollTop=el.scrollHeight;updateContactJump()}
+function resizeContactInput(){
+  if(!contactEmbedded)return;
+  const input=$('input');if(!input)return;
+  input.style.height='auto';input.style.height=Math.min(132,Math.max(46,input.scrollHeight))+'px';
+}
+function updateContactComposer(){
+  if(!contactEmbedded)return;
+  const input=$('input'),button=$('send');if(!input||!button)return;
+  button.disabled=state.sending||!input.value.trim();
+  resizeContactInput();
+}
+function addMessage(role,text,mode=''){state.messages.push({role,text:String(text||''),mode});if(state.messages.length>24)state.messages=state.messages.slice(-24);saveContactChat();renderThread(role==='user')}
+function renderThread(forceBottom=false){
   const el=$('thread'),list=$('messageList');if(!el||!list)return;
+  const follow=forceBottom||nearChatBottom(el),previousTop=el.scrollTop;
   list.replaceChildren();
+  if(contactEmbedded)$('contactAIWelcome').hidden=state.messages.length>0||$('appGuide').classList.contains('contact-guide-open');
   if(state.messages.length){
     for(const m of state.messages){
       const row=document.createElement('div');row.className='msg '+m.role;
@@ -915,7 +1064,7 @@ function renderThread(){
       list.append(row)
     }
   }
-  requestAnimationFrame(()=>{if(state.messages.length)el.scrollTop=el.scrollHeight;else el.scrollTop=0})
+  requestAnimationFrame(()=>{if(!state.messages.length){el.scrollTop=0;updateContactJump()}else if(!contactEmbedded||follow)followChat(el,true);else{el.scrollTop=previousTop;updateContactJump()}})
 }
 function typing(on){
   const el=$('thread'),list=$('messageList');
@@ -923,7 +1072,7 @@ function typing(on){
   if(!on||!el||!list)return;
   const row=document.createElement('div');row.className='msg assistant';row.dataset.typing='1';
   row.innerHTML='<div class="bubble"><span class="typing"><i></i><i></i><i></i></span></div>';
-  list.append(row);el.scrollTop=el.scrollHeight
+  const follow=nearChatBottom(el);list.append(row);followChat(el,follow)
 }
 
 
@@ -1486,13 +1635,14 @@ async function modelCached(id){
   if(!id)return false;
   try{
     if(typeof webllm.hasModelInCache==='function'){
-      return await webllm.hasModelInCache(id,webllm.prebuiltAppConfig)
+      const result=await webllm.hasModelInCache(id,webllm.prebuiltAppConfig);
+      return typeof result==='boolean'?result:null
     }
   }catch(e){console.warn('[MMHVAULT Local AI] cache check failed',id,e)}
-  return false
+  return null
 }
 function setCacheState(status,model=''){
-  state.cacheStatus=status||'loading';
+  state.cacheStatus=status||'loading';state.cacheModel=model;
   const el=$('cacheState'),btn=$('prepareAI');if(!el||!btn)return;
   el.classList.remove('ready','missing');
   if(status==='ready'){
@@ -1507,14 +1657,14 @@ function setCacheState(status,model=''){
     el.textContent=T('Checking local cache…','正在检查本地缓存……');
     btn.textContent=T('Prepare','准备')
   }else{
-    el.textContent=T('Browser cache','浏览器缓存');
-    btn.textContent=T('Prepare','准备')
+    el.textContent=T('Cache status unknown','缓存状态未知');
+    btn.textContent=T('Check again','重新检查')
   }
 }
 
 function refreshLocalizedRuntimeUI(){
   const wanted=$('modelChoice')?.value||state.engineModel||'Qwen3-0.6B-q4f16_1-MLC';
-  setCacheState(state.cacheStatus||'loading',wanted);
+  setCacheState(state.cacheModel===wanted?(state.cacheStatus||'loading'):'unknown',wanted);
 
   if(!('gpu' in navigator)){
     $('localStatus').textContent=T(
@@ -1572,18 +1722,21 @@ async function refreshSelectedModelCacheState({autoload=false}={}){
   let wanted=select.value||'Qwen3-0.6B-q4f16_1-MLC';
   setCacheState('loading',wanted);
   const cached=await modelCached(wanted);
-  setCacheState(cached?'ready':'missing',wanted);
-  if(cached&&autoload&&!state.engineReady&&!state.engineLoading){
+  if(select.value!==wanted||localPreparation)return null;
+  setCacheState(cached===true?'ready':cached===false?'missing':'unknown',wanted);
+  if(cached&&autoload&&!state.engineReady&&!localPreparation&&!state.engineLoading){
     $('localStatus').textContent=T(
       `${modelLabel(wanted)} was found in this browser. Restoring it from local storage without downloading the full model again…`,
       `已在当前浏览器找到 ${modelLabel(wanted)}。正在直接从本地缓存恢复，不会重新下载完整模型……`
     );
     try{await prepareLocalAI(false,{cachedRestore:true})}catch(e){console.warn('[MMHVAULT Local AI] cached restore failed',e)}
-  }else if(!cached&&!state.engineReady){
+  }else if(cached===false&&!state.engineReady){
     $('localStatus').textContent=T(
       `${modelLabel(wanted)} is not stored in this browser yet. It will download only after you press Download & Prepare.`,
       `当前浏览器还没有保存 ${modelLabel(wanted)}。只有点击“下载并准备”后才会开始下载。`
     )
+  }else if(cached===null&&!state.engineReady){
+    $('localStatus').textContent=T('Could not check the saved model. Check again; no download has started.','暂时无法检查已保存的模型。请重新检查，未启动下载。')
   }
   return cached
 }
@@ -1617,26 +1770,50 @@ async function clearAllLocalAICaches(){
   try{localStorage.removeItem('mmhvault_local_ai_model_v113')}catch(_e){}
   $('modelProgressBar').style.width='0%';$('modelProgress').classList.remove('show');
   const sp=await storageProfile();
-  const msg=T(
+  const complete=removed.length===KNOWN_LOCAL_AI_MODELS.length;
+  const msg=complete?T(
     `Local AI model cache cleared${sp.quota>0?` · ${gb(sp.free).toFixed(2)} GB browser storage available`:''}. Your MMHVAULT financial data was not deleted.`,
     `本地 AI 模型缓存已清理${sp.quota>0?` · 当前约有 ${gb(sp.free).toFixed(2)} GB 浏览器存储可用`:''}。MMHVAULT 财务数据没有被删除。`
-  );
-  $('localStatus').textContent=msg;setMode(T('Local AI cache cleared · choose a model','本地 AI 缓存已清理 · 请选择模型'));
-  setCacheState('missing',$('modelChoice')?.value||'');
+  ):T('Some model caches could not be cleared. Check cache status before downloading again. Financial data was not deleted.','部分模型缓存未能清理，请先重新检查缓存状态再下载。财务数据没有被删除。');
+  $('localStatus').textContent=msg;setMode(complete?T('Local AI cache cleared · choose a model','本地 AI 缓存已清理 · 请选择模型'):msg,!complete);
+  setCacheState(complete?'missing':'unknown',$('modelChoice')?.value||'');
   return removed
 }
 async function createEngine(model){
   const ctx=isAdvanced(model)?2048:(String(model).includes('Qwen3-0.6B')?1536:1536);
   return await webllm.CreateMLCEngine(model,{initProgressCallback:progressUpdate,logLevel:'WARN'},{context_window_size:ctx})
 }
-async function prepareLocalAI(force=false,opts={}){
-  if(state.engineLoading)return;
+// Serialize model preparation and explicit cache deletion across same-origin tabs when supported.
+const MODEL_CACHE_LOCK='mmhvault-local-ai-model-cache-v1';
+function withModelCacheLock(task){
+  if(typeof navigator.locks?.request==='function')return navigator.locks.request(MODEL_CACHE_LOCK,{mode:'exclusive'},task);
+  return Promise.resolve().then(task)
+}
+function assertCacheAccess(cached,wanted,requested,opts,cachedBefore=false){
+  if(cached===null)throw Error('model-cache-check-unavailable');
+  if(cached===false&&(!opts.allowDownload||requested!==wanted||cachedBefore))throw Error('model-download-confirmation-required')
+}
+let localPreparation=null;
+function prepareLocalAI(force=false,opts={}){
+  if(localPreparation)return localPreparation;
+  // Capture selection and consent before the first asynchronous operation.
+  const requested=$('modelChoice')?.value||'Qwen3-0.6B-q4f16_1-MLC';
+  const controls=['prepareAI','clearAICache','modelChoice'].map(id=>$(id));
+  controls.forEach(el=>el.disabled=true);
+  localPreparation=withModelCacheLock(()=>prepareLocalAIInternal(force,opts,requested)).finally(()=>{
+    localPreparation=null;
+    controls.forEach(el=>el.disabled=false);
+    if(!('gpu' in navigator))$('prepareAI').disabled=true;
+  });
+  return localPreparation;
+}
+async function prepareLocalAIInternal(force,opts,requested){
   const profile=await gpuProfile();
   if(!profile){
     const msg=T('WebGPU is not available in this browser. Use current Chrome/Edge or a newer Safari/iOS browser.','当前浏览器不支持 WebGPU。请使用最新版 Chrome/Edge，或较新的 Safari/iOS 浏览器。');
     setMode(msg,true);$('localStatus').textContent=msg;throw Error('webgpu-unavailable')
   }
-  let wanted=$('modelChoice')?.value||'Qwen3-0.6B-q4f16_1-MLC';
+  let wanted=requested;
   if(!modelAvailable(wanted)){wanted='Llama-3.2-1B-Instruct-q4f16_1-MLC';$('modelChoice').value=wanted;$('localStatus').textContent=T('Selected model is not available in this WebLLM build. Switched to compatibility mode.','当前 WebLLM 版本没有所选模型，已切换到兼容模式。')}
   if(isQwen(wanted)&&!profile.shaderF16){
     wanted='Llama-3.2-1B-Instruct-q4f16_1-MLC';$('modelChoice').value=wanted;
@@ -1644,8 +1821,15 @@ async function prepareLocalAI(force=false,opts={}){
   }
   if(state.engineReady&&state.engineModel===wanted&&!force)return state.engine;
 
+  const cachedBefore=await modelCached(wanted);
+  try{assertCacheAccess(cachedBefore,wanted,requested,opts)}catch(e){
+    const unknown=cachedBefore===null;setCacheState(unknown?'unknown':'missing',wanted);
+    const message=unknown?T('Unable to verify the saved model. Check again; no download has started.','无法确认已保存的模型，请重新检查；未启动下载。'):T('No complete saved model found. Open AI Settings and confirm the download of the selected compatible model.','未找到完整模型缓存，请在 AI 设置中确认下载当前兼容模型。');
+    $('localStatus').textContent=message;setMode(message,true);throw e;
+  }
   const sp=await storageProfile(),need=modelDownloadNeed(wanted);
-  if(isAdvanced(wanted)){
+  // A complete cached model does not need the free space for a second download.
+  if(!cachedBefore&&isAdvanced(wanted)){
     try{await navigator.storage?.persist?.()}catch(_e){}
     const refreshed=await storageProfile();Object.assign(sp,refreshed);
     if(sp.quota>0&&sp.free<need){
@@ -1659,14 +1843,18 @@ async function prepareLocalAI(force=false,opts={}){
 
   state.engineLoading=true;state.engineReady=false;$('prepareAI').disabled=true;$('clearAICache').disabled=true;$('modelChoice').disabled=true;$('modelProgress').classList.add('show');
   try{
-    const cachedBefore=await modelCached(wanted);
-    setCacheState(cachedBefore?'ready':'missing',wanted);
+    // Recheck after storage work, since another tab may have removed the cache.
+    const stillCached=await modelCached(wanted);
+    try{assertCacheAccess(stillCached,wanted,requested,opts,cachedBefore)}catch(e){
+      setCacheState(stillCached===null?'unknown':'missing',wanted);throw e;
+    }
+    setCacheState(stillCached?'ready':'missing',wanted);
     const storageNote=sp.quota>0?T(
       `Browser storage available: ${gb(sp.free).toFixed(2)} GB${sp.persisted?' · persistent':' · temporary/non-persistent'}.`,
       `浏览器可用存储：${gb(sp.free).toFixed(2)} GB${sp.persisted?' · 持久':' · 临时/非持久'}。`
     ):'';
-    setMode(cachedBefore?T('Restoring cached Local AI…','正在恢复已缓存的本地 AI……'):T('Preparing free Local AI…','正在准备免费本地 AI……'));
-    $('localStatus').textContent=cachedBefore?T(
+    setMode(stillCached?T('Restoring cached Local AI…','正在恢复已缓存的本地 AI……'):T('Preparing free Local AI…','正在准备免费本地 AI……'));
+    $('localStatus').textContent=stillCached?T(
       `Saved model files were found in this browser. MMHVAULT is loading them from local cache. ${storageNote}`,
       `已在当前浏览器找到保存的模型文件。MMHVAULT 正在从本地缓存读取。${storageNote}`
     ):T(
@@ -1678,16 +1866,8 @@ async function prepareLocalAI(force=false,opts={}){
       state.engine=await createEngine(wanted);
     }catch(firstError){
       if(!isQuotaError(firstError))throw firstError;
-      console.warn('[MMHVAULT Local AI] quota reached; reclaiming old model caches and retrying once',firstError);
-      $('localStatus').textContent=T(
-        'Browser model storage is full. MMHVAULT is clearing old Local AI model files and retrying the selected model once. Financial data is not touched.',
-        '浏览器 AI 模型存储已满。MMHVAULT 正在清理旧的本地 AI 模型文件，并自动重试当前模型一次。不会删除任何财务数据。'
-      );
       await releaseLocalEngine();
-      await clearKnownModelCaches('');
-      const after=await storageProfile();
-      if(after.quota>0&&after.free<need)throw Error(`Quota exceeded: selected model needs about ${gb(need).toFixed(2)} GB but browser has ${gb(after.free).toFixed(2)} GB free after cache cleanup`);
-      state.engine=await createEngine(wanted);
+      throw Error('insufficient-browser-storage: review model storage and repair manually');
     }
     state.engineModel=wanted;state.engineReady=true;
     try{localStorage.setItem('mmhvault_local_ai_model_v113',wanted)}catch(_e){}
@@ -1713,7 +1893,7 @@ async function prepareLocalAI(force=false,opts={}){
     );
     $('localStatus').textContent=msg;setMode(msg,true);throw e
   }finally{
-    state.engineLoading=false;$('prepareAI').disabled=false;$('clearAICache').disabled=false;$('modelChoice').disabled=false;
+    state.engineLoading=false;
     setTimeout(()=>{if(state.engineReady)$('modelProgress')?.classList.remove('show')},1000)
   }
 }
@@ -1733,17 +1913,17 @@ function assistantMessageShell(mode=''){
   const t=document.createTextNode(''),caret=document.createElement('span');caret.className='type-caret';caret.textContent='▍';
   b.append(t,caret);
   if(mode){const meta=document.createElement('small');meta.className='meta';meta.textContent=mode;b.append(meta)}
-  row.append(b);list.append(row);thread.scrollTop=thread.scrollHeight;
+  const follow=nearChatBottom(thread);row.append(b);list.append(row);followChat(thread,follow);
   return{row,b,t,caret}
 }
 function sleep(ms){return new Promise(r=>setTimeout(r,ms))}
 async function typewriterAnswer(text,mode='',speed=12){
-  const answer=String(text||'').trim();const shell=assistantMessageShell(mode);let i=0;
+  const generation=chatGeneration;const answer=String(text||'').trim();const shell=assistantMessageShell(mode);let i=0;
   const chunk=answer.length>700?4:answer.length>350?3:2;
-  while(i<answer.length){const next=Math.min(answer.length,i+chunk);shell.t.nodeValue=answer.slice(0,next);i=next;$('thread').scrollTop=$('thread').scrollHeight;await sleep(speed)}
-  shell.caret.remove();state.messages.push({role:'assistant',text:answer,mode});if(state.messages.length>24)state.messages=state.messages.slice(-24);renderThread();return answer
+  while(i<answer.length){if(contactEmbedded&&generation!==chatGeneration)throw Error('account-scope-changed');const next=Math.min(answer.length,i+chunk);const thread=$('thread'),follow=nearChatBottom(thread);shell.t.nodeValue=answer.slice(0,next);i=next;followChat(thread,follow);await sleep(speed)}
+  if(contactEmbedded&&generation!==chatGeneration)throw Error('account-scope-changed');shell.caret.remove();state.messages.push({role:'assistant',text:answer,mode});if(state.messages.length>24)state.messages=state.messages.slice(-24);saveContactChat();renderThread();return answer
 }
-function thinkingStage(en,zh){setMode(T(en,zh));const el=$('thread'),row=el?.querySelector('[data-typing] .bubble');if(row){row.innerHTML='';const lab=document.createElement('span');lab.className='thinking-label';lab.textContent=T(en,zh);row.append(lab)}if(el)el.scrollTop=el.scrollHeight}
+function thinkingStage(en,zh){setMode(T(en,zh));const el=$('thread'),row=el?.querySelector('[data-typing] .bubble');if(row){row.innerHTML='';const lab=document.createElement('span');lab.className='thinking-label';lab.textContent=T(en,zh);row.append(lab)}if(el)followChat(el,nearChatBottom(el))}
 async function reviewQuestion(engine,question,context){
   if(!isAdvanced(state.engineModel))return{intent:'open-ended-finance',focus:trimText(question,120),missing:[],cautions:['Use only verified current-account context','Do not invent exact numbers']};
   if(!isQwen(state.engineModel))return null;
@@ -1754,35 +1934,40 @@ async function reviewQuestion(engine,question,context){
   }catch(e){console.warn('[MMHVAULT Local AI] review pass skipped',e);return null}
 }
 async function localAIAsk(question){
-  thinkingStage('Verifying the current account scope…','正在验证当前登录账号范围……');await ensureCurrentScope();
+  const generation=chatGeneration;
+  const assertGeneration=()=>{if(contactEmbedded&&generation!==chatGeneration)throw Error('account-scope-changed')};
+  thinkingStage('Verifying the current account scope…','正在验证当前登录账号范围……');await ensureCurrentScope();assertGeneration();
   thinkingStage('Checking exact MMHVAULT facts…','正在核对 MMHVAULT 精确数据……');const context=aiContext(question);
-  const engine=await prepareLocalAI(false);
-  thinkingStage('Local AI is reviewing the question…','本地 AI 正在审题……');const review=await reviewQuestion(engine,question,context);
+  const engine=await prepareLocalAI(false);assertGeneration();
+  thinkingStage('Local AI is reviewing the question…','本地 AI 正在审题……');const review=await reviewQuestion(engine,question,context);assertGeneration();
   const history=state.messages.slice(isAdvanced(state.engineModel)?-5:-3).filter(x=>x.role==='user'||x.role==='assistant').map(x=>({role:x.role,content:trimText(x.text,isAdvanced(state.engineModel)?420:260)}));
   const reviewText=review?`\n\nANSWER REVIEW (not chain-of-thought; use as a compact checklist):\n${JSON.stringify(review)}`:'';
   const messages=[{role:'system',content:systemPrompt(question)},{role:'user',content:`MMHVAULT FINANCIAL CONTEXT (verified current account; computed locally):\n${context}${reviewText}\n\nUSER QUESTION:\n${question}`}];
   if(history.length>1){const prior=history.slice(0,-1);messages.splice(1,0,...prior)}
   thinkingStage('Writing a grounded answer…','正在组织有依据的回答……');
+  if(contactEmbedded&&generation!==chatGeneration)throw Error('account-scope-changed');
   const stream=await engine.chat.completions.create({messages,temperature:isAdvanced(state.engineModel)?.08:.06,top_p:.78,max_tokens:isAdvanced(state.engineModel)?650:360,stream:true,...(isQwen(state.engineModel)?{extra_body:{enable_thinking:false}}:{})});
+  if(contactEmbedded&&generation!==chatGeneration)throw Error('account-scope-changed');
   typing(false);
   const mode=T(`Local AI · ${modelLabel(state.engineModel)} · verified scope`,`本地 AI · ${modelLabel(state.engineModel)} · 已验证账号范围`),shell=assistantMessageShell(mode);
   let rawAnswer='',targetAnswer='',finalAnswer='',done=false,streamError=null;
-  const pump=(async()=>{while(!done||finalAnswer.length<targetAnswer.length){if(finalAnswer.length<targetAnswer.length){const remain=targetAnswer.slice(finalAnswer.length),take=Math.min(remain.length,remain.length>80?4:2);finalAnswer+=remain.slice(0,take);shell.t.nodeValue=finalAnswer;$('thread').scrollTop=$('thread').scrollHeight}else await sleep(18)}if(shell.caret?.isConnected)shell.caret.remove()})();
-  try{for await(const chunk of stream){const delta=chunk?.choices?.[0]?.delta?.content||'';if(delta){rawAnswer+=delta;targetAnswer=sanitizeAssistantOutput(rawAnswer,false)}}}catch(e){streamError=e}finally{targetAnswer=sanitizeAssistantOutput(rawAnswer,true);done=true}
-  await pump;if(streamError)throw streamError;
+  const pump=(async()=>{while(!done||finalAnswer.length<targetAnswer.length){if(contactEmbedded&&generation!==chatGeneration)break;if(finalAnswer.length<targetAnswer.length){const remain=targetAnswer.slice(finalAnswer.length),take=Math.min(remain.length,remain.length>80?4:2);finalAnswer+=remain.slice(0,take);const thread=$('thread'),follow=nearChatBottom(thread);shell.t.nodeValue=finalAnswer;followChat(thread,follow)}else await sleep(18)}if(shell.caret?.isConnected)shell.caret.remove()})();
+  try{for await(const chunk of stream){if(contactEmbedded&&generation!==chatGeneration)throw Error('account-scope-changed');const delta=chunk?.choices?.[0]?.delta?.content||'';if(delta){rawAnswer+=delta;targetAnswer=sanitizeAssistantOutput(rawAnswer,false)}}}catch(e){streamError=e}finally{targetAnswer=sanitizeAssistantOutput(rawAnswer,true);done=true}
+  await pump;if(contactEmbedded&&generation!==chatGeneration)throw Error('account-scope-changed');if(streamError)throw streamError;
   finalAnswer=sanitizeAssistantOutput(finalAnswer||targetAnswer,true);if(!finalAnswer)throw Error('empty-local-ai-response');
-  shell.t.nodeValue=finalAnswer;state.messages.push({role:'assistant',text:finalAnswer,mode});if(state.messages.length>24)state.messages=state.messages.slice(-24);renderThread();return finalAnswer
+  shell.t.nodeValue=finalAnswer;state.messages.push({role:'assistant',text:finalAnswer,mode});if(state.messages.length>24)state.messages=state.messages.slice(-24);saveContactChat();renderThread();return finalAnswer
 }
 async function send(text,displayText=''){
   const input=$('input'),q=String(text??input?.value??'').trim();if(!q||state.sending)return;
   const directive=languageDirective(q);if(directive)state.replyLang=directive;
   if(!state.user||!state.data){addMessage('assistant',T('Please open MMHVAULT, sign in, and return to AI Assistant.','请先打开 MMHVAULT 登录，然后再返回 AI 财务助手。'),'MMHVAULT');return}
-  state.sending=true;if(input)input.value='';addMessage('user',String(displayText||q));typing(true);$('send').disabled=true;$('refreshData').disabled=true;$('clear').disabled=true;
+  const generation=chatGeneration;state.sending=true;if(contactEmbedded)renderContactHistory();if(input)input.value='';updateContactComposer();addMessage('user',String(displayText||q));typing(true);$('send').disabled=true;$('refreshData').disabled=true;$('clear').disabled=true;
   try{
     thinkingStage('Verifying the current account scope…','正在验证当前登录账号范围……');await ensureCurrentScope();
+    if(contactEmbedded&&generation!==chatGeneration)throw Error('account-scope-changed');
     const mutation=transactionMutationIntent(q);
-    if(mutation==='delete'||mutation==='edit'){
-      typing(false);await typewriterAnswer(aiWriteRefusal(mutation),T('AI transaction safety','AI 交易安全保护'),8);return
+    if(mutation==='delete'||mutation==='edit'||(contactEmbedded&&mutation==='add')){
+      typing(false);await typewriterAnswer(contactEmbedded&&mutation==='add'?T('This assistant is read-only. Open Transactions to add a record yourself.','此助手仅提供只读分析，请在 Transactions 页面手动新增记录。'):aiWriteRefusal(mutation),T('AI transaction safety','AI 交易安全保护'),8);return
     }
     if(mutation==='add'){
       typing(false);
@@ -1798,18 +1983,27 @@ async function send(text,displayText=''){
     if(exact){typing(false);await typewriterAnswer(exact,questionLang(q)==='zh'?'MMHVAULT 精确计算 · 当前账号':'MMHVAULT exact calculation · current account',11);setMode(T('Verified current-account finance engine ready','已验证当前账号财务计算可用'));return}
     await localAIAsk(q);setMode(T(`Local AI ready · ${modelLabel(state.engineModel)} · verified current account only`,`本地 AI 已就绪 · ${modelLabel(state.engineModel)} · 仅限已验证当前账号`));
   }catch(e){
-    typing(false);console.warn('[MMHVAULT Local AI] answer failed',e);const zh=questionLang(q)==='zh',msg=String(e?.message||e);
+    if(contactEmbedded&&generation!==chatGeneration)return;typing(false);console.warn('[MMHVAULT Local AI] answer failed',e);const zh=questionLang(q)==='zh',msg=String(e?.message||e);
     if(msg==='account-scope-changed'||msg==='not-signed-in'){clearFinancialScope('account-changed');addMessage('assistant',zh?'检测到登录账号发生变化。为防止混用旧账号数据，我已经清空当前财务上下文。请确认当前账号后点击“刷新数据”。':'The signed-in account changed. To prevent mixing data across accounts, the financial context was cleared. Confirm the current account and press Refresh data.','MMHVAULT scope guard')}
     else if(msg!=='webgpu-unavailable')addMessage('assistant',zh
-      ?'我没有足够的已验证规则来确定这个开放式问题的答案，而当前本地语言模型也没有成功运行，所以我不会猜。你可以先点底部模型按钮恢复 Local AI，或换成更具体的 MMHVAULT 页面、账号、余额、交易、预算、提醒等问题。'
-      :'I do not have enough verified rules to determine this open-ended answer, and the local model is not currently running, so I will not guess. Restore Local AI from the model control below, or ask a more specific MMHVAULT page/account/balance/transaction/budget/alert question.'
+      ?'我没有足够的已验证规则来确定这个开放式问题的答案，而当前本地语言模型也没有成功运行，所以我不会猜。你可以先打开 AI 设置恢复 Local AI，或换成更具体的 MMHVAULT 页面、账号、余额、交易、预算、提醒等问题。'
+      :'I do not have enough verified rules to determine this open-ended answer, and the local model is not currently running, so I will not guess. Restore Local AI in AI Settings, or ask a more specific MMHVAULT page/account/balance/transaction/budget/alert question.'
       ,'Verified answer unavailable');
-  }finally{state.sending=false;$('send').disabled=false;$('refreshData').disabled=false;$('clear').disabled=false;input?.focus({preventScroll:true})}
+  }finally{state.sending=false;$('send').disabled=false;$('refreshData').disabled=false;$('clear').disabled=false;if(contactEmbedded){renderContactHistory();updateContactComposer()}else input?.focus({preventScroll:true})}
 }
 function bind(){
   $('backApp').onclick=()=>location.assign('app.html');
+  if(contactEmbedded){const settings=$('contactAISettings'),guide=$('contactAIGuide'),dock=$('modelDock'),bar=$('appGuide');settings.onclick=()=>{const open=dock.classList.toggle('contact-settings-open');settings.setAttribute('aria-expanded',String(open));if(open){bar.classList.remove('contact-guide-open');guide.setAttribute('aria-expanded','false');renderThread()}};guide.onclick=()=>{const open=bar.classList.toggle('contact-guide-open');guide.setAttribute('aria-expanded',String(open));dock.classList.remove('contact-settings-open');settings.setAttribute('aria-expanded','false');renderThread()};const footer=document.querySelector('.foot');footer.dataset.en='Read-only finance analysis · Local AI';footer.dataset.zh='只读财务分析 · 本地 AI';footer.textContent=footer.dataset.en;}
+  if(contactEmbedded){
+    $('contactAIHistory').onclick=()=>{if(!chatOwner||state.sending)return;const p=$('contactHistory');if(!p.hidden){closeContactHistory();return}renderContactHistory();setContactHistoryOpen(true);$('contactHistoryClose').focus()};
+    $('contactHistoryClose').onclick=()=>{closeContactHistory();$('contactAIHistory').focus()};
+    $('contactHistoryDeleteAll').onclick=()=>{if(state.sending||!chatOwner||chatOwner!==state.scopeUserId||!confirm(chatText('Delete all chats in this tab?','删除此标签页的所有对话？','မှတ်တမ်းအားလုံးဖျက်မလား။')))return;chatRows=[];chatId=freshChatId();resetChatState();writeHistory();renderContactHistory();renderThread()};
+    document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!$('contactHistory').hidden){e.preventDefault();closeContactHistory();$('contactAIHistory').focus()}});
+    renderContactHistory();
+  }
   $('clear').onclick=()=>{
     if(state.sending)return;
+    if(contactEmbedded){if(!chatOwner||chatOwner!==state.scopeUserId)return;saveContactChat();chatId=freshChatId();resetChatState();writeHistory();closeContactHistory();renderThread(true);renderContactHistory();updateContactComposer();$('input').focus();return}
     state.messages=[];state.replyLang='';state.lastIntent='';state.pendingTxId='';state.txSaving=false;
     const list=$('messageList');if(list)list.replaceChildren();
     $('thread')?.querySelectorAll('[data-typing]').forEach(el=>el.remove());
@@ -1819,26 +2013,43 @@ function bind(){
   };
   $('refreshData').onclick=async()=>{if(state.sending)return;$('refreshData').disabled=true;try{setMode(T('Refreshing verified current-account data…','正在刷新已验证的当前账号数据……'));await loadData();setMode(T('Current-account data refreshed','当前账号数据已刷新'))}catch(e){const msg=String(e?.message||e);if(msg==='account-scope-changed'||msg==='not-signed-in')clearFinancialScope(msg==='account-scope-changed'?'account-changed':'scope-cleared');else setMode(msg.startsWith('data-timeout:')?T('Personal data loading timed out · tap Refresh data to retry','Personal 数据读取超时 · 请再次点击“刷新数据”'):T('Could not refresh current-account data · retry in a moment','无法刷新当前账号数据 · 请稍后重试'),true)}finally{$('refreshData').disabled=false}};
   $('send').onclick=()=>send();
-  $('prepareAI').onclick=()=>prepareLocalAI(false).catch(()=>{});
+  if(contactEmbedded){
+    $('input').addEventListener('input',updateContactComposer);
+    $('thread').addEventListener('scroll',updateContactJump,{passive:true});
+    $('contactJumpLatest').onclick=()=>followChat($('thread'),true);
+    updateContactComposer();
+  }
+  $('prepareAI').onclick=()=>{
+    if(localPreparation||state.engineLoading||state.sending)return;
+    const wanted=$('modelChoice')?.value||'';
+    // Only a visible Download action for the same selected model grants download consent.
+    if(state.cacheModel!==wanted||state.cacheStatus==='unknown'||state.cacheStatus==='loading'){
+      refreshSelectedModelCacheState({autoload:true}).catch(()=>{});return;
+    }
+    prepareLocalAI(false,{allowDownload:state.cacheStatus==='missing'}).catch(()=>{});
+  };
   $('clearAICache').onclick=async()=>{
-    if(state.engineLoading)return;
+    if(localPreparation||state.engineLoading||state.sending)return;
+    if(!window.confirm(T('Delete downloaded local AI models? They must be downloaded again if you want to use them.','删除已下载的本地 AI 模型？以后使用时需要重新下载。')))return;
     $('clearAICache').disabled=true;$('prepareAI').disabled=true;$('modelChoice').disabled=true;
-    try{await clearAllLocalAICaches()}finally{$('clearAICache').disabled=false;$('prepareAI').disabled=false;$('modelChoice').disabled=false}
+    try{await withModelCacheLock(clearAllLocalAICaches)}finally{$('clearAICache').disabled=false;$('prepareAI').disabled=false;$('modelChoice').disabled=false}
   };
   $('modelChoice').addEventListener('change',async()=>{
+    if(localPreparation||state.sending)return;
     await releaseLocalEngine();
     setMode(T('Model changed · checking this device','模型已更改 · 正在检查当前设备缓存'));
     await refreshSelectedModelCacheState({autoload:true});
   });
-  $('input').addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey&&!e.isComposing){e.preventDefault();send()}});
+  $('input').addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey&&!e.isComposing&&e.keyCode!==229){e.preventDefault();send()}});
   document.querySelectorAll('.prompt').forEach(b=>b.addEventListener('click',()=>{
     const replyLanguage=state.replyLang||lang();
     const prompt=replyLanguage==='zh'?b.dataset.promptZh:b.dataset.promptEn;
     const label=(b.querySelector('b')?.textContent||'').trim()||T('Quick start','快速开始');
+    if(contactEmbedded){$('appGuide').classList.remove('contact-guide-open');$('contactAIGuide').setAttribute('aria-expanded','false')}
     send(prompt,label)
   }));
   window.addEventListener('storage',e=>{if(e.key==='myfinance_theme')applyTheme();if(e.key==='mmhvault_language_v3363')translate()})
-  window.addEventListener('pagehide',()=>{try{state.engine?.unload?.()}catch(_e){}})
+  window.addEventListener('pagehide',()=>{try{state.authSubscription?.unsubscribe?.()}catch(_e){}try{Promise.resolve(state.engine?.unload?.()).catch(()=>{})}catch(_e){}})
 }
 async function start(){
   applyTheme();bind();translate();
@@ -1860,13 +2071,13 @@ async function start(){
     try{
       const sp=await storageProfile();
       const cached=await refreshSelectedModelCacheState({autoload:true});
-      if(!cached&&sp.quota>0&&!sp.persisted&&gb(sp.free)<1.25){
+      if(cached===false&&sp.quota>0&&!sp.persisted&&gb(sp.free)<1.25){
         $('localStatus').textContent=T(
           `This model is not cached yet. Browser storage is temporary/non-persistent and only ${gb(sp.free).toFixed(2)} GB is available. Use a normal browser window before downloading a large model.`,
           `当前模型尚未缓存。浏览器存储为临时/非持久状态，当前可用约 ${gb(sp.free).toFixed(2)} GB。下载较大模型前建议使用普通浏览器窗口。`
         )
       }
-    }catch(_e){setCacheState('missing',$('modelChoice')?.value||'')}
+    }catch(_e){setCacheState('unknown',$('modelChoice')?.value||'')}
   }
   try{await loadData()}catch(e){
     console.warn('[MMHVAULT AI] start failed',e);
