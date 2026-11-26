@@ -40,6 +40,7 @@
   added:{zh:'新增数量',en:'Additional units',my:'ထပ်တိုး အရေအတွက်'},
   totalUnits:{zh:'总数量',en:'Total units',my:'စုစုပေါင်း အရေအတွက်'},
   average:{zh:'模拟买入后平均成本 · 不含新增手续费',en:'New average cost · excludes new fees',my:'ထပ်ဝယ်ပြီးနောက် ပျမ်းမျှကုန်ကျစရိတ် · အခကြေးငွေ အသစ်မပါ'},
+  averageChange:{zh:'相对当前均价变动',en:'Change vs current average cost',my:'လက်ရှိ ပျမ်းမျှကုန်ကျစရိတ်နှင့် ပြောင်းလဲမှု'},
   mixTitle:{zh:'持仓集中度 · USD',en:'Position concentration · USD',my:'ပိုင်ဆိုင်မှု စုစည်းမှု · USD'},
   noHolding:{zh:'暂无已核实的持仓',en:'No verified holdings available',my:'အတည်ပြုထားသော ပိုင်ဆိုင်မှု မရှိပါ'},
   moreMenu:{zh:'右上角可打开投资记录、新增数据及项目管理。',en:'Use the top-right icons for records, adding data and project management.'}
@@ -52,7 +53,7 @@
  const ownData=uid=>!!uid&&uid===currentOwner()&&window.mmhWalletDataOwnerV191===uid;
  function calculateAverage(q,budget,basis,price){if(![q,budget,basis,price].every(Number.isFinite)||q<=0||budget<=0||basis<0||price<=0)return null;const added=budget/price,total=q+added,avg=(basis+budget)/total;return [added,total,avg].every(Number.isFinite)&&added>0?{added,total,avg}:null;}
  function calcPanel(){return $('mmhInvestSimpleCalcV215');}
- function drawCalc(){const p=calcPanel();if(!p)return;const pick=p.querySelector('select'),cap=p.querySelector('[data-calc-cap]'),price=p.querySelector('[data-calc-price]'),selected=pick.value;const available=ownData(calcOwner)?calcRows:[];const keys=JSON.stringify(available.map(x=>x.key));if(p.dataset.keys!==keys){pick.replaceChildren();for(const x of available){const o=document.createElement('option');o.value=x.key;o.textContent=x.name+' · '+x.currency;pick.append(o);}if(available.some(x=>x.key===selected))pick.value=selected;else{cap.value='';price.value='';}p.dataset.keys=keys;}const row=available.find(x=>x.key===pick.value);for(const input of [pick,cap,price])input.disabled=!row;p.querySelector('[data-calc-cap-label]').textContent=tr('capital')+(row?' ('+row.currency+')':'');p.querySelector('[data-calc-price-label]').textContent=tr('price')+(row?' ('+row.currency+'/'+row.unit+')':'');const n=row&&calculateAverage(row.quantity,Number(cap.value),row.cost,Number(price.value));const fmt=(x,d)=>x.toLocaleString(undefined,{maximumFractionDigits:d});p.querySelector('[data-calc-units]').textContent=!row?tr('noHolding'):n?tr('added')+': '+fmt(n.added,10)+' · '+tr('totalUnits')+': '+fmt(n.total,10):'—';p.querySelector('[data-calc-average]').textContent=n?(row.currency==='USD'?'$ ':'K ')+n.avg.toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:6}):'—';}
+ function drawCalc(){const p=calcPanel();if(!p)return;const pick=p.querySelector('select'),cap=p.querySelector('[data-calc-cap]'),price=p.querySelector('[data-calc-price]'),selected=pick.value;const available=ownData(calcOwner)?calcRows:[];const keys=JSON.stringify(available.map(x=>x.key));if(p.dataset.keys!==keys){pick.replaceChildren();for(const x of available){const o=document.createElement('option');o.value=x.key;o.textContent=x.name+' · '+x.currency;pick.append(o);}if(available.some(x=>x.key===selected))pick.value=selected;else{cap.value='';price.value='';}p.dataset.keys=keys;}const row=available.find(x=>x.key===pick.value);for(const input of [pick,cap,price])input.disabled=!row;p.querySelector('[data-calc-cap-label]').textContent=tr('capital')+(row?' ('+row.currency+')':'');p.querySelector('[data-calc-price-label]').textContent=tr('price')+(row?' ('+row.currency+'/'+row.unit+')':'');const n=row&&calculateAverage(row.quantity,Number(cap.value),row.cost,Number(price.value));const fmt=(x,d)=>x.toLocaleString(undefined,{maximumFractionDigits:d});p.querySelector('[data-calc-units]').textContent=!row?tr('noHolding'):n?tr('added')+': '+fmt(n.added,10)+' · '+tr('totalUnits')+': '+fmt(n.total,10):'—';const change=n&&row.cost>0?(n.avg/(row.cost/row.quantity)-1)*100:null;p.querySelector('[data-calc-change]').textContent=change!==null&&Number.isFinite(change)?tr('averageChange')+': '+(change>0?'+':'')+fmt(change,2)+'%':'';p.querySelector('[data-calc-average]').textContent=n?(row.currency==='USD'?'$ ':'K ')+n.avg.toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:6}):'—';}
  function clearPositionMix(){const mix=$('mmhUnifiedAllocationV1');if(!mix)return;const title=tr('mixTitle'),message=tr('noHolding');if(mix.children.length===2&&mix.firstElementChild?.textContent===title&&mix.lastElementChild?.textContent===message)return;const h=document.createElement('span'),msg=document.createElement('span');h.textContent=title;msg.textContent=message;mix.replaceChildren(h,msg);}
  function updateStrategy(uid,rows){if(!ownData(uid)){uid=null;rows=[];clearPositionMix();}if(uid!==calcOwner){const p=calcPanel();if(p){p.querySelector('[data-calc-cap]').value='';p.querySelector('[data-calc-price]').value='';p.dataset.keys='';}}calcOwner=uid;calcRows=Array.isArray(rows)?rows.filter(x=>x&&['USD','MMK'].includes(x.currency)&&typeof x.key==='string'&&typeof x.name==='string'&&Number.isFinite(x.quantity)&&x.quantity>0&&Number.isFinite(x.cost)&&x.cost>=0):[];drawCalc();}
  function destinationFor(id,key){return ARCHIVED.has(id)?$('iw2-archive-body'):$('iw2-slot-'+key);}
@@ -75,7 +76,7 @@
    </section>`).join('')}
    <p class="iw2-footer" data-iw2-t="moreMenu"></p>`;
   parent.prepend(host);
-  const calc=document.createElement('section');calc.id='mmhInvestSimpleCalcV215';calc.innerHTML='<h3 data-iw2-t="calculator"></h3><label><span data-iw2-t="holding"></span><select></select></label><div class="iw215-inputs"><label><span data-calc-cap-label></span><input type="number" min="0" step="any" inputmode="decimal" data-calc-cap></label><label><span data-calc-price-label></span><input type="number" min="0" step="any" inputmode="decimal" data-calc-price></label></div><p data-iw2-t="average" class="iw215-result-label"></p><strong data-calc-average aria-live="polite">—</strong><p data-calc-units></p>';$('iw2-slot-strategy').append(calc);
+  const calc=document.createElement('section');calc.id='mmhInvestSimpleCalcV215';calc.innerHTML='<h3 data-iw2-t="calculator"></h3><label><span data-iw2-t="holding"></span><select></select></label><div class="iw215-inputs"><label><span data-calc-cap-label></span><input type="number" min="0" step="any" inputmode="decimal" data-calc-cap></label><label><span data-calc-price-label></span><input type="number" min="0" step="any" inputmode="decimal" data-calc-price></label></div><p data-iw2-t="average" class="iw215-result-label"></p><strong data-calc-average aria-live="polite">—</strong><p data-calc-units></p><p data-calc-change></p>';$('iw2-slot-strategy').append(calc);
   calc.addEventListener('input',drawCalc);calc.querySelector('select').addEventListener('change',()=>{calc.querySelector('[data-calc-cap]').value='';calc.querySelector('[data-calc-price]').value='';drawCalc();});
   const archive=document.createElement('details');archive.id='iw2-archive';archive.innerHTML='<summary data-iw2-t="archive"></summary><div id="iw2-archive-body"></div>';$('iw2-slot-data').append(archive);
   drawCalc();
@@ -287,12 +288,53 @@ html body #invest#invest#invest#invest#invest#invest#invest#invest #iw2-slot-str
 html body #invest#invest#invest#invest#invest#invest#invest#invest #iw2-slot-strategy #mmhInvestWatchV13 .ivw13-list{gap:6px!important}
 html body #invest#invest#invest#invest#invest#invest#invest#invest #iw2-slot-strategy #mmhInvestWatchV13 .ivw13-item{min-width:0!important;min-height:0!important;margin:0!important;padding:8px!important;border:1px solid var(--uv-line)!important;border-radius:6px!important;background:var(--uv-raised,var(--uv-card))!important;background-image:none!important;box-shadow:none!important}
 html body #invest#invest#invest#invest#invest#invest#invest#invest #iw2-slot-strategy #mmhInvestWatchV13 .ivw13-foot{font-size:11px!important;line-height:1.5!important;color:var(--uv-muted)!important;margin:8px 0 0!important}
-html body #invest#invest#invest#invest#invest#invest#invest#invest #iw2-slot-strategy{align-items:start!important}
+html body #invest#invest#invest#invest#invest#invest#invest#invest #iw2-slot-strategy{align-items:stretch!important}
+/* V2.0.16: balanced Strategy cards and compact watch controls. */
+html body #invest#invest#invest#invest#invest#invest#invest#invest #iw2-pane-strategy:not([hidden]){min-height:0!important;height:auto!important}
+html body #invest#invest#invest#invest#invest#invest#invest#invest #iw2-slot-strategy{align-content:start!important;grid-auto-rows:auto!important;min-height:0!important;height:auto!important}
+html body #invest#invest#invest#invest#invest#invest#invest#invest #mmhInvestWatchV13 :is(.ivw13-item-top,.ivw13-datum){min-width:0!important;overflow-wrap:anywhere}
+html body #invest#invest#invest#invest#invest#invest#invest#invest #mmhInvestWatchV13 dialog .ivw13-fields :is(input,select){min-width:0!important;max-width:100%!important;box-sizing:border-box}
+
+
+html body #invest#invest#invest#invest#invest#invest#invest#invest #iw2-slot-strategy>#mmhInvestPositionMixV215{display:flex!important;flex-direction:column!important;align-self:stretch!important;max-height:none!important}
+html body #invest#invest#invest#invest#invest#invest#invest#invest #mmhInvestPositionMixV215 #mmhUnifiedAllocationV1{flex:1;align-content:center!important}
+html body #invest#invest#invest#invest#invest#invest#invest#invest #mmhInvestWatchV13 .ivw13-item{display:grid!important;grid-template-columns:minmax(105px,.8fr) minmax(210px,2fr) auto!important;gap:6px 12px!important;align-items:center!important}
+html body #invest#invest#invest#invest#invest#invest#invest#invest #mmhInvestWatchV13 .ivw13-item-top{display:flex!important;flex-wrap:wrap;align-items:center!important;gap:5px!important;margin:0!important}
+html body #invest#invest#invest#invest#invest#invest#invest#invest #mmhInvestWatchV13 .ivw13-datum{display:flex!important;flex-wrap:wrap!important;gap:8px 20px!important;margin:0!important}
+html body #invest#invest#invest#invest#invest#invest#invest#invest #mmhInvestWatchV13 .ivw13-item>p{grid-column:1/-1;margin:0!important;font-size:11px!important;color:var(--uv-muted)!important}
+html body #invest#invest#invest#invest#invest#invest#invest#invest #mmhInvestWatchV13 .ivw13-buttons{grid-column:3;grid-row:1;display:flex!important;justify-content:flex-end!important;gap:4px!important;margin:0!important}
+html body #invest#invest#invest#invest#invest#invest#invest#invest #mmhInvestWatchV13 .ivw13-buttons button{flex:0 0 auto!important;width:32px!important;min-width:32px!important;min-height:32px!important;padding:5px!important;display:inline-flex!important;align-items:center;justify-content:center}
+html body #invest#invest#invest#invest#invest#invest#invest#invest #mmhInvestWatchV13 .ivw13-met .ivw13-status{color:var(--uv-positive)!important;border-color:var(--uv-positive)!important}
+html body #invest#invest#invest#invest#invest#invest#invest#invest #mmhInvestWatchV13 .ivw13-pending .ivw13-status{color:var(--uv-accent)!important}
+html body #invest#invest#invest#invest#invest#invest#invest#invest #mmhInvestWatchV13 .ivw13-paused .ivw13-status{color:var(--uv-muted)!important}
+html body #invest#invest#invest#invest#invest#invest#invest#invest #mmhInvestWatchV13 .ivw13-buttons .ivw13-danger{color:var(--uv-negative)!important}
+html body #invest#invest#invest#invest#invest#invest#invest#invest #mmhInvestWatchV13 dialog.ivw216-dialog{position:fixed!important;inset:0!important;margin:auto!important;width:min(520px,calc(100vw - 28px))!important;max-height:calc(100dvh - 32px)!important;overflow:auto!important;box-sizing:border-box;padding:16px!important;background:var(--uv-card)!important;color:var(--uv-text)!important;border:1px solid var(--uv-line)!important;border-radius:12px!important;box-shadow:0 16px 56px #0004!important}
+#mmhInvestWatchV13 dialog.ivw216-dialog::backdrop{background:#0006}
+html body #invest#invest#invest#invest#invest#invest#invest#invest #mmhInvestWatchV13 dialog.ivw216-dialog:not([open]){display:none!important}
+html body #invest#invest#invest#invest#invest#invest#invest#invest #mmhInvestWatchV13 .ivw13-buttons button::before,html body #invest#invest#invest#invest#invest#invest#invest#invest #mmhInvestWatchV13 .ivw13-buttons button::after{display:none!important;content:none!important}
+html body #invest#invest#invest#invest#invest#invest#invest#invest #mmhInvestWatchV13 .ivw13-buttons button svg{display:block!important;flex:none!important;width:16px!important;height:16px!important}
+#mmhInvestSimpleCalcV215 [data-calc-change]:empty{display:none!important}
+@media(min-width:900px) and (hover:hover) and (pointer:fine),(min-width:1100px){html body #invest#invest#invest#invest#invest#invest#invest#invest #mmhInvestWatchV13 dialog.ivw216-dialog{inset-inline-start:var(--wv-shell-rail,var(--wv-nav,240px))!important;inset-block-start:var(--wv-shell-top,64px)!important;max-height:calc(100dvh - var(--wv-shell-top,64px) - 32px)!important}}
+html body #invest#invest#invest#invest#invest#invest#invest#invest #mmhInvestWatchV13 dialog .ivw13-editor{padding:0!important;border:0!important;margin:0!important;background:transparent!important;box-shadow:none!important}
+#mmhInvestWatchV13 .ivw216-feedback:empty{display:none}
+@media(max-width:1000px){
+html body #invest#invest#invest#invest#invest#invest#invest#invest #mmhInvestWatchV13 .ivw13-item{grid-template-columns:minmax(0,1fr) auto!important}
+html body #invest#invest#invest#invest#invest#invest#invest#invest #mmhInvestWatchV13 .ivw13-datum{grid-column:1/-1}
+html body #invest#invest#invest#invest#invest#invest#invest#invest #mmhInvestWatchV13 .ivw13-buttons{grid-column:2}
+}
+@media(max-width:760px){
+html body #invest#invest#invest#invest#invest#invest#invest#invest #mmhInvestWatchV13 .ivw13-buttons button{width:44px!important;min-width:44px!important;min-height:44px!important}
+}
 @media(max-width:760px){
 html body #invest#invest#invest#invest#invest#invest#invest#invest #iw2-slot-strategy{grid-template-columns:minmax(0,1fr)!important}
 html body #invest #mmhInvestSimpleCalcV215 :is(input,select){min-height:44px!important}
 html body #invest#invest#invest#invest#invest#invest#invest#invest #iw2-slot-strategy #mmhInvestWatchV13 button{min-height:44px!important}
 html body #invest#invest#invest#invest#invest#invest#invest#invest #mmhInvestPositionMixV215 .mmh-mix-label b{min-width:0!important;overflow-wrap:anywhere!important}
+}
+@media(max-width:420px){
+html body #invest#invest#invest#invest#invest#invest#invest#invest #mmhInvestWatchV13 dialog .ivw13-fields{grid-template-columns:minmax(0,1fr)!important}
+html body #invest#invest#invest#invest#invest#invest#invest#invest #mmhInvestWatchV13 .ivw13-item{grid-template-columns:minmax(0,1fr)!important}
+html body #invest#invest#invest#invest#invest#invest#invest#invest #mmhInvestWatchV13 .ivw13-buttons{grid-column:1;grid-row:auto;justify-content:flex-end!important}
 }
 
 `;

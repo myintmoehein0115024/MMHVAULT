@@ -33,7 +33,7 @@ const goldQty=(x)=>{let q=N(x.quantity);if(!Number.isFinite(q))return NaN;const 
 const tradeDay=x=>String(x.inv_date||'').slice(0,10);
 const cashFlow=(x,q)=>{const a=Math.abs(N(x.amount)),fees=Math.abs(N(x.fee)||0)+Math.abs(N(x.other_cost)||0);return !Number.isFinite(a)?NaN:q<0?a-fees:-a-fees};
 // Gold positions remain in the original Invest portfolio; only verified Crypto data is used here.
-let selection='crypto',daysView=7,selectedDay=todayLocal(),selectedSymbol='',currentOwner='',cryptoCache={at:0,key:'',prices:new Map(),missing:[]},error='',lastRenderToken=0;
+let selection='crypto',daysView=30,selectedDay=todayLocal(),selectedSymbol='',currentOwner='',cryptoCache={at:0,key:'',prices:new Map(),missing:[]},error='',lastRenderToken=0;
 const priceOf=(symbol,day,now)=>{
  if(symbol==='USDT')return 1;
  if(day===todayLocal()&&now){const current=(typeof livePrices!=='undefined'?livePrices:window.livePrices)||{},status=(typeof cryptoQuoteStatusV1!=='undefined'?cryptoQuoteStatusV1:window.cryptoQuoteStatusV1||null),v=N(current[symbol]?.price);return status?.available&&Number(status.updatedAt)>0&&Date.now()-Number(status.updatedAt)<300000&&Number.isFinite(v)&&v>0?v:undefined;}

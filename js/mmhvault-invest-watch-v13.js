@@ -9,6 +9,8 @@ const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&
 const lang=()=>{try{return window.getMMHVAULTLanguage?.()==='zh'||document.documentElement.lang?.toLowerCase().startsWith('zh')}catch(_){return false}};
 const locale=()=>{try{const s=String(window.getMMHVAULTLanguage?.()||document.documentElement.lang||'');return /^(my|mm)(?:[-_]|$)/i.test(s)?'my':lang()?'zh':'en'}catch(_){return 'en'}};
 const MY={
+ "To target":"သတ်မှတ်ဈေးအထိ",
+ "Target change from reference price":"ရည်ညွှန်းဈေးမှ သတ်မှတ်ဈေးသို့ ပြောင်းလဲမှု",
  "Confirmation is unavailable. Reopen the page.": "အတည်ပြုရန် ဝင်းဒိုး မရရှိပါ။ စာမျက်နှာ ပြန်ဖွင့်ပါ။",
  "Watch condition met": "စောင့်ကြည့်ရန် အခြေအနေ ပြည့်မီပါပြီ",
  "Not reached": "မပြည့်မီသေးပါ",
@@ -82,7 +84,7 @@ let formLocale='';
 const owner=()=>{try{return typeof currentSessionUser!=='undefined'?String(currentSessionUser?.id||''):''}catch(_){return ''}};
 const money=(n,asset)=>`${asset==='Gold'?'K ':'$'}${Number(n).toLocaleString(undefined,{maximumFractionDigits:asset==='Gold'?2:6})}`;
 const table='invest_price_watch_plans';
-let activeOwner='',rows=[],loaded=false,pending=false,readToken=0,editing='',formOpen=false,warning='',draftRequestId='',draftSignature='',readError='';
+let activeOwner='',rows=[],loaded=false,pending=false,readToken=0,ownerEpoch=0,editing='',formOpen=false,warning='',draftRequestId='',draftSignature='',readError='';
 const rowId=v=>String(v||'');
 const validSymbol=v=>/^[A-Z0-9]{2,12}$/.test(v);
 const readSnapshot=()=>window.mmhInvestDailyV1?.guidanceSnapshot?.();
@@ -117,16 +119,19 @@ function evaluate(plan,snapshot,now=Date.now()){
 }
 function snapshotMatches(){const s=readSnapshot();return s&&s.owner===activeOwner?s:null}
 function getDB(){try{return typeof db!=='undefined'?db:null}catch(_){return null}}
-function reset(next=''){readToken++;activeOwner=next;rows=[];loaded=false;pending=false;readError='';warning='';editing='';formOpen=false;draftRequestId='';draftSignature='';const root=$('mmhInvestWatchV13');if(root){root.querySelector('[data-watch-list]')?.replaceChildren();root.querySelector('[data-watch-form]')?.replaceChildren();}}
+function reset(next=''){readToken++;ownerEpoch++;activeOwner=next;rows=[];loaded=false;pending=false;readError='';warning='';editing='';formOpen=false;draftRequestId='';draftSignature='';const root=$('mmhInvestWatchV13');if(root){root.querySelector('[data-watch-list]')?.replaceChildren();root.querySelector('[data-watch-form]')?.replaceChildren();const dialog=root.querySelector('[data-watch-dialog]');if(dialog?.open)dialog.close();for(const df of root.querySelectorAll('[data-watch-feedback],[data-watch-dialog-feedback]')){df.textContent='';df.classList.remove('ivw13-error');}const add=root.querySelector('[data-watch-new]');if(add)add.disabled=true;}}
+function sameSession(user,epoch){return !!user&&owner()===user&&activeOwner===user&&ownerEpoch===epoch;}
 function rootUI(){const anchor=$('mmhInvestGuidanceV12')||$('mmhInvestDailyV1');if(!anchor)return null;
  let root=$('mmhInvestWatchV13');if(root)return root;
  root=document.createElement('section');root.id='mmhInvestWatchV13';root.className='ivw13-root';
- root.innerHTML=`<div class="ivw13-title"><div><div class="ivw13-kicker">INVEST · PERSONAL WATCH PLANS</div><h2></h2><p data-watch-desc></p></div><button type="button" data-watch-new class="ivw13-primary"></button></div><div data-watch-feedback class="ivw13-feedback" role="status" aria-live="polite"></div><div data-watch-form></div><div data-watch-list class="ivw13-list"></div><p class="ivw13-foot"></p>`;
+ root.innerHTML=`<div class="ivw13-title"><div><div class="ivw13-kicker">INVEST · PERSONAL WATCH PLANS</div><h2></h2><p data-watch-desc></p></div><button type="button" data-watch-new class="ivw13-primary"></button></div><div data-watch-feedback class="ivw13-feedback" role="status" aria-live="polite"></div><dialog class="ivw216-dialog" data-watch-dialog aria-labelledby="ivw216-title"><div data-watch-form></div><div class="ivw216-feedback ivw13-feedback" data-watch-dialog-feedback role="status" aria-live="polite"></div></dialog><div data-watch-list class="ivw13-list"></div><p class="ivw13-foot"></p>`;
  anchor.insertAdjacentElement('afterend',root);
+ root.querySelector('[data-watch-dialog]').addEventListener('cancel',e=>{e.preventDefault();if(!pending){formOpen=false;editing='';draftRequestId='';draftSignature='';renderForm();}});
+
  root.addEventListener('click',e=>{
-  const newBtn=e.target.closest('[data-watch-new]');if(newBtn){editing='';formOpen=!formOpen;draftRequestId='';draftSignature='';renderForm();return;}
-  const edit=e.target.closest('[data-watch-edit]');if(edit){editing=rowId(edit.dataset.watchEdit);formOpen=true;draftRequestId='';draftSignature='';renderForm();return;}
-  const cancel=e.target.closest('[data-watch-cancel]');if(cancel){formOpen=false;editing='';draftRequestId='';draftSignature='';renderForm();return;}
+  const newBtn=e.target.closest('[data-watch-new]');if(newBtn){if(pending||!loaded||!activeOwner||owner()!==activeOwner)return;editing='';formOpen=!formOpen;draftRequestId='';draftSignature='';renderForm();return;}
+  const edit=e.target.closest('[data-watch-edit]');if(edit){if(pending||!loaded||owner()!==activeOwner)return;editing=rowId(edit.dataset.watchEdit);formOpen=true;draftRequestId='';draftSignature='';renderForm();return;}
+  const cancel=e.target.closest('[data-watch-cancel]');if(cancel){if(pending)return;formOpen=false;editing='';draftRequestId='';draftSignature='';renderForm();return;}
   const flip=e.target.closest('[data-watch-toggle]');if(flip)toggle(rowId(flip.dataset.watchToggle));
   const del=e.target.closest('[data-watch-delete]');if(del)remove(rowId(del.dataset.watchDelete));
   const refresh=e.target.closest('[data-watch-reload]');if(refresh)load(true);
@@ -158,20 +163,20 @@ function renderRows(){const r=rootUI();if(!r)return;const list=r.querySelector('
  if(!rows.length){list.innerHTML=`<p class="ivw13-empty">${T('暂无关注目标。','No price targets yet.')}</p>`;return;}
  const snapshot=snapshotMatches();
  list.innerHTML=rows.map(row=>{const status=evaluate(row,snapshot),metric=status.current==null?'—':status.unit==='%'?`${status.current.toFixed(2)}%`:money(status.current,row.asset_type);const val=row.condition==='weight_above'?`${Number(row.target_value)}%`:money(row.target_value,row.asset_type);
- return `<article class="ivw13-item ivw13-${status.state}"><div class="ivw13-item-top"><div><b>${esc(row.symbol)}</b><span>${row.intent==='add'?T('补仓关注','Add watch'):T('减仓关注','Trim watch')}</span></div><span class="ivw13-status">${statusText(status)}</span></div><div class="ivw13-datum"><span>${labelCondition(row)} <b>${esc(val)}</b></span><span>${T('最新可用参考','Available reference')} <b>${esc(metric)}</b></span></div><p>${explanation(status)}</p><div class="ivw13-buttons"><button type="button" data-watch-edit="${esc(row.id)}" aria-label="${T('编辑','Edit')}" title="${T('编辑','Edit')}">${T('编辑','Edit')}</button><button type="button" data-watch-toggle="${esc(row.id)}">${row.is_active?T('暂停','Pause'):T('恢复','Resume')}</button><button type="button" class="ivw13-danger" data-watch-delete="${esc(row.id)}" aria-label="${T('删除','Delete')}" title="${T('删除','Delete')}">${T('删除','Delete')}</button></div></article>`}).join('');
+ return `<article class="ivw13-item ivw13-${status.state}"><div class="ivw13-item-top"><div><b>${esc(row.symbol)}</b><span>${row.intent==='add'?T('补仓关注','Add watch'):T('减仓关注','Trim watch')}</span></div><span class="ivw13-status">${statusText(status)}</span></div><div class="ivw13-datum"><span>${labelCondition(row)} <b>${esc(val)}</b></span><span>${T('最新可用参考','Available reference')} <b>${esc(metric)}</b></span>${status.reason==='fresh'&&status.unit!=='%'&&Number.isFinite(status.current)&&status.current>0&&Number.isFinite(Number(row.target_value))?`<span title="${T('目标相对当前价格的变动幅度','Target change from reference price')}">${T('距目标','To target')} <b>${((Number(row.target_value)/status.current-1)*100).toFixed(2)}%</b></span>`:''}</div>${status.reason==='fresh'?'':`<p>${explanation(status)}</p>`}<div class="ivw13-buttons"><button type="button" data-watch-edit="${esc(row.id)}" aria-label="${T('编辑','Edit')}" title="${T('编辑','Edit')}"><svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="m16 3 5 5-12 12-6 1 1-6 12-12zM13 6l5 5"/></svg></button><button type="button" data-watch-toggle="${esc(row.id)}" aria-label="${row.is_active?T('暂停','Pause'):T('恢复','Resume')}" title="${row.is_active?T('暂停','Pause'):T('恢复','Resume')}">${row.is_active?'<svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5v14M15 5v14"/></svg>':'<svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="m8 5 12 7-12 7z"/></svg>'}</button><button type="button" class="ivw13-danger" data-watch-delete="${esc(row.id)}" aria-label="${T('删除','Delete')}" title="${T('删除','Delete')}"><svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16M9 7V4h6v3M6 7l1 14h10l1-14M10 11v6M14 11v6"/></svg></button></div></article>`}).join('');
 }
 function formMode(){const form=$('mmhInvestWatchV13')?.querySelector('[data-watch-editor]');if(!form)return;
  const asset=form.elements.asset_type.value,intent=form.elements.intent.value,kind=form.elements.condition;
- for(const option of kind.options){const compatible=asset==='Gold'?option.value!=='weight_above':(intent==='add'?option.value==='price_below':option.value!=='price_below');option.hidden=!compatible;option.disabled=!compatible;}
+ for(const option of kind.options){const compatible=(asset!=='Gold'||option.value!=='weight_above')&&(intent==='add'?option.value==='price_below':option.value!=='price_below');option.hidden=!compatible;option.disabled=!compatible;}
  if(kind.selectedOptions.length===0||kind.selectedOptions[0].disabled)kind.value=asset==='Gold'?(intent==='add'?'price_below':'price_above'):(intent==='add'?'price_below':'price_above');
  const unit=form.querySelector('[data-watch-unit]');unit.textContent=kind.value==='weight_above'?'%':asset==='Gold'?'MMK / kyattha':'USD';
  const symbol=form.elements.symbol;if(asset==='Gold'){symbol.value='GOLD';symbol.readOnly=true;}else if(form.elements.asset_type.disabled){symbol.readOnly=true;}else if(symbol.readOnly){symbol.readOnly=false;symbol.value='BTC'}
 }
 function renderForm(preserve=false){const r=rootUI();if(!r)return;const f=r.querySelector('[data-watch-form]');const previous=preserve?f.querySelector('[data-watch-editor]'):null;formLocale=locale();
- if(!formOpen){f.innerHTML='';return;}
+ const dialog=r.querySelector('[data-watch-dialog]');if(!formOpen){if(dialog.open){dialog.close();if(r.isConnected&&$('invest')?.classList.contains('active'))r.querySelector('[data-watch-new]')?.focus({preventScroll:true});}f.innerHTML='';r.querySelector('[data-watch-dialog-feedback]').textContent='';return;}
  const row=rows.find(x=>x.id===editing),data={...(row||{asset_type:'Crypto',symbol:'BTC',intent:'add',condition:'price_below',target_value:'',is_active:true})};
  if(previous){for(const key of ['asset_type','symbol','intent','condition','target_value']){const field=previous.elements.namedItem(key);if(field)data[key]=field.value;}}
- f.innerHTML=`<form class="ivw13-editor" data-watch-editor><div class="ivw13-form-head"><b>${row?T('编辑关注计划','Edit watch plan'):T('新增关注计划','New watch plan')}</b><button type="button" data-watch-cancel aria-label="${T('关闭表单','Close form')}">×</button></div><div class="ivw13-fields">
+ f.innerHTML=`<form class="ivw13-editor" data-watch-editor><div class="ivw13-form-head"><b id="ivw216-title">${row?T('编辑关注计划','Edit watch plan'):T('新增关注计划','New watch plan')}</b><button type="button" data-watch-cancel aria-label="${T('关闭表单','Close form')}">×</button></div><div class="ivw13-fields">
  <label>${T('投资类型','Asset class')}<select name="asset_type" ${row?'disabled':''}><option value="Crypto" ${data.asset_type==='Crypto'?'selected':''}>Crypto</option><option value="Gold" ${data.asset_type==='Gold'?'selected':''}>Gold</option></select></label>
  <label>${T('投资品种','Asset symbol')}<input name="symbol" value="${esc(data.symbol)}" maxlength="12" required autocomplete="off" ${row?'readonly':''}></label>
  <label>${T('关注目的','Review intent')}<select name="intent"><option value="add" ${data.intent==='add'?'selected':''}>${T('补仓关注','Add review')}</option><option value="trim" ${data.intent==='trim'?'selected':''}>${T('减仓关注','Trim review')}</option></select></label>
@@ -179,22 +184,24 @@ function renderForm(preserve=false){const r=rootUI();if(!r)return;const f=r.quer
  <label class="ivw13-wide">${T('你设置的参考阈值','Your reference threshold')} <small data-watch-unit></small><input name="target_value" inputmode="decimal" type="number" min="0.000001" max="999999999999" step="any" value="${esc(data.target_value||'')}" required></label>
  </div><p class="ivw13-hint">${T('仅在网页开启且 Crypto 报价新鲜时提示关注条件。Gold 缺少可信自动历史报价，暂不判断其市场条件；不会自动买卖或后台推送。','Watch conditions are checked on this page with fresh Crypto quotes. Gold market conditions cannot be verified automatically yet. No auto-trades or background push.')}</p><div class="ivw13-form-actions"><button type="button" data-watch-cancel>${T('取消','Cancel')}</button><button class="ivw13-primary" type="submit" ${pending?'disabled':''}>${row?T('保存修改','Save changes'):T('保存关注计划','Save watch')}</button></div></form>`;
  formMode();
+ if(!dialog.open){r.querySelector('[data-watch-dialog-feedback]').textContent='';dialog.showModal();}
 }
-function feedback(msg,err=false){warning=msg;const el=rootUI()?.querySelector('[data-watch-feedback]');if(el){el.textContent=msg;el.classList.toggle('ivw13-error',err);}}
+function feedback(msg,err=false){warning=msg;const r=rootUI();for(const el of r?.querySelectorAll('[data-watch-feedback],[data-watch-dialog-feedback]')||[]){el.textContent=msg;el.classList.toggle('ivw13-error',err);}}
 async function confirmedSession(expected){const dbc=getDB();if(!dbc)throw Error(T('Supabase 尚不可用。','Supabase is unavailable.'));
  const {data,error}=await dbc.auth.getUser();if(error||!data?.user||String(data.user.id)!==expected||owner()!==expected)throw Error(T('登录身份已变化，请重新打开页面。','Session changed. Reopen this page.'));return dbc;
 }
 async function load(force=false){const r=rootUI();if(!r)return;const user=owner();if(user!==activeOwner)reset(user);if(!user){renderRows();return;}if(pending||(!force&&(loaded||readError)))return;
- const token=++readToken;pending=true;readError='';renderRows();try{
+ const token=++readToken,epoch=ownerEpoch;pending=true;readError='';renderRows();try{
   const dbc=await Promise.race([confirmedSession(user),new Promise((_,reject)=>setTimeout(()=>reject(Error('session_timeout')),12000))]);
+  if(token!==readToken||!sameSession(user,epoch))return;
   const {data,error}=await Promise.race([dbc.from(table).select('id,user_id,client_request_id,asset_type,symbol,intent,condition,target_value,currency,is_active,version,created_at').eq('user_id',user).order('created_at',{ascending:false}).limit(200),new Promise((_,reject)=>setTimeout(()=>reject(Error('read_timeout')),12000))]);
   if(error)throw error;if(token!==readToken||owner()!==user)return;
   if((data||[]).length>=200)throw Error(T('关注计划过多，请先整理，暂不显示不完整列表。','Too many watches to read safely. Reduce entries.'));
   rows=(data||[]).filter(x=>x.user_id===user);loaded=true;readError='';feedback('');
  }catch(err){if(token===readToken&&owner()===user){rows=[];loaded=false;readError=String(err.message||err);feedback(T('无法读取关注计划（不会影响已保存的数据）：','Could not read watches (saved data is unchanged): ')+readError,true);}}
- finally{if(token===readToken){pending=false;renderRows();if(formOpen&&!r.querySelector('[data-watch-editor]'))renderForm();}}
+ finally{if(token===readToken){pending=false;localize();renderRows();if(formOpen&&!r.querySelector('[data-watch-editor]'))renderForm();}}
 }
-async function save(fd){const user=owner();if(!user||pending)return;
+async function save(fd){const user=owner(),epoch=ownerEpoch;if(!sameSession(user,epoch)||!loaded||!formOpen||pending)return;
  const old=rows.find(x=>x.id===editing),asset=old?old.asset_type:String(fd.get('asset_type')||'Crypto'),symbol=(old?old.symbol:String(fd.get('symbol')||'').trim().toUpperCase()),intent=String(fd.get('intent')||'add'),condition=String(fd.get('condition')||'price_below'),value=Number(fd.get('target_value'));
  if(!validSymbol(symbol)||(asset==='Gold'&&symbol!=='GOLD')||!['Gold','Crypto'].includes(asset)||!['add','trim'].includes(intent)||!['price_below','price_above','weight_above'].includes(condition)||
  (asset==='Gold'&&condition==='weight_above')||(intent==='add'&&condition!=='price_below')||(intent==='trim'&&condition==='price_below')||!(value>0&&value<=999999999999)||(condition==='weight_above'&&value>100)){
@@ -206,23 +213,24 @@ async function save(fd){const user=owner();if(!user||pending)return;
  if(!old&&!draftSignature)draftSignature=fingerprint;
  if(!old&&!draftRequestId)draftRequestId=globalThis.crypto?.randomUUID?.()||'';
  const requestId=old?old.client_request_id:draftRequestId;if(!requestId){feedback(T('当前浏览器无法安全生成保存编号。','Cannot generate a secure request ID.'),true);return;}
- pending=true;const submit=rootUI()?.querySelector('[data-watch-editor] button[type=submit]');if(submit)submit.disabled=true;try{const dbc=await confirmedSession(user);
+ pending=true;const submit=rootUI()?.querySelector('[data-watch-editor] button[type=submit]');if(submit)submit.disabled=true;try{const dbc=await confirmedSession(user);if(!sameSession(user,epoch))return;
  const fields={intent,condition,target_value:value};let result;
  if(old){result=await dbc.from(table).update({...fields,version:Number(old.version)+1,updated_at:new Date().toISOString()}).eq('id',old.id).eq('user_id',user).eq('version',old.version).select('id').maybeSingle();if(!result.error&&!result.data)throw Error(T('其他设备已修改此关注计划，请刷新。','This watch was changed elsewhere. Refresh.'));}
  else{result=await dbc.from(table).insert({user_id:user,client_request_id:requestId,asset_type:asset,symbol,intent,condition,target_value:value,currency:asset==='Gold'?'MMK':'USD',is_active:true}).select('id').maybeSingle();}
- if(result.error)throw result.error;if(owner()!==user)return;formOpen=false;editing='';draftRequestId='';draftSignature='';loaded=false;rows=[];renderForm();feedback(T('保存成功。','Saved.'));}
- catch(err){if(owner()===user){
+ if(result.error)throw result.error;if(!sameSession(user,epoch))return;formOpen=false;editing='';draftRequestId='';draftSignature='';loaded=false;rows=[];renderForm();feedback(T('保存成功。','Saved.'));}
+ catch(err){if(sameSession(user,epoch)){
    // A lost response may hide a successful insert. Verify idempotency key without creating a second request.
    let recovered=false;
-   if(!old){try{const dbc=await confirmedSession(user);const check=await dbc.from(table).select('id').eq('user_id',user).eq('client_request_id',requestId).maybeSingle();recovered=!!check?.data&&!check.error;}catch(_){/* Keep the draft ID for safe retry */}}
+   if(!old){try{const dbc=await confirmedSession(user);if(!sameSession(user,epoch))return;const check=await dbc.from(table).select('id').eq('user_id',user).eq('client_request_id',requestId).maybeSingle();recovered=!!check?.data&&!check.error;}catch(_){/* Keep the draft ID for safe retry */}}
+   if(!sameSession(user,epoch))return;
    if(recovered){formOpen=false;editing='';draftRequestId='';draftSignature='';loaded=false;rows=[];renderForm();feedback(T('已在云端确认原提交成功。','Previous save was confirmed in the cloud.'));}
    else feedback(T('保存状态暂未确认，保留本次请求编号；请稍后重试或刷新核对：','Save status uncertain; request ID preserved. Retry later or verify cloud data: ')+String(err.message||err),true);
   }}
- finally{pending=false;const submit=rootUI()?.querySelector('[data-watch-editor] button[type=submit]');if(submit)submit.disabled=false;if(owner()===user)await load(true);else reset(owner());}
+ finally{if(sameSession(user,epoch)){pending=false;const submit=rootUI()?.querySelector('[data-watch-editor] button[type=submit]');if(submit)submit.disabled=false;await load(true);}}
 }
-async function toggle(id){const user=owner(),row=rows.find(x=>x.id===id);if(!user||!row||pending)return;pending=true;try{const dbc=await confirmedSession(user);const {data,error}=await dbc.from(table).update({is_active:!row.is_active,version:Number(row.version)+1,updated_at:new Date().toISOString()}).eq('user_id',user).eq('id',id).eq('version',row.version).select('id').maybeSingle();if(error)throw error;if(!data)throw Error(T('数据可能已被其他设备修改。','Watch changed on another device.'));loaded=false;}
- catch(err){if(owner()===user)feedback(String(err.message||err),true);}finally{pending=false;if(owner()===user)await load(true);}}
-async function remove(id){const user=owner(),row=rows.find(x=>x.id===id);if(!user||!row||pending)return;const modal=$('mmhVaultDialogV449');
+async function toggle(id){const user=owner(),epoch=ownerEpoch,row=rows.find(x=>x.id===id);if(!sameSession(user,epoch)||!loaded||!row||pending)return;pending=true;try{const dbc=await confirmedSession(user);if(!sameSession(user,epoch))return;const {data,error}=await dbc.from(table).update({is_active:!row.is_active,version:Number(row.version)+1,updated_at:new Date().toISOString()}).eq('user_id',user).eq('id',id).eq('version',row.version).select('id').maybeSingle();if(error)throw error;if(!data)throw Error(T('数据可能已被其他设备修改。','Watch changed on another device.'));if(sameSession(user,epoch))loaded=false;}
+ catch(err){if(sameSession(user,epoch))feedback(String(err.message||err),true);}finally{if(sameSession(user,epoch)){pending=false;await load(true);}}}
+async function remove(id){const user=owner(),epoch=ownerEpoch,row=rows.find(x=>x.id===id);if(!sameSession(user,epoch)||!loaded||!row||pending)return;const modal=$('mmhVaultDialogV449');
  if(!modal||typeof window.mmhVaultOpenDialogV449!=='function'){feedback(T('确认窗口暂不可用，请重新打开页面。','Confirmation is unavailable. Reopen the page.'),true);return;}
  if(modal.classList.contains('show'))return;
  let accepted=false;
@@ -231,12 +239,12 @@ async function remove(id){const user=owner(),row=rows.find(x=>x.id===id);if(!use
   if(modal.classList.contains('show'))$('mmhVaultDialogActionsV449')?.querySelector('button')?.focus({preventScroll:true});
   accepted=await decision;
  }catch(_){feedback(T('确认窗口暂不可用，请重新打开页面。','Confirmation is unavailable. Reopen the page.'),true);return;}
- if(accepted!==true||owner()!==user||activeOwner!==user||pending||!rows.some(x=>x.id===id&&x.version===row.version)||!$('invest')?.classList.contains('active'))return;
- pending=true;try{const dbc=await confirmedSession(user);const {error}=await dbc.from(table).delete().eq('user_id',user).eq('id',id);if(error)throw error;loaded=false;}
- catch(err){if(owner()===user)feedback(String(err.message||err),true);}finally{pending=false;if(owner()===user)await load(true);}}
-function localize(){const r=rootUI();if(!r)return;r.querySelector('h2').textContent=T('价格关注列表','Price watchlist');r.querySelector('[data-watch-desc]').textContent=T('为自己的仓位设置关注价位与风险参考线，只在 Invest 页面内核对。','Set your own price and allocation thresholds; check them on this Invest page.');r.querySelector('[data-watch-new]').textContent=formOpen?T('隐藏表单','Hide form'):T('+ 新增目标','+ Add target');r.querySelector('.ivw13-foot').textContent=T('仅供参考：达到关注价不代表应该交易。Gold 暂无可信自动行情用于触发判断；网页关闭后不继续扫描或推送。','For review only: a reached price does not mean you should trade. Gold has no verified automatic quote for evaluating conditions. No scans or push after closing this page.');}
+ if(accepted!==true||!sameSession(user,epoch)||!loaded||pending||!rows.some(x=>x.id===id&&x.version===row.version)||!$('invest')?.classList.contains('active'))return;
+ pending=true;try{const dbc=await confirmedSession(user);if(!sameSession(user,epoch))return;const {data,error}=await dbc.from(table).delete().eq('user_id',user).eq('id',id).eq('version',row.version).select('id').maybeSingle();if(error)throw error;if(!data)throw Error(T('数据可能已被其他设备修改。','Watch changed on another device.'));if(sameSession(user,epoch))loaded=false;}
+ catch(err){if(sameSession(user,epoch))feedback(String(err.message||err),true);}finally{if(sameSession(user,epoch)){pending=false;await load(true);}}}
+function localize(){const r=rootUI();if(!r)return; r.querySelector('[data-watch-new]').disabled=!activeOwner||!loaded||pending;r.querySelector('h2').textContent=T('价格关注列表','Price watchlist');r.querySelector('[data-watch-desc]').textContent=T('为自己的仓位设置关注价位与风险参考线，只在 Invest 页面内核对。','Set your own price and allocation thresholds; check them on this Invest page.');r.querySelector('[data-watch-new]').textContent=formOpen?T('隐藏表单','Hide form'):T('+ 新增目标','+ Add target');r.querySelector('.ivw13-foot').textContent=T('仅供参考：达到关注价不代表应该交易。Gold 暂无可信自动行情用于触发判断；网页关闭后不继续扫描或推送。','For review only: a reached price does not mean you should trade. Gold has no verified automatic quote for evaluating conditions. No scans or push after closing this page.');}
 function paint(){const r=rootUI();if(!r)return;const user=owner();if(user!==activeOwner){reset(user);if(user)load(true);}localize();renderRows();if(formOpen&&!pending){if(r.querySelector('[data-watch-editor]')==null)renderForm();else if(formLocale!==locale())renderForm(true);}}
-let delay=0;function schedule(){clearTimeout(delay);delay=setTimeout(()=>{const invest=$('invest');if(invest?.classList.contains('active')){paint();if(owner()&&(!loaded&&!pending))load();}},170)}
+let delay=0;function schedule(){if(owner()!==activeOwner)reset(owner());clearTimeout(delay);delay=setTimeout(()=>{const invest=$('invest');if(invest?.classList.contains('active')){paint();if(owner()&&(!loaded&&!pending))load();}},170)}
 ['mmhvault:invest-daily-ready','mmhvault:data-loaded','mmhvault:page-visible','mmhvault:config-owner-changed','languagechange','mmhvault-language-change'].forEach(n=>window.addEventListener(n,schedule,{passive:true}));
 document.addEventListener('visibilitychange',()=>{if(!document.hidden)schedule();});
 setInterval(()=>{if(!document.hidden&&$('invest')?.classList.contains('active')){if(owner()!==activeOwner)reset(owner());paint();}},60000);
