@@ -12121,7 +12121,7 @@ html.mmh-desktop-compact-v11110 body.mmh-workspace-active #moreNavMenu.more-nav-
 (function(){
   const el=id=>document.getElementById(id);
   const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-  let filter='ALL',sideFilter='ALL',recordPage=1,recordPageOwner=null;
+  let filter='ALL',sideFilter='ALL',categoryFilter='ALL',recordPage=1,recordPageOwner=null;
   const recordPageSize=10;
   function recordPageSlice(cards,page){const total=Math.max(1,Math.ceil(cards.length/recordPageSize));const current=Math.max(1,Math.min(total,Number.isInteger(page)?page:1));return {total,current,visible:cards.slice((current-1)*recordPageSize,current*recordPageSize)};}
   const numeric=v=>v!==null&&v!==undefined&&v!==''&&Number.isFinite(Number(v));
@@ -12253,6 +12253,7 @@ html.mmh-desktop-compact-v11110 body.mmh-workspace-active #moreNavMenu.more-nav-
     const label=transfer?recordText('Transfer','转账','လွှဲပြောင်းမှု'):recordText('Gas fee','链上手续费','ကွန်ရက် ဝန်ဆောင်ခ');
     return '<button type="button" class="iw222-wallet-row" data-iw224-side="'+(transfer?'transfer':'gas')+'" data-iw222-wallet-id="'+esc(x.id)+'"><span><time>'+esc(r.date||'—')+'</time><strong>'+esc(sym||'—')+'</strong></span><span><b>'+esc(label)+'</b><small>'+esc((x.from_wallet||'—')+(transfer?' → '+(x.to_wallet||'—'):''))+'</small></span><strong class="iw222-wallet-quantity">'+(Number.isFinite(qty)?esc(qty.toLocaleString(undefined,{maximumFractionDigits:8})):'—')+' '+esc(sym)+(transfer&&Number(x.fee_quantity)>0?'<small class="iw224-record-qty">'+esc(recordText('Fee','手续费','ဝန်ဆောင်ခ'))+' '+esc(Number(x.fee_quantity).toLocaleString(undefined,{maximumFractionDigits:8}))+' '+esc(x.fee_asset_symbol||sym)+'</small>':'')+'</strong><span aria-hidden="true">›</span></button>';
   }
+  const categoryOf=x=>x?.side==='Transfer'?'Transfer':x?.side==='Gas'?'Fee':x?.kind==='custom'?'Custom':'Trade';
   function render(){
     const filters=el('mmhHistoryFiltersV1'),list=el('mmhHistoryRowsV1');if(!filters||!list)return;
     const heading=el('mmhUnifiedHistoryV1')?.querySelector('h2');const title=recordText('Investment records','投资记录','ရင်းနှီးမြှုပ်နှံမှု မှတ်တမ်းများ');if(heading)heading.textContent=title;el('mmhUnifiedHistoryV1')?.setAttribute('aria-label',title);
@@ -12262,11 +12263,13 @@ html.mmh-desktop-compact-v11110 body.mmh-workspace-active #moreNavMenu.more-nav-
     const types=['ALL','Crypto','Gold',...new Set([...rows.map(x=>x.type),...(catalog.types||[]).map(x=>x.name)].filter(x=>x&&x!=='Crypto'&&x!=='Gold'&&x!=='ALL'))];
     if(!types.includes(filter)){filter='ALL';recordPage=1;}
     const sides=['ALL','Buy','Sell','Wallet','Transfer','Gas'],labels={ALL:recordText('All activity','全部活动','လုပ်ဆောင်မှု အားလုံး'),Buy:recordText('Buy','买入','ဝယ်ယူ'),Sell:recordText('Sell','卖出','ရောင်းချ'),Wallet:recordText('Wallet activity','钱包活动','ပိုက်ဆံအိတ် လုပ်ဆောင်မှု'),Transfer:recordText('Transfer','转账','လွှဲပြောင်းမှု'),Gas:recordText('Gas fee','链上手续费','ကွန်ရက် ဝန်ဆောင်ခ')};
+    const categories=['ALL','Trade','Transfer','Fee','Custom'],categoryLabels={ALL:recordText('All categories','全部分类','အမျိုးအစားအားလုံး'),Trade:recordText('Buy / Sell','买卖','ဝယ်/ရောင်း'),Transfer:recordText('Transfer','转账','လွှဲပြောင်းမှု'),Fee:recordText('Network fee','链上手续费','ကွန်ရက် ဝန်ဆောင်ခ'),Custom:recordText('Custom','自定义','စိတ်ကြိုက်')};
     if(!sides.includes(sideFilter)){sideFilter='ALL';recordPage=1;}
-    const match=x=>(filter==='ALL'||x.type===filter)&&(sideFilter==='ALL'||x.side===sideFilter||(sideFilter==='Wallet'&&['Transfer','Gas'].includes(x.side)));
+    if(!categories.includes(categoryFilter)){categoryFilter='ALL';recordPage=1;}
+    const match=x=>(filter==='ALL'||x.type===filter)&&(sideFilter==='ALL'||x.side===sideFilter||(sideFilter==='Wallet'&&['Transfer','Gas'].includes(x.side)))&&(categoryFilter==='ALL'||categoryOf(x)===categoryFilter);
     const cards=[...rows.filter(match).map(x=>({date:x.date,created:x.created_at,key:x.kind+':'+x.id,row:x,isWallet:false})),...wallet.filter(match).map(x=>({date:x.date,created:x.x.created_at,key:'wallet:'+x.x.id,row:x,isWallet:true}))].sort((a,b)=>String(b.date||'').localeCompare(String(a.date||''))||String(b.created||'').localeCompare(String(a.created||''))||b.key.localeCompare(a.key));
     const picker=(id,label,values,selected,display)=>'<div class="iw223-picker"><span class="iw223-picker-label">'+esc(label)+'</span><details id="'+id+'"><summary aria-label="'+esc(label+': '+display(selected))+'" aria-controls="'+id+'-options">'+esc(display(selected))+'<span aria-hidden="true">⌄</span></summary><div class="iw223-options" id="'+id+'-options">'+values.map(v=>'<button type="button" data-iw223-value="'+esc(v)+'" aria-pressed="'+(selected===v)+'">'+esc(display(v))+(selected===v?' <span aria-hidden="true">✓</span>':'')+'</button>').join('')+'</div></details></div>';
-    filters.innerHTML='<div class="iw222-filterbar">'+picker('iw222-asset',recordText('Asset','资产','ပိုင်ဆိုင်မှု'),types,filter,t=>t==='ALL'?recordText('All assets','全部资产','ပိုင်ဆိုင်မှု အားလုံး'):t)+picker('iw222-activity',recordText('Activity','活动','လုပ်ဆောင်မှု'),sides,sideFilter,t=>labels[t])+'<button type="button" id="iw222-reset" aria-label="'+recordText('Reset filters','重置筛选','စစ်ထုတ်မှု ပြန်သတ်မှတ်')+'">'+recordText('Reset','重置','ပြန်သတ်မှတ်')+'</button><span class="iw222-count">'+cards.length+' / '+(rows.length+wallet.length)+'</span></div>';
+    filters.innerHTML='<div class="iw222-filterbar">'+picker('iw222-asset',recordText('Asset','资产','ပိုင်ဆိုင်မှု'),types,filter,t=>t==='ALL'?recordText('All assets','全部资产','ပိုင်ဆိုင်မှု အားလုံး'):t)+picker('iw222-activity',recordText('Activity','活动','လုပ်ဆောင်မှု'),sides,sideFilter,t=>labels[t])+picker('iw222-category',recordText('Category','分类','အမျိုးအစား'),categories,categoryFilter,t=>categoryLabels[t])+'<button type="button" id="iw222-reset" aria-label="'+recordText('Reset filters','重置筛选','စစ်ထုတ်မှု ပြန်သတ်မှတ်')+'">'+recordText('Reset','重置','ပြန်သတ်မှတ်')+'</button><span class="iw222-count">'+cards.length+' / '+(rows.length+wallet.length)+'</span></div>';
     const page=recordPageSlice(cards,recordPage);recordPage=page.current;
     const pager='<div class="iw224-record-pager" role="group" aria-label="'+esc(recordText('Record pages','记录分页','မှတ်တမ်း စာမျက်နှာများ'))+'"><button type="button" aria-label="'+esc(recordText('Previous page','上一页','ယခင်စာမျက်နှာ'))+'" data-iw224-page="-1"'+(recordPage===1?' disabled':'')+'>'+esc(recordText('Previous','上一页','ယခင်'))+'</button><span role="status" aria-current="page" aria-live="polite" tabindex="-1" data-iw224-page-status>'+recordPage+' / '+page.total+'</span><button type="button" aria-label="'+esc(recordText('Next page','下一页','နောက်စာမျက်နှာ'))+'" data-iw224-page="1"'+(recordPage===page.total?' disabled':'')+'>'+esc(recordText('Next','下一页','နောက်တစ်ခု'))+'</button></div>';
     list.innerHTML=cards.length?'<div class="mmh-history-mobile">'+page.visible.map(x=>x.isWallet?walletRow222(x.row):rowHTML(x.row)).join('')+pager+'</div>':'<div class="mmh-ui-empty">'+recordText('No matching records.','没有符合筛选条件的记录。','ကိုက်ညီသော မှတ်တမ်း မရှိပါ။')+'</div>';
@@ -12274,8 +12277,8 @@ html.mmh-desktop-compact-v11110 body.mmh-workspace-active #moreNavMenu.more-nav-
     if(window.mmhCustomInvestLoaded!==true)list.insertAdjacentHTML('afterbegin','<div class="mmh-ui-empty">'+recordText('Custom records are unavailable or still loading.','自定义记录尚未加载。','စိတ်ကြိုက် မှတ်တမ်းများ ရယူနေဆဲ ဖြစ်သည်။')+'</div>');
     try{window.dispatchEvent(new CustomEvent('mmhvault:list-rendered',{detail:{page:'invest',section:'history'}}));}catch(_e){}
   }
-  window.mmhSetUnifiedRecordFilterV222=(value='ALL')=>{filter='ALL';sideFilter=value;recordPage=1;render();};
-  document.addEventListener('click',e=>{const filters=el('mmhHistoryFiltersV1');if(!filters)return;const b=e.target.closest('#mmhHistoryFiltersV1 [data-iw223-value]'),pick=e.target.closest('#mmhHistoryFiltersV1 .iw223-picker details');if(b&&pick){const id=pick.id;if(id==='iw222-asset')filter=b.dataset.iw223Value;else if(id==='iw222-activity')sideFilter=b.dataset.iw223Value;else return;recordPage=1;render();el(id)?.querySelector('summary')?.focus({preventScroll:true});return}filters.querySelectorAll('details[open]').forEach(d=>{if(d!==pick)d.open=false})});
+  window.mmhSetUnifiedRecordFilterV222=(value='ALL')=>{filter='ALL';sideFilter=value;categoryFilter='ALL';recordPage=1;render();};
+  document.addEventListener('click',e=>{const filters=el('mmhHistoryFiltersV1');if(!filters)return;const b=e.target.closest('#mmhHistoryFiltersV1 [data-iw223-value]'),pick=e.target.closest('#mmhHistoryFiltersV1 .iw223-picker details');if(b&&pick){const id=pick.id;if(id==='iw222-asset')filter=b.dataset.iw223Value;else if(id==='iw222-activity')sideFilter=b.dataset.iw223Value;else if(id==='iw222-category')categoryFilter=b.dataset.iw223Value;else return;recordPage=1;render();el(id)?.querySelector('summary')?.focus({preventScroll:true});return}filters.querySelectorAll('details[open]').forEach(d=>{if(d!==pick)d.open=false})});
   function historyPickerKey224(e){
     const d=e.target.closest?.('#mmhHistoryFiltersV1 .iw223-picker details');if(!d)return;
     const summary=d.querySelector('summary');
@@ -12291,7 +12294,7 @@ html.mmh-desktop-compact-v11110 body.mmh-workspace-active #moreNavMenu.more-nav-
   document.addEventListener('click',e=>{if(e.target.closest('#iw222-reset')){window.mmhSetUnifiedRecordFilterV222();el('iw222-reset')?.focus({preventScroll:true});return;}const b=e.target.closest('#mmhHistoryRowsV1 [data-iw222-wallet-id]');if(!b)return;const row=walletEntries222().find(r=>String(r.x.id)===b.dataset.iw222WalletId);if(row)window.mmhOpenWalletMovementDetailV177?.(row.x.id);});
   window.addEventListener('languagechange',render);
   window.addEventListener('mmhvault-language-change',render);
-  window.addEventListener('mmhvault:config-owner-changed',()=>{filter='ALL';sideFilter='ALL';recordPage=1;recordPageOwner=null;el('mmhHistoryRowsV1')?.replaceChildren();el('mmhHistoryFiltersV1')?.replaceChildren();setTimeout(()=>{try{render();}catch(e){console.warn('[MMHVAULT] investment history owner repaint failed',e);}},0);});
+  window.addEventListener('mmhvault:config-owner-changed',()=>{filter='ALL';sideFilter='ALL';categoryFilter='ALL';recordPage=1;recordPageOwner=null;el('mmhHistoryRowsV1')?.replaceChildren();el('mmhHistoryFiltersV1')?.replaceChildren();setTimeout(()=>{try{render();}catch(e){console.warn('[MMHVAULT] investment history owner repaint failed',e);}},0);});
   document.addEventListener('click',e=>{const b=e.target.closest('#mmhHistoryRowsV1 button[data-iw224-page]');if(!b||b.disabled)return;const delta=Number(b.dataset.iw224Page);if(delta!==1&&delta!==-1)return;recordPage+=delta;render();const list=el('mmhHistoryRowsV1'),next=list?.querySelector('button[data-iw224-page="'+delta+'"]');if(next&&!next.disabled)next.focus({preventScroll:true});else list?.querySelector('[data-iw224-page-status]')?.focus({preventScroll:true});});
   window.mmhRenderInvestHistoryV1=render;
   const deleting=new Set();
@@ -34237,7 +34240,7 @@ body.light #settings .cs-panel-v1518{background:linear-gradient(160deg,#fff,#f3f
  async function deleteWalletMovementDirectV175(id){const r=await db.rpc('mmh_delete_crypto_wallet_movement_v4',{p_id:id});if(r.error)throw r.error;return {alreadyGone:false}}
  async function removeMovement(id,expectedOwner=currentSessionUser?.id){const uid=currentSessionUser?.id;if(!id||!uid||uid!==expectedOwner||window.mmhWalletDataOwnerV191!==uid)return;const row=(window.mmhWalletMovementsV174||[]).find(x=>x?.user_id===uid&&String(x.id)===String(id));if(!row)return;if(!await window.mmhEditDeleteUI?.confirm?.(T('Delete wallet activity','删除钱包记录'),`${row.from_wallet||'Wallet'} → ${row.to_wallet||'Wallet'}`,T('The linked network-fee holding adjustment will also be reversed.','对应的链上手续费持仓扣减也会一起恢复。')))return;if(currentSessionUser?.id!==uid||window.mmhWalletDataOwnerV191!==uid)return;try{const auth=(await db.auth.getUser()).data.user;if(auth?.id!==uid||currentSessionUser?.id!==uid||window.mmhWalletDataOwnerV191!==uid)return;const result=await deleteWalletMovementDirectV175(id);try{await loadAll({force:true})}catch(_e){}await load();window.mmhRenderWalletBreakdownV174?.();window.mmhRenderInvestHistoryV1?.();window.mmhEditDeleteUI?.toast?.(result.alreadyGone?T('Wallet activity was already removed.','钱包记录已不存在，列表已刷新。'):T('Wallet activity deleted.','钱包记录已删除。'))}catch(err){await window.mmhEditDeleteUI?.message?.(T('Delete failed','删除失败'),err?.message||String(err));return}}
  function walletMovementDetailHTML(x){const transfer=x?.movement_type==='transfer',fee=N(x?.fee_quantity),feeSym=String(x?.fee_asset_symbol||x?.asset_symbol||'').toUpperCase(),price=N(x?.fee_unit_price_usd),qty=N(x?.quantity),route=transfer?`${E(x?.from_wallet||'Wallet')} → ${E(x?.to_wallet||'Wallet')}`:`${E(x?.from_wallet||'Wallet')} · ${T('Network Fee','链上手续费')}`,item=(label,value)=>`<div class="mmh-wallet-detail-item-v177"><small>${E(label)}</small><b>${E(value||'—')}</b></div>`;return `<div class="mmh-wallet-detail-v177"><div class="mmh-wallet-detail-hero-v177"><div><small>${transfer?T('Wallet transfer','钱包转账'):T('Network fee','链上手续费')}</small><h3>${route}</h3><span>${E(x?.movement_date||'—')} · ${E(x?.network||T('Network not set','未填写网络'))}</span></div><strong>${transfer?E(qty.toLocaleString(undefined,{maximumFractionDigits:8}))+' '+E(x?.asset_symbol||''):E(fee.toLocaleString(undefined,{maximumFractionDigits:8}))+' '+E(feeSym)}</strong></div><div class="mmh-wallet-detail-grid-v177">${item(T('Asset','币种'),String(x?.asset_symbol||'').toUpperCase())}${item(T('Quantity','数量'),transfer?qty.toLocaleString(undefined,{maximumFractionDigits:8}):'—')}${item(T('From wallet','转出钱包'),x?.from_wallet||'—')}${item(T('To wallet','转入钱包'),transfer?(x?.to_wallet||'—'):'—')}${item(T('Fee asset','手续费币种'),feeSym||'—')}${item(T('Network fee','网络手续费'),fee>0?fee.toLocaleString(undefined,{maximumFractionDigits:8})+' '+feeSym:'0')}${item(T('Fee value','手续费价值'),fee>0&&price>0?'$ '+(fee*price).toFixed(2):'—')}${item(T('Network','网络'),x?.network||'—')}</div>${x?.tx_hash?`<div class="mmh-wallet-detail-line-v177"><small>Tx Hash</small><code>${E(x.tx_hash)}</code></div>`:''}${x?.note?`<div class="mmh-wallet-detail-note-v177"><small>${T('Note','备注')}</small><p>${E(x.note)}</p></div>`:''}</div>`}
- async function openWalletMovementDetailV177(id){const uid=currentSessionUser?.id;if(!uid||window.mmhWalletDataOwnerV191!==uid)return;const x=(window.mmhWalletMovementsV174||[]).find(r=>r?.user_id===uid&&String(r?.id)===String(id));if(!x){await window.mmhEditDeleteUI?.message?.(T('Wallet activity unavailable','钱包记录不可用'),T('Reload the page and try again.','请刷新页面后重试。'));return}const actions=[{label:T('Close','关闭'),onClick:()=>true},{label:T('Delete','删除'),className:'danger',onClick:()=>{setTimeout(()=>removeMovement(x.id,uid),0);return true;}}];if(typeof window.mmhVaultOpenDialogV449==='function')return window.mmhVaultOpenDialogV449({title:T('Wallet activity detail','钱包活动详情'),message:(x.from_wallet||'Wallet')+(x.movement_type==='transfer'?' → '+(x.to_wallet||'Wallet'):''),body:walletMovementDetailHTML(x),actions,dialogClass:'mmh-wallet-detail-dialog-v177',bodyClass:'mmh-wallet-detail-body-v177'});await window.mmhEditDeleteUI?.message?.(T('Wallet activity detail','钱包活动详情'),`${x.from_wallet||'Wallet'} → ${x.to_wallet||'Wallet'} · ${x.quantity||0} ${x.asset_symbol||''}`)}
+ async function openWalletMovementDetailV177(id){const uid=currentSessionUser?.id;if(!uid||window.mmhWalletDataOwnerV191!==uid)return;const x=(window.mmhWalletMovementsV174||[]).find(r=>r?.user_id===uid&&String(r?.id)===String(id));if(!x){await window.mmhEditDeleteUI?.message?.(T('Wallet activity unavailable','钱包记录不可用'),T('Reload the page and try again.','请刷新页面后重试。'));return}const actions=[{label:T('Close','关闭'),onClick:()=>true}];if(x.movement_type==='transfer')actions.push({label:T('Edit transfer','编辑转账'),className:'primary',onClick:()=>{setTimeout(()=>window.mmhOpenWalletEditNoticeV225?.(x),0);return true;}});actions.push({label:T('Delete','删除'),className:'danger',onClick:()=>{setTimeout(()=>removeMovement(x.id,uid),0);return true;}});if(typeof window.mmhVaultOpenDialogV449==='function')return window.mmhVaultOpenDialogV449({title:T('Wallet activity detail','钱包活动详情'),message:(x.from_wallet||'Wallet')+(x.movement_type==='transfer'?' → '+(x.to_wallet||'Wallet'):''),body:walletMovementDetailHTML(x),actions,dialogClass:'mmh-wallet-detail-dialog-v177 iw224-trade-dialog',bodyClass:'mmh-wallet-detail-body-v177'});await window.mmhEditDeleteUI?.message?.(T('Wallet activity detail','钱包活动详情'),`${x.from_wallet||'Wallet'} → ${x.to_wallet||'Wallet'} · ${x.quantity||0} ${x.asset_symbol||''}`)}
  window.mmhOpenWalletMovementDetailV177=openWalletMovementDetailV177;
  function renderHistory(){const el=$('mmhWalletHistoryV172');if(!el)return;window.mmhRenderInvestHistoryV1?.();if(!rows.length){el.innerHTML=`<div class="mmh-wallet-empty-v172">${T('No wallet activity yet. Your first OKX → MetaMask transfer can be recorded here.','暂无钱包活动。你的第一笔 OKX → MetaMask 转账可以记录在这里。')}</div>`;return}el.innerHTML=rows.map(x=>{const transfer=x.movement_type==='transfer',fee=N(x.fee_quantity),feeSym=String(x.fee_asset_symbol||x.asset_symbol||'').toUpperCase(),price=N(x.fee_unit_price_usd),route=transfer?`${E(x.from_wallet||'Wallet')} → ${E(x.to_wallet||'Wallet')}`:`${E(x.from_wallet||'Wallet')} · ${T('Network Fee','链上手续费')}`,meta=[x.movement_date,E(x.network||''),x.tx_hash?T('Tx recorded','已记录 Tx'):null].filter(Boolean).join(' · ');return `<article class="mmh-wallet-row-v172 mmh-wallet-row-clickable-v177" data-wallet-detail-v177="${E(x.id)}" tabindex="0" role="button"><div class="mmh-wallet-icon-v172">${transfer?'⇄':'⛽'}</div><div><h4>${route}</h4><p>${meta}${x.note?` · ${E(x.note)}`:''}</p><div class="mmh-wallet-row-actions-v177"><button type="button" class="mmh-wallet-detail-btn-v177" data-wallet-open-v177="${E(x.id)}">${T('Details','详情')} ›</button><button type="button" class="mmh-wallet-delete-v174" data-wallet-delete-v174="${E(x.id)}">${T('Delete','删除')}</button></div></div><div class="mmh-wallet-amount-v172"><b>${transfer?E(Number(x.quantity).toLocaleString(undefined,{maximumFractionDigits:8}))+' '+E(x.asset_symbol):T('Fee','手续费')+' '+E(Number(fee).toLocaleString(undefined,{maximumFractionDigits:8}))+' '+E(feeSym)}</b>${fee>0&&transfer?`<small>${T('Network fee','链上手续费')} ${E(Number(fee).toLocaleString(undefined,{maximumFractionDigits:8}))} ${E(feeSym)}${price>0?' · ≈ $'+(fee*price).toFixed(2):''}</small>`:fee>0&&price>0?`<small>≈ $${(fee*price).toFixed(2)}</small>`:''}</div></article>`}).join('');el.querySelectorAll('[data-wallet-delete-v174]').forEach(b=>b.addEventListener('click',e=>{e.preventDefault();e.stopPropagation();removeMovement(b.dataset.walletDeleteV174)}));el.querySelectorAll('[data-wallet-open-v177]').forEach(b=>b.addEventListener('click',e=>{e.preventDefault();e.stopPropagation();openWalletMovementDetailV177(b.dataset.walletOpenV177)}));el.querySelectorAll('[data-wallet-detail-v177]').forEach(card=>{card.addEventListener('click',e=>{if(e.target.closest('button'))return;openWalletMovementDetailV177(card.dataset.walletDetailV177)});card.addEventListener('keydown',e=>{if((e.key==='Enter'||e.key===' ')&&!e.target.closest('button')){e.preventDefault();openWalletMovementDetailV177(card.dataset.walletDetailV177)}})})}
  function init(){window.renderInvestNavigationHardFixV371?.();if(!host())return;if(!$('mmhWalletFormV172')||!$('mmhWalletHistoryV172'))baseMarkup();else{preview();load()}}
@@ -39140,5 +39143,120 @@ body.mmh-dialog-open-v449 #mmhVaultDialogV449{
   touch-action:manipulation;
 }
 </style>
+<style id="mmh-invest-v225-records-fix">
+html body #invest #mmhUnifiedHistoryV1{
+ background:var(--uv-card,#18212d)!important;background-image:none!important;
+ border:1px solid var(--uv-line,#354152)!important;border-radius:10px!important;
+ box-shadow:none!important;backdrop-filter:none!important;
+}
+html body #invest #mmhHistoryFiltersV1{margin:0 0 12px!important;background:transparent!important}
+html body #invest #mmhHistoryFiltersV1 .iw222-filterbar{display:flex!important;align-items:flex-end!important;gap:8px!important;flex-wrap:wrap!important;min-width:0!important;background:transparent!important}
+html body #invest #mmhHistoryFiltersV1 .iw223-picker{flex:0 1 170px!important;min-width:140px!important}
+html body #invest #mmhHistoryFiltersV1 .iw223-picker summary,
+html body #invest #mmhHistoryFiltersV1 #iw222-reset{
+ background:var(--uv-raised,#253141)!important;background-image:none!important;
+ border-color:var(--uv-line,#354152)!important;color:var(--uv-text,#ecf1f8)!important;
+}
+html body #invest #mmhHistoryRowsV1{
+ min-width:0!important;max-width:100%!important;max-height:min(62dvh,640px)!important;
+ overflow-y:auto!important;overflow-x:hidden!important;overscroll-behavior:contain!important;
+ scrollbar-width:thin;scrollbar-color:var(--uv-line,#354152) transparent!important;padding-right:2px!important;
+}
+html body #invest #mmhHistoryRowsV1 .mmh-history-mobile{max-height:none!important;overflow:visible!important;background:var(--uv-card,#18212d)!important;background-image:none!important}
+html body #invest #mmhHistoryRowsV1 :is(.mmh-history-card,.iw222-wallet-row){background:var(--uv-card,#18212d)!important;background-image:none!important}
+html body #invest #mmhHistoryRowsV1 :is(.mmh-history-card,.iw222-wallet-row):hover{background:var(--uv-raised,#253141)!important}
+html body #invest #mmhHistoryFiltersV1 #iw225-delete-all{
+ min-height:38px!important;padding:7px 11px!important;border-radius:7px!important;
+ background:transparent!important;border:1px solid color-mix(in srgb,var(--uv-negative,#f095a1) 58%,var(--uv-line,#354152))!important;
+ color:var(--uv-negative,#f095a1)!important;font-weight:650!important;
+}
+html body #invest #editModal.open:has(#editInvForm){display:flex!important;align-items:center!important;justify-content:center!important;overflow:hidden!important}
+html body #editModal.open:has(#editInvForm)>.modal{
+ width:min(760px,calc(100vw - 24px))!important;max-width:760px!important;height:min(900px,calc(100dvh - 24px))!important;
+ max-height:calc(100dvh - 24px)!important;min-height:0!important;padding:0!important;display:flex!important;flex-direction:column!important;overflow:hidden!important;
+ background:var(--uv-card,#18212d)!important;background-image:none!important;color:var(--uv-text,#ecf1f8)!important;border-color:var(--uv-line,#354152)!important;
+}
+html body #editModal.open:has(#editInvForm) #editModalBody{min-height:0!important;flex:1 1 auto!important;display:flex!important;overflow:hidden!important;padding:0!important}
+html body #editModal.open:has(#editInvForm) #editInvForm{min-height:0!important;height:100%!important;display:flex!important;flex-direction:column!important}
+html body #editModal.open:has(#editInvForm) #editInvForm .iw222-edit-scroll{
+ flex:1 1 auto!important;min-height:0!important;overflow-y:auto!important;overflow-x:hidden!important;overscroll-behavior:contain!important;-webkit-overflow-scrolling:touch!important;
+ scrollbar-width:thin;scrollbar-color:var(--uv-line,#354152) transparent!important;
+}
+html body #editModal.open:has(#editInvForm) #editInvForm>.actions{
+ flex:0 0 auto!important;position:sticky!important;bottom:0!important;z-index:3!important;background:var(--uv-card,#18212d)!important;border-top:1px solid var(--uv-line,#354152)!important;
+}
+html body dialog.mmh-history-edit[open]{
+ display:flex!important;flex-direction:column!important;box-sizing:border-box!important;width:min(620px,calc(100vw - 24px))!important;
+ max-height:calc(100dvh - 24px)!important;min-height:0!important;padding:0!important;overflow:hidden!important;
+ background:var(--uv-card,#18212d)!important;background-image:none!important;color:var(--uv-text,#ecf1f8)!important;border:1px solid var(--uv-line,#354152)!important;border-radius:12px!important;
+}
+html body dialog.mmh-history-edit[open] .mmh-history-edit-form{display:flex!important;flex-direction:column!important;min-height:0!important;overflow-y:auto!important;overflow-x:hidden!important;overscroll-behavior:contain!important;padding:0 16px 14px!important;scrollbar-width:thin;scrollbar-color:var(--uv-line,#354152) transparent!important}
+html body dialog.mmh-history-edit[open] .mmh-history-confirm-body{display:flex!important;flex-direction:column!important;min-height:0!important;overflow:auto!important;padding:0 16px 14px!important}
+html body dialog.mmh-history-edit[open] :is(h2,.mmh-history-dialog-actions){flex:0 0 auto!important;background:var(--uv-card,#18212d)!important;color:var(--uv-text,#ecf1f8)!important}
+html body dialog.mmh-history-edit[open] h2{position:sticky!important;top:0!important;z-index:3!important;margin:0 -16px!important;padding:14px 16px!important;border-bottom:1px solid var(--uv-line,#354152)!important}
+html body dialog.mmh-history-edit[open] .mmh-history-dialog-actions{position:sticky!important;bottom:0!important;z-index:3!important;margin:12px -16px 0!important;padding:12px 16px!important;border-top:1px solid var(--uv-line,#354152)!important}
+html body #mmhVaultDialogV449 .mmh-v449-dialog.iw224-trade-dialog,html body #mmhVaultDialogV449 .mmh-wallet-detail-dialog-v177{background:var(--uv-card,#18212d)!important;background-image:none!important;border-color:var(--uv-line,#354152)!important;color:var(--uv-text,#ecf1f8)!important}
+html body #mmhVaultDialogV449 .mmh-wallet-detail-dialog-v177 :is(.mmh-v449-dialog-head,.mmh-v449-dialog-actions){background:var(--uv-card,#18212d)!important;background-image:none!important;border-color:var(--uv-line,#354152)!important}
+html body #mmhVaultDialogV449 .mmh-wallet-detail-dialog-v177 .mmh-v449-dialog-body{min-height:0!important;overflow-y:auto!important;overflow-x:hidden!important;overscroll-behavior:contain!important;background:var(--uv-card,#18212d)!important}
+html body #mmhVaultDialogV449 .mmh-wallet-detail-dialog-v177 .mmh-wallet-detail-hero-v177{background:var(--uv-raised,#253141)!important;background-image:none!important;border-color:var(--uv-line,#354152)!important}
+html body #mmhVaultDialogV449 .mmh-wallet-detail-dialog-v177 :is(.mmh-wallet-detail-item-v177,.mmh-wallet-detail-line-v177,.mmh-wallet-detail-note-v177){background:var(--uv-raised,#253141)!important;background-image:none!important;border-color:var(--uv-line,#354152)!important}
+@media(max-width:699px){
+ html body #invest #mmhHistoryRowsV1{max-height:min(58dvh,560px)!important}
+ html body #invest #mmhHistoryFiltersV1 .iw223-picker{flex:1 1 calc(50% - 8px)!important;min-width:0!important}
+ html body #editModal.open:has(#editInvForm)>.modal{width:calc(100vw - 12px)!important;height:calc(100dvh - 12px)!important}
+}
+</style>
+<script id="mmh-invest-v225-records-js">
+(function(){
+'use strict';
+const byId=id=>document.getElementById(id);
+const lang=()=>String(window.getMMHVAULTLanguage?.()||document.documentElement.lang||'en').toLowerCase();
+const L=(en,cn,mm)=>/^zh/.test(lang())?cn:/^(my|mm)/.test(lang())?mm:en;
+function mountDeleteAll(){
+ const bar=document.querySelector('#mmhHistoryFiltersV1 .iw222-filterbar');if(!bar)return;
+ let b=byId('iw225-delete-all');
+ if(!b){b=document.createElement('button');b.type='button';b.id='iw225-delete-all';bar.appendChild(b);}
+ b.textContent=L('Delete all','删除全部','အားလုံးဖျက်ရန်');
+ b.title=L('Delete all Invest records','删除全部投资记录','ရင်းနှီးမြှုပ်နှံမှု မှတ်တမ်းအားလုံးဖျက်ရန်');
+}
+async function deleteAll(){
+ if(window.__mmhInvestDeleteAllBusy)return;
+ const owner=currentSessionUser?.id;
+ if(!owner){await window.mmhEditDeleteUI?.message?.(L('Delete failed','删除失败','ဖျက်မရပါ'),L('Please sign in again.','请重新登录。','ကျေးဇူးပြု၍ ပြန်ဝင်ပါ။'));return;}
+ if(!await window.mmhEditDeleteUI?.confirm?.(L('Delete all Invest records','删除全部投资记录','ရင်းနှီးမြှုပ်နှံမှု မှတ်တမ်းအားလုံးဖျက်ရန်'),L('All Invest records','全部投资记录','ရင်းနှီးမြှုပ်နှံမှု မှတ်တမ်းအားလုံး'),L('This removes Buy, Sell, Custom, Transfer and Network-fee records in Invest. Linked fee adjustments are reversed. Ordinary Transactions outside Invest are kept. Export first; this cannot be undone.','将删除 Invest 中的买入、卖出、自定义、转账和链上手续费记录，并恢复关联的费用调整。Invest 之外的普通 Transactions 会保留。请先导出；此操作不可撤销。','Invest ထဲရှိ မှတ်တမ်းအားလုံးကို ဖျက်မည်။ Invest ပြင်ပ Transactions များကို ထိန်းသိမ်းမည်။ မလုပ်မီ export ပြုလုပ်ပါ။ ဤလုပ်ဆောင်ချက်ကို ပြန်မရနိုင်ပါ။')))return;
+ if(currentSessionUser?.id!==owner)return;
+ if(!await window.mmhEditDeleteUI?.requirePhrase?.(L('Delete all Invest records','删除全部投资记录','ရင်းနှီးမြှုပ်နှံမှု မှတ်တမ်းအားလုံးဖျက်ရန်'),L('Type DELETE ALL INVESTMENTS to confirm permanent deletion.','请输入 DELETE ALL INVESTMENTS 确认永久删除。','အပြီးဖျက်ရန် DELETE ALL INVESTMENTS ဟု ရိုက်ထည့်ပါ။'),'DELETE ALL INVESTMENTS'))return;
+ const u=(await db.auth.getUser()).data.user;
+ if(!u||u.id!==owner||currentSessionUser?.id!==owner){await window.mmhEditDeleteUI?.message?.(L('Delete failed','删除失败','ဖျက်မရပါ'),L('Please sign in again.','请重新登录。','ကျေးဇူးပြု၍ ပြန်ဝင်ပါ။'));return;}
+ window.__mmhInvestDeleteAllBusy=true;
+ try{
+  let moves=[];
+  if(window.mmhWalletDataOwnerV191===owner&&Array.isArray(window.mmhWalletMovementsV174))moves=window.mmhWalletMovementsV174.filter(x=>x?.user_id===owner&&x.id!=null);
+  else if(typeof mmhPersonalReadWalletV191==='function'){const read=await mmhPersonalReadWalletV191(owner);if(!Array.isArray(read))throw Error('Wallet records could not be verified; nothing was deleted.');moves=read.filter(x=>x?.user_id===owner&&x.id!=null);}
+  for(const move of moves){if(currentSessionUser?.id!==owner)throw Error('Account session changed. Deletion stopped.');const result=await db.rpc('mmh_delete_crypto_wallet_movement_v4',{p_id:move.id});if(result.error)throw result.error;}
+  for(const table of ['custom_investments','investments']){if(currentSessionUser?.id!==owner)throw Error('Account session changed. Deletion stopped.');const result=await db.from(table).delete().eq('user_id',owner);if(result.error)throw result.error;}
+  if(currentSessionUser?.id!==owner)throw Error('Account session changed. Deletion stopped.');
+  if(Array.isArray(window.investments)){investments=[];window.investments=investments;}
+  window.mmhCustomInvestRecords=[];window.mmhWalletMovementsV174=[];window.mmhWalletDataOwnerV191=owner;
+  window.mmhRenderInvestHistoryV1?.();window.mmhRenderWalletBreakdownV174?.();
+  window.dispatchEvent(new CustomEvent('mmhvault:data-change',{detail:{reason:'invest-clear-all'}}));
+  window.mmhEditDeleteUI?.toast?.(L('All Invest records deleted.','Invest 全部记录已删除。','Invest မှတ်တမ်းအားလုံး ဖျက်ပြီးပါပြီ။'));
+  Promise.resolve(loadAll?.({force:true})).catch(e=>console.warn('[MMHVAULT] Invest clear refresh failed',e));
+ }catch(err){console.error('[MMHVAULT] Invest clear all failed',err);await window.mmhEditDeleteUI?.message?.(L('Delete failed','删除失败','ဖျက်မရပါ'),err?.message||String(err));}
+ finally{window.__mmhInvestDeleteAllBusy=false;}
+}
+window.mmhOpenWalletEditNoticeV225=async function(x){
+ const title=L('Edit transfer','编辑转账','လွှဲပြောင်းမှု ပြင်ဆင်ရန်');
+ const body='<div class="iw225-protected-note"><strong>'+L('Transfer editing is protected','转账编辑已保护','လွှဲပြောင်းမှု ပြင်ဆင်ခြင်းကို ကာကွယ်ထားသည်')+'</strong><p>'+L('This wallet record is linked to fee and holding adjustments. MMHVAULT will not delete and recreate it. A secure atomic update endpoint is required before editing can be enabled.','该钱包记录关联手续费和持仓调整。MMHVAULT 不会通过删除再新增来修改它；需要先部署安全的原子更新接口，才能启用编辑。','ဤပိုက်ဆံအိတ်မှတ်တမ်းသည် ဝန်ဆောင်ခနှင့် လက်ကျန်ချိန်ညှိမှုများနှင့် ချိတ်ဆက်ထားသည်။ MMHVAULT သည် ဖျက်ပြီး ပြန်ထည့်ခြင်း မပြုပါ။ လုံခြုံသော atomic update endpoint ရှိပြီးမှ ပြင်ဆင်ခြင်းကို ဖွင့်မည်။')+'</p></div>';
+ if(typeof window.mmhVaultOpenDialogV449==='function')return window.mmhVaultOpenDialogV449({title:title,message:'',body:body,actions:[{label:L('Close','关闭','ပိတ်ရန်'),value:false}],dialogClass:'mmh-wallet-detail-dialog-v177 iw224-trade-dialog'});
+ return window.mmhEditDeleteUI?.message?.(title,body.replace(/<[^>]+>/g,''));
+};
+document.addEventListener('click',e=>{if(e.target.closest('#iw225-delete-all')){e.preventDefault();e.stopPropagation();deleteAll();}});
+document.addEventListener('mmhvault:list-rendered',mountDeleteAll);
+window.addEventListener('languagechange',mountDeleteAll);
+window.addEventListener('mmhvault-language-change',mountDeleteAll);
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',mountDeleteAll,{once:true});else setTimeout(mountDeleteAll,0);
+})();
+</script>
 </body>
 </html>
