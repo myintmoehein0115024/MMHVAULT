@@ -1,4 +1,4 @@
-/* MMHVAULT Invest 2.0.4 — lifecycle-safe overview workspaces. Presentation/navigation only.
+/* MMHVAULT Invest 2.0.5 — lifecycle-safe overview workspaces. Presentation/navigation only.
  * Reparents existing module roots; NEVER duplicates them, requests financial data,
  * changes calculations, overrides source module events, or touches Supabase.
  */
@@ -132,7 +132,60 @@
   return !!node.querySelector?.('#mmhFiveoverview,#mmhFivePages,'+
     [...TARGETS.keys()].map(id=>'[id="'+id+'"]').join(','));
  }
+
+ // Compact Overview only: preserve all source nodes, calculations and event handlers.
+ function installCompactOverview(){
+  if(!$('mmhInvestCompactOverviewStyleV205')){
+   const style=document.createElement('style');style.id='mmhInvestCompactOverviewStyleV205';
+   style.textContent=`
+html body #invest#invest#invest#invest#invest#invest.mmh-invest-summary-compact #mmhFiveoverview #mmhInvestDrawdownV16{display:none!important}
+html body #invest#invest#invest#invest#invest#invest.mmh-invest-summary-compact #iw2-pane-overview .iw2-data-reminder{font-size:11px!important;line-height:1.45!important;padding:6px 9px!important;margin:0 0 8px!important}
+html body #invest#invest#invest#invest#invest#invest.mmh-invest-summary-compact #iw2-pane-overview .iw2-content{display:grid!important;grid-template-columns:minmax(0,1fr)!important;gap:10px!important;min-width:0!important}
+html body #invest#invest#invest#invest#invest#invest.mmh-invest-summary-compact #iw2-pane-overview .iw2-content > .mmh-ui-panel{margin:0!important;padding:10px!important;min-width:0!important;box-shadow:none!important}
+html body #invest#invest#invest#invest#invest#invest.mmh-invest-summary-compact #mmhUnifiedInvestV1 .mmh-ui-panel{padding:10px!important;margin-bottom:10px!important;box-shadow:none!important}
+html body #invest#invest#invest#invest#invest#invest.mmh-invest-summary-compact #mmhUnifiedInvestV1 .mmh-ui-heading{margin-bottom:8px!important;gap:6px!important}
+html body #invest#invest#invest#invest#invest#invest.mmh-invest-summary-compact #mmhUnifiedKpisV1{display:grid!important;grid-template-columns:repeat(4,minmax(0,1fr))!important;gap:8px!important}
+html body #invest#invest#invest#invest#invest#invest.mmh-invest-summary-compact #mmhUnifiedKpisV1 .mmh-ui-kpi{padding:10px!important;min-height:0!important;min-width:0!important;box-shadow:none!important}
+html body #invest#invest#invest#invest#invest#invest.mmh-invest-summary-compact #mmhUnifiedKpisV1 .mmh-ui-kpi strong{font-size:clamp(16px,1.8vw,24px)!important;line-height:1.3!important;overflow-wrap:anywhere}
+html body #invest#invest#invest#invest#invest#invest.mmh-invest-summary-compact #mmhUnifiedKpisV1 .mmh-ui-kpi :is(span,small){line-height:1.35!important}
+html body #invest#invest#invest#invest#invest#invest.mmh-invest-summary-compact #mmhUnifiedAllocationV1{gap:6px!important;margin-top:8px!important}
+html body #invest#invest#invest#invest#invest#invest.mmh-invest-summary-compact #mmhUnifiedAllocationV1 .mmh-mix-card{padding:8px!important;min-height:0!important}
+html body #invest#invest#invest#invest#invest#invest.mmh-invest-summary-compact #mmhFiveoverview #mmhInvestDailyV1{display:grid!important;grid-template-columns:minmax(0,1.45fr) minmax(0,1fr)!important;gap:8px!important;padding:12px!important;margin:0!important;min-width:0!important;background:var(--uv-card)!important;background-image:none!important;border:1px solid var(--uv-line)!important;border-radius:9px!important;box-shadow:none!important;color:var(--uv-text)!important}
+html body #invest#invest#invest#invest#invest#invest.mmh-invest-summary-compact #mmhInvestDailyV1 > :is(.idv1-head,.idv1-cards,.idv1-controls,.idv1-breakdown,.idv1-gold-note,.idv1-note,.idv1-status){grid-column:1/-1!important;min-width:0!important;margin:0!important}
+html body #invest#invest#invest#invest#invest#invest.mmh-invest-summary-compact #mmhInvestDailyV1 .idv1-head{display:flex!important;align-items:center!important;justify-content:space-between!important;gap:8px!important;flex-wrap:wrap!important}
+html body #invest#invest#invest#invest#invest#invest.mmh-invest-summary-compact #mmhInvestDailyV1 .idv1-kicker{display:none!important}
+html body #invest#invest#invest#invest#invest#invest.mmh-invest-summary-compact #mmhInvestDailyV1 .idv1-head h2{font:600 15px/1.4 var(--mmh-notice-font,system-ui)!important;color:var(--uv-text)!important;margin:0!important}
+html body #invest#invest#invest#invest#invest#invest.mmh-invest-summary-compact #mmhInvestDailyV1 .idv1-head p{font-size:11px!important;line-height:1.4!important;color:var(--uv-muted)!important;margin:3px 0 0!important}
+html body #invest#invest#invest#invest#invest#invest.mmh-invest-summary-compact #mmhInvestDailyV1 :is(.idv1-summary-group,.idv1-chart-group,.idv1-asset-section){padding:8px!important;margin:0!important;min-width:0!important;background:var(--uv-card)!important;background-image:none!important;border:1px solid var(--uv-line)!important;border-radius:7px!important;box-shadow:none!important}
+html body #invest#invest#invest#invest#invest#invest.mmh-invest-summary-compact #mmhInvestDailyV1 .idv1-summary-row{display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr))!important;gap:6px!important}
+html body #invest#invest#invest#invest#invest#invest.mmh-invest-summary-compact #mmhInvestDailyV1 .idv1-stat{padding:7px!important;min-width:0!important;min-height:0!important;background:var(--uv-raised)!important;background-image:none!important;box-shadow:none!important}
+html body #invest#invest#invest#invest#invest#invest.mmh-invest-summary-compact #mmhInvestDailyV1 .idv1-stat b{font-size:clamp(13px,1.5vw,19px)!important;line-height:1.35!important;overflow-wrap:anywhere}
+html body #invest#invest#invest#invest#invest#invest.mmh-invest-summary-compact #mmhInvestDailyV1 :is(.idv1-group-label,.idv1-chart-head small,.idv1-break-head span,.idv1-stat small){font-size:11px!important;color:var(--uv-muted)!important}
+html body #invest#invest#invest#invest#invest#invest.mmh-invest-summary-compact #mmhInvestDailyV1 .idv1-controls{display:flex!important;align-items:center!important;justify-content:space-between!important;flex-wrap:wrap!important;gap:6px!important;padding:2px 0!important}
+html body #invest#invest#invest#invest#invest#invest.mmh-invest-summary-compact #mmhInvestDailyV1 :is(.idv1-period,.idv1-symbol-filter){gap:4px!important;flex-wrap:wrap!important}
+html body #invest#invest#invest#invest#invest#invest.mmh-invest-summary-compact #mmhInvestDailyV1 :is(.idv1-period button,.idv1-symbol-filter button,.idv1-refresh){min-height:32px!important;padding:5px 8px!important;font-size:11px!important;background:var(--uv-raised)!important;background-image:none!important;color:var(--uv-text)!important;border:1px solid var(--uv-line)!important;border-radius:6px!important;box-shadow:none!important}
+html body #invest#invest#invest#invest#invest#invest.mmh-invest-summary-compact #mmhInvestDailyV1 :is(.idv1-period button.active,.idv1-symbol-filter button.active){color:var(--uv-accent)!important;border-color:var(--uv-accent)!important}
+html body #invest#invest#invest#invest#invest#invest.mmh-invest-summary-compact #mmhInvestDailyV1 > #idv1Trend{grid-column:1!important;min-width:0!important;margin:0!important}
+html body #invest#invest#invest#invest#invest#invest.mmh-invest-summary-compact #mmhInvestDailyV1 > #idv1History{grid-column:2!important;min-width:0!important;margin:0!important;align-self:stretch!important}
+html body #invest#invest#invest#invest#invest#invest.mmh-invest-summary-compact #mmhInvestDailyV1 .idv1-table-scroll{max-height:220px!important;overflow:auto!important;overscroll-behavior:contain}
+html body #invest#invest#invest#invest#invest#invest.mmh-invest-summary-compact #mmhInvestDailyV1 .idv1-chart-scroll{max-width:100%!important;overflow-x:auto!important;overscroll-behavior-inline:contain}
+html body #invest#invest#invest#invest#invest#invest.mmh-invest-summary-compact #mmhInvestDailyV1 .idv1-bar-track{height:100px!important}
+html body #invest#invest#invest#invest#invest#invest.mmh-invest-summary-compact #mmhInvestDailyV1 .idv1-break-head{margin:0 0 6px!important;gap:4px!important}
+html body #invest#invest#invest#invest#invest#invest.mmh-invest-summary-compact #mmhInvestDailyV1 .idv1-break-head h3{font-size:13px!important;margin:0!important}
+html body #invest#invest#invest#invest#invest#invest.mmh-invest-summary-compact #mmhInvestDailyV1 .idv1-break-card{padding:7px!important;min-width:0!important;min-height:0!important}
+html body #invest#invest#invest#invest#invest#invest.mmh-invest-summary-compact #mmhInvestDailyV1 :is(.idv1-note,.idv1-gold-note,.idv1-status,.idv1-verify){font-size:11px!important;line-height:1.45!important;color:var(--uv-muted)!important;padding:4px 0!important}
+html body #invest#invest#invest#invest#invest#invest.mmh-invest-summary-compact #mmhInvestDailyV1 .idv1-up{color:var(--uv-positive)!important}
+html body #invest#invest#invest#invest#invest#invest.mmh-invest-summary-compact #mmhInvestDailyV1 .idv1-down{color:var(--uv-negative)!important}
+@media(max-width:1000px){html body #invest#invest#invest#invest#invest#invest.mmh-invest-summary-compact #mmhUnifiedKpisV1{grid-template-columns:repeat(2,minmax(0,1fr))!important}}
+@media(max-width:760px){html body #invest#invest#invest#invest#invest#invest.mmh-invest-summary-compact #mmhFiveoverview #mmhInvestDailyV1{grid-template-columns:minmax(0,1fr)!important;padding:9px!important;gap:6px!important}html body #invest#invest#invest#invest#invest#invest.mmh-invest-summary-compact #mmhInvestDailyV1 > :is(#idv1Trend,#idv1History){grid-column:1/-1!important}html body #invest#invest#invest#invest#invest#invest.mmh-invest-summary-compact #mmhInvestDailyV1 .idv1-table-scroll{max-height:176px!important}html body #invest#invest#invest#invest#invest#invest.mmh-invest-summary-compact #mmhInvestDailyV1 :is(.idv1-period button,.idv1-symbol-filter button,.idv1-refresh){min-height:44px!important}}
+@media(max-width:360px){html body #invest#invest#invest#invest#invest#invest.mmh-invest-summary-compact #mmhUnifiedKpisV1{grid-template-columns:minmax(0,1fr)!important}html body #invest#invest#invest#invest#invest#invest.mmh-invest-summary-compact #mmhInvestDailyV1 .idv1-summary-row{grid-template-columns:minmax(0,1fr)!important}}
+`;
+   document.head.append(style);
+  }
+  root.classList.add('mmh-invest-summary-compact');
+ }
  function initialize(){
+  installCompactOverview();
   // Observe #invest BEFORE trying to build. The five-page navigation may
   // create its overview after DOMContentLoaded, or after data becomes ready.
   if(!observer){
