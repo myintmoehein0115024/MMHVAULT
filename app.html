@@ -12359,34 +12359,34 @@ html.mmh-desktop-compact-v11110 body.mmh-workspace-active #moreNavMenu.more-nav-
   }
   async function customAction(action,id){
     const row=window.mmhCustomInvestRecords?.find(x=>String(x.id)===String(id));if(!row)return;
-    const user=(await db.auth.getUser()).data.user;if(!user){await window.mmhEditDeleteUI.message('Edit unavailable','Please sign in again.');return;}
+    const user=(await db.auth.getUser()).data.user;if(!user){await window.mmhEditDeleteUI.message(recordText("Edit unavailable","暂时无法编辑","ပြင်ဆင်၍ မရပါ"),recordText("Please sign in again.","请重新登录。","ကျေးဇူးပြု၍ ပြန်လည်ဝင်ရောက်ပါ။"));return;}
     if(action==='delete'){confirmDelete({kind:'custom',id:row.id,name:row.asset_name},user);return;}
     const modal=document.createElement('dialog');modal.className='mmh-history-edit iw226-custom-edit';
-    modal.innerHTML='<form method="dialog" class="mmh-history-edit-form"><h2>Edit '+esc(row.asset_name||'Investment')+'</h2><div class="iw226-custom-edit-scroll"><div class="iw226-custom-edit-grid">'+
-      '<label>Date<input name="date" type="date" required value="'+esc(row.inv_date||'')+'"></label>'+
-      '<label>Source Account<select name="account" required>'+(!MMHVAULT_CONFIG.accounts.some(a=>a.name===row.source_account&&a.active!==false)?'<option value="" selected disabled>'+esc(row.source_account||'Unknown account')+' · archived; select an active account</option>':'')+((MMHVAULT_CONFIG.accounts||[]).filter(a=>a.active!==false).map(a=>'<option value="'+esc(a.name)+'" '+(a.name===row.source_account?'selected':'')+'>'+esc(a.name)+' · '+esc(a.currency||'Currency unavailable')+'</option>').join(''))+'</select></label>'+
-      '<label>Amount<input name="amount" type="number" step="any" min="0.000001" required value="'+esc(row.amount)+'"></label>'+
-      '<label>Purchase Price<input name="price" type="number" step="any" min="0.000001" required value="'+esc(row.buy_price)+'"></label>'+
-      '<label>Fee<input name="fee" type="number" step="any" min="0" value="'+esc(row.fee??0)+'"></label>'+
-      '<label>Other Cost<input name="other" type="number" step="any" min="0" value="'+esc(row.other_cost??0)+'"></label>'+
-      '<label>Market Price (optional)<input name="market" type="number" step="any" min="0" value="'+esc(row.market_price??'')+'"></label>'+
-      '<label>Note<input name="note" value="'+esc(row.note||'')+'"></label>'+
-      '<label>Attach receipt (image or PDF, optional)<input name="receipt" type="file" accept="image/*,.pdf"></label>'+
+    modal.innerHTML='<form method="dialog" class="mmh-history-edit-form"><h2>'+recordText("Edit ","编辑 ","ပြင်ဆင်ရန် ")+esc(row.asset_name||recordText("Investment","投资","ရင်းနှီးမြှုပ်နှံမှု"))+'</h2><div class="iw226-custom-edit-scroll"><div class="iw226-custom-edit-grid">'+
+      '<label>'+recordText("Date","日期","ရက်စွဲ")+'<input name="date" type="date" required value="'+esc(row.inv_date||'')+'"></label>'+
+      '<label>'+recordText("Source Account","资金来源账户","ငွေရင်းအကောင့်")+'<select name="account" required>'+(!(MMHVAULT_CONFIG.accounts||[]).some(a=>a.name===row.source_account&&a.active!==false)?'<option value="" selected disabled>'+esc(row.source_account||recordText("Unknown account","未知账户","မသိသောအကောင့်"))+recordText(" · archived; select an active account"," · 已归档，请选择有效账户"," · သိမ်းဆည်းထားသောအကောင့်၊ အသုံးပြုနေသောအကောင့်ကို ရွေးပါ")+'</option>':'')+((MMHVAULT_CONFIG.accounts||[]).filter(a=>a.active!==false).map(a=>'<option value="'+esc(a.name)+'" '+(a.name===row.source_account?'selected':'')+'>'+esc(a.name)+' · '+esc(a.currency||recordText("Currency unavailable","币种不可用","ငွေကြေးအမျိုးအစား မရနိုင်ပါ"))+'</option>').join(''))+'</select></label>'+
+      '<label>'+recordText("Amount","金额","ငွေပမာဏ")+'<input name="amount" type="number" step="any" min="0.000001" required value="'+esc(row.amount)+'"></label>'+
+      '<label>'+recordText("Purchase Price","买入价格","ဝယ်ယူဈေးနှုန်း")+'<input name="price" type="number" step="any" min="0.000001" required value="'+esc(row.buy_price)+'"></label>'+
+      '<label>'+recordText("Fee","手续费","ဝန်ဆောင်ခ")+'<input name="fee" type="number" step="any" min="0" value="'+esc(row.fee??0)+'"></label>'+
+      '<label>'+recordText("Other Cost","其他费用","အခြားကုန်ကျစရိတ်")+'<input name="other" type="number" step="any" min="0" value="'+esc(row.other_cost??0)+'"></label>'+
+      '<label>'+recordText("Market Price (optional)","市场价格（可选）","ဈေးကွက်ဈေးနှုန်း (ရွေးချယ်နိုင်သည်)")+'<input name="market" type="number" step="any" min="0" value="'+esc(row.market_price??'')+'"></label>'+
+      '<label>'+recordText("Note","备注","မှတ်ချက်")+'<input name="note" value="'+esc(row.note||'')+'"></label>'+
+      '<label>'+recordText("Attach receipt (image or PDF, optional)","添加收据（图片或 PDF，可选）","ပြေစာထည့်ရန် (ပုံ သို့ PDF၊ ရွေးချယ်နိုင်သည်)")+'<input name="receipt" type="file" accept="image/*,.pdf"></label>'+
       '<div data-funds class="mmh-ui-empty"></div></div></div>'+
-      '<div class="mmh-history-dialog-actions"><button type="button" data-cancel>Cancel</button><button type="submit">Save Changes</button></div></form>';
+      '<div class="mmh-history-dialog-actions"><button type="button" data-cancel>'+recordText("Cancel","取消","မလုပ်တော့ပါ")+'</button><button type="submit">'+recordText("Save Changes","保存修改","ပြောင်းလဲမှုများ သိမ်းဆည်းရန်")+'</button></div></form>';
     document.getElementById('invest').append(modal);
     modal.querySelector('[data-cancel]').onclick=()=>modal.close();
     modal.addEventListener('close',()=>modal.remove(),{once:true});
     const funds=()=>{const f=modal.querySelector('form'),fd=new FormData(f),a=window.mmhCustomInvestAccount?.(fd.get('account'));
-      if(!a){f.querySelector('[data-funds]').textContent='Select an active account with a supported currency.';return;}
+      if(!a){f.querySelector('[data-funds]').textContent=recordText("Select an active account with a supported currency.","请选择币种受支持的有效账户。","ပံ့ပိုးထားသော ငွေကြေးအမျိုးအစားရှိသည့် အသုံးပြုနေသောအကောင့်ကို ရွေးပါ။");return;}
       const required=Number(fd.get('amount'))+Number(fd.get('fee'))+Number(fd.get('other'));
       const available=balance(a.name)+(a.name===row.source_account?Number(row.amount||0)+Number(row.fee||0)+Number(row.other_cost||0):0);
-      f.querySelector('[data-funds]').textContent='Available including this investment: '+mmhCurrencySymbolV194(a.currency)+' '+available.toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})+' · Required after edit: '+mmhCurrencySymbolV194(a.currency)+' '+required.toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})+(required>available?' · Insufficient balance':'');};
+      f.querySelector('[data-funds]').textContent=recordText("Available including this investment: ","可用余额（含本笔投资）：","ဤရင်းနှီးမြှုပ်နှံမှု အပါအဝင် ရရှိနိုင်သောလက်ကျန်: ")+mmhCurrencySymbolV194(a.currency)+' '+available.toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})+recordText(" · Required after edit: "," · 修改后所需金额："," · ပြင်ဆင်ပြီးနောက် လိုအပ်ငွေ: ")+mmhCurrencySymbolV194(a.currency)+' '+required.toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})+(required>available?recordText(" · Insufficient balance"," · 余额不足"," · လက်ကျန်ငွေ မလုံလောက်ပါ"):'');};
     for(const name of ['account','amount','fee','other'])modal.querySelector('[name="'+name+'"]').addEventListener('input',funds);
     funds();
     modal.querySelector('form').addEventListener('submit',async e=>{
       e.preventDefault();const form=e.currentTarget,fd=new FormData(form),amount=Number(fd.get('amount')),price=Number(fd.get('price'));
-      if(!(amount>0&&price>0)){window.mmhEditDeleteUI.inline('Amount and purchase price must be greater than zero.',form);return;}
+      if(!(amount>0&&price>0)){window.mmhEditDeleteUI.inline(recordText("Amount and purchase price must be greater than zero.","金额和买入价格必须大于零。","ငွေပမာဏနှင့် ဝယ်ယူဈေးနှုန်းသည် သုညထက် ကြီးရမည်။"),form);return;}
       const update={inv_date:fd.get('date'),source_account:fd.get('account')||null,amount,buy_price:price,
         quantity:amount/price,fee:Number(fd.get('fee'))||0,other_cost:Number(fd.get('other'))||0,
         market_price:fd.get('market')===''?null:Number(fd.get('market')),note:fd.get('note')||null};
@@ -12399,9 +12399,9 @@ html.mmh-desktop-compact-v11110 body.mmh-workspace-active #moreNavMenu.more-nav-
         let receiptError=null;const receipt=form.querySelector('[name="receipt"]')?.files?.[0];
         if(receipt)try{await window.mmhPortfolioSaveCustomReceipt(user,row.id,receipt);}catch(err){receiptError=err;}
         modal.close();window.mmhCustomInvestChanged?.('custom-investment-edited');render();await window.mmhCustomInvestReload?.();render();
-        if(receiptError)await window.mmhEditDeleteUI.message('Investment saved; receipt failed',receiptError.message||String(receiptError));
-        else window.mmhEditDeleteUI.toast('Investment changes saved.');
-      }catch(err){window.mmhEditDeleteUI.inline('Edit failed: '+(err?.message||err),form);submit.disabled=false;}
+        if(receiptError)await window.mmhEditDeleteUI.message(recordText("Investment saved; receipt failed","投资已保存，收据上传失败","ရင်းနှီးမြှုပ်နှံမှု သိမ်းပြီးပါပြီ၊ ပြေစာတင်၍ မရပါ"),receiptError.message||String(receiptError));
+        else window.mmhEditDeleteUI.toast(recordText("Investment changes saved.","投资修改已保存。","ရင်းနှီးမြှုပ်နှံမှု ပြောင်းလဲချက်များ သိမ်းပြီးပါပြီ။"));
+      }catch(err){window.mmhEditDeleteUI.inline(recordText("Edit failed: ","编辑失败：","ပြင်ဆင်၍ မရပါ: ")+(err?.message||err),form);submit.disabled=false;}
     });
     modal.showModal();
   }
