@@ -1,4 +1,4 @@
-/* MMHVAULT Invest 2.0.18 — lifecycle-safe investment workspaces.
+/* MMHVAULT Invest 2.0.19 — lifecycle-safe investment workspaces.
  * Reparents existing modules; local hypothetical calculations only.
  * Never writes financial data, requests market data, or touches Supabase.
  */
@@ -13,7 +13,6 @@
   overview:'<path d="M3 3v18h18M7 15l4-4 4 3 5-7"/>',
   strategy:'<circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1"/>',
   data:'<ellipse cx="12" cy="5" rx="8" ry="3"/><path d="M4 5v14c0 4 16 4 16 0V5M4 12c0 4 16 4 16 0"/>',
-  mix:'<path d="M12 3v9h9M21 12a9 9 0 1 1-9-9"/><path d="M15 3.5a9 9 0 0 1 5.5 5.5"/>',
   close:'<path d="m6 6 12 12M18 6 6 18"/>',
   chevron:'<path d="m6 9 6 6 6-6"/>'
  };
@@ -57,6 +56,13 @@
   averageChange:{zh:'相对当前均价变动',en:'Change vs current average cost',my:'လက်ရှိ ပျမ်းမျှကုန်ကျစရိတ်နှင့် ပြောင်းလဲမှု'},
   mixTitle:{zh:'持仓集中度 · USD',en:'Position concentration · USD',my:'ပိုင်ဆိုင်မှု စုစည်းမှု · USD'},
   close:{zh:'关闭',en:'Close',my:'ပိတ်ရန်'},
+  guidance:{zh:'持仓策略',en:'Position guidance',my:'ပိုင်ဆိုင်မှု လမ်းညွှန်'},
+  risk:{zh:'风险模拟',en:'Risk simulator',my:'အန္တရာယ် အတုယူတွက်ချက်မှု'},
+  plans:{zh:'已保存计划',en:'Saved plans',my:'သိမ်းထားသော အစီအစဉ်များ'},
+  autoQuote:{zh:'自动行情',en:'Automatic quotes',my:'အလိုအလျောက် ဈေးနှုန်း'},
+  pnlArchive:{zh:'盈亏归档',en:'P/L archive',my:'အမြတ်အရှုံး မှတ်တမ်း'},
+  autoPnl:{zh:'盈亏复核',en:'P/L verification',my:'အမြတ်အရှုံး စစ်ဆေးမှု'},
+  snapshots:{zh:'历史快照',en:'Historical snapshots',my:'ယခင် မှတ်တမ်းများ'},
   noHolding:{zh:'暂无已核实的持仓',en:'No verified holdings available',my:'အတည်ပြုထားသော ပိုင်ဆိုင်မှု မရှိပါ'},
   moreMenu:{zh:'右上角可打开投资记录、新增数据及项目管理。',en:'Use the top-right icons for records, adding data and project management.'}
  };
@@ -71,16 +77,55 @@
  function drawCalc(){const p=calcPanel();if(!p)return;const pick=p.querySelector('select'),cap=p.querySelector('[data-calc-cap]'),price=p.querySelector('[data-calc-price]'),selected=pick.value;const available=ownData(calcOwner)?calcRows:[];const keys=JSON.stringify(available.map(x=>x.key));if(p.dataset.keys!==keys){pick.replaceChildren();for(const x of available){const o=document.createElement('option');o.value=x.key;o.textContent=x.name+' · '+x.currency;pick.append(o);}if(available.some(x=>x.key===selected))pick.value=selected;else{cap.value='';price.value='';}p.dataset.keys=keys;}const row=available.find(x=>x.key===pick.value);for(const input of [pick,cap,price])input.disabled=!row;p.querySelector('[data-calc-cap-label]').textContent=tr('capital')+(row?' ('+row.currency+')':'');p.querySelector('[data-calc-price-label]').textContent=tr('price')+(row?' ('+row.currency+'/'+row.unit+')':'');const n=row&&calculateAverage(row.quantity,Number(cap.value),row.cost,Number(price.value));const fmt=(x,d)=>x.toLocaleString(undefined,{maximumFractionDigits:d});p.querySelector('[data-calc-units]').textContent=!row?tr('noHolding'):n?tr('added')+': '+fmt(n.added,10)+' · '+tr('totalUnits')+': '+fmt(n.total,10):'—';const change=n&&row.cost>0?(n.avg/(row.cost/row.quantity)-1)*100:null;p.querySelector('[data-calc-change]').textContent=change!==null&&Number.isFinite(change)?tr('averageChange')+': '+(change>0?'+':'')+fmt(change,2)+'%':'';p.querySelector('[data-calc-average]').textContent=n?(row.currency==='USD'?'$ ':'K ')+n.avg.toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:6}):'—';}
  function clearPositionMix(){const mix=$('mmhUnifiedAllocationV1');if(!mix)return;const title=tr('mixTitle'),message=tr('noHolding');if(mix.children.length===2&&mix.firstElementChild?.textContent===title&&mix.lastElementChild?.textContent===message)return;const h=document.createElement('span'),msg=document.createElement('span');h.textContent=title;msg.textContent=message;mix.replaceChildren(h,msg);}
  function updateStrategy(uid,rows){if(!ownData(uid)){uid=null;rows=[];clearPositionMix();}if(uid!==calcOwner){const p=calcPanel();if(p){p.querySelector('[data-calc-cap]').value='';p.querySelector('[data-calc-price]').value='';p.dataset.keys='';}}calcOwner=uid;calcRows=Array.isArray(rows)?rows.filter(x=>x&&['USD','MMK'].includes(x.currency)&&typeof x.key==='string'&&typeof x.name==='string'&&Number.isFinite(x.quantity)&&x.quantity>0&&Number.isFinite(x.cost)&&x.cost>=0):[];drawCalc();}
+ const TOOL_GROUPS=[
+  ['iw2-archive','archive',[
+   ['mmhInvestSimpleCalcV215','calculator','strategy'],
+   ['mmhInvestGuidanceV12','guidance','strategy'],
+   ['mmhInvestRiskV14','risk','overview'],
+   ['mmhInvestPlansV15','plans','strategy']]],
+  ['iw218-data-tools','dataTools',[
+   ['mmhInvestAutoV19','autoQuote','data'],
+   ['mmhInvestPnlArchiveV111','pnlArchive','data'],
+   ['mmhInvestAutoPnlV110','autoPnl','overview'],
+   ['mmhInvestSnapshotsV18','snapshots','data']]]
+ ];
+ const TOOL_IDS=new Set(TOOL_GROUPS.flatMap(g=>g[2].map(t=>t[0])));
  function destinationFor(id,key){
-  if(ARCHIVED.has(id))return $('iw2-archive-body');
-  if(QUOTE_HISTORY.has(id))return $('iw218-quote-body');
-  if(VERIFICATION.has(id))return $('iw218-verify-body');
+  if(TOOL_IDS.has(id))return $('iw219-body-'+id);
   return $('iw2-slot-'+key);
  }
- function makeFold(id,label,ico,bodyId){
-  const d=document.createElement('details');d.id=id;d.className='iw218-fold';
-  const sum=document.createElement('summary');sum.innerHTML=icon(ico)+'<span data-iw2-t="'+label+'"></span><i class="iw218-fold-arrow">'+icon('chevron')+'</i>';
-  const body=document.createElement('div');body.id=bodyId;body.className='iw218-fold-body';d.append(sum,body);return d;
+ function closeToolDialogs(){
+  closeWatch();
+  for(const d of [...root.querySelectorAll('.iw219-tool-dialog[open]')].reverse())d.close();
+ }
+ // Window capture runs before document-level legacy delegated click handlers.
+ window.addEventListener('click',e=>{const c=e.composedPath().find(n=>n?.matches?.('[data-iw219-close]'));const d=c?.closest('dialog');if(d?.open&&root.contains(d)){e.preventDefault();e.stopImmediatePropagation();d.close();}},true);
+ function bindDialogDismiss(d,c){
+  // Capture at the dialog, before legacy delegated click handlers; the SVG is decorative.
+  c.addEventListener('click',e=>{e.preventDefault();e.stopImmediatePropagation();if(d.open)d.close();},true);
+  let backdrop=false;
+  const outside=e=>{const r=d.getBoundingClientRect();return e.target===d&&(e.clientX<r.left||e.clientX>r.right||e.clientY<r.top||e.clientY>r.bottom);};
+  d.addEventListener('pointerdown',e=>{backdrop=outside(e);},true);
+  d.addEventListener('click',e=>{if(backdrop&&outside(e)&&d.open){e.preventDefault();e.stopPropagation();d.close();}backdrop=false;},true);
+ }
+ function makeToolGroup(id,label,items){
+  const group=document.createElement('section');group.id=id;group.className='iw219-tool-group';
+  const title=document.createElement('h3');title.dataset.iw2T=label;group.append(title);
+  const entries=document.createElement('div');entries.className='iw219-tool-entries';group.append(entries);
+  for(const [moduleId,key,ico] of items){
+   const t=document.createElement('button');t.type='button';t.className='iw219-tool-trigger';t.innerHTML=icon(ico)+'<span data-iw2-t="'+key+'"></span><i>'+icon('chevron')+'</i>';
+   const d=document.createElement('dialog');d.id='iw219-dialog-'+moduleId;d.className='iw219-tool-dialog';d.setAttribute('aria-labelledby',d.id+'-title');
+   t.dataset.iw219Tool=moduleId;t.setAttribute('aria-haspopup','dialog');t.setAttribute('aria-controls',d.id);t.setAttribute('aria-expanded','false');
+   const head=document.createElement('div');head.className='iw219-dialog-head';
+   const h=document.createElement('h3');h.id=d.id+'-title';h.dataset.iw2T=key;
+   const close=document.createElement('button');close.type='button';close.className='iw219-close';close.innerHTML=icon('close');
+   close.dataset.iw219Close='';head.append(h,close);
+   const body=document.createElement('div');body.id='iw219-body-'+moduleId;body.className='iw219-tool-body';
+   d.append(head,body);entries.append(t,d);bindDialogDismiss(d,close);
+   t.addEventListener('click',()=>{if(d.open||typeof d.showModal!=='function'||!$(moduleId))return;closeToolDialogs();d.showModal();t.setAttribute('aria-expanded','true');scheduleWatch();requestAnimationFrame(()=>window.dispatchEvent(new Event('resize')));});
+   d.addEventListener('close',()=>{t.setAttribute('aria-expanded','false');if(watchActive?.source.closest('dialog')===d)closeWatch();if(active==='strategy'&&t.getClientRects().length)t.focus({preventScroll:true});});
+  }
+  return group;
  }
  function build(){
   const parent=$('mmhFiveoverview');if(!parent)return false;
@@ -103,15 +148,8 @@
   parent.prepend(host);
   const calc=document.createElement('section');calc.id='mmhInvestSimpleCalcV215';calc.innerHTML='<h3 data-iw2-t="calculator"></h3><label><span data-iw2-t="holding"></span><select id="mmhInvestCalcHoldingV217"></select></label><div class="iw215-inputs"><label><span data-calc-cap-label></span><input type="number" min="0" step="any" inputmode="decimal" data-calc-cap></label><label><span data-calc-price-label></span><input type="number" min="0" step="any" inputmode="decimal" data-calc-price></label></div><p data-iw2-t="average" class="iw215-result-label"></p><strong data-calc-average aria-live="polite">—</strong><p data-calc-units></p><p data-calc-change></p>';$('iw2-slot-strategy').append(calc);
   calc.addEventListener('input',drawCalc);calc.querySelector('select').addEventListener('change',()=>{calc.querySelector('[data-calc-cap]').value='';calc.querySelector('[data-calc-price]').value='';drawCalc();});
-  const archive=makeFold('iw2-archive','archive','strategy','iw2-archive-body');
-  const data=makeFold('iw218-data-tools','dataTools','data','iw218-data-body');
-  const quote=makeFold('iw218-quote-tools','quoteHistory','data','iw218-quote-body');
-  const verify=makeFold('iw218-verify-tools','verifyHistory','overview','iw218-verify-body');
-  data.lastElementChild.append(quote,verify);
-  $('iw2-slot-strategy').append(archive,data);
-  // Keep one secondary section expanded at a time, preserving existing tools.
-  const accordion=(items)=>items.forEach(d=>d.addEventListener('toggle',()=>{if(d.open)for(const other of items)if(other!==d)other.open=false;}));
-  accordion([archive,data]);accordion([quote,verify]);
+  for(const [id,label,items] of TOOL_GROUPS)$('iw2-slot-strategy').append(makeToolGroup(id,label,items));
+  $('iw219-body-mmhInvestSimpleCalcV215').append(calc);
   drawCalc();
   host.addEventListener('click',e=>{
    const button=e.target.closest('button[data-iw2-tab],button[data-iw2-go]');if(!button||!host.contains(button))return;
@@ -129,7 +167,7 @@
   });
   translate();bindTop();if(root.classList.contains('active'))window.mmhRenderUnifiedInvestV1?.();return true;
  }
- function translate(){if(!host)return;syncMixLabels();syncWatchPickers();for(const el of host.querySelectorAll('[data-iw2-t]')){const value=tr(el.dataset.iw2T);if(el.textContent!==value)el.textContent=value;}syncTop();drawCalc();}
+ function translate(){if(!host)return;syncWatchPickers();for(const b of host.querySelectorAll('[data-iw219-close]')){b.title=tr('close');b.setAttribute('aria-label',tr('close'));}for(const el of host.querySelectorAll('[data-iw2-t]')){const value=tr(el.dataset.iw2T);if(el.textContent!==value)el.textContent=value;}syncTop();drawCalc();}
  function syncTop(){
   const labels={
    investSubOverviewV371:{en:'Overview',zh:'总览',my:'ခြုံငုံသုံးသပ်ချက်'},
@@ -152,8 +190,7 @@
    if(panel)panel.hidden=!selected;
   }
   syncTop();
-  if(active!=='overview')closeMix();
-  if(legacyData){const data=$('iw218-data-tools');if(data)data.open=true;}
+  if(active!=='strategy')closeToolDialogs();
   if(userInitiated){$('iw2-tab-'+active)?.scrollIntoView({block:'nearest',inline:'nearest',behavior:'auto'});
    // The source modules remain mounted and retain their event handlers / input state.
    // A resize event lets responsive charts settle after their pane becomes visible.
@@ -182,7 +219,8 @@
   const note=$('mmhFiveOverviewNotice');
   if(note){const routine=['Based on recorded investments; unavailable prices are marked.','仅统计已记录的投资；价格不可用时会注明。'].includes(note.textContent.trim());note.dataset.iw2Routine=String(routine);}
   if(!ownData(calcOwner))updateStrategy(null,[]);
-  ensureMixDialog();syncWatchPickers();
+  syncWatchPickers();
+  for(const t of host.querySelectorAll('[data-iw219-tool]'))t.disabled=!$(t.dataset.iw219Tool);
   // Stable source order, without re-appending already ordered children.
   for(const ids of [ARCHIVED,QUOTE_HISTORY,VERIFICATION]){
    let previous=null;
@@ -204,33 +242,28 @@
     [...TARGETS.keys()].map(id=>'[id="'+id+'"]').join(','));
  }
 
- // The allocation renderer continues to own the same original node. No copied
- // financial data, duplicate IDs, or new data requests.
- function closeMix(){const d=$('iw218-mix-dialog');if(d?.open)d.close();}
- function syncMixLabels(){
-  const t=$('iw218-mix-trigger'),d=$('iw218-mix-dialog');if(!t||!d)return;
-  t.title=tr('mixTitle');t.setAttribute('aria-label',tr('mixTitle'));
-  d.setAttribute('aria-label',tr('mixTitle'));
-  const c=d.querySelector('.iw218-mix-close');if(c){c.title=tr('close');c.setAttribute('aria-label',tr('close'));}
- }
- function ensureMixDialog(){
-  const mix=$('mmhInvestPositionMixV215'),list=$('mmhUnifiedListV1'),panel=list?.closest('.mmh-ui-panel');
-  const heading=panel?.querySelector('.mmh-ui-heading');if(!mix||!panel||!heading||!mix.contains($('mmhUnifiedAllocationV1')))return;
-  let d=$('iw218-mix-dialog'),t=$('iw218-mix-trigger');
-  if(d&&d.parentNode!==panel){closeMix();d.remove();d=null;}
-  if(t&&t.parentNode!==heading){t.remove();t=null;}
-  if(!d){
-   d=document.createElement('dialog');d.id='iw218-mix-dialog';d.className='iw218-mix-dialog';
-   const c=document.createElement('button');c.type='button';c.className='iw218-mix-close';c.innerHTML=icon('close');
-   c.addEventListener('click',()=>d.close());d.append(c);panel.append(d);
-   d.addEventListener('close',()=>{const trigger=$('iw218-mix-trigger');trigger?.setAttribute('aria-expanded','false');if(trigger?.getClientRects().length&&active==='overview'&&root.classList.contains('active'))trigger.focus({preventScroll:true});});
+ // Keep the source allocation mounted, and copy its already-verified display
+ // into the existing owner-scoped holding detail snapshot. No new calculations.
+ function appendHoldingAllocation(card,clone){
+  if(!card?.matches('#mmhUnifiedListV1 [data-invest-holding-v144]')||!clone||!ownData(calcOwner))return;
+  const source=$('mmhUnifiedAllocationV1');
+  if(!source||!root.contains(source)||!source.firstElementChild)return;
+  const section=document.createElement('section');section.className='iw219-allocation';
+  const heading=document.createElement('h3');heading.textContent=tr('mixTitle');section.append(heading);
+  const name=card.getAttribute('data-invest-name-v144');
+  const rows=[...source.querySelectorAll(':scope > .mmh-mix-card')];
+  if(rows.length){
+   const matches=rows.filter(row=>row.querySelector('.mmh-mix-label b')?.textContent===name);
+   for(const row of rows){
+    const item=row.cloneNode(true);
+    if(matches.length===1&&matches[0]===row)item.classList.add('iw219-current');
+    section.append(item);
+   }
+  }else{
+   const status=document.createElement('p');status.textContent=source.lastElementChild!==source.firstElementChild?source.lastElementChild.textContent:tr('noHolding');section.append(status);
   }
-  if(mix.parentNode!==d)d.append(mix);
-  if(!t){
-   t=document.createElement('button');t.type='button';t.id='iw218-mix-trigger';t.innerHTML=icon('mix');t.setAttribute('aria-haspopup','dialog');t.setAttribute('aria-controls',d.id);t.setAttribute('aria-expanded','false');heading.append(t);
-   t.addEventListener('click',()=>{const dialog=$('iw218-mix-dialog');if(!dialog||dialog.open||typeof dialog.showModal!=='function')return;dialog.showModal();t.setAttribute('aria-expanded','true');});
-  }
-  syncMixLabels();
+  const actions=clone.querySelector('.mmh-holding-actions-v144');
+  if(actions)actions.before(section);else clone.append(section);
  }
  // Native dialog top layer cannot display the shared body-mounted picker.
  // Reuse its visual vocabulary locally, preserving native select values and
@@ -262,7 +295,7 @@
  }
  function syncWatchPickers(){
   for(const [s,p] of watchPairs){if(!s.isConnected||!p.wrap.isConnected){if(watchActive===p)closeWatch();p.wrap.remove();if(s.isConnected){s.classList.remove('iw218-native');if(p.tab===null)s.removeAttribute('tabindex');else s.setAttribute('tabindex',p.tab);if(p.aria===null)s.removeAttribute('aria-hidden');else s.setAttribute('aria-hidden',p.aria);}watchPairs.delete(s);}}
-  for(const s of root.querySelectorAll('#mmhInvestWatchV13 dialog.ivw216-dialog[open] select')){
+  for(const s of root.querySelectorAll('#mmhInvestWatchV13 dialog.ivw216-dialog[open] select,.iw219-tool-dialog[open] select')){
    if(s.multiple||s.size>1||s.matches('.mmh-cat-native-v2,.mmh-p24-native,.mmh-p25-picker-source'))continue;
    let p=watchPairs.get(s);
    if(!p){
@@ -287,7 +320,7 @@
  function scheduleWatch(){if(!watchFrame)watchFrame=requestAnimationFrame(()=>{watchFrame=0;syncWatchPickers();if(watchActive&&!watchActive.source.closest('dialog')?.open)closeWatch();});}
  function installWatchLifecycle(){
   new MutationObserver(records=>{if(records.some(r=>{const e=r.target.nodeType===1?r.target:r.target.parentElement;return e?.matches?.('#mmhInvestWatchV13 dialog')||e?.closest?.('#mmhInvestWatchV13 select')||[...r.addedNodes,...r.removedNodes].some(n=>n.nodeType===1&&(n.matches?.('select,#mmhInvestWatchV13,dialog.ivw216-dialog')||n.querySelector?.('#mmhInvestWatchV13,dialog.ivw216-dialog,select'))&&e?.closest?.('#mmhInvestWatchV13'));}))scheduleWatch();}).observe(root,{subtree:true,childList:true,characterData:true,attributes:true,attributeFilter:['open','disabled','selected','hidden','aria-hidden','style']});
-  root.addEventListener('change',e=>{if(e.target.closest?.('#mmhInvestWatchV13 dialog'))scheduleWatch();},true);
+  root.addEventListener('change',e=>{if(e.target.closest?.('#mmhInvestWatchV13 dialog,.iw219-tool-dialog'))scheduleWatch();},true);
   document.addEventListener('pointerdown',e=>{if(watchActive&&!watchActive.wrap.contains(e.target))closeWatch();},true);
   document.addEventListener('focusin',e=>{if(watchActive&&!watchActive.wrap.contains(e.target))closeWatch();},true);
  }
@@ -475,16 +508,8 @@ html body #invest#invest#invest#invest#invest#invest#invest#invest #mmhInvestWor
 html body #invest#invest#invest#invest#invest#invest#invest#invest #mmhInvestWorkspaceV2 .iw2-tab[aria-selected=true]{color:var(--uv-accent)!important;background:var(--uv-raised)!important;border-color:var(--uv-line)!important}
 html body #invest#invest#invest#invest#invest#invest#invest#invest #mmhInvestWorkspaceV2 .iw2-tab-mark{display:inline-flex!important;flex:none!important;align-items:center!important;justify-content:center!important;width:17px!important;height:17px!important;color:inherit!important;background:none!important}
 html body #invest#invest#invest#invest#invest#invest#invest#invest #mmhInvestWorkspaceV2 .iw2-tab-mark svg{display:block!important;width:17px!important;height:17px!important}
-html body #invest #mmhInvestWorkspaceV2 .iw2-tab:focus-visible,html body #invest #iw218-mix-trigger:focus-visible,html body #invest .iw218-picker button:focus-visible{outline:2px solid var(--uv-accent)!important;outline-offset:2px!important}
+html body #invest #mmhInvestWorkspaceV2 .iw2-tab:focus-visible,html body #invest .iw218-picker button:focus-visible{outline:2px solid var(--uv-accent)!important;outline-offset:2px!important}
 @media(hover:hover){html body #invest#invest#invest#invest#invest#invest#invest#invest #mmhInvestWorkspaceV2 .iw2-tab:hover{color:var(--uv-accent)!important;background:var(--uv-raised)!important}}
-html body #invest#invest#invest#invest#invest#invest#invest#invest :is(#iw218-mix-trigger,.iw218-mix-close){display:inline-flex!important;align-items:center!important;justify-content:center!important;flex:none!important;width:32px!important;height:32px!important;min-width:32px!important;min-height:32px!important;padding:5px!important;margin:0!important;background:var(--uv-raised)!important;background-image:none!important;color:var(--uv-accent)!important;border:1px solid var(--uv-line)!important;border-radius:7px!important;box-shadow:none!important}
-#iw218-mix-trigger{margin-inline-start:auto!important}
-html body #invest#invest#invest#invest#invest#invest#invest#invest #iw218-mix-dialog{position:fixed!important;inset:0!important;margin:auto!important;width:min(440px,calc(100vw - 28px))!important;max-height:calc(100dvh - 28px)!important;overflow:auto!important;box-sizing:border-box!important;padding:14px!important;background:var(--uv-card)!important;background-image:none!important;color:var(--uv-text)!important;border:1px solid var(--uv-line)!important;border-radius:12px!important;box-shadow:0 16px 48px #0004!important}
-#iw218-mix-dialog::backdrop{background:#0006}
-html body #invest#invest#invest#invest#invest#invest#invest#invest #iw218-mix-dialog:not([open]){display:none!important}
-html body #invest#invest#invest#invest#invest#invest#invest#invest #iw218-mix-dialog .iw218-mix-close{float:inline-end!important;margin:0 0 6px 8px!important}
-html body #invest#invest#invest#invest#invest#invest#invest#invest #iw218-mix-dialog #mmhInvestPositionMixV215{display:block!important;min-height:0!important;margin:0!important;padding:0!important;border:0!important;background:none!important;box-shadow:none!important;overflow:visible!important}
-html body #invest#invest#invest#invest#invest#invest#invest#invest #iw218-mix-dialog #mmhUnifiedAllocationV1{clear:both!important}
 html body #invest#invest#invest#invest#invest#invest#invest#invest #mmhInvestSimpleCalcV215 :is(select,input,button[aria-haspopup=listbox]){background:var(--uv-raised,var(--uv-card))!important;background-image:none!important;border-color:var(--uv-line)!important;border-radius:7px!important;color:var(--uv-text)!important;box-shadow:none!important}
 html body #invest#invest#invest#invest#invest#invest#invest#invest #mmhInvestWatchV13 dialog select.iw218-native{position:absolute!important;clip-path:inset(50%)!important;opacity:0!important;width:1px!important;height:1px!important;min-width:0!important;min-height:0!important;padding:0!important;border:0!important;pointer-events:none!important}
 #mmhInvestWatchV13 .iw218-picker{min-width:0;position:relative}
@@ -495,31 +520,30 @@ html body #invest#invest#invest#invest#invest#invest#invest#invest #mmhInvestWat
 html body #invest#invest#invest#invest#invest#invest#invest#invest #mmhInvestWatchV13 dialog .iw218-picker-options:not([hidden]){display:grid!important;gap:3px!important;margin-top:4px!important;padding:4px!important;max-height:168px!important;overflow:auto!important;background:var(--uv-card)!important;border:1px solid var(--uv-line)!important;border-radius:7px!important}
 html body #invest#invest#invest#invest#invest#invest#invest#invest #mmhInvestWatchV13 dialog .iw218-picker-options button{display:flex!important;justify-content:space-between!important;align-items:center!important;min-width:0!important;min-height:34px!important;padding:5px 8px!important;border:1px solid transparent!important;border-radius:5px!important;background:transparent!important;background-image:none!important;color:var(--uv-text)!important;box-shadow:none!important;text-align:left!important;font:500 12px/1.4 var(--mmh-notice-font,system-ui)!important}
 html body #invest#invest#invest#invest#invest#invest#invest#invest #mmhInvestWatchV13 dialog .iw218-picker-options button[aria-selected=true]{background:var(--uv-raised)!important;color:var(--uv-accent)!important;border-color:var(--uv-line)!important}
-@media(max-width:760px){html body #invest#invest#invest#invest#invest#invest#invest#invest #mmhInvestWorkspaceV2 .iw2-tab{min-height:44px!important;gap:4px!important;padding:5px!important;font-size:11px!important}html body #invest#invest#invest#invest#invest#invest#invest#invest :is(#iw218-mix-trigger,.iw218-mix-close){width:44px!important;height:44px!important;min-width:44px!important;min-height:44px!important}html body #invest#invest#invest#invest#invest#invest#invest#invest #mmhInvestWatchV13 dialog :is(.iw218-picker-trigger,.iw218-picker-options button){min-height:44px!important}}
+@media(max-width:760px){html body #invest#invest#invest#invest#invest#invest#invest#invest #mmhInvestWorkspaceV2 .iw2-tab{min-height:44px!important;gap:4px!important;padding:5px!important;font-size:11px!important}html body #invest#invest#invest#invest#invest#invest#invest#invest #mmhInvestWatchV13 dialog :is(.iw218-picker-trigger,.iw218-picker-options button){min-height:44px!important}}
 @media(max-width:380px){html body #invest#invest#invest#invest#invest#invest#invest#invest #mmhInvestWorkspaceV2 .iw2-tab{flex-direction:column!important;gap:2px!important}}
 
 
-/* Strategy absorbs Data Center. Preserve source panels and all action/safety copy;
-   remove redundant decorative kickers only. */
-html body #invest#invest#invest#invest#invest#invest#invest#invest #iw2-slot-strategy>.iw218-fold{grid-column:1/-1;min-width:0!important;margin:0!important;padding:0!important;border:1px solid var(--uv-line)!important;border-radius:8px!important;background:var(--uv-card)!important;background-image:none!important;box-shadow:none!important;color:var(--uv-text)!important}
-#iw2-slot-strategy>#iw2-archive{order:4}
-#iw2-slot-strategy>#iw218-data-tools{order:5}
-html body #invest#invest#invest#invest#invest#invest#invest#invest .iw218-fold>summary{display:flex!important;align-items:center!important;gap:8px!important;list-style:none!important;min-height:40px!important;padding:8px 12px!important;margin:0!important;cursor:pointer;color:var(--uv-text)!important;font:600 13px/1.4 var(--mmh-notice-font,system-ui)!important;background:none!important;border:0!important;box-shadow:none!important;box-sizing:border-box!important}
-.iw218-fold>summary::-webkit-details-marker{display:none}
-.iw218-fold>summary>svg{color:var(--uv-accent);flex:none}
-.iw218-fold>summary>span{flex:1;min-width:0}
-.iw218-fold-arrow{display:flex;color:var(--uv-muted);flex:none}
-.iw218-fold[open]>summary>.iw218-fold-arrow{transform:rotate(180deg)}
-.iw218-fold>summary:focus-visible{outline:2px solid var(--uv-accent);outline-offset:-2px;border-radius:7px}
-html body #invest#invest#invest#invest#invest#invest#invest#invest .iw218-fold>.iw218-fold-body{display:grid!important;grid-template-columns:minmax(0,1fr)!important;gap:8px!important;margin:0!important;padding:0 10px 10px!important;min-width:0!important}
-html body #invest#invest#invest#invest#invest#invest#invest#invest .iw218-fold:not([open])>.iw218-fold-body{display:none!important}
-html body #invest#invest#invest#invest#invest#invest#invest#invest #iw218-data-body>.iw218-fold{min-width:0!important;margin:0!important;padding:0!important;background:var(--uv-raised)!important;background-image:none!important;border:1px solid var(--uv-line)!important;border-radius:7px!important;box-shadow:none!important}
-html body #invest#invest#invest#invest#invest#invest#invest#invest .iw218-fold-body>:is(#mmhInvestGuidanceV12,#mmhInvestRiskV14,#mmhInvestPlansV15,#mmhInvestAutoV19,#mmhInvestPnlArchiveV111,#mmhInvestAutoPnlV110,#mmhInvestSnapshotsV18){min-width:0!important;min-height:0!important;height:auto!important;margin:0!important;padding:10px!important;box-sizing:border-box!important;background:var(--uv-card)!important;background-image:none!important;border:1px solid var(--uv-line)!important;border-radius:7px!important;box-shadow:none!important;color:var(--uv-text)!important}
-html body #invest#invest#invest#invest#invest#invest#invest#invest .iw218-fold-body :is(.ivg12-kicker,.ivr14-kicker,.ip15-kicker,.iv19-kicker,.iv110-eyebrow,.is18-kicker,.iv111-head>div>small){display:none!important}
-html body #invest#invest#invest#invest#invest#invest#invest#invest .iw218-fold-body :is(.ivg12-head,.ivr14-head,.ip15-title,.iv19-head,.iv110-head,.is18-head,.iv111-head) h2{font:650 14px/1.4 var(--mmh-notice-font,system-ui)!important;margin:0 0 4px!important;color:var(--uv-text)!important}
-@media(max-width:760px){html body #invest#invest#invest#invest#invest#invest#invest#invest .iw218-fold>summary{min-height:44px!important}}
+
+/* Holding allocation is no longer a standalone dialog or summary card. */
+html body #invest#invest#invest#invest#invest#invest#invest#invest #mmhInvestPositionMixV215#mmhInvestPositionMixV215,
+html body #invest#invest#invest#invest#invest#invest#invest#invest #mmhUnifiedAllocationV1#mmhUnifiedAllocationV1{display:none!important}
+#ledger-detail #ldBody .iw219-allocation{display:grid;gap:9px;padding:12px 0;margin:0;border-bottom:1px solid var(--uv-line);min-width:0}
+#ledger-detail #ldBody .iw219-allocation h3{margin:0 0 2px;color:var(--uv-text);font:650 13px/1.4 var(--mmh-notice-font,system-ui)}
+#ledger-detail #ldBody .iw219-allocation p{margin:0;color:var(--uv-muted);font-size:12px;overflow-wrap:anywhere}
+#ledger-detail #ldBody .iw219-allocation .mmh-mix-card{display:grid;grid-template-columns:minmax(55px,1fr) minmax(0,3fr) minmax(56px,auto);align-items:center;gap:8px;padding:0;margin:0;min-width:0;background:none;border:0;box-shadow:none}
+#ledger-detail #ldBody .iw219-allocation .mmh-mix-label{display:contents}
+#ledger-detail #ldBody .iw219-allocation .mmh-mix-label b{grid-column:1;grid-row:1;font-size:12px;color:var(--uv-muted);overflow-wrap:anywhere}
+#ledger-detail #ldBody .iw219-allocation .mmh-mix-label span{grid-column:3;grid-row:1;text-align:right;font-size:12px;color:var(--uv-text);font-variant-numeric:tabular-nums}
+#ledger-detail #ldBody .iw219-allocation .mmh-mix-track{grid-column:2;grid-row:1;height:6px;background:var(--uv-line);border-radius:6px;overflow:hidden;margin:0}
+#ledger-detail #ldBody .iw219-allocation .mmh-mix-track>span{display:block;height:100%;border-radius:6px;background:var(--uv-muted)}
+#ledger-detail #ldBody .iw219-allocation .iw219-current .mmh-mix-track>span{background:var(--uv-accent)}
+#ledger-detail #ldBody .iw219-allocation .iw219-current .mmh-mix-label b{color:var(--uv-text);font-weight:700}
 
 `;
+   style.textContent+="\n/* V2.0.19: native tool dialogs and compact daily summary. No data or ledger changes. */\n.iw219-close svg{pointer-events:none!important}\nhtml body #invest#invest#invest#invest#invest#invest#invest#invest #mmhInvestDailyV1 #idv1Summary .idv1-summary-row{display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr))!important;gap:0!important;padding:3px 0 7px!important;border-bottom:1px solid var(--uv-line)!important}\nhtml body #invest#invest#invest#invest#invest#invest#invest#invest #mmhInvestDailyV1 #idv1Summary .idv1-stat{grid-column:auto!important;min-width:0!important;padding:3px 12px!important;margin:0!important;background:transparent!important;background-image:none!important;border:0!important;border-radius:0!important;box-shadow:none!important}\nhtml body #invest#invest#invest#invest#invest#invest#invest#invest #mmhInvestDailyV1 #idv1Summary .idv1-stat+.idv1-stat{border-inline-start:1px solid var(--uv-line)!important}\nhtml body #invest#invest#invest#invest#invest#invest#invest#invest #mmhInvestDailyV1 #idv1Summary .idv1-stat small{margin:0 0 2px!important;font-size:11px!important}\nhtml body #invest#invest#invest#invest#invest#invest#invest#invest #mmhInvestDailyV1 #idv1Summary .idv1-stat b{font-size:clamp(12px,1.2vw,17px)!important;line-height:1.3!important;font-variant-numeric:tabular-nums}\nhtml body #invest#invest#invest#invest#invest#invest#invest#invest #iw2-slot-strategy>.iw219-tool-group{min-width:0!important;padding:10px!important;margin:0!important;border:1px solid var(--uv-line)!important;border-radius:8px!important;background:var(--uv-card)!important;background-image:none!important;box-shadow:none!important}\n#iw2-slot-strategy>#iw2-archive{order:4}#iw2-slot-strategy>#iw218-data-tools{order:5}\n.iw219-tool-group>h3{font:650 13px/1.4 var(--mmh-notice-font,system-ui)!important;color:var(--uv-text)!important;margin:0 0 8px!important}\n.iw219-tool-entries{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px}\nhtml body #invest#invest#invest#invest#invest#invest#invest#invest .iw219-tool-trigger{min-width:0!important;min-height:40px!important;display:flex!important;align-items:center!important;gap:8px!important;padding:8px 10px!important;margin:0!important;background:var(--uv-raised)!important;background-image:none!important;border:1px solid var(--uv-line)!important;border-radius:6px!important;color:var(--uv-text)!important;box-shadow:none!important;text-align:start!important;font:600 12px/1.4 var(--mmh-notice-font,system-ui)!important}\n.iw219-tool-trigger>svg{color:var(--uv-accent);flex:none}.iw219-tool-trigger>span{flex:1;min-width:0;overflow-wrap:anywhere}.iw219-tool-trigger>i{display:flex;transform:rotate(-90deg);color:var(--uv-muted);flex:none}\nhtml body #invest#invest#invest#invest#invest#invest#invest#invest .iw219-tool-dialog{position:fixed!important;inset:0!important;margin:auto!important;width:min(720px,calc(100vw - 28px))!important;max-height:calc(100dvh - 32px)!important;overflow:auto!important;overscroll-behavior:contain;box-sizing:border-box!important;padding:12px!important;background:var(--uv-card)!important;background-image:none!important;color:var(--uv-text)!important;border:1px solid var(--uv-line)!important;border-radius:12px!important;box-shadow:0 16px 48px #0004!important}\nhtml body #invest#invest#invest#invest#invest#invest#invest#invest .iw219-tool-dialog:not([open]){display:none!important}\n.iw219-tool-dialog::backdrop{background:#0006}\n.iw219-dialog-head{display:flex;align-items:center;justify-content:space-between;gap:8px;position:sticky;top:0;z-index:3;background:var(--uv-card);padding:0 0 8px;border-bottom:1px solid var(--uv-line);margin:0 0 8px}\n.iw219-dialog-head h3{font:650 14px/1.4 var(--mmh-notice-font,system-ui)!important;color:var(--uv-text)!important;margin:0!important}\nhtml body #invest#invest#invest#invest#invest#invest#invest#invest .iw219-close{position:relative!important;z-index:4!important;pointer-events:auto!important;display:grid!important;place-items:center!important;width:34px!important;height:34px!important;min-width:34px!important;padding:0!important;border:1px solid var(--uv-line)!important;border-radius:6px!important;background:var(--uv-raised)!important;color:var(--uv-text)!important;box-shadow:none!important}\nhtml body #invest#invest#invest#invest#invest#invest#invest#invest .iw219-tool-body>:is(#mmhInvestSimpleCalcV215,#mmhInvestGuidanceV12,#mmhInvestRiskV14,#mmhInvestPlansV15,#mmhInvestAutoV19,#mmhInvestPnlArchiveV111,#mmhInvestAutoPnlV110,#mmhInvestSnapshotsV18){min-width:0!important;margin:0!important;padding:0!important;background:transparent!important;background-image:none!important;border:0!important;box-shadow:none!important}\nhtml body #invest#invest#invest#invest#invest#invest#invest#invest .iw219-tool-body #mmhInvestSimpleCalcV215>h3{display:none!important}\nhtml body #invest#invest#invest#invest#invest#invest#invest#invest .iw219-tool-body :is(.ivg12-kicker,.ivr14-kicker,.ip15-kicker,.iv19-kicker,.iv110-eyebrow,.is18-kicker,.iv111-head>div>small){display:none!important}\nhtml body #invest#invest#invest#invest#invest#invest#invest#invest .iw219-tool-body :is(.ivg12-head,.ivr14-head,.ip15-title,.iv19-head,.iv110-head,.is18-head,.iv111-head) h2{font:650 13px/1.4 var(--mmh-notice-font,system-ui)!important;color:var(--uv-text)!important;margin:0 0 4px!important}\nhtml body #invest#invest#invest#invest#invest#invest#invest#invest .iw219-tool-body :is(input:not([type=checkbox]):not([type=radio]),select,textarea){max-width:100%!important;min-width:0!important;box-sizing:border-box!important;background:var(--uv-raised)!important;background-image:none!important;color:var(--uv-text)!important;border:1px solid var(--uv-line)!important;border-radius:6px!important;box-shadow:none!important}\n@media(max-width:760px){html body #invest#invest#invest#invest#invest#invest#invest#invest #mmhInvestDailyV1 #idv1Summary .idv1-stat{padding:3px 6px!important}.iw219-tool-entries{grid-template-columns:1fr}html body #invest#invest#invest#invest#invest#invest#invest#invest :is(.iw219-tool-trigger,.iw219-close){min-height:44px!important}}\n";
+   style.textContent+="html body #invest#invest#invest#invest#invest#invest#invest#invest .iw219-tool-dialog select.iw218-native{position:absolute!important;clip-path:inset(50%)!important;opacity:0!important;width:1px!important;height:1px!important;min-width:0!important;min-height:0!important;padding:0!important;border:0!important;pointer-events:none!important}\nhtml body #invest#invest#invest#invest#invest#invest#invest#invest .iw219-tool-dialog .iw218-picker-trigger{display:flex!important;align-items:center!important;justify-content:space-between!important;gap:8px!important;width:100%!important;min-width:0!important;min-height:38px!important;padding:7px 10px!important;background:var(--uv-raised)!important;background-image:none!important;border:1px solid var(--uv-line)!important;border-radius:7px!important;color:var(--uv-text)!important;font:500 13px/1.4 var(--mmh-notice-font,system-ui)!important;box-shadow:none!important;text-align:left!important}\nhtml body #invest#invest#invest#invest#invest#invest#invest#invest .iw219-tool-dialog .iw218-picker-options:not([hidden]){display:grid!important;gap:3px!important;margin-top:4px!important;padding:4px!important;max-height:168px!important;overflow:auto!important;background:var(--uv-card)!important;border:1px solid var(--uv-line)!important;border-radius:7px!important}\nhtml body #invest#invest#invest#invest#invest#invest#invest#invest .iw219-tool-dialog .iw218-picker-options button{display:flex!important;justify-content:space-between!important;align-items:center!important;min-width:0!important;min-height:34px!important;padding:5px 8px!important;border:1px solid transparent!important;border-radius:5px!important;background:transparent!important;background-image:none!important;color:var(--uv-text)!important;box-shadow:none!important;text-align:left!important;font:500 12px/1.4 var(--mmh-notice-font,system-ui)!important}\nhtml body #invest#invest#invest#invest#invest#invest#invest#invest .iw219-tool-dialog .iw218-picker-options button[aria-selected=true]{background:var(--uv-raised)!important;color:var(--uv-accent)!important;border-color:var(--uv-line)!important}";
+   style.textContent+="\n.iw219-tool-dialog .iw218-picker{min-width:0;position:relative}.iw219-tool-dialog .iw218-picker[hidden],.iw219-tool-dialog .iw218-picker-options[hidden]{display:none!important}.iw219-tool-dialog .iw218-picker-trigger>span{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.iw219-tool-dialog .iw218-picker-trigger svg{flex:none}.iw219-tool-trigger:disabled{opacity:.55;cursor:default}\n";
    document.head.append(style);
   }
   root.classList.add('mmh-invest-summary-compact');
@@ -544,9 +568,9 @@ html body #invest#invest#invest#invest#invest#invest#invest#invest .iw218-fold-b
  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',initialize,{once:true});else initialize();
  // Recover after any original Invest render without changing its handlers.
  for(const event of ['mmhvault:page-visible','mmhvault:data-loaded','mmhvault:cache-restored','mmhvault:market-updated','mmhvault:invest-daily-ready','mmhvault:config-owner-changed','languagechange','mmhvault-language-change']){
-  window.addEventListener(event,()=>{if(event.includes('language'))translate();if(event==='mmhvault:config-owner-changed'){closeMix();closeWatch();}if(!ownData(calcOwner))updateStrategy(null,[]);schedule();scheduleWatch();},{passive:true});
+  window.addEventListener(event,()=>{if(event.includes('language'))translate();if(event==='mmhvault:config-owner-changed'||(event==='mmhvault:page-visible'&&!root.classList.contains('active'))){closeToolDialogs();}if(!ownData(calcOwner))updateStrategy(null,[]);schedule();scheduleWatch();},{passive:true});
  }
  // The 5-page legacy navigation creates its sections on demand.
  // Wrapping is unnecessary and brittle; the root observer catches creation.
- window.mmhInvestWorkspaceV2={activate:(key)=>{schedule();window.requestAnimationFrame(()=>activate(key,true))},relocate,syncTop,updateStrategy};
+ window.mmhInvestWorkspaceV2={activate:(key)=>{schedule();window.requestAnimationFrame(()=>activate(key,true))},relocate,syncTop,updateStrategy,appendHoldingAllocation};
 })();
