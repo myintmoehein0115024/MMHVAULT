@@ -12291,7 +12291,7 @@ html.mmh-desktop-compact-v11110 body.mmh-workspace-active #moreNavMenu.more-nav-
   document.addEventListener('click',e=>{if(e.target.closest('#iw222-reset')){window.mmhSetUnifiedRecordFilterV222();el('iw222-reset')?.focus({preventScroll:true});return;}const b=e.target.closest('#mmhHistoryRowsV1 [data-iw222-wallet-id]');if(!b)return;const row=walletEntries222().find(r=>String(r.x.id)===b.dataset.iw222WalletId);if(row)window.mmhOpenWalletMovementDetailV177?.(row.x.id);});
   window.addEventListener('languagechange',render);
   window.addEventListener('mmhvault-language-change',render);
-  window.addEventListener('mmhvault:config-owner-changed',()=>{filter='ALL';sideFilter='ALL';recordPage=1;recordPageOwner=null;el('mmhHistoryRowsV1')?.replaceChildren();el('mmhHistoryFiltersV1')?.replaceChildren();});
+  window.addEventListener('mmhvault:config-owner-changed',()=>{filter='ALL';sideFilter='ALL';recordPage=1;recordPageOwner=null;el('mmhHistoryRowsV1')?.replaceChildren();el('mmhHistoryFiltersV1')?.replaceChildren();setTimeout(()=>{try{render();}catch(e){console.warn('[MMHVAULT] investment history owner repaint failed',e);}},0);});
   document.addEventListener('click',e=>{const b=e.target.closest('#mmhHistoryRowsV1 button[data-iw224-page]');if(!b||b.disabled)return;const delta=Number(b.dataset.iw224Page);if(delta!==1&&delta!==-1)return;recordPage+=delta;render();const list=el('mmhHistoryRowsV1'),next=list?.querySelector('button[data-iw224-page="'+delta+'"]');if(next&&!next.disabled)next.focus({preventScroll:true});else list?.querySelector('[data-iw224-page-status]')?.focus({preventScroll:true});});
   window.mmhRenderInvestHistoryV1=render;
   const deleting=new Set();
@@ -12405,6 +12405,7 @@ html.mmh-desktop-compact-v11110 body.mmh-workspace-active #moreNavMenu.more-nav-
     }
   });
   window.addEventListener('mmhvault:data-loaded',render);
+  window.addEventListener('mmhvault:sync-complete',render);
   window.addEventListener('mmhvault:data-loaded',refreshCustomReceipts);
   window.addEventListener('mmhvault:data-loaded',()=>window.refreshInvestmentReceiptFlagsV3304?.());
   window.addEventListener('mmhvault:cache-restored',render);
