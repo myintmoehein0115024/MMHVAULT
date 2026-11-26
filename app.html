@@ -35463,8 +35463,8 @@ html body.mmh-workspace-active #moreNavMenu .mmh-more-list-v153:focus-visible{ou
 <script src="js/mmhvault-liquid-transactions-p24.js?v=6.2.3" defer></script>
 <link rel="stylesheet" href="css/mmhvault-liquid-transactions-p25.css?v=2.5.0" data-mmh-liquid-transactions="p2.5">
 <script src="js/mmhvault-liquid-transactions-p25.js?v=2.5.1" defer></script>
-<link rel="stylesheet" href="css/mmhvault-liquid-invest-p30.css?v=3.0.1" data-mmh-liquid-invest="p3.0">
-<link rel="stylesheet" href="css/mmhvault-liquid-invest-p31.css?v=3.1.1" data-mmh-liquid-invest="p3.1">
+<link rel="stylesheet" href="css/mmhvault-liquid-invest-p30.css?v=3.0.1-ledger" data-mmh-liquid-invest="p3.0">
+<link rel="stylesheet" href="css/mmhvault-liquid-invest-p31.css?v=3.1.1-ledger" data-mmh-liquid-invest="p3.1">
 <link rel="stylesheet" href="css/mmhvault-liquid-invest-p32.css?v=3.2.0" data-mmh-liquid-invest="p3.2">
 <link rel="stylesheet" href="css/mmhvault-liquid-invest-spacing-p33.css?v=3.3.0" data-mmh-invest-spacing="p3.3">
 <link rel="stylesheet" href="css/mmhvault-liquid-accounts-p40.css?v=4.0.0" data-mmh-liquid-accounts="p4.0">
@@ -38908,7 +38908,7 @@ html body #ledger-detail#ledger-detail#ledger-detail#ledger-detail#ledger-detail
 }
 </style>
 <style id="mmh-invest-records-v222-r3">
-html body #editModal#editModal#editModal#editModal.open:has(#editInvForm)>.modal{width:min(760px,100%)!important;max-width:760px!important;max-height:calc(100dvh - 24px)!important;height:auto!important;min-height:0!important;padding:0!important;border-radius:10px!important;border:1px solid var(--uv-line)!important;background:var(--uv-card)!important;background-image:none!important;color:var(--uv-text)!important;box-shadow:0 12px 36px #0003!important;font-family:var(--mmh-notice-font,system-ui)!important;display:flex!important;flex-direction:column!important;overflow:hidden!important}
+html body #editModal#editModal#editModal#editModal.open:has(#editInvForm)>.modal{width:min(760px,100%)!important;max-width:760px!important;max-height:calc(100dvh - 24px)!important;height:min(900px,calc(100dvh - 24px))!important;min-height:0!important;padding:0!important;border-radius:10px!important;border:1px solid var(--uv-line)!important;background:var(--uv-card)!important;background-image:none!important;color:var(--uv-text)!important;box-shadow:0 12px 36px #0003!important;font-family:var(--mmh-notice-font,system-ui)!important;display:flex!important;flex-direction:column!important;overflow:hidden!important}
 html body #editModal#editModal#editModal#editModal:has(#editInvForm) :is(.modal>.toolbar,#editInvForm>.actions){padding:12px 16px!important;margin:0!important;background:var(--uv-card)!important;background-image:none!important;border-color:var(--uv-line)!important;box-shadow:none!important;backdrop-filter:none!important}
 html body #editModal#editModal#editModal#editModal:has(#editInvForm) #editModalTitle{color:var(--uv-text)!important;font:650 17px/1.4 var(--mmh-notice-font,system-ui)!important;letter-spacing:normal!important;text-shadow:none!important}
 html body #editModal#editModal#editModal#editModal:has(#editInvForm) #editModalBody{padding:0!important;overflow:hidden!important;display:flex!important;flex:1 1 auto!important;min-height:0!important}
@@ -39074,11 +39074,6 @@ html body #invest #mmhHistoryFiltersV1 #iw222-reset{
  background:var(--uv-raised,#253141)!important;background-image:none!important;
  border-color:var(--uv-line,#354152)!important;color:var(--uv-text,#ecf1f8)!important;
 }
-html body #invest #mmhHistoryRowsV1{
- min-width:0!important;max-width:100%!important;max-height:min(62dvh,640px)!important;
- overflow-y:auto!important;overflow-x:hidden!important;overscroll-behavior:contain!important;
- scrollbar-width:thin;scrollbar-color:var(--uv-line,#354152) transparent!important;padding-right:2px!important;
-}
 html body #invest #mmhHistoryRowsV1 .mmh-history-mobile{max-height:none!important;overflow:visible!important;background:var(--uv-card,#18212d)!important;background-image:none!important}
 html body #invest #mmhHistoryRowsV1 :is(.mmh-history-card,.iw222-wallet-row){background:var(--uv-card,#18212d)!important;background-image:none!important}
 html body #invest #mmhHistoryRowsV1 :is(.mmh-history-card,.iw222-wallet-row):hover{background:var(--uv-raised,#253141)!important}
@@ -39118,7 +39113,6 @@ html body #mmhVaultDialogV449 .mmh-wallet-detail-dialog-v177 .mmh-v449-dialog-bo
 html body #mmhVaultDialogV449 .mmh-wallet-detail-dialog-v177 .mmh-wallet-detail-hero-v177{background:var(--uv-raised,#253141)!important;background-image:none!important;border-color:var(--uv-line,#354152)!important}
 html body #mmhVaultDialogV449 .mmh-wallet-detail-dialog-v177 :is(.mmh-wallet-detail-item-v177,.mmh-wallet-detail-line-v177,.mmh-wallet-detail-note-v177){background:var(--uv-raised,#253141)!important;background-image:none!important;border-color:var(--uv-line,#354152)!important}
 @media(max-width:699px){
- html body #invest #mmhHistoryRowsV1{max-height:min(58dvh,560px)!important}
  html body #invest #mmhHistoryFiltersV1 .iw223-picker{flex:1 1 calc(50% - 8px)!important;min-width:0!important}
  html body #editModal.open:has(#editInvForm)>.modal{width:calc(100vw - 12px)!important;height:calc(100dvh - 12px)!important}
 }
@@ -39151,7 +39145,7 @@ window.mmhOpenWalletEditNoticeV225=async function(x){
  return window.mmhEditDeleteUI?.message?.(title,body.replace(/<[^>]+>/g,''));
 };
 document.addEventListener('click',e=>{if(e.target.closest('#iw225-delete-all')){e.preventDefault();e.stopPropagation();deleteAll();}});
-document.addEventListener('mmhvault:list-rendered',mountDeleteAll);
+window.addEventListener('mmhvault:list-rendered',mountDeleteAll);
 window.addEventListener('languagechange',mountDeleteAll);
 window.addEventListener('mmhvault-language-change',mountDeleteAll);
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',mountDeleteAll,{once:true});else setTimeout(mountDeleteAll,0);
@@ -39159,15 +39153,17 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
 </script>
 <style id="mmh-invest-v225-final-unify">
 /* V2.0.25 final correction: one record surface, one scroll owner, one edit-modal frame. */
-html body #invest#invest#invest #mmhFiveportfolio#mmhFiveportfolio #mmhUnifiedHistoryV1#mmhUnifiedHistoryV1{
+html body #invest#invest#invest #mmhUnifiedHistoryV1#mmhUnifiedHistoryV1{
   background:var(--uv-card,#18212d)!important;
   background-image:none!important;
   border:1px solid var(--uv-line,#354152)!important;
   border-radius:10px!important;
   box-shadow:none!important;
   backdrop-filter:none!important;
+  -webkit-backdrop-filter:none!important;
+  overflow:visible!important;
 }
-html body #invest#invest#invest #mmhFiveportfolio#mmhFiveportfolio #mmhHistoryFiltersV1#mmhHistoryFiltersV1{
+html body #invest#invest#invest #mmhHistoryFiltersV1#mmhHistoryFiltersV1{
   background:var(--uv-card,#18212d)!important;
   background-image:none!important;
   border:0!important;
@@ -39175,17 +39171,17 @@ html body #invest#invest#invest #mmhFiveportfolio#mmhFiveportfolio #mmhHistoryFi
   margin:0 0 12px!important;
   padding:0 0 11px!important;
 }
-html body #invest#invest#invest #mmhFiveportfolio#mmhFiveportfolio #mmhHistoryFiltersV1#mmhHistoryFiltersV1 .iw222-filterbar{
+html body #invest#invest#invest #mmhHistoryFiltersV1#mmhHistoryFiltersV1 .iw222-filterbar{
   display:flex!important;align-items:flex-end!important;gap:8px!important;flex-wrap:wrap!important;
   background:transparent!important;
 }
 /* One scroll viewport and one ledger row structure. */
-html body #invest #mmhFiveportfolio #mmhHistoryRowsV1{display:block!important;min-width:0!important;max-width:100%!important;height:min(60dvh,640px)!important;max-height:min(60dvh,640px)!important;overflow-y:auto!important;overflow-x:hidden!important;overscroll-behavior:contain!important;scrollbar-width:thin;scrollbar-gutter:stable;background:var(--uv-card)!important;border:1px solid var(--uv-line);border-radius:8px}
+html body #invest #mmhUnifiedHistoryV1 #mmhHistoryRowsV1{display:block!important;box-sizing:border-box!important;min-width:0!important;min-height:0!important;max-width:100%!important;height:min(60dvh,640px)!important;max-height:min(60dvh,640px)!important;overflow-y:auto!important;overflow-x:hidden!important;overscroll-behavior-y:contain!important;touch-action:pan-y pinch-zoom!important;-webkit-overflow-scrolling:touch;scrollbar-width:thin;scrollbar-gutter:stable;scrollbar-color:var(--uv-line,#354152) transparent;background:var(--uv-card)!important;background-image:none!important;border:1px solid var(--uv-line);border-radius:8px;padding:0!important}
 #invest #mmhHistoryRowsV1 .iw226-ledger-list{display:block;min-width:0;overflow:visible}
 #invest #mmhHistoryRowsV1 .iw226-ledger-header{position:sticky;top:0;z-index:2;padding:8px 10px;background:var(--uv-card);border-bottom:1px solid var(--uv-line);font-size:11px;font-weight:650;color:var(--uv-muted)}
-#invest #mmhHistoryRowsV1 .iw226-ledger-record{display:block!important;width:100%!important;min-width:0!important;box-sizing:border-box!important;min-height:56px;padding:8px 10px;margin:0!important;border:0;border-bottom:1px solid var(--uv-line);border-radius:0!important;background:var(--uv-card)!important;color:var(--uv-text)!important;text-align:left!important;box-shadow:none!important;cursor:pointer;font:inherit}
-#invest #mmhHistoryRowsV1 .iw226-ledger-record:last-child{border-bottom:0!important}
-#invest #mmhHistoryRowsV1 .iw226-ledger-record:hover{background:var(--uv-raised)!important}
+#invest #mmhUnifiedHistoryV1 #mmhHistoryRowsV1 .iw226-ledger-record{display:block!important;width:100%!important;min-width:0!important;box-sizing:border-box!important;min-height:56px!important;padding:8px 10px!important;margin:0!important;border:0!important;border-bottom:1px solid var(--uv-line)!important;border-radius:0!important;background:var(--uv-card)!important;background-image:none!important;color:var(--uv-text)!important;text-align:left!important;box-shadow:none!important;cursor:pointer;font:inherit;appearance:none!important;-webkit-appearance:none!important;touch-action:pan-y pinch-zoom!important}
+#invest #mmhUnifiedHistoryV1 #mmhHistoryRowsV1 .iw226-ledger-record:last-child{border-bottom:0!important}
+@media(hover:hover) and (pointer:fine){#invest #mmhUnifiedHistoryV1 #mmhHistoryRowsV1 .iw226-ledger-record:hover{background:var(--uv-raised)!important}}
 #invest #mmhHistoryRowsV1 .iw226-ledger-record:focus-visible,#invest #mmhHistoryRowsV1:focus-visible{outline:2px solid var(--uv-accent);outline-offset:-2px}
 #invest #mmhHistoryRowsV1 .iw226-ledger-line{display:grid;grid-template-columns:minmax(70px,.8fr) minmax(0,1.4fr) minmax(0,1.2fr) minmax(0,.8fr) minmax(0,1.2fr);gap:8px;align-items:center;width:100%;min-width:0}
 #invest #mmhHistoryRowsV1 .iw226-ledger-line>*{min-width:0;overflow-wrap:anywhere;line-height:1.4}
@@ -39263,7 +39259,7 @@ html body #editModal.mmh-invest-edit-modal-v225 #editInvForm>.actions .btn.prima
   border-color:var(--uv-accent,#9bb8f8)!important;color:var(--uv-accent,#9bb8f8)!important;
 }
 @media(max-width:699px){
-  html body #invest #mmhFiveportfolio #mmhHistoryRowsV1{
+  html body #invest #mmhUnifiedHistoryV1 #mmhHistoryRowsV1{
     height:min(54dvh,520px)!important;max-height:min(54dvh,520px)!important;
   }
   html body #editModal.mmh-invest-edit-modal-v225{padding:6px!important}

@@ -18,13 +18,12 @@ html body.mmh-workspace-active:not(.light):has(#invest.active) #invest{
 }
 /* Primary glass surfaces across Invest. */
 html body.mmh-workspace-active:not(.light):has(#invest.active) #invest :is(
-  .mmh-ui-panel:not(:where(:has(>#mmhUnifiedKpisV1))),
+  .mmh-ui-panel:not(:where(:has(>#mmhUnifiedKpisV1),#mmhUnifiedHistoryV1)),
   #v371CryptoMarket,
   #v371GoldMarket,
   .portfolio-manager-v310,
   .invest-entry,
   .panel.invest-holdings,
-  #mmhUnifiedHistoryV1,
   #mmhInvestCatalogV1
 ){
   position:relative!important;
@@ -38,13 +37,12 @@ html body.mmh-workspace-active:not(.light):has(#invest.active) #invest :is(
   -webkit-backdrop-filter:blur(20px) saturate(140%)!important;
 }
 html body.mmh-workspace-active:not(.light):has(#invest.active) #invest :is(
-  .mmh-ui-panel:not(:where(:has(>#mmhUnifiedKpisV1))),
+  .mmh-ui-panel:not(:where(:has(>#mmhUnifiedKpisV1),#mmhUnifiedHistoryV1)),
   #v371CryptoMarket,
   #v371GoldMarket,
   .portfolio-manager-v310,
   .invest-entry,
   .panel.invest-holdings,
-  #mmhUnifiedHistoryV1,
   #mmhInvestCatalogV1
 )::before{
   content:''!important;
