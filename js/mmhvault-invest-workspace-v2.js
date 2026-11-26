@@ -11,7 +11,7 @@
  const KEYS=['overview','strategy','data'];
  const SLOTS={
   overview:['mmhFiveOverviewNotice','mmhInvestDailyV1','mmhInvestDrawdownV16'],
-  strategy:['mmhInvestPositionMixV215','mmhInvestWatchV13'],
+  strategy:['mmhInvestWatchV13'],
   data:['mmhInvestSnapshotsV18','mmhInvestAutoV19','mmhInvestAutoPnlV110','mmhInvestPnlArchiveV111','mmhInvestGuidanceV12','mmhInvestRiskV14','mmhInvestPlansV15']
  };
  const ARCHIVED=new Set(['mmhInvestGuidanceV12','mmhInvestRiskV14','mmhInvestPlansV15']);
@@ -76,7 +76,7 @@
    </section>`).join('')}
    <p class="iw2-footer" data-iw2-t="moreMenu"></p>`;
   parent.prepend(host);
-  const calc=document.createElement('section');calc.id='mmhInvestSimpleCalcV215';calc.innerHTML='<h3 data-iw2-t="calculator"></h3><label><span data-iw2-t="holding"></span><select></select></label><div class="iw215-inputs"><label><span data-calc-cap-label></span><input type="number" min="0" step="any" inputmode="decimal" data-calc-cap></label><label><span data-calc-price-label></span><input type="number" min="0" step="any" inputmode="decimal" data-calc-price></label></div><p data-iw2-t="average" class="iw215-result-label"></p><strong data-calc-average aria-live="polite">—</strong><p data-calc-units></p><p data-calc-change></p>';$('iw2-slot-strategy').append(calc);
+  const calc=document.createElement('section');calc.id='mmhInvestSimpleCalcV215';calc.innerHTML='<h3 data-iw2-t="calculator"></h3><label><span data-iw2-t="holding"></span><select id="mmhInvestCalcHoldingV217"></select></label><div class="iw215-inputs"><label><span data-calc-cap-label></span><input type="number" min="0" step="any" inputmode="decimal" data-calc-cap></label><label><span data-calc-price-label></span><input type="number" min="0" step="any" inputmode="decimal" data-calc-price></label></div><p data-iw2-t="average" class="iw215-result-label"></p><strong data-calc-average aria-live="polite">—</strong><p data-calc-units></p><p data-calc-change></p>';$('iw2-slot-strategy').append(calc);
   calc.addEventListener('input',drawCalc);calc.querySelector('select').addEventListener('change',()=>{calc.querySelector('[data-calc-cap]').value='';calc.querySelector('[data-calc-price]').value='';drawCalc();});
   const archive=document.createElement('details');archive.id='iw2-archive';archive.innerHTML='<summary data-iw2-t="archive"></summary><div id="iw2-archive-body"></div>';$('iw2-slot-data').append(archive);
   drawCalc();
@@ -261,7 +261,7 @@ html body #invest#invest#invest#invest#invest#invest#invest#invest #mmhUnifiedKp
 html body #invest#invest#invest#invest#invest#invest#invest#invest #mmhUnifiedKpisV1 .mmh-native-roi-v214{display:flex!important;justify-content:space-between;align-items:center;gap:8px!important;padding:6px 7px!important;font-size:11px!important;color:var(--uv-muted)!important}
 html body #invest#invest#invest#invest#invest#invest#invest#invest #mmhUnifiedKpisV1 .mmh-native-note-v214{font-size:10px!important;color:var(--uv-muted)!important;padding:2px 7px!important}
 html body #invest#invest#invest#invest#invest#invest#invest#invest .mmh-ui-panel:has(>#mmhUnifiedKpisV1){min-height:0!important;height:auto!important;display:block!important}
-html body #invest#invest#invest#invest#invest#invest#invest#invest #iw2-slot-strategy{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:8px!important;align-items:stretch!important}
+html body #invest#invest#invest#invest#invest#invest#invest#invest #iw2-slot-strategy{display:grid!important;grid-template-columns:minmax(0,1fr)!important;gap:8px!important;align-items:start!important}
 html body #invest#invest#invest#invest#invest#invest#invest#invest #iw2-slot-strategy>:is(#mmhInvestPositionMixV215,#mmhInvestSimpleCalcV215,#mmhInvestWatchV13){min-width:0!important;min-height:0!important;height:auto!important;margin:0!important;padding:12px!important;box-sizing:border-box;background:var(--uv-card)!important;background-image:none!important;border:1px solid var(--uv-line)!important;border-radius:8px!important;box-shadow:none!important;color:var(--uv-text)!important}
 #iw2-slot-strategy>#mmhInvestPositionMixV215{order:1}#iw2-slot-strategy>#mmhInvestSimpleCalcV215{order:2}#iw2-slot-strategy>#mmhInvestWatchV13{order:3;grid-column:1/-1}
 html body #invest#invest#invest#invest#invest#invest#invest#invest #mmhInvestPositionMixV215 #mmhUnifiedAllocationV1{display:grid!important;grid-template-columns:minmax(0,1fr)!important;gap:8px!important;height:auto!important;min-height:0!important;max-width:none!important;padding:0!important;margin:0!important;background:transparent!important;overflow:visible!important}
@@ -272,6 +272,8 @@ html body #invest#invest#invest#invest#invest#invest#invest#invest #mmhInvestPos
 html body #invest#invest#invest#invest#invest#invest#invest#invest #mmhInvestPositionMixV215 .mmh-mix-label span{grid-column:3;grid-row:1;text-align:right;color:var(--uv-text)!important}
 html body #invest#invest#invest#invest#invest#invest#invest#invest #mmhInvestPositionMixV215 .mmh-mix-track{grid-column:2;grid-row:1;margin:0!important;height:7px!important;background:var(--uv-line)!important}
 #mmhInvestPositionMixV215 .mmh-overview-mix-hint{display:none!important}
+html body #invest#invest#invest#invest#invest#invest#invest#invest #iw2-slot-overview .mmh-ui-panel:has(#mmhUnifiedListV1)>#mmhInvestPositionMixV215{margin:4px 0 8px!important;padding:8px!important;border:1px solid var(--uv-line)!important;border-radius:7px!important;background:var(--uv-card)!important;box-shadow:none!important;min-height:0!important}
+html body #invest#invest#invest#invest#invest#invest#invest#invest #iw2-slot-overview #mmhInvestPositionMixV215 #mmhUnifiedAllocationV1{align-content:start!important}
 #mmhInvestSimpleCalcV215 h3{font-size:14px!important;margin:0 0 10px!important;color:var(--uv-text)!important}
 #mmhInvestSimpleCalcV215 label{display:grid;gap:4px;min-width:0;font-size:11px;color:var(--uv-muted)!important}
 #mmhInvestSimpleCalcV215 .iw215-inputs{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-top:8px}
