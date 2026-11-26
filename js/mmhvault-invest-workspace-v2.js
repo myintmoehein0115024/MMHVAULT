@@ -1,4 +1,4 @@
-/* MMHVAULT Invest 2.0.2 — lifecycle-safe overview workspaces. Presentation/navigation only.
+/* MMHVAULT Invest 2.0.4 — lifecycle-safe overview workspaces. Presentation/navigation only.
  * Reparents existing module roots; NEVER duplicates them, requests financial data,
  * changes calculations, overrides source module events, or touches Supabase.
  */
@@ -8,18 +8,17 @@
  const root=document.getElementById('invest');
  if(!root)return;
  const $=id=>document.getElementById(id);
- const KEYS=['overview','returns','strategy','data'];
+ const KEYS=['overview','strategy','data'];
  const SLOTS={
-  overview:['mmhFiveOverviewNotice'],
-  returns:['mmhInvestDailyV1','mmhInvestDrawdownV16'],
+  overview:['mmhFiveOverviewNotice','mmhInvestDailyV1','mmhInvestDrawdownV16'],
   strategy:['mmhInvestGuidanceV12','mmhInvestWatchV13','mmhInvestRiskV14','mmhInvestPlansV15'],
   data:['mmhInvestSnapshotsV18','mmhInvestAutoV19','mmhInvestAutoPnlV110','mmhInvestPnlArchiveV111']
  };
  const TARGETS=new Map(Object.entries(SLOTS).flatMap(([key,ids])=>ids.map(id=>[id,key])));
  const STRINGS={
-  overview:{zh:'总览',en:'Overview'},returns:{zh:'收益分析',en:'Performance'},strategy:{zh:'投资策略',en:'Strategy'},data:{zh:'数据中心',en:'Data Center'},
+  overview:{zh:'概况与收益',en:'Summary & P/L',my:'အနှစ်ချုပ်နှင့် အမြတ်အရှုံး'},strategy:{zh:'投资策略',en:'Strategy',my:'ရင်းနှီးမြှုပ်နှံမှု မဟာဗျူဟာ'},data:{zh:'数据中心',en:'Data Center',my:'ဒေတာစင်တာ'},
   heading:{zh:'投资工作区',en:'Investment Workspace'},
-  headingSub:{zh:'总览只看重点，收益、策略和数据各自独立。',en:'A clear overview, with returns, strategies and data in their own spaces.'},
+  headingSub:{zh:'总览合并持仓和收益，策略与数据中心独立查看。',en:'Holdings and performance together, with separate strategy and data views.'},
   overviewTitle:{zh:'我的投资概况',en:'Investment overview'},
   overviewDesc:{zh:'持仓、市值和累计盈亏集中在这里。其他详细分析按需切换。',en:'Holdings, market value and cumulative P/L, without the long scroll.'},
   returnsTitle:{zh:'每日收益与回撤',en:'Performance & P/L'},
@@ -32,10 +31,10 @@
   toReturns:{zh:'查看收益明细',en:'View performance'},
   toStrategy:{zh:'打开投资策略',en:'Open strategies'},
   toData:{zh:'查看数据状态',en:'Review data status'},
-  moreMenu:{zh:'添加投资、投资历史、项目管理和实时行情仍在原有页面选择菜单中。',en:'Add Investment, Portfolio, Manage Projects and Live Prices remain in the existing page picker.'}
+  moreMenu:{zh:'右上角可打开投资记录、新增数据及项目管理。',en:'Use the top-right icons for records, adding data and project management.'}
  };
- const lang=()=>{try{return (window.getMMHVAULTLanguage?.()==='zh'||/^zh/i.test(document.documentElement.lang))?'zh':'en';}catch(_){return 'en'}};
- const tr=(k)=>STRINGS[k]?.[lang()]||k;
+ const lang=()=>{try{const l=String(window.getMMHVAULTLanguage?.()||document.documentElement.lang||'en').toLowerCase();return /^zh/.test(l)?'zh':/^(my|mm)/.test(l)?'my':'en';}catch(_){return 'en'}};
+ const tr=(k)=>STRINGS[k]?.[lang()]||STRINGS[k]?.en||k;
  let active='overview',host=null,observer=null,scheduled=false;
  function build(){
   const parent=$('mmhFiveoverview');if(!parent)return false;
@@ -47,11 +46,11 @@
   host.innerHTML=`
    <div class="iw2-intro"><div><span class="iw2-eyebrow">MMHVAULT / INVEST</span><h2 data-iw2-t="heading"></h2><p data-iw2-t="headingSub"></p></div></div>
    <div class="iw2-tabbar" role="tablist" aria-label="Investment workspace">
-    ${KEYS.map((k,i)=>`<button type="button" class="iw2-tab" role="tab" id="iw2-tab-${k}" aria-controls="iw2-pane-${k}" aria-selected="${i===0?'true':'false'}" tabindex="${i===0?'0':'-1'}" data-iw2-tab="${k}"><span class="iw2-tab-mark" aria-hidden="true">${['◈','↗','◇','▤'][i]}</span><span data-iw2-t="${k}"></span></button>`).join('')}
+    ${KEYS.map((k,i)=>`<button type="button" class="iw2-tab" role="tab" id="iw2-tab-${k}" aria-controls="iw2-pane-${k}" aria-selected="${i===0?'true':'false'}" tabindex="${i===0?'0':'-1'}" data-iw2-tab="${k}"><span class="iw2-tab-mark" aria-hidden="true">${['◈','◇','▤'][i]}</span><span data-iw2-t="${k}"></span></button>`).join('')}
    </div>
    ${KEYS.map((k,i)=>`<section class="iw2-pane" id="iw2-pane-${k}" role="tabpanel" tabindex="0" aria-labelledby="iw2-tab-${k}" ${i?'hidden':''}>
     <div class="iw2-section-heading"><h3 data-iw2-t="${k}Title"></h3><p data-iw2-t="${k}Desc"></p></div>
-    ${k==='overview'?`<div class="iw2-quicklinks"><button type="button" data-iw2-go="returns"><span class="iw2-link-icon" aria-hidden="true">↗</span><span data-iw2-t="toReturns"></span><span aria-hidden="true">→</span></button><button type="button" data-iw2-go="strategy"><span class="iw2-link-icon" aria-hidden="true">◇</span><span data-iw2-t="toStrategy"></span><span aria-hidden="true">→</span></button><button type="button" data-iw2-go="data"><span class="iw2-link-icon" aria-hidden="true">▤</span><span data-iw2-t="toData"></span><span aria-hidden="true">→</span></button></div><p class="iw2-data-reminder" data-iw2-t="dataHint"></p>`:''}
+    ${k==='overview'?`<p class="iw2-data-reminder" data-iw2-t="dataHint"></p>`:''}
     <div class="iw2-content" id="iw2-slot-${k}"></div>
    </section>`).join('')}
    <p class="iw2-footer" data-iw2-t="moreMenu"></p>`;
@@ -72,19 +71,19 @@
   });
   translate();bindTop();return true;
  }
- function translate(){if(!host)return;for(const el of host.querySelectorAll('[data-iw2-t]'))el.textContent=tr(el.dataset.iw2T);const language=String(document.documentElement.lang||'').toLowerCase();const my={returns:'အမြတ်အစွန်း',strategy:'ရင်းနှီးမြှုပ်နှံမှု မဟာဗျူဟာ',data:'ဒေတာစင်တာ'};for(const el of root.querySelectorAll('[data-iw2-top]'))el.textContent=/^(my|mm)/.test(language)?my[el.dataset.iw2Top]:tr(el.dataset.iw2Top)}
+ function translate(){if(!host)return;for(const el of host.querySelectorAll('[data-iw2-t]')){const value=tr(el.dataset.iw2T);if(el.textContent!==value)el.textContent=value;}syncTop();}
  function syncTop(){
-  const shown=!!$('mmhFiveoverview')&&!$('mmhFiveoverview').hidden;
-  const overview=$('investSubOverviewV371');
-  if(overview&&shown){overview.classList.toggle('active',active==='overview');overview.setAttribute('aria-selected',String(active==='overview'));}
-  for(const el of root.querySelectorAll('[data-iw2-top]')){const selected=shown&&active===el.dataset.iw2Top;el.classList.toggle('active',selected);el.setAttribute('aria-selected',String(selected));}
+  const labels={
+   investSubOverviewV371:{en:'Overview',zh:'总览',my:'ခြုံငုံသုံးသပ်ချက်'},
+   investSubPortfolioV371:{en:'Investment records',zh:'投资记录',my:'ရင်းနှီးမြှုပ်နှံမှု မှတ်တမ်းများ'},
+   investSubAddV371:{en:'Add investment data',zh:'新增投资数据',my:'ရင်းနှီးမြှုပ်နှံမှု ဒေတာထည့်ရန်'},
+   investSubManageV1:{en:'Manage investment projects and assets',zh:'管理投资项目与资产',my:'ရင်းနှီးမြှုပ်နှံမှု ပိုင်ဆိုင်မှုများ စီမံရန်'}
+  };
+  for(const [id,translations] of Object.entries(labels)){const el=$(id);if(!el)continue;const label=translations[lang()];el.setAttribute('aria-label',label);el.title=label;if(id==='investSubOverviewV371'&&el.textContent!==label)el.textContent=label;}
+  const overview=$('investSubOverviewV371'),shown=!!$('mmhFiveoverview')&&!$('mmhFiveoverview').hidden;
+  if(overview){overview.classList.toggle('active',shown);overview.setAttribute('aria-selected',String(shown));}
  }
- function bindTop(){
-  const menu=$('mmhInvestPageOptionsV1');if(!menu||!host)return;
-  if(!menu.dataset.iw2Bound){menu.dataset.iw2Bound='1';menu.addEventListener('click',e=>{const b=e.target.closest('[data-iw2-top]');if(!b||!KEYS.includes(b.dataset.iw2Top))return;window.setInvestSubtabV371?.('overview');window.requestAnimationFrame(()=>activate(b.dataset.iw2Top,true));});}
-  for(const el of menu.querySelectorAll('[data-iw2-top]'))el.hidden=false;
-  root.classList.add('mmh-invest-nav-ready');syncTop();
- }
+ function bindTop(){if(!$('mmhInvestPageOptionsV1')||!host)return;root.classList.add('mmh-invest-nav-ready');syncTop();}
  function activate(key,userInitiated){
   active=KEYS.includes(key)?key:'overview';
   if(!host)return;
@@ -94,7 +93,7 @@
    if(panel)panel.hidden=!selected;
   }
   syncTop();
-  if(userInitiated){const top=active==='overview'?$('investSubOverviewV371'):root.querySelector('[data-iw2-top="'+active+'"]');top?.scrollIntoView({block:'nearest',inline:'nearest',behavior:'auto'});
+  if(userInitiated){$('iw2-tab-'+active)?.scrollIntoView({block:'nearest',inline:'nearest',behavior:'auto'});
    // The source modules remain mounted and retain their event handlers / input state.
    // A resize event lets responsive charts settle after their pane becomes visible.
    window.requestAnimationFrame(()=>window.dispatchEvent(new Event('resize')));
