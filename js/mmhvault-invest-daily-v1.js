@@ -66,12 +66,12 @@ function money(v,type){if(!v||!v.valid)return'<span class="idv1-missing">—</sp
 function base(){const host=el('mmhFiveoverview');if(!host)return null;let box=el('mmhInvestDailyV1');if(box)return box;
  box=document.createElement('section');box.id='mmhInvestDailyV1';box.className='idv1-root';box.innerHTML=`<div class="idv1-head"><div><h2>${T('Crypto 每日盈亏','Daily Crypto P/L')}</h2><p hidden>${T('逐日核对 Crypto（USD）的盈亏与买卖资金流，Gold 不参与没有可信历史报价的数据计算。','Track Crypto (USD) daily P/L and trade cash flows. Gold is excluded until trustworthy automatic historical pricing is available.')}</p></div><button type="button" class="idv1-refresh" data-idv-refresh aria-label="${T('刷新行情','Refresh prices')}" title="${T('刷新行情','Refresh prices')}">${refreshIcon}</button></div>
 
- <div class="idv1-cards" id="idv1Summary"></div><div class="idv1-controls"><b>${T('盈亏历史','P/L History')}</b><div class="idv1-period"><button type="button" data-idv-days="7">7D</button><button type="button" data-idv-days="30">30D</button><button type="button" data-idv-days="month">${T('本月','Month')}</button></div></div>
- <div id="idv1Trend" class="idv1-trends" aria-label="Daily profit and loss trend"></div><div id="idv1History" class="idv1-history"></div><div id="idv1Breakdown" class="idv1-breakdown"></div>
+ <div class="idv1-cards" id="idv1Summary"></div><div class="idv1-history-panel"><div class="idv1-controls"><b>${T('盈亏历史','P/L History')}</b><div class="idv1-period"><button type="button" data-idv-days="7">7D</button><button type="button" data-idv-days="30">30D</button><button type="button" data-idv-days="month">${T('本月','Month')}</button></div></div>
+ <div id="idv1History" class="idv1-history"></div></div><div id="idv1Breakdown" class="idv1-breakdown"></div>
  <details class="idv1-info"><summary aria-label="${T('每日盈亏说明','About daily P/L')}" title="${T('每日盈亏说明','About daily P/L')}">${infoIcon}<span class="idv1-info-label">${T('每日盈亏说明','About daily P/L')}</span></summary><p class="idv1-gold-note" id="idv1GoldNotice">${T('Gold 历史金价暂无法自动可靠核实，因此已取消手动录入及 Gold 每日盈亏模块。黄金持仓、市值和累计盈亏仍保留在原有 Invest 总览中；不会删除已有历史金价记录。','Reliable automatic historical Gold (MMK) pricing is not yet available, so manual quote entry and Gold daily P/L have been removed. Existing Gold positions and their portfolio values remain unchanged; old saved quote records are retained.')}</p>
  <p class="idv1-note" id="idv1Note"></p></details><p class="idv1-status" id="idv1Status" aria-live="polite"></p>`;
  const notice=el('mmhFiveOverviewNotice');if(notice)notice.before(box);else host.prepend(box);
- box.addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;if(b.dataset.idvDays){daysView=b.dataset.idvDays==='month'?'month':Number(b.dataset.idvDays);draw();}else if(b.dataset.idvDate){selectedDay=b.dataset.idvDate;draw();}else if(b.dataset.idvResetSymbol){selectedSymbol='';draw();}else if(b.dataset.idvSym){selectedSymbol=selectedSymbol===b.dataset.idvSym?'':b.dataset.idvSym;draw();}else if(b.hasAttribute('data-idv-refresh'))load(true);});
+ box.addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;if(b.dataset.idvDays){daysView=b.dataset.idvDays==='month'?'month':Number(b.dataset.idvDays);const scroller=el('idv1History')?.querySelector('.idv1-table-scroll');if(scroller)scroller.scrollTop=0;draw();}else if(b.dataset.idvDate){selectedDay=b.dataset.idvDate;draw();}else if(b.dataset.idvResetSymbol){selectedSymbol='';draw();}else if(b.dataset.idvSym){selectedSymbol=selectedSymbol===b.dataset.idvSym?'':b.dataset.idvSym;draw();}else if(b.hasAttribute('data-idv-refresh'))load(true);});
  return box;
 }
 function summary(){const c=el('idv1Summary');if(!c)return;
@@ -80,46 +80,30 @@ function summary(){const c=el('idv1Summary');if(!c)return;
  const a=[{label:T('今日','Today'),val:cryptoDaily(today)},{label:T('昨天','Yesterday'),val:cryptoDaily(yesterday)},{label:T('本月','This month'),val:sum(monthDays)}];
  c.innerHTML=`<div class="idv1-summary-group"><div class="idv1-group-label">Crypto · USD</div><div class="idv1-summary-row">${a.map(x=>`<div class="idv1-stat"><small>${x.label}</small><b>${money(x.val,'crypto')}</b></div>`).join('')}</div></div>`;
 }
-function trendDatum(kind,day){return cryptoDaily(day,selectedSymbol||'')}
-function signedValue(v,type){if(!v?.valid)return '—';return (v.total>=0?'+':'−')+(type==='gold'?'K ':'$')+fmt(Math.abs(v.total));}
-function renderTrend(kind,dates){
- const data=dates.map(d=>({day:d,result:trendDatum(kind,d)})),valid=data.filter(x=>x.result.valid);
- const magnitude=Math.max(1,...valid.map(x=>Math.abs(x.result.total)));
- const selected=selectedDay;
- const title=kind==='crypto'?'Crypto · USD':'Gold · MMK';
- const label=selectedSymbol&&kind==='crypto'?' · '+safe(selectedSymbol):'';
- const bars=data.map(({day,result})=>{
-  const complete=result.valid,height=complete?Math.max(3,Math.min(100,Math.abs(result.total)/magnitude*100)):0;
-  const caption=day.slice(5),txt=complete?signedValue(result,kind):T('缺少报价','No quote');
-  const type=complete?(result.total>=0?'positive':'negative'):'missing';
-  return `<button type="button" class="idv1-day ${type}${selected===day?' selected':''}" data-idv-date="${day}" title="${safe(day+' · '+txt)}" aria-label="${safe(day+' '+txt)}" aria-pressed="${selected===day}"><span class="idv1-day-value">${complete? (result.total>=0?'+':'−')+fmt(Math.abs(result.total),2):'—'}</span><span class="idv1-bar-track"><span class="idv1-bar" style="height:${height}%"></span></span><small>${caption}</small></button>`;
- }).join('');
- return `<div class="idv1-chart-group"><div class="idv1-chart-head"><strong>${title}${label}</strong><small>${valid.length}/${data.length} ${T('天有可核实报价','days priced')}</small></div><div class="idv1-chart-scroll"><div class="idv1-chart-bars">${bars}</div></div></div>`;
-}
 function draw(){const root=base();if(!root)return;
  const locale=[['.idv1-head h2','Crypto 每日盈亏','Daily Crypto P/L'],['.idv1-head p','逐日核对 Crypto（USD）的盈亏与买卖资金流，Gold 不参与没有可信历史报价的数据计算。','Track Crypto (USD) daily P/L and trade cash flows. Gold is excluded until trustworthy automatic historical pricing is available.'],['.idv1-info-label','每日盈亏说明','About daily P/L'],['.idv1-controls>b','盈亏历史','P/L History'],['[data-idv-days=month]','本月','Month'],['#idv1GoldNotice','Gold 历史金价暂无法自动可靠核实，因此已取消手动录入及 Gold 每日盈亏模块。黄金持仓、市值和累计盈亏仍保留在原有 Invest 总览中；不会删除已有历史金价记录。','Reliable automatic historical Gold (MMK) pricing is not yet available, so manual quote entry and Gold daily P/L have been removed. Existing Gold positions and their portfolio values remain unchanged; old saved quote records are retained.']];
  for(const [selector,zh,en] of locale){const target=root.querySelector(selector);if(target)target.textContent=T(zh,en)}
  for(const [selector,zh,en] of [['[data-idv-refresh]','刷新行情','Refresh prices'],['.idv1-info summary','每日盈亏说明','About daily P/L']]){const b=root.querySelector(selector);if(b){b.title=T(zh,en);b.setAttribute('aria-label',T(zh,en));}}
  root.querySelectorAll('[data-idv-days]').forEach(b=>{const active=String(daysView)===b.dataset.idvDays;b.classList.toggle('active',active);b.setAttribute('aria-pressed',String(active));});
- if(!currentOwner){el('idv1Status').hidden=true;el('idv1Summary').innerHTML='';el('idv1Trend').innerHTML='';el('idv1Breakdown').innerHTML='';el('idv1History').textContent=T('请先登录以查看自己的投资记录。','Sign in to see your own investment history.');return;}
+ if(!currentOwner){el('idv1Status').hidden=true;el('idv1Summary').innerHTML='';el('idv1Breakdown').innerHTML='';el('idv1History').textContent=T('请先登录以查看自己的投资记录。','Sign in to see your own investment history.');return;}
  summary();const today=todayLocal(),count=daysView==='month'?Number(today.slice(8,10)):daysView;
  const dates=Array.from({length:count},(_,i)=>addDays(today,-count+1+i));
  if(!dates.includes(selectedDay))selectedDay=today;
- el('idv1Trend').innerHTML=renderTrend('crypto',dates);
- const rows=[...dates].reverse().map(date=>{const cr=cryptoDaily(date);return `<tr class="${date===selectedDay?'idv1-highlight':''}"><td><button type="button" class="idv1-date-link" data-idv-date="${date}" aria-label="${T('查看这一天','View day')} ${date}">${date}</button></td><td>${money(cr,'crypto')}</td></tr>`;});
- el('idv1History').innerHTML=`<div class="idv1-table-scroll"><table><thead><tr><th>${T('日期','Date')}</th><th>Crypto · USD</th></tr></thead><tbody>${rows.join('')}</tbody></table></div>`;
+ const rows=[...dates].reverse().map(date=>{const cr=cryptoDaily(date,selectedSymbol||'');return `<tr class="${date===selectedDay?'idv1-highlight':''}"><td><button type="button" class="idv1-date-link" data-idv-date="${date}" aria-label="${T('查看这一天','View day')} ${date}" aria-pressed="${date===selectedDay}">${date}</button></td><td>${money(cr,'crypto')}</td></tr>`;});
+ const history=el('idv1History'), previousScroll=history.querySelector('.idv1-table-scroll')?.scrollTop||0;
+ history.innerHTML=`<div class="idv1-table-scroll"><table><thead><tr><th>${T('日期','Date')}</th><th>${selectedSymbol?safe(selectedSymbol):'Crypto'} · USD</th></tr></thead><tbody>${rows.join('')}</tbody></table></div>`;
+ history.querySelector('.idv1-table-scroll').scrollTop=previousScroll;
  const breakdown=el('idv1Breakdown'),day=selectedDay;
  let sections=[];
- const addBreakdown=(kind)=>{const report=kind==='crypto'?cryptoDaily(day):goldDaily(day);
+ const addBreakdown=(kind)=>{const report=kind==='crypto'?cryptoDaily(day,selectedSymbol||''):goldDaily(day);
   const symbolOptions=kind==='crypto'?[...new Set(accountCrypto().map(x=>String(x.symbol||'').toUpperCase().trim()).filter(Boolean))].sort():[];
-  const chips=kind==='crypto'?`<div class="idv1-symbol-filter"><button type="button" data-idv-reset-symbol="1" class="${!selectedSymbol?'active':''}" ${!selectedSymbol?'disabled':''}>${T('全部币种','All coins')}</button>${symbolOptions.map(sym=>`<button type="button" data-idv-sym="${safe(sym)}" class="${selectedSymbol===sym?'active':''}">${coinMark(sym)}${safe(sym)}</button>`).join('')}</div>`:'';
-  if(!report.valid){sections.push(`<div class="idv1-asset-section"><strong>${kind==='crypto'?'Crypto · USD':'Gold · MMK'}</strong>${chips}<p class="idv1-verify">${T('该日行情或持仓记录不足，不能可靠计算完整盈亏。','Missing quote or position data: complete daily P/L cannot be verified.')}</p></div>`);return;}
+  const chips=kind==='crypto'?`<div class="idv1-symbol-filter"><button type="button" data-idv-reset-symbol="1" aria-pressed="${!selectedSymbol}" class="${!selectedSymbol?'active':''}" ${!selectedSymbol?'disabled':''}>${T('全部币种','All coins')}</button>${symbolOptions.map(sym=>`<button type="button" data-idv-sym="${safe(sym)}" aria-pressed="${selectedSymbol===sym}" class="${selectedSymbol===sym?'active':''}">${coinMark(sym)}${safe(sym)}</button>`).join('')}</div>`:'';
+  if(!report.valid){sections.push(`<div class="idv1-asset-section"><strong class="idv1-asset-total">${kind==='crypto'?(selectedSymbol?safe(selectedSymbol)+' · USD':'Crypto · USD'):'Gold · MMK'} <span>${money(report,kind)}</span></strong>${chips}<p class="idv1-verify">${T('该日行情或持仓记录不足，不能可靠计算完整盈亏。','Missing quote or position data: complete daily P/L cannot be verified.')}</p></div>`);return;}
   const parts=report.parts.filter(x=>x.valid&&(!selectedSymbol||kind!=='crypto'||x.sym===selectedSymbol));
-  sections.push(`<div class="idv1-asset-section"><strong>${kind==='crypto'?'Crypto · USD':'Gold · MMK'} · ${signedValue(report,kind)}</strong>${chips}<div class="idv1-break-grid">${parts.map(x=>`<div class="idv1-break-card"><b>${coinMark(x.sym)}${safe(x.sym)}</b>${money({valid:true,total:x.pl},kind)}</div>`).join('')}</div></div>`);
+  sections.push(`<div class="idv1-asset-section"><strong class="idv1-asset-total">${kind==='crypto'?(selectedSymbol?safe(selectedSymbol)+' · USD':'Crypto · USD'):'Gold · MMK'} <span>${money(report,kind)}</span></strong>${chips}<div class="idv1-break-grid">${parts.map(x=>`<div class="idv1-break-card"><b>${coinMark(x.sym)}${safe(x.sym)}</b>${money({valid:true,total:x.pl},kind)}</div>`).join('')}</div></div>`);
  };
  addBreakdown('crypto');
- breakdown.innerHTML=`<div class="idv1-break-head"><h3>${T('币种盈亏','Asset P/L')} · ${safe(selectedDay)}</h3></div>${sections.join('')}`;
- root.querySelectorAll('.idv1-chart-scroll').forEach(scroller=>{const active=scroller.querySelector('.idv1-day.selected');if(!active)return;const left=active.offsetLeft-scroller.clientWidth/2+active.clientWidth/2;scroller.scrollLeft=Math.max(0,left);});
+ breakdown.innerHTML=`<div class="idv1-break-head"><h3>${T('币种盈亏','Asset P/L')}</h3><time datetime="${safe(selectedDay)}">${safe(selectedDay)}</time></div>${sections.join('')}`;
  el('idv1Note').textContent=T('Crypto 每日盈亏使用买卖现金流和手续费修正，并以交易所历史日线及最新报价为参考。缺少行情或交易金额时显示「—」。Gold 未纳入此页的每日盈亏统计；原有持仓信息不受影响。','Crypto daily P/L adjusts for trades and fees using historical exchange bars and fresh quotes. Missing trades or prices show “—”. Gold is excluded from daily P/L here; existing holdings remain unchanged.');
  const s=el('idv1Status');s.textContent=error||'';s.hidden=!error;
 }
@@ -142,7 +126,7 @@ async function loadCrypto(owner,force){const symbols=[...new Set(accountCrypto()
  cryptoCache={at:Date.now(),key,prices:result,missing};if(missing.length)error=T('部分 Crypto 历史价格不可用：','Some historical crypto quotes unavailable: ')+missing.join(', ');
 }
 async function load(force=false){const box=base();if(!box)return;const owner=owns();if(!owner){currentOwner='';cryptoCache={at:0,key:'',prices:new Map(),missing:[]};selectedSymbol='';error='';draw();return}
- if(currentOwner!==owner){currentOwner=owner;cryptoCache={at:0,key:'',prices:new Map(),missing:[]};selectedSymbol='';error='';['idv1Summary','idv1Trend','idv1Breakdown','idv1History'].forEach(id=>{const target=el(id);if(target)target.replaceChildren();});}
+ if(currentOwner!==owner){currentOwner=owner;cryptoCache={at:0,key:'',prices:new Map(),missing:[]};selectedSymbol='';error='';['idv1Summary','idv1Breakdown','idv1History'].forEach(id=>{const target=el(id);if(target)target.replaceChildren();});}
  const token=++lastRenderToken;
  el('idv1Status').hidden=false;el('idv1Status').textContent=T('正在加载历史报价…','Loading price history…');
  try{error='';await loadCrypto(owner,force);}catch(err){error=T('历史数据加载失败，请重试。','Failed to load history; please retry.')}
