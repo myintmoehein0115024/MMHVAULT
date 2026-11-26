@@ -11560,11 +11560,11 @@ html.mmh-desktop-compact-v11110 body.mmh-workspace-active #moreNavMenu.more-nav-
 <div class="toolbar v371-head"><div><h1 class="mmh-hint-anchor-v195 mmh-context-title-v199" data-mmh-hint-source="next" tabindex="0">Investment Center</h1><div class="sub mmh-context-desc-v199">Add investments or wallet activity, review your portfolio, manage projects, inspect returns and follow market prices.</div></div>
 <div class="v371-switch"><button class="btn active" id="v371CryptoBtn" type="button">₿ Crypto</button><button class="btn" id="v371GoldBtn" type="button">🥇 Gold</button></div>
 <div class="mmh-page-picker-v1" id="mmhInvestPagePickerV1"><button class="mmh-page-picker-trigger-v1" id="mmhInvestPageTriggerV1" type="button" aria-label="选择页面" aria-haspopup="true" aria-expanded="false" aria-controls="mmhInvestPageOptionsV1"><span id="mmhInvestPageCurrentV1">Overview</span><span class="mmh-page-picker-chevron-v1" aria-hidden="true"></span></button>
-<div aria-label="Investment sections" class="invest-subtabs-v371" id="mmhInvestPageOptionsV1" role="tablist" aria-hidden="true">
+<div aria-label="Investment sections" class="invest-subtabs-v371" id="mmhInvestPageOptionsV1" role="tablist" aria-hidden="false">
+<button type="button" class="invest-subtab-v371" id="investSubOverviewV371" role="tab">Overview</button>
 <button type="button" class="invest-subtab-v371" id="investSubAddV371" role="tab">Add Investment</button>
 <button type="button" class="invest-subtab-v371" id="investSubPortfolioV371" role="tab">Portfolio</button>
 <button type="button" class="invest-subtab-v371" id="investSubManageV1" role="tab">Manage Projects</button>
-<button type="button" class="invest-subtab-v371" id="investSubOverviewV371" role="tab">Overview</button>
 <button type="button" class="invest-subtab-v371" id="investSubLiveV1" role="tab">Live Prices</button>
 </div></div></div>
 <div id="mmhUnifiedInvestV1" aria-label="All investments">
@@ -20215,8 +20215,8 @@ html body #invest .invest-subtabs-v371{display:grid!important;grid-template-colu
  const picker=I('mmhInvestPagePickerV1'),trigger=I('mmhInvestPageTriggerV1'),menu=I('mmhInvestPageOptionsV1');
  function closePicker(restoreFocus=false){
   if(!picker?.classList.contains('open'))return;
-  picker.classList.remove('open');trigger?.setAttribute('aria-expanded','false');menu?.setAttribute('aria-hidden','true');
-  if(restoreFocus)trigger?.focus();
+  picker.classList.remove('open');trigger?.setAttribute('aria-expanded','false');menu?.setAttribute('aria-hidden','false');
+  if(restoreFocus)menu?.querySelector('[aria-selected="true"]')?.focus();
  }
  function openPicker(focusOption=false){
   if(!picker||!trigger||!menu)return;
@@ -38087,6 +38087,84 @@ labels();bind();
 })();
 </script>
 
+
+
+<style id="mmhInvestWorkspaceV2">
+/* Invest V2 visual pass. Keep all live renderers, forms, data and routes intact. */
+html body.mmh-workspace-active #invest#invest#invest#invest{
+  box-sizing:border-box!important;width:100%!important;max-width:none!important;margin:0!important;padding:16px 18px 24px!important;
+  min-width:0!important;background:transparent!important;background-image:none!important;color:var(--uv-text)!important;
+  border:0!important;border-radius:0!important;box-shadow:none!important;
+}
+html body #invest#invest#invest#invest>.v371-head{margin:0 0 12px!important;padding:0!important;gap:12px!important;align-items:center!important;background:transparent!important}
+html body #invest#invest#invest#invest>.v371-head h1{font:600 19px/1.35 var(--mmh-notice-font,system-ui)!important;color:var(--uv-text)!important;margin:0!important}
+html body #invest#invest#invest#invest>.v371-head .sub{display:none!important}
+html body #invest#invest#invest#invest #mmhInvestPageTriggerV1{min-height:38px!important;padding:8px 12px!important;background:var(--uv-raised)!important;background-image:none!important;color:var(--uv-text)!important;border:1px solid var(--uv-line)!important;border-radius:8px!important;box-shadow:none!important;font-weight:600!important}
+html body #invest#invest#invest#invest #mmhInvestPageOptionsV1{background:var(--uv-card)!important;background-image:none!important;border:1px solid var(--uv-line)!important;border-radius:8px!important;box-shadow:0 8px 24px #0002!important}
+html body #invest#invest#invest#invest #mmhInvestPageOptionsV1>button{color:var(--uv-text)!important;border-radius:6px!important;min-height:40px!important}
+html body #invest#invest#invest#invest #mmhInvestPageOptionsV1>button:is(.active,:hover,:focus-visible){background:var(--uv-raised)!important;color:var(--uv-text)!important}
+html body #invest#invest#invest#invest :is(.panel,.mmh-ui-panel){box-sizing:border-box!important;min-width:0!important;max-width:100%!important;background:var(--uv-card)!important;background-image:none!important;color:var(--uv-text)!important;border:1px solid var(--uv-line)!important;border-radius:9px!important;padding:14px!important;margin:0 0 12px!important;box-shadow:none!important;backdrop-filter:none!important}
+html body #invest#invest#invest#invest :is(.mmh-ui-heading,.invest-entry>.toolbar){margin-bottom:12px!important;gap:8px!important;flex-wrap:wrap}
+html body #invest#invest#invest#invest :is(.mmh-ui-heading h2,.panel h2,.mmh-catalog-section h3){font:600 15px/1.4 var(--mmh-notice-font,system-ui)!important;color:var(--uv-text)!important}
+html body #invest#invest#invest#invest :is(.mmh-ui-heading p,.panel .sub,.mmh-catalog-section p,.mmh-five-note,.mmh-ui-empty,.mmh-overview-rate,.mmh-overview-status){color:var(--uv-muted)!important;font-size:11px!important;line-height:1.5!important}
+html body #invest#invest#invest#invest #mmhFiveoverview{padding-bottom:0!important;min-width:0!important}
+html body #invest#invest#invest#invest #mmhUnifiedKpisV1{grid-template-columns:repeat(4,minmax(0,1fr))!important;gap:10px!important}
+html body #invest#invest#invest#invest :is(.mmh-ui-kpi,.mmh-overview-card,.mmh-ui-row,.mmh-catalog-section){min-width:0!important;background:var(--uv-card)!important;background-image:none!important;color:var(--uv-text)!important;border:1px solid var(--uv-line)!important;border-radius:8px!important;padding:12px!important;box-shadow:none!important}
+html body #invest#invest#invest#invest .mmh-ui-kpi>span{color:var(--uv-muted)!important;font-size:11px!important;text-transform:none!important;letter-spacing:0!important}
+html body #invest#invest#invest#invest .mmh-ui-kpi>small{color:var(--uv-muted)!important;font-size:10px!important}
+html body #invest#invest#invest#invest .mmh-ui-kpi strong{color:var(--uv-text)!important;font-size:clamp(16px,1.8vw,24px)!important;line-height:1.35!important;font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
+html body #invest#invest#invest#invest .mmh-ui-kpi strong>span{font-size:clamp(12px,1.3vw,16px)!important}
+html body #invest#invest#invest#invest .mmh-ui-kpi strong>span.mmh-pl-profit{color:var(--uv-positive)!important}
+html body #invest#invest#invest#invest .mmh-ui-kpi strong>span.mmh-pl-loss{color:var(--uv-negative)!important}
+html body #invest#invest#invest#invest .mmh-ui-kpi strong>span.mmh-pl-flat{color:var(--uv-muted)!important}
+html body #invest#invest#invest#invest #mmhUnifiedListV1{grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:10px!important}
+html body #invest#invest#invest#invest .mmh-overview-card-head{border-color:var(--uv-line)!important;background:transparent!important;gap:8px!important}
+html body #invest#invest#invest#invest :is(.mmh-overview-card-head b,.mmh-overview-field b,.mmh-ui-row b,.mmh-catalog-row b){color:var(--uv-text)!important;overflow-wrap:anywhere}
+html body #invest#invest#invest#invest .mmh-overview-fields{gap:0 12px!important}
+html body #invest#invest#invest#invest .mmh-overview-field{padding:8px 0!important;background:transparent!important;border-color:var(--uv-line)!important;min-width:0!important}
+html body #invest#invest#invest#invest :is(.mmh-overview-field small,.mmh-overview-field em,.mmh-ui-row small,.mmh-catalog-row small){color:var(--uv-muted)!important}
+html body #invest#invest#invest#invest :is(.mmh-pl-profit,.positive),html body #invest#invest#invest#invest :is(.mmh-pl-profit,.positive) :is(b,em,span){color:var(--uv-positive)!important}
+html body #invest#invest#invest#invest :is(.mmh-pl-loss,.negative),html body #invest#invest#invest#invest :is(.mmh-pl-loss,.negative) :is(b,em,span){color:var(--uv-negative)!important}
+html body #invest#invest#invest#invest .mmh-pl-flat{color:var(--uv-muted)!important}
+html body #invest#invest#invest#invest :is(.mmh-ui-filters,.mmh-invest-inner-nav-v193){gap:6px!important}
+html body #invest#invest#invest#invest .mmh-invest-inner-nav-v193{background:var(--uv-card)!important;background-image:none!important;border:1px solid var(--uv-line)!important;border-radius:8px!important;padding:4px!important;box-shadow:none!important}
+html body #invest#invest#invest#invest :is(.mmh-ui-filters button,.mmh-invest-inner-nav-v193 button,.mmh-catalog-row button,.mmh-catalog-toggle,.btn){background:var(--uv-raised)!important;background-image:none!important;border:1px solid var(--uv-line)!important;border-radius:7px!important;color:var(--uv-text)!important;box-shadow:none!important}
+html body #invest#invest#invest#invest :is(.mmh-ui-filters button[aria-pressed=true],.mmh-invest-inner-nav-v193 button.active){color:var(--uv-accent)!important;border-color:var(--uv-accent)!important}
+html body #invest#invest#invest#invest :is(.btn.primary,.mmh-catalog-form button){background:var(--uv-accent)!important;background-image:none!important;color:var(--uv-card)!important;border:1px solid var(--uv-accent)!important;border-radius:7px!important;box-shadow:none!important}
+html body #invest#invest#invest#invest :is(.btn.danger,.mmh-catalog-row button[data-action=delete]){color:var(--uv-negative)!important}
+html body #invest#invest#invest#invest :is(input:not([type=file]):not([type=checkbox]):not([type=radio]),select,textarea){box-sizing:border-box!important;min-width:0!important;max-width:100%!important;background:var(--uv-raised)!important;background-image:none!important;color:var(--uv-text)!important;border:1px solid var(--uv-line)!important;border-radius:7px!important;box-shadow:none!important}
+html body #invest#invest#invest#invest :is(.formgrid label,.mmh-form-section-v1){color:var(--uv-muted)!important}
+html body #invest#invest#invest#invest #invForm .formgrid{gap:10px!important}
+html body #invest#invest#invest#invest #invForm .formgrid>label{min-width:0!important}
+html body #invest#invest#invest#invest #invForm #invDate{min-width:0!important;max-width:100%!important;line-height:20px!important}
+html body #invest#invest#invest#invest #invForm #invDate::-webkit-date-and-time-value{text-align:left!important;margin:0!important;line-height:20px!important}
+@media(max-width:1000px){
+ html body #invest#invest#invest#invest #mmhUnifiedKpisV1{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+}
+@media(max-width:760px){
+ html body.mmh-workspace-active #invest#invest#invest#invest{padding:12px 10px 16px!important}
+ html body #invest#invest#invest#invest>.v371-head{gap:8px!important}
+ html body #invest#invest#invest#invest #mmhUnifiedListV1{grid-template-columns:minmax(0,1fr)!important}
+ html body #invest#invest#invest#invest :is(.panel,.mmh-ui-panel,.mmh-ui-kpi,.mmh-overview-card){padding:10px!important}
+ html body #invest#invest#invest#invest #mmhUnifiedKpisV1{gap:8px!important}
+ html body #invest#invest#invest#invest #invForm :is(input:not([type=file]),select,textarea){font-size:16px!important}
+}
+@media(max-width:360px){html body #invest#invest#invest#invest #mmhUnifiedKpisV1{grid-template-columns:minmax(0,1fr)!important}}
+/* Always-visible section tabs; preserve existing route buttons and selection handlers. */
+html body #invest#invest#invest#invest>.v371-head{flex-wrap:wrap!important}
+html body #invest#invest#invest#invest #mmhInvestPagePickerV1{flex:0 0 100%!important;width:100%!important;min-width:0!important;z-index:auto!important}
+html body #invest#invest#invest#invest #mmhInvestPageTriggerV1{display:none!important}
+html body #invest#invest#invest#invest #mmhInvestPageOptionsV1,html body #invest#invest#invest#invest #mmhInvestPagePickerV1.open #mmhInvestPageOptionsV1{position:static!important;display:flex!important;visibility:visible!important;opacity:1!important;transform:none!important;pointer-events:auto!important;flex-wrap:wrap!important;gap:4px!important;padding:4px!important;box-shadow:none!important;margin:0!important;width:100%!important}
+html body #invest#invest#invest#invest #mmhInvestPageOptionsV1>button{flex:1 1 110px!important;width:auto!important;justify-content:center!important;text-align:center!important;white-space:normal!important;line-height:1.35!important;padding:8px 9px!important}
+html body #invest#invest#invest#invest #mmhInvestPageOptionsV1>button.active{background:var(--uv-raised)!important;color:var(--uv-accent)!important;border-bottom:2px solid var(--uv-accent)!important}
+html body #invest#invest#invest#invest #mmhUnifiedAllocationV1{grid-template-columns:repeat(auto-fit,minmax(min(100%,150px),1fr))!important;gap:8px!important}
+html body #invest#invest#invest#invest #mmhUnifiedAllocationV1 .mmh-mix-card{background:var(--uv-raised)!important;background-image:none!important;border:1px solid var(--uv-line)!important;border-radius:7px!important;padding:10px!important}
+html body #invest#invest#invest#invest #mmhUnifiedAllocationV1 :is(.mmh-mix-label,.mmh-mix-label b,.mmh-mix-label span){color:var(--uv-text)!important}
+html body #invest#invest#invest#invest #mmhUnifiedAllocationV1>span{color:var(--uv-muted)!important;background:transparent!important;border:0!important}
+html body #invest#invest#invest#invest #mmhUnifiedAllocationV1 .mmh-mix-track{background:var(--uv-line)!important}
+html body #invest#invest#invest#invest #mmhUnifiedAllocationV1 .mmh-mix-track>span{background:var(--uv-accent)!important}
+@media(max-width:760px){html body #invest#invest#invest#invest #mmhInvestPageOptionsV1>button{flex:1 1 85px!important;font-size:11px!important;min-height:42px!important}}
+</style>
 
 <style id="mmhWorkspaceMobileSafeAreaV2">
 /* Mobile workspace only: status bar and Home indicator are part of the chrome,
