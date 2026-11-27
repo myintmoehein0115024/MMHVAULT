@@ -24,8 +24,10 @@ try{
   const labels={en:['MONTHLY INCOME','MONTHLY EXPENSE','MONTHLY NET'],zh:['月收入','月支出','月结余'],my:['လစဉ် ဝင်ငွေ','လစဉ် အသုံးစရိတ်','လစဉ် အသားတင်လက်ကျန်']}[lang];
   await page.evaluate(labels=>{['hcIncomeLabelV4','hcExpenseLabelV4','hcRemainingLabelV3'].forEach((id,i)=>document.getElementById(id).textContent=labels[i]);['hcIncome','hcExpense','hcRemaining'].forEach((id,i)=>document.getElementById(id).textContent=['123,456.78','23,456.78','100,000.00'][i])},labels);
   for(const block of blocks)await page.addStyleTag({content:block.css});
-  const state=()=>page.evaluate(()=>[...document.querySelectorAll('#transactions .hc-totals > div,#fixtureFilter,#txList,#unrelated .hc-totals > div')].map(e=>{const p=getComputedStyle(e),r=e.getBoundingClientRect();return {rect:[r.x,r.y,r.width,r.height],bg:p.backgroundImage,size:p.backgroundSize,pos:p.backgroundPosition,repeat:p.backgroundRepeat,color:p.backgroundColor,pointer:p.pointerEvents}}));
+  const state=()=>page.evaluate(()=>['hcIncome','hcExpense','hcRemaining'].map(id=>document.getElementById(id).parentElement).concat([document.getElementById('fixtureFilter'),document.getElementById('txList'),document.querySelector('#unrelated .hc-totals > div')]).map(e=>{const p=getComputedStyle(e),r=e.getBoundingClientRect();return {target:e.querySelector('b[id]')?.id||e.id||'unrelated',rect:[r.x,r.y,r.width,r.height],bg:p.backgroundImage,size:p.backgroundSize,pos:p.backgroundPosition,repeat:p.backgroundRepeat,color:p.backgroundColor,pointer:p.pointerEvents}}));
   const before=await state();
+  assert.deepEqual(before.map(c=>c.target),['hcIncome','hcExpense','hcRemaining','fixtureFilter','txList','unrelated'],'explicit target order, independent of DOM order');
+  assert.equal(await page.locator('#transactions .hc-totals > div').count(),3);
   await page.evaluate(({idx,addition})=>{const style=document.querySelectorAll('style')[idx];style.textContent+=addition;if(!style.sheet||![...style.sheet.cssRules].some(r=>r.cssText.includes('--hc-edge-rgb')))throw Error('Accent rules were not parsed');},{idx,addition});
   const after=await state();
   assert.deepEqual(after.map(x=>x.rect),before.map(x=>x.rect),'existing geometry unchanged');
