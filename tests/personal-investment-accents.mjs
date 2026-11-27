@@ -33,8 +33,13 @@ try{
   const state=()=>page.evaluate(()=>{const k=document.getElementById('mmhUnifiedKpisV1');return [k.parentElement,k,k.querySelector('table'),k.querySelector('.mmh-native-roi-v214'),k.querySelector('.mmh-native-note-v214'),document.getElementById('iw2-tab-overview'),document.getElementById('fixtureHoldings'),document.querySelector('#unrelated .mmh-ui-panel')].map(e=>{const p=getComputedStyle(e),r=e.getBoundingClientRect();return {rect:[r.x,r.y,r.width,r.height],bg:p.backgroundImage,size:p.backgroundSize,pos:p.backgroundPosition,repeat:p.backgroundRepeat,color:p.backgroundColor,fg:p.color,content:e.textContent};});});
   assert.ok(await page.locator('#iw2-slot-overview > .mmh-ui-panel:has(> #mmhUnifiedKpisV1)').isVisible(),'real overview panel visible');
   assert.ok(await page.locator('#iw2-tab-overview').isVisible(),'workspace tab visible');
+  // The existing calm-motion CSS transitions background-color for 150ms.
+  // Style installation can trigger transitions; compare settled snapshots, not transient values.
+  const settle=()=>page.evaluate(async()=>{await new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r)));const transitions=document.getAnimations().filter(a=>a.constructor.name==='CSSTransition');await Promise.allSettled(transitions.map(a=>a.finished));await new Promise(r=>requestAnimationFrame(r));});
+  await settle();
   const before=await state();assert.ok(before[0].rect[2]>0&&before[0].rect[3]>0,'nonzero panel geometry');const plBefore=await page.locator('#mmhUnifiedKpisV1 :is(.mmh-pl-profit,.mmh-pl-loss)').evaluateAll(es=>es.map(e=>getComputedStyle(e).color));
   await page.evaluate(({idx,addition})=>{document.querySelectorAll('style')[idx].textContent+=addition;},{idx,addition});
+  await settle();
   const after=await state();assert.deepEqual(after.map(c=>c.rect),before.map(c=>c.rect),'geometry unchanged');
   assert.match(after[0].size,/2px$/);assert.equal(after[0].pos,'50% 100%');assert.equal(after[0].repeat,'no-repeat');assert.match(after[0].bg,/linear-gradient/);assert.equal(after[0].color,before[0].color);assert.equal(after[0].content,before[0].content);
   assert.deepEqual(after.slice(1),before.slice(1),'table, ROI, note, other panel and unrelated page unchanged');
