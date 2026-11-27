@@ -365,3 +365,18 @@ html body.mmh-workspace-active #dashboard #mmhPremiumDashboardV500 .pf-allocatio
 @media(prefers-reduced-motion:reduce){
   html body.mmh-workspace-active #dashboard #mmhPremiumDashboardV500 .pf-allocation-card-v630 .pf-allocation-row-v630{transition:none!important}
 }
+
+/* Personal V2.0.57 — Future Assets-style restrained bottom accents, Overview KPI only. */
+html body.mmh-workspace-active #dashboard#dashboard.page.active #mmhPremiumDashboardV500 .pf-kpis-v500 > .pf-kpi-v500 {
+  --pf-kpi-edge-rgb:133,205,240;
+}
+html body.mmh-workspace-active #dashboard#dashboard.page.active #mmhPremiumDashboardV500 .pf-kpis-v500 > .pf-kpi-v500:nth-child(1){--pf-kpi-edge-rgb:247,201,109}
+html body.mmh-workspace-active #dashboard#dashboard.page.active #mmhPremiumDashboardV500 .pf-kpis-v500 > .pf-kpi-v500:nth-child(3){--pf-kpi-edge-rgb:168,156,234}
+html body.mmh-workspace-active #dashboard#dashboard.page.active #mmhPremiumDashboardV500 .pf-kpis-v500 > .pf-kpi-v500:nth-child(4){--pf-kpi-edge-rgb:91,207,171}
+html body.mmh-workspace-active #dashboard#dashboard.page.active #mmhPremiumDashboardV500 .pf-kpis-v500 > .pf-kpi-v500::after {
+  content:""!important;position:absolute!important;
+  inset:auto 12px 0!important;width:auto!important;height:2px!important;
+  border-radius:0!important;filter:none!important;opacity:1!important;
+  background:linear-gradient(90deg,transparent,rgba(var(--pf-kpi-edge-rgb),.58),transparent)!important;
+  pointer-events:none!important;z-index:0!important;transform:none!important;
+}
