@@ -12040,34 +12040,56 @@ html.mmh-desktop-compact-v11110 body.mmh-workspace-active #moreNavMenu.more-nav-
   async function submit(e){
     const type=selected();if(!type)return;
     e.preventDefault();e.stopImmediatePropagation();if(saving)return;
-    const asset=catalog().assets.find(a=>a.id===get('mmhCustomAssetSelect')?.value&&a.typeId===type.id&&a.active!==false);
-    if(!asset){await window.mmhEditDeleteUI.message('Cannot save investment','Choose an active asset for this type.');return;}
-    if(get('invSideV336').value!=='BUY'){await window.mmhEditDeleteUI.message('Cannot save investment','Custom assets currently support Buy only.');return;}
-    const amount=Number(get('invAmount').value),price=Number(get('invBuy').value);
-    if(!(amount>0&&price>0)){await window.mmhEditDeleteUI.message('Cannot save investment','Enter an amount and a purchase-day price greater than zero.');return;}
-    const u=(await db.auth.getUser()).data.user;if(!u){await window.mmhEditDeleteUI.message('Cannot save investment','Please sign in first.');return;}
-    saving=true;
+    const owner=currentSessionUser?.id,epoch=Number(window.__mmhSessionEpochV1239)||0;
+    if(!owner)return;
+    const current=()=>currentSessionUser?.id===owner&&(Number(window.__mmhSessionEpochV1239)||0)===epoch;
+    saving=true;let writeStarted=false,saved=false;
     try{
-      const row={user_id:u.id,type_id:type.id,asset_id:asset.id,type_name:type.name,asset_name:asset.name,
+      const asset=catalog().assets.find(a=>a.id===get('mmhCustomAssetSelect')?.value&&a.typeId===type.id&&a.active!==false);
+      if(!asset)throw Error('Choose an active asset for this type.');
+      if(get('invSideV336').value!=='BUY')throw Error('Custom assets currently support Buy only.');
+      const amount=Number(get('invAmount').value),price=Number(get('invBuy').value);
+      if(!(Number.isFinite(amount)&&Number.isFinite(price)&&amount>0&&price>0&&Number.isFinite(amount/price)))throw Error('Enter a valid amount and a purchase-day price greater than zero.');
+      const fields=['invAsset','mmhCustomAssetSelect','invSideV336','invAmount','invBuy','invDate','invSource','invFee','invOther','invMarket','invNote'];
+      const snapshot=fields.map(id=>get(id)?.value),receipt=get('invReceipt')?.files?.[0],form=get('invForm');
+      const sameForm=()=>get('invForm')===form&&fields.every((id,i)=>get(id)?.value===snapshot[i])&&get('invReceipt')?.files?.[0]===receipt;
+      const row={user_id:owner,type_id:type.id,asset_id:asset.id,type_name:type.name,asset_name:asset.name,
         inv_date:get('invDate').value,source_account:get('invSource').value,amount,fee:Number(get('invFee').value)||0,
         other_cost:Number(get('invOther').value)||0,buy_price:price,
         market_price:get('invMarket').value?Number(get('invMarket').value):null,
         quantity:amount/price,note:get('invNote').value||null};
+      const u=(await db.auth.getUser()).data.user;
+      if(!current())return;
+      if(u?.id!==owner)throw Error('Please sign in again.');
       const active=window.mmhInvestSourceAccount?.(row.source_account);
       if(!active)throw Error('Choose an active source account with a known currency.');
       await checkFunds(u,row);
+      if(!current())return;
+      if(!sameForm())throw Error('Form changed before saving. Review and submit again.');
+      writeStarted=true;
       const r=await db.from('custom_investments').insert(row).select('*').single();
+      if(!current())return;
       if(r.error)throw r.error;
-      window.mmhCustomInvestRecords=[r.data,...window.mmhCustomInvestRecords];window.mmhCustomInvestLoaded=true;
-      let receiptError=null;const receipt=get('invReceipt')?.files?.[0];
-      if(receipt)try{await window.mmhPortfolioSaveCustomReceipt(u,r.data.id,receipt);}catch(err){receiptError=err;}
+      if(r.data?.user_id!==owner||r.data.id==null||String(r.data.id)==='')throw Error('Unexpected save response.');
+      saved=true;
+      if(window.mmhCustomInvestLoaded===true&&Array.isArray(window.mmhCustomInvestRecords)&&window.mmhCustomInvestRecords.every(x=>x?.user_id===owner)){
+        window.mmhCustomInvestRecords=[r.data,...window.mmhCustomInvestRecords.filter(x=>String(x.id)!==String(r.data.id))];
+      }else{window.mmhCustomInvestRecords=[];window.mmhCustomInvestLoaded=false;}
+      let receiptError=null;
+      if(receipt&&current())try{await window.mmhPortfolioSaveCustomReceipt(u,r.data.id,receipt);}catch(err){receiptError=err;}
+      if(!current())return;
       showChange('custom-investment-created');
-      get('invForm').reset();get('invDate').value=new Date().toLocaleDateString('en-CA');
-      get('invAsset').value='custom:'+type.id;refreshAssets();updateInvestFields();
+      if(!current())return;
+      if(sameForm()){
+        form.reset();get('invDate').value=new Date().toLocaleDateString('en-CA');
+        get('invAsset').value='custom:'+type.id;refreshAssets();updateInvestFields();
+      }
+      if(!current())return;
       await reload();
+      if(!current())return;
       if(receiptError)await window.mmhEditDeleteUI.message('Investment saved; receipt failed',receiptError.message||String(receiptError));
       else window.mmhEditDeleteUI.toast('Custom investment saved.');
-    }catch(err){await window.mmhEditDeleteUI.message('Investment was not saved',err.message||String(err));}
+    }catch(err){if(current())await window.mmhEditDeleteUI.message(saved?'Investment saved; refresh required':writeStarted?'Save result not verified; reload records before retrying':'Cannot save investment',err?.message||String(err));}
     finally{saving=false;}
   }
   function init(){
