@@ -10,6 +10,18 @@ const base=inline('style','mmhvault-recurring-v114-css');
 const actual=inline('script','mmhvault-recurring-v114-js');
 const slice=(a,b)=>{const i=actual.indexOf(a),j=actual.indexOf(b,i+a.length);assert.ok(i>=0&&j>i,a);return actual.slice(i,j)};
 const render=slice('function render(){','  function edit(id)');
+const part=(a,b)=>{const i=app.indexOf(a),j=app.indexOf(b,i+a.length);assert.ok(i>=0&&j>i,a);return app.slice(i,j)};
+const engine=part('const goalCopyV263=','const mmhI18nTextStateV135=new WeakMap();')+part('function translateAttributes(root){','function translateDynamicText(base){')+part('const mmhI18nTextStateV135=new WeakMap();','window.mmhI18nTextV135=')+part('function walk(root){','function syncLanguageChoices()');
+const helper=part('const recurringCopyV264=','function goalCopyTextV263(');
+const translations=new Function('window','lang',helper+';return {map:recurringCopyV264,copy:recurringCopyTextV264};')({},'en');
+for(const [key,[zh,my]] of Object.entries(translations.map)){assert.equal(translations.copy(key,'en'),key);assert.equal(translations.copy(key,'zh'),zh);assert.equal(translations.copy(key,'my'),my);}
+for(const locale of ['en','zh','my']){assert.ok(translations.copy('Delete “A & B”?',locale).includes('A & B'));assert.equal(translations.copy('Unknown backend error',locale),'Unknown backend error');assert.ok(translations.copy('7d overdue',locale).includes('7'));}
+assert.ok(actual.includes("danger:true,confirmLabel:notice('Delete')"));
+assert.ok(actual.includes("if(!ok||signedUser()?.id!==owner)return;"));
+assert.ok(actual.includes(".delete().eq('user_id',owner).eq('id',id)"));
+assert.ok(actual.includes(".eq('next_due_date',due)"));
+console.log('PASS Recurring actual copy table, dynamic copy and static mutation guards');
+const detailSource=slice('async function openDetail(id){','  function ensurePrefillBanner()');
 const browser=await chromium.launch({headless:true});
 try{
  for(const width of [320,393,768,1440])for(const light of [false,true]){
@@ -37,6 +49,30 @@ try{
     assert.equal(m.form,'44px');
     console.log('PASS Recurring layout and actual row renderer (stubbed data/helpers)',width,light?'light':'dark',locale);
    }
+   // Actual detail renderer + shared translation functions; no authenticated calls.
+   const states=await page.evaluate(async ({engine,detailSource})=>{
+    const root=document.querySelector('#recurring'),q=s=>root.querySelector(s);
+    root.querySelectorAll('.recurring-filters-v114 button').forEach((b,i)=>b.textContent=['Active','Paused','All'][i]);
+    q('.recurring-card-top-v114 strong').textContent='Delete';
+    q('#recurringFromAccountV114').innerHTML='<option value="Income">Income</option>';
+    q('#recurringCategoryV114').innerHTML='<option value="Transfer">Transfer</option>';
+    const rows=[{id:'a',name:'Delete',tx_type:'Expense',tx_group:'Personal',category:'Transfer',frequency:'monthly',next_due_date:'2030-01-01',status:'active',reminder_days:7,from_account:'Income',from_amount:123456789.12,note:'No note'},{id:'b',name:'Paused',status:'paused',tx_type:'Income',tx_group:'Income',category:'Transfer',frequency:'weekly',reminder_days:3}];
+    const state={rows},dueInfo=r=>({label:r.status==='paused'?'Paused':'7d overdue'}),amountSummary=()=>({main:'MMK 123,456,789.12'}),frequencyLabel=x=>x==='weekly'?'Weekly':'Monthly',E=x=>String(x??'').replace(/[&<>"']/g,'_'),accountCurrency=()=> 'MMK',money=()=> 'MMK 123,456,789.12',noop=()=>{};
+    window.mmhVaultOpenDialogV449=async o=>{document.querySelector('.mmh-recurring-dialog-v149')?.remove();const d=document.createElement('div');d.className=o.dialogClass;d.innerHTML='<h2 id="mmhVaultDialogTitleV449"></h2>'+o.body+'<div class="mmh-planning-actions-v149"></div>';d.querySelector('h2').textContent=o.title;for(const action of o.actions){const b=document.createElement('button');b.textContent=action.label;d.querySelector('.mmh-planning-actions-v149').append(b)}document.body.append(d);};
+    const open=new Function('state','dueInfo','amountSummary','frequencyLabel','E','accountCurrency','money','recordNow','edit',detailSource+';return openDetail;')(state,dueInfo,amountSummary,frequencyLabel,E,accountCurrency,money,noop,noop);
+    await open('b');const pausedActions=[...document.querySelectorAll('.mmh-recurring-dialog-v149 button')].map(b=>b.textContent);
+    await open('a');const dialog=document.querySelector('.mmh-recurring-dialog-v149');
+    const run=new Function('root','dialog',engine+`
+      let lang='en';const investCopySurfaceV236=()=>false,txUiSurfaceV2=()=>false;
+      return ['en','zh','my','en'].map(next=>{lang=next;translateRoot(root);translateRoot(dialog);const q=s=>root.querySelector(s),d=s=>dialog.querySelector(s);return {title:q('h1').textContent,filter:q('.recurring-filters-v114 button').textContent,placeholder:q('#recurringNameV114').placeholder,name:q('.recurring-card-top-v114 strong').textContent,category:q('#recurringCategoryV114 option').textContent,account:q('#recurringFromAccountV114 option').textContent,typeValues:[...q('#recurringTypeV114').options].map(o=>o.value),typeLabel:q('#recurringTypeV114 option').textContent,detail:d('.recurring-detail-grid-v114 span').textContent,status:d('.recurring-detail-grid-v114 > div:nth-child(3) b').textContent,amount:d('.recurring-detail-hero-v114 strong').textContent,note:d('.recurring-detail-note-v114').textContent,dialogTitle:d('h2').textContent,action:d('.mmh-planning-actions-v149 button').textContent};});
+    `);return {roundtrip:run(root,dialog),pausedActions};
+   },{engine,detailSource});
+   assert.deepEqual(states.pausedActions,['Close','Edit Schedule']);
+   const expected=[['Recurring Transactions','Active','Expense','Frequency','7d overdue','Close'],['周期交易','进行中','支出','频率','逾期 7 天','关闭'],['ထပ်တလဲလဲ ငွေလွှဲမှတ်တမ်းများ','အသက်ဝင်','အသုံးစရိတ်','အကြိမ်ရေ','7 ရက်ကျော်','ပိတ်ရန်'],['Recurring Transactions','Active','Expense','Frequency','7d overdue','Close']];
+   for(const [i,v] of states.roundtrip.entries()){assert.deepEqual([v.title,v.filter,v.typeLabel,v.detail,v.status,v.action],expected[i]);assert.deepEqual(v.typeValues,['Expense','Income','Transfer']);assert.equal(v.name,'Delete');assert.equal(v.category,'Transfer');assert.equal(v.account,'Income');assert.equal(v.note,'No note');assert.equal(v.dialogTitle,'Delete');assert.equal(v.amount,'MMK 123,456,789.12');}
+   assert.equal(states.roundtrip[0].placeholder,states.roundtrip[3].placeholder);assert.notEqual(states.roundtrip[0].placeholder,states.roundtrip[1].placeholder);assert.notEqual(states.roundtrip[0].placeholder,states.roundtrip[2].placeholder);
+   await page.locator('.mmh-recurring-dialog-v149').evaluate(el=>el.remove());
+   console.log('PASS Recurring actual translation engine, detail template and protected data roundtrip',width,light?'light':'dark');
    await page.addStyleTag({content:inline('style','mmhCategoriesEditPickersV2')});
    await page.addScriptTag({content:inline('script','mmhCategoriesEditPickersLogicV2')});
    const type=page.locator('#recurringTypeV114 + button.mmh-shared-trigger-v217'),native=page.locator('#recurringTypeV114'),menu=page.locator('#mmhCategoryPickerV2');
