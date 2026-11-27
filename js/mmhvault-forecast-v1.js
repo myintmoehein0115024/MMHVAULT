@@ -189,7 +189,7 @@
    let nav=shell.querySelector(':scope > .fc-planning-nav-v263');
    if(!nav){
     nav=document.createElement('nav');nav.className='fc-planning-nav-v263';
-    nav.innerHTML='<button type="button" class="fc-planning-back-v263" data-fc-sibling="forecast">'+svg('<path d="m14 6-6 6 6 6M8 12h13"/>')+'<span></span></button><div class="fc-planning-links-v263">'+Object.keys(planLabels).map(key=>'<button type="button" data-fc-sibling="'+key+'"'+(key===page?' aria-current="page"':'')+'>'+svg(planIcons[key])+'</button>').join('')+'</div>';
+    nav.innerHTML='<button type="button" class="fc-planning-back-v263" data-fc-sibling="forecast">'+svg('<path d="m14 6-6 6 6 6M8 12h13"/>')+'<span></span></button><div class="fc-planning-links-v263">'+Object.keys(planLabels).filter(key=>key!==page).map(key=>'<button type="button" data-fc-sibling="'+key+'">'+svg(planIcons[key])+'</button>').join('')+'</div>';
     nav.addEventListener('click',event=>{
      const button=event.target.closest('[data-fc-sibling]');
      if(!button||!nav.contains(button))return;
