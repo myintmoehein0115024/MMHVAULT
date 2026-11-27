@@ -1,0 +1,33 @@
+name: Personal Future Assets isolated browser QA (NO DEPLOY)
+on:
+  push:
+    branches: ['personal/v2.0.55-future-assets-dialogs']
+    paths:
+      - 'js/mmhvault-forecast-v1.js'
+      - 'css/mmhvault-liquid-forecast-p916.css'
+      - 'tests/personal-future-assets-browser.mjs'
+      - '.github/workflows/personal-future-assets-browser.yml'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'js/mmhvault-forecast-v1.js'
+      - 'css/mmhvault-liquid-forecast-p916.css'
+      - 'tests/personal-future-assets-browser.mjs'
+      - '.github/workflows/personal-future-assets-browser.yml'
+permissions:
+  contents: read
+jobs:
+  synthetic-browser:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: node --check js/mmhvault-forecast-v1.js
+      - run: npm install --no-save --package-lock=false --ignore-scripts playwright@1.51.1
+      - run: npx playwright install --with-deps chromium
+      - run: node tests/personal-future-assets-browser.mjs
