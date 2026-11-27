@@ -1,0 +1,22 @@
+name: Personal Budget isolated visual QA (NO DEPLOY)
+on:
+  pull_request:
+    branches: [main]
+    paths: ['css/mmhvault-liquid-budget-p910.css','tests/personal-budget-v2.mjs','.github/workflows/personal-budget-v2.yml']
+permissions:
+  contents: read
+jobs:
+  synthetic-browser:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: node --check tests/personal-budget-v2.mjs
+      - run: npm install --no-save --package-lock=false --ignore-scripts playwright@1.51.1
+      - run: npx playwright install --with-deps chromium
+      - run: node tests/personal-budget-v2.mjs
