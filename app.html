@@ -11561,9 +11561,9 @@ html.mmh-desktop-compact-v11110 body.mmh-workspace-active #moreNavMenu.more-nav-
 <div class="v371-switch"><button class="btn active" id="v371CryptoBtn" type="button">₿ Crypto</button><button class="btn" id="v371GoldBtn" type="button">🥇 Gold</button></div>
 <div class="mmh-page-picker-v1" id="mmhInvestPagePickerV1"><button class="mmh-page-picker-trigger-v1" id="mmhInvestPageTriggerV1" type="button" aria-label="选择页面" aria-haspopup="true" aria-expanded="false" aria-controls="mmhInvestPageOptionsV1"><span id="mmhInvestPageCurrentV1">Overview</span><span class="mmh-page-picker-chevron-v1" aria-hidden="true"></span></button>
 <div aria-label="Investment sections" class="invest-subtabs-v371" id="mmhInvestPageOptionsV1" role="tablist" aria-hidden="false">
+<button type="button" class="invest-subtab-v371" id="investSubAddV371" role="tab" aria-label="Add investment data" title="Add investment data">Add Investment</button>
 <button type="button" class="invest-subtab-v371" id="investSubOverviewV371" role="tab">Overview</button>
 <button type="button" class="invest-subtab-v371 iw2-action" id="investSubPortfolioV371" role="tab" aria-label="Investment records" title="Investment records">Portfolio</button>
-<button type="button" class="invest-subtab-v371 iw2-action" id="investSubAddV371" role="tab" aria-label="Add investment data" title="Add investment data">Add Investment</button>
 <button type="button" class="invest-subtab-v371 iw2-action" id="investSubManageV1" role="tab" aria-label="Manage investment projects and assets" title="Manage investment projects and assets">Manage Projects</button>
 <button type="button" class="invest-subtab-v371" id="investSubLiveV1" role="tab" hidden tabindex="-1" aria-hidden="true">Live Prices</button>
 </div></div></div>
@@ -11594,7 +11594,7 @@ html.mmh-desktop-compact-v11110 body.mmh-workspace-active #moreNavMenu.more-nav-
 <div class="panel invest-entry"><div class="toolbar"><div><h2 class="mmh-hint-anchor-v195 mmh-context-title-v199" data-mmh-hint-source="next" tabindex="0">Add Investment</h2><div class="sub mmh-context-desc-v199">Record Crypto in USD or Gold in MMK. Buy adds to holdings; Sell reduces holdings and credits the source account.</div></div><span class="pill">Crypto / Gold</span></div><form id="invForm"><div class="formgrid">
 <div class="mmh-form-section-v1 full"><span data-en="Basic information" data-zh="基本信息">Basic information</span></div>
 <label>Date<input id="invDate" required="" type="date"/></label>
-<label>Trade Type<select id="invSideV336"><option value="BUY">Buy</option><option value="SELL">Sell</option></select></label>
+<label class="iw231-trade-backing" hidden>Trade Type<select id="invSideV336" hidden><option value="BUY">Buy</option><option value="SELL">Sell</option></select></label>
 <label>Asset<select id="invAsset"><option>Crypto</option><option>Gold</option></select></label>
 <label>Symbol<input autocomplete="off" id="invSymbol" list="cryptoSymbolSuggestionsV336" maxlength="20" placeholder="BTC"/><datalist id="cryptoSymbolSuggestionsV336"><option value="BTC"></option><option value="ETH"></option><option value="SOL"></option><option value="BNB"></option><option value="XRP"></option><option value="DOGE"></option><option value="ADA"></option><option value="TRX"></option></datalist></label>
 <div class="mmh-form-section-v1 full"><span data-en="Account, amount & costs" data-zh="账户、金额与费用">Account, amount & costs</span></div>
@@ -20375,10 +20375,34 @@ html body #invest .invest-subtabs-v371{display:grid!important;grid-template-colu
  function display(node,on,value=''){if(node)node.style.setProperty('display',on?value:'none','important');}
  function move(page,node){if(node)I('mmhFive'+page)?.append(node);}
  function L(en,zh){try{return (window.getMMHVAULTLanguage?.()==='zh'||document.documentElement.lang.toLowerCase().startsWith('zh'))?zh:en}catch(_){return en}}
- function syncModeLabels(){const labels=[['mmhAddInvestmentModeV193','Investment','投资'],['mmhAddWalletModeV193','Wallet Activity','钱包活动'],['mmhPortfolioInvestmentModeV193','Investment History','投资记录'],['mmhPortfolioWalletModeV193','Wallet Activity','钱包活动']];for(const [id,en,zh] of labels){const el=I(id);if(el)el.textContent=L(en,zh)}const add=I('mmhAddInvestmentModeV193')?.parentElement,portfolio=I('mmhPortfolioInvestmentModeV193')?.parentElement;if(add)add.setAttribute('aria-label',L('Add investment data','添加投资数据'));if(portfolio)portfolio.setAttribute('aria-label',L('Portfolio records','投资组合记录'))}
+ function syncModeLabels(){const labels=[['mmhAddInvestmentModeV193','Buy','买入'],['mmhAddSellModeV231','Sell','卖出'],['mmhAddWalletModeV193','Transfer','转账'],['mmhPortfolioInvestmentModeV193','Investment History','投资记录'],['mmhPortfolioWalletModeV193','Wallet Activity','钱包活动']];for(const [id,en,zh] of labels){const el=I(id);if(el)el.textContent=L(en,zh)}const add=I('mmhAddInvestmentModeV193')?.parentElement,portfolio=I('mmhPortfolioInvestmentModeV193')?.parentElement;if(add)add.setAttribute('aria-label',L('Add investment data','添加投资数据'));if(portfolio)portfolio.setAttribute('aria-label',L('Portfolio records','投资组合记录'))}
  function modeNavHTML(kind){
-  if(kind==='add')return '<div class="mmh-invest-inner-nav-v193" role="tablist" aria-label="Add investment data"><button type="button" id="mmhAddInvestmentModeV193" data-invest-add-mode-v193="investment" role="tab" aria-controls="mmhAddInvestmentPaneV193">Investment</button><button type="button" id="mmhAddWalletModeV193" data-invest-add-mode-v193="wallet" role="tab" aria-controls="mmhWalletAddV193">Wallet Activity</button></div><div class="mmh-invest-inner-pane-v193" id="mmhAddInvestmentPaneV193" role="tabpanel" aria-labelledby="mmhAddInvestmentModeV193"></div><div class="mmh-invest-inner-pane-v193" id="mmhWalletAddV193" role="tabpanel" aria-labelledby="mmhAddWalletModeV193" hidden></div>';
+  if(kind==='add')return '<div class="mmh-invest-inner-nav-v193" role="tablist" aria-label="Add investment data"><button type="button" id="mmhAddInvestmentModeV193" data-invest-add-mode-v193="buy" role="tab" aria-controls="mmhAddInvestmentPaneV193">Buy</button><button type="button" id="mmhAddSellModeV231" data-invest-add-mode-v193="sell" role="tab" aria-controls="mmhAddInvestmentPaneV193">Sell</button><button type="button" id="mmhAddWalletModeV193" data-invest-add-mode-v193="wallet" role="tab" aria-controls="mmhWalletAddV193">Transfer</button></div><div class="mmh-invest-inner-pane-v193" id="mmhAddInvestmentPaneV193" role="tabpanel" aria-labelledby="mmhAddInvestmentModeV193"></div><div class="mmh-invest-inner-pane-v193" id="mmhWalletAddV193" role="tabpanel" aria-labelledby="mmhAddWalletModeV193" hidden></div>';
   return '<div class="mmh-invest-inner-nav-v193" role="tablist" aria-label="Portfolio records"><button type="button" id="mmhPortfolioInvestmentModeV193" data-invest-portfolio-mode-v193="investment" role="tab" aria-controls="mmhPortfolioInvestmentPaneV193">Investment History</button><button type="button" id="mmhPortfolioWalletModeV193" data-invest-portfolio-mode-v193="wallet" role="tab" aria-controls="mmhWalletPortfolioV193">Wallet Activity</button></div><div class="mmh-invest-inner-pane-v193" id="mmhPortfolioInvestmentPaneV193" role="tabpanel" aria-labelledby="mmhPortfolioInvestmentModeV193"></div><div class="mmh-invest-inner-pane-v193" id="mmhWalletPortfolioV193" role="tabpanel" aria-labelledby="mmhPortfolioWalletModeV193" hidden></div>';
+ }
+ function setupGuide(){
+  if(!picker||I('mmhInvestGuideV231'))return;
+  const button=document.createElement('button');button.type='button';button.id='mmhInvestGuideV231';button.textContent='?';button.setAttribute('aria-haspopup','dialog');button.setAttribute('aria-controls','mmhInvestGuideDialogV231');picker.append(button);
+  const dialog=document.createElement('dialog');dialog.id='mmhInvestGuideDialogV231';dialog.setAttribute('aria-labelledby','mmhInvestGuideTitleV231');
+  dialog.innerHTML='<h2 id="mmhInvestGuideTitleV231"></h2><p id="mmhInvestGuideIntroV231"></p><dl id="mmhInvestGuideStepsV231"></dl><button type="button" id="mmhInvestGuideCloseV231" autofocus></button>';
+  root.append(dialog);
+  button.addEventListener('click',()=>{
+   I('mmhInvestGuideTitleV231').textContent=L('Investment beginner guide','投资新人指南');
+   I('mmhInvestGuideIntroV231').textContent=L('Use these sections to record and review activity. Opening a section does not save a record.','使用这些入口记录和查看投资活动。打开入口不会保存记录。');
+   const steps=[
+    ['Buy','买入','Record an asset purchase with its actual account, date, quantity and amount.','按实际账户、日期、数量和金额记录资产买入。'],
+    ['Sell','卖出','Record an asset sale and check the existing holdings and form warnings.','记录资产卖出，核对已有持仓与表单提示。'],
+    ['Transfer','转账','Record wallet activity between accounts using the existing transfer form. Check both accounts, amounts and any fee.','使用现有转账表单记录钱包活动，核对双方账户、金额及手续费。'],
+    ['Overview','概览','Review recorded holdings and available price references. This is the default view after a full refresh.','查看已记录持仓和可用价格参考。完整刷新后默认回到此页。'],
+    ['Records / Manage','记录／管理','Review records and available edit actions; manage investment types and assets separately. Transfer editing and Delete All remain unavailable.','查看记录及已开放的编辑功能，另行管理投资类型和资产。转账编辑和全部删除暂未开放。']
+   ];
+   const list=I('mmhInvestGuideStepsV231');list.replaceChildren();for(const [en,zh,desc,cn] of steps){const dt=document.createElement('dt'),dd=document.createElement('dd');dt.textContent=L(en,zh);dd.textContent=L(desc,cn);list.append(dt,dd);}
+   I('mmhInvestGuideCloseV231').textContent=L('Close','关闭');
+   if(!dialog.open)dialog.showModal();
+  });
+  I('mmhInvestGuideCloseV231').addEventListener('click',()=>dialog.close());
+  dialog.addEventListener('keydown',e=>{if(e.key==='Escape'){e.preventDefault();e.stopPropagation();dialog.close();}});
+  dialog.addEventListener('close',()=>button.focus({preventScroll:true}));
  }
  function setup(){
   const menu=root.querySelector('.invest-subtabs-v371');if(!menu||I('mmhFiveadd'))return;
@@ -20390,7 +20414,10 @@ html body #invest .invest-subtabs-v371{display:grid!important;grid-template-colu
   move('manage',I('mmhInvestCatalogV1'));
   const catalog=I('mmhInvestCatalogV1');if(catalog)catalog.hidden=false;
   const addPage=I('mmhFiveadd'),portfolioPage=I('mmhFiveportfolio');
-  if(addPage){addPage.innerHTML=modeNavHTML('add');const pane=I('mmhAddInvestmentPaneV193'),entry=root.querySelector('.invest-entry');if(pane&&entry)pane.append(entry);}
+  if(addPage){addPage.innerHTML=modeNavHTML('add');const pane=I('mmhAddInvestmentPaneV193'),entry=root.querySelector('.invest-entry');if(pane&&entry)pane.append(entry);
+   const modes=I('mmhAddInvestmentModeV193')?.parentElement;if(modes&&picker){modes.id='mmhInvestEntryTopV231';picker.insertBefore(modes,I('mmhInvestPageOptionsV1'));}
+   setupGuide();
+  }
   if(portfolioPage){portfolioPage.innerHTML=modeNavHTML('portfolio');const pane=I('mmhPortfolioInvestmentPaneV193'),history=I('mmhUnifiedHistoryV1');if(pane&&history)pane.append(history);}
   move('live',root.querySelector('.invest-top'));
   move('overview',I('v371CurrentHoldings'));
@@ -20399,9 +20426,16 @@ html body #invest .invest-subtabs-v371{display:grid!important;grid-template-colu
   // Legacy history tables remain in the DOM for existing calculations, but never display.
  }
  function setAddMode(mode,persist=true){
-  setup();mode=mode==='wallet'?'wallet':'investment';if(persist)localStorage.setItem(addStorage,mode);
-  const investment=I('mmhAddInvestmentPaneV193'),wallet=I('mmhWalletAddV193');if(investment)investment.hidden=mode!=='investment';if(wallet)wallet.hidden=mode!=='wallet';
-  const a=I('mmhAddInvestmentModeV193'),w=I('mmhAddWalletModeV193');for(const [b,on] of [[a,mode==='investment'],[w,mode==='wallet']])if(b){b.classList.toggle('active',on);b.setAttribute('aria-selected',on?'true':'false');b.tabIndex=on?0:-1;}
+  setup();
+  const requestedSide=mode==='sell'?'SELL':mode==='buy'?'BUY':null;
+  mode=mode==='wallet'?'wallet':'investment';if(persist)localStorage.setItem(addStorage,mode);
+  const side=I('invSideV336');
+  // Explicit navigation changes only the existing UI field, never submits or writes a record.
+  if(requestedSide&&side&&side.value!==requestedSide){side.value=requestedSide;side.dispatchEvent(new Event('change',{bubbles:true}));side.dispatchEvent(new Event('input',{bubbles:true}));}
+  const sell=side?.value==='SELL';
+  const investment=I('mmhAddInvestmentPaneV193'),wallet=I('mmhWalletAddV193');if(investment){investment.hidden=mode!=='investment';investment.setAttribute('aria-labelledby',sell?'mmhAddSellModeV231':'mmhAddInvestmentModeV193');}if(wallet)wallet.hidden=mode!=='wallet';
+  const a=I('mmhAddInvestmentModeV193'),v=I('mmhAddSellModeV231'),w=I('mmhAddWalletModeV193');
+  for(const [b,on] of [[a,mode==='investment'&&!sell],[v,mode==='investment'&&sell],[w,mode==='wallet']])if(b){b.classList.toggle('active',on);b.setAttribute('aria-selected',on?'true':'false');b.tabIndex=on?0:-1;}
   display(root.querySelector('.invest-entry'),!I('mmhFiveadd')?.hidden&&mode==='investment');
   if(mode==='wallet'&&!I('mmhFiveadd')?.hidden)window.mmhRenderWalletGasV172?.();
   return mode;
@@ -20417,6 +20451,10 @@ html body #invest .invest-subtabs-v371{display:grid!important;grid-template-colu
  function show(){
   setup();syncModeLabels();const saved=localStorage.getItem(storage),legacy=localStorage.getItem('myfinance_invest_subtab_v371');
   const tab=saved==='live'?'overview':names.includes(saved)?saved:(legacy==='add'||legacy==='portfolio'?legacy:'overview');
+  root.classList.toggle('mmh-invest-entry-nav-active',tab==='add');
+  const entryNav=I('mmhInvestEntryTopV231');if(entryNav)entryNav.hidden=tab!=='add';
+  const addLaunch=I(ids.add);if(addLaunch)addLaunch.hidden=tab==='add';
+  const guide=I('mmhInvestGuideV231');if(guide){const label=L('Investment beginner guide','投资新人指南');guide.setAttribute('aria-label',label);guide.title=label;}
   root.classList.remove('v371-gold');root.classList.add('v371-crypto');
   names.forEach(name=>{const section=I('mmhFive'+name);if(section)section.hidden=name!==tab;
    const button=I(ids[name]);if(button){button.classList.toggle('active',name===tab);button.setAttribute('aria-selected',name===tab?'true':'false');}});
@@ -20450,6 +20488,10 @@ html body #invest .invest-subtabs-v371{display:grid!important;grid-template-colu
  window.renderInvestNavigationHardFixV371=show;
  window.setInvestSubtabV371=select;
  window.mmhSetInvestAddModeV193=setAddMode;
+ // Keep the visible tab aligned with quick actions and native form resets.
+ function syncAddTradeSide(){if(I('mmhFiveadd')&&localStorage.getItem(addStorage)!=='wallet')setAddMode('investment',false);}
+ document.addEventListener('change',e=>{if(e.target?.id==='invSideV336')syncAddTradeSide();});
+ document.addEventListener('reset',e=>{if(e.target?.id==='invForm')setTimeout(syncAddTradeSide,0);});
  window.mmhSetInvestPortfolioModeV193=setPortfolioMode;
  window.mmhOpenInvestWalletAddV193=function(){select('add');setAddMode('wallet');requestAnimationFrame(()=>I('mmhWalletTypeV172')?.focus({preventScroll:true}));};
  window.mmhOpenInvestPortfolioWalletV193=function(){select('portfolio');setPortfolioMode('investment');window.mmhSetUnifiedRecordFilterV222?.('Wallet');requestAnimationFrame(()=>I('mmhUnifiedHistoryV1')?.scrollIntoView({block:'start'}));};
@@ -20470,14 +20512,14 @@ html body #invest .invest-subtabs-v371{display:grid!important;grid-template-colu
  document.addEventListener('focusin',e=>{if(picker?.classList.contains('open')&&!picker.contains(e.target))closePicker();});
  document.addEventListener('click',e=>{
   const top=e.target?.closest?.('button'),tab=Object.keys(ids).find(k=>ids[k]===top?.id);
-  if(tab){e.preventDefault();e.stopImmediatePropagation();select(tab);return;}
+  if(tab){e.preventDefault();e.stopImmediatePropagation();select(tab);if(tab==='add')I('mmhInvestEntryTopV231')?.querySelector('[aria-selected="true"]')?.focus({preventScroll:true});return;}
   const add=e.target?.closest?.('[data-invest-add-mode-v193]');if(add){e.preventDefault();setAddMode(add.dataset.investAddModeV193);return;}
   const portfolio=e.target?.closest?.('[data-invest-portfolio-mode-v193]');if(portfolio){e.preventDefault();setPortfolioMode(portfolio.dataset.investPortfolioModeV193);}
  },true);
  document.addEventListener('keydown',e=>{
   const btn=e.target?.closest?.('[data-invest-add-mode-v193],[data-invest-portfolio-mode-v193]');if(!btn)return;
   if(!['ArrowLeft','ArrowRight','Home','End'].includes(e.key))return;
-  e.preventDefault();const isAdd=btn.hasAttribute('data-invest-add-mode-v193');const buttons=isAdd?[I('mmhAddInvestmentModeV193'),I('mmhAddWalletModeV193')]:[I('mmhPortfolioInvestmentModeV193'),I('mmhPortfolioWalletModeV193')];
+  e.preventDefault();const isAdd=btn.hasAttribute('data-invest-add-mode-v193');const buttons=isAdd?[I('mmhAddInvestmentModeV193'),I('mmhAddSellModeV231'),I('mmhAddWalletModeV193')]:[I('mmhPortfolioInvestmentModeV193'),I('mmhPortfolioWalletModeV193')];
   const current=Math.max(0,buttons.indexOf(btn)),next=e.key==='Home'?0:e.key==='End'?buttons.length-1:e.key==='ArrowRight'?(current+1)%buttons.length:(current-1+buttons.length)%buttons.length,target=buttons[next];if(!target)return;
   if(isAdd)setAddMode(target.dataset.investAddModeV193);else setPortfolioMode(target.dataset.investPortfolioModeV193);target.focus();
  });
@@ -39318,5 +39360,49 @@ function handleEditEscape(e,doc,close){
 document.addEventListener("keydown",e=>handleEditEscape(e,document,closeEditModal),true);
 })();
 </script>
+<style id="mmhUnifiedAddEntryV231">
+/* Scoped V2 add-record presentation; retain all original form IDs, inputs and save handlers. */
+html body #invest#invest#invest#invest #mmhFiveadd>.mmh-invest-inner-nav-v193{grid-template-columns:repeat(3,minmax(0,1fr))!important;margin-bottom:10px!important}
+html body #invest#invest#invest#invest #mmhFiveadd .iw231-trade-backing{display:none!important}
+html body #invest#invest#invest#invest #mmhFiveadd>.mmh-invest-inner-pane-v193[hidden]{display:none!important}
+html body #invest#invest#invest#invest #mmhFiveadd :is(.invest-entry,.mmh-wallet-card-v172,.mmh-wallet-hero-v172){min-width:0!important;margin:0!important;padding:14px!important;border:1px solid var(--uv-line)!important;border-radius:8px!important;background:var(--uv-card)!important;background-image:none!important;box-shadow:none!important;backdrop-filter:none!important}
+html body #invest#invest#invest#invest #mmhFiveadd .invest-entry>.toolbar{display:flex!important;align-items:center!important;justify-content:space-between!important;gap:8px!important;padding:0 0 12px!important;margin:0 0 10px!important;border:0!important;border-bottom:1px solid var(--uv-line)!important;border-radius:0!important;background:transparent!important;background-image:none!important;box-shadow:none!important}
+html body #invest#invest#invest#invest #mmhFiveadd :is(.invest-entry>.toolbar,.mmh-wallet-hero-v172,.mmh-wallet-card-v172,.receipt-upload-v3300)::before,
+html body #invest#invest#invest#invest #mmhFiveadd :is(.invest-entry>.toolbar,.mmh-wallet-hero-v172,.mmh-wallet-card-v172,.receipt-upload-v3300)::after{content:none!important;display:none!important;background:none!important;box-shadow:none!important}
+html body #invest#invest#invest#invest #mmhFiveadd :is(.invest-entry>.toolbar h2,.mmh-wallet-hero-v172 h2,.mmh-wallet-card-v172 h3){font-size:15px!important;font-weight:650!important;color:var(--uv-text)!important;text-shadow:none!important}
+html body #invest#invest#invest#invest #mmhFiveadd :is(.invest-entry>.toolbar .pill,.mmh-wallet-badge-v172){background:var(--uv-raised)!important;background-image:none!important;color:var(--uv-muted)!important;border:1px solid var(--uv-line)!important;border-radius:6px!important;box-shadow:none!important}
+html body #invest#invest#invest#invest #mmhFiveadd .mmh-wallet-grid-v172{grid-template-columns:minmax(0,1fr)!important;gap:10px!important}
+html body #invest#invest#invest#invest #mmhFiveadd .mmh-wallet-hero-v172{display:none!important}
+html body #invest#invest#invest#invest #mmhFiveadd :is(#invForm .formgrid,#mmhWalletFormV172){display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:10px!important}
+html body #invest#invest#invest#invest #mmhFiveadd :is(#invForm .mmh-form-section-v1,#mmhWalletFormV172 .mmh-wallet-group-title-v181,#mmhWalletFormV172 .full,#mmhWalletFormV172 .mmh-wallet-preview-v172,#mmhWalletFormV172 .mmh-wallet-actions-v172){grid-column:1/-1!important}
+html body #invest#invest#invest#invest #mmhFiveadd :is(#invForm,#mmhWalletFormV172) :is(input:not([type=file]),textarea,select:not([hidden]):not(.mmh-cat-native-v2)){min-width:0!important;background:var(--uv-raised)!important;background-image:none!important;color:var(--uv-text)!important;border-color:var(--uv-line)!important;border-radius:7px!important;box-shadow:none!important;text-shadow:none!important}
+html body #invest#invest#invest#invest #mmhFiveadd #invForm :is(.receipt-upload-v3300,.receipt-dropzone-v3300,.receipt-upload-icon-v3300,.receipt-drop-icon-v3300,.receipt-upload-badge-v3300){background:var(--uv-raised)!important;background-image:none!important;border-color:var(--uv-line)!important;border-radius:7px!important;box-shadow:none!important;color:var(--uv-text)!important}
+html body #invest#invest#invest#invest #mmhFiveadd :is(#invForm .notice,#invForm #invSellWarningV336,#mmhWalletPreviewV172){background:var(--uv-card)!important;background-image:none!important;color:var(--uv-text)!important;border-color:var(--uv-line)!important;border-radius:7px!important;box-shadow:none!important}
+html body #invest#invest#invest#invest #mmhFiveadd :is(#invForm .actions,.mmh-wallet-actions-v172){display:flex!important;justify-content:flex-end!important;gap:8px!important;flex-wrap:wrap!important}
+html body #invest#invest#invest#invest #mmhFiveadd :is(#invForm .actions button,.mmh-wallet-actions-v172 button){min-height:40px!important;padding:8px 14px!important;border:1px solid var(--uv-line)!important;border-radius:7px!important;background:var(--uv-raised)!important;background-image:none!important;color:var(--uv-text)!important;box-shadow:none!important;text-shadow:none!important}
+html body #invest#invest#invest#invest #mmhFiveadd :is(#invForm .actions button.primary,#mmhWalletSaveV172){background:var(--uv-accent)!important;color:var(--uv-card)!important;border-color:var(--uv-accent)!important}
+html body #invest#invest#invest#invest #mmhFiveadd :is(#invForm,#mmhWalletFormV172) [hidden]{display:none!important}
+@media(max-width:620px){html body #invest#invest#invest#invest #mmhFiveadd :is(#invForm .formgrid,#mmhWalletFormV172){grid-template-columns:minmax(0,1fr)!important}html body #invest#invest#invest#invest #mmhFiveadd :is(.invest-entry,.mmh-wallet-card-v172){padding:12px!important}html body #invest#invest#invest#invest #mmhFiveadd :is(#invForm .actions button,.mmh-wallet-actions-v172 button){min-height:44px!important}html body #invest#invest#invest#invest #mmhFiveadd :is(#invForm,#mmhWalletFormV172) :is(input:not([type=file]),textarea){font-size:16px!important}}
+</style>
+<style id="mmhInvestTopNavigationV231">
+/* Reuse the original page and trade tabs; no duplicate entry controls. */
+html body #invest#invest#invest#invest#invest #mmhInvestPagePickerV1{display:flex!important;flex-wrap:wrap!important;align-items:center!important;gap:6px!important}
+html body #invest#invest#invest#invest#invest #mmhInvestPageOptionsV1{display:flex!important;flex:1 1 auto!important;min-width:0!important;width:auto!important;align-items:center!important;justify-content:flex-end!important;flex-wrap:nowrap!important;gap:6px!important}
+html body #invest#invest#invest#invest#invest #mmhInvestPageOptionsV1>#investSubAddV371{order:-2;flex:1 1 auto!important;justify-content:flex-start!important;width:auto!important;min-height:40px!important;max-width:none!important;padding:8px 10px!important;font-size:14px!important;font-weight:650!important;color:var(--uv-accent)!important;text-align:left!important;white-space:nowrap!important;border:0!important;background:transparent!important}
+html body #invest#invest#invest#invest#invest #mmhInvestPageOptionsV1>#investSubOverviewV371{order:-1;flex:0 0 auto!important;width:auto!important;min-height:40px!important;padding:7px 6px!important;font-size:12px!important;white-space:nowrap!important}
+html body #invest#invest#invest#invest#invest #mmhInvestPageOptionsV1>button.iw2-action{flex:0 0 36px!important;width:36px!important;min-width:36px!important;height:40px!important;min-height:40px!important}
+html body #invest#invest#invest#invest#invest #mmhInvestEntryTopV231{display:none!important;flex:1 1 170px!important;min-width:0!important;grid-template-columns:repeat(3,minmax(0,1fr))!important;margin:0!important;padding:3px!important;gap:3px!important}
+html body #invest#invest#invest#invest#invest.mmh-invest-entry-nav-active #mmhInvestEntryTopV231{display:grid!important}
+html body #invest#invest#invest#invest#invest.mmh-invest-entry-nav-active #mmhInvestPageOptionsV1{flex:0 0 auto!important}
+html body #invest#invest#invest#invest#invest.mmh-invest-entry-nav-active #mmhInvestPageOptionsV1>#investSubAddV371{display:none!important}
+html body #invest#invest#invest#invest#invest #mmhInvestEntryTopV231>button{min-height:40px!important;padding:5px 6px!important;font-size:12px!important;font-weight:650!important;white-space:nowrap!important}
+html body #invest#invest#invest#invest#invest #mmhInvestEntryTopV231>button:focus-visible,html body #invest#invest#invest#invest#invest #mmhInvestGuideV231:focus-visible{outline:2px solid var(--uv-accent)!important;outline-offset:1px!important}
+html body #invest#invest#invest#invest#invest #mmhInvestGuideV231{flex:0 0 36px!important;box-sizing:border-box!important;width:36px!important;height:40px!important;padding:0!important;border:1px solid var(--uv-line)!important;border-radius:7px!important;background:transparent!important;background-image:none!important;box-shadow:none!important;color:var(--uv-muted)!important;font:650 16px/1 system-ui!important;cursor:pointer}
+html body #invest#invest#invest#invest#invest #mmhInvestGuideDialogV231{box-sizing:border-box;width:min(480px,calc(100vw - 28px));max-height:85vh;max-height:85dvh;overflow:auto;overscroll-behavior:contain;padding:20px;border:1px solid var(--uv-line);border-radius:10px;background:var(--uv-card);color:var(--uv-text);font:14px/1.55 system-ui;box-shadow:0 16px 48px #0004}
+html body #invest#invest#invest#invest#invest #mmhInvestGuideDialogV231::backdrop{background:#0008}
+#mmhInvestGuideDialogV231 h2{font-size:18px;margin:0 0 10px;color:var(--uv-text)}#mmhInvestGuideDialogV231 p{color:var(--uv-muted);margin:0 0 12px}#mmhInvestGuideDialogV231 dt{font-weight:650;margin-top:10px}#mmhInvestGuideDialogV231 dd{margin:3px 0 0;color:var(--uv-muted)}#mmhInvestGuideDialogV231 button{display:block;margin:18px 0 0 auto;padding:9px 16px;border:1px solid var(--uv-line);border-radius:7px;background:var(--uv-raised);color:var(--uv-text);cursor:pointer}
+@media(max-width:480px){html body #invest#invest#invest#invest#invest #mmhInvestPagePickerV1{gap:4px!important}html body #invest#invest#invest#invest#invest #mmhInvestPageOptionsV1{gap:4px!important}html body #invest#invest#invest#invest#invest #mmhInvestEntryTopV231{flex-basis:150px!important;gap:2px!important;padding:2px!important}html body #invest#invest#invest#invest#invest #mmhInvestEntryTopV231>button{font-size:11px!important;padding-inline:2px!important}html body #invest#invest#invest#invest#invest #mmhInvestPageOptionsV1>#investSubAddV371{font-size:12px!important;padding-inline:3px!important}html body #invest#invest#invest#invest#invest #mmhInvestPageOptionsV1>#investSubOverviewV371{font-size:11px!important;padding-inline:2px!important}html body #invest#invest#invest#invest#invest #mmhInvestPageOptionsV1>button.iw2-action,html body #invest#invest#invest#invest#invest #mmhInvestGuideV231{flex-basis:34px!important;width:34px!important;min-width:34px!important;height:44px!important;min-height:44px!important}}
+@media(max-width:365px){html body #invest#invest#invest#invest#invest.mmh-invest-entry-nav-active #mmhInvestEntryTopV231{flex:1 0 100%!important}html body #invest#invest#invest#invest#invest.mmh-invest-entry-nav-active #mmhInvestPageOptionsV1{flex:1 1 auto!important}}
+</style>
 </body>
 </html>
