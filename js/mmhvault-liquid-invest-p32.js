@@ -5,6 +5,14 @@
   function mountEditor() {
     const form = document.getElementById('editInvForm');
     if (!form || form.dataset.mmhInvestP32 === '1') return;
+    // The V2 editor already owns its scrollport and receipt CTA. Do not wrap or decorate it again.
+    const current = Array.from(form.children).find(node => node.classList.contains('iw222-edit-scroll'));
+    if (current) {
+      form.classList.remove('mmh-invest-edit-p32');
+      current.querySelectorAll('.mmh-invest-receipt-cta-p32').forEach(node => node.remove());
+      form.dataset.mmhInvestP32 = '1';
+      return;
+    }
     const actions = Array.from(form.children).find(node => node.classList && node.classList.contains('actions'));
     if (!actions) return;
     const scroll = document.createElement('div');
