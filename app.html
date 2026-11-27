@@ -16059,6 +16059,7 @@ async function editInvestment(id){
           <strong>Choose a receipt</strong>
           <span>PNG, JPG, WEBP or PDF · up to 10 MB</span>
         </div>
+        <span class="iw228-receipt-browse" aria-hidden="true">Browse files ↗</span>
       </label>
       <div class="receipt-upload-footer-v3300">
         <span class="receipt-secure-v3300">🔒 Stored privately in your secure cloud storage</span>
@@ -39240,23 +39241,54 @@ html body dialog.mmh-history-edit.iw226-custom-edit[open] .iw226-custom-edit-scr
  flex:1 1 0!important;min-height:0!important;min-width:0!important;overflow-y:auto!important;overflow-x:hidden!important;overscroll-behavior-y:contain!important;touch-action:pan-y!important;-webkit-overflow-scrolling:touch!important;pointer-events:auto!important
 }
 </style>
-<script id="mmhInvestUiScrollV227">
+<style id="mmhInvestEditInteractionV228">
+/* One bounded scrollport; preserve the toolbar, actions and form controls. */
+html body #editModal#editModal#editModal#editModal.open:has(#editInvForm) > .modal,
+html body #editModal#editModal#editModal#editModal.open #editModalBody:has(#editInvForm),
+html body #editModal#editModal#editModal#editModal.open #editInvForm#editInvForm{min-height:0!important;overflow:hidden!important;touch-action:auto!important}
+html body #editModal#editModal#editModal#editModal.open #editInvForm#editInvForm > .iw222-edit-scroll,
+html body dialog.mmh-history-edit.iw226-custom-edit[open] .iw226-custom-edit-scroll{flex:1 1 0!important;min-height:0!important;min-width:0!important;overflow-y:auto!important;overflow-x:hidden!important;overscroll-behavior:contain!important;touch-action:pan-y pinch-zoom!important;-webkit-overflow-scrolling:touch!important;pointer-events:auto!important}
+html body #editModal#editModal#editModal#editModal #editInvForm#editInvForm label.receipt-dropzone-v3300[for="editInvestmentReceiptFile"]::before,
+html body #editModal#editModal#editModal#editModal #editInvForm#editInvForm label.receipt-dropzone-v3300[for="editInvestmentReceiptFile"]::after{content:none!important;display:none!important}
+html body #editModal#editModal#editModal#editModal #editInvForm#editInvForm label.receipt-dropzone-v3300[for="editInvestmentReceiptFile"]{width:100%!important;max-width:none!important;margin:0!important;box-sizing:border-box!important;display:flex!important;flex-wrap:wrap!important;justify-content:flex-start!important;gap:8px!important}
+html body #editModal#editModal#editModal#editModal #editInvForm#editInvForm .iw228-receipt-browse{display:inline-flex!important;align-items:center!important;justify-content:center!important;margin-inline-start:auto!important;padding:7px 12px!important;min-height:36px!important;box-sizing:border-box!important;border:1px solid var(--uv-line)!important;border-radius:7px!important;background:var(--uv-raised)!important;background-image:none!important;color:var(--uv-text)!important;font:550 13px/1.4 var(--mmh-notice-font,system-ui)!important;box-shadow:none!important;text-shadow:none!important;filter:none!important;white-space:nowrap!important}
+@media(max-width:420px){html body #editModal#editModal#editModal#editModal #editInvForm#editInvForm .iw228-receipt-browse{margin-inline-start:0!important;min-height:44px!important}}
+</style>
+<script id="mmhInvestEditInteractionScriptV228">
 (()=>{
  'use strict';
- // Wheel input anywhere inside an active investment editor should move its own scrollport.
- const selector='#editModal.open #editInvForm .iw222-edit-scroll,dialog.mmh-history-edit.iw226-custom-edit[open] .iw226-custom-edit-scroll';
- document.addEventListener('wheel',e=>{
-  if(e.defaultPrevented||!e.cancelable||e.ctrlKey||e.metaKey||e.shiftKey||!e.deltaY||Math.abs(e.deltaX)>Math.abs(e.deltaY))return;
-  const target=e.target instanceof Element?e.target:null,port=target?.closest(selector);
-  if(!port||port.scrollHeight<=port.clientHeight)return;
-  // Leave independently scrollable descendants and native picker popups alone.
-  for(let node=target;node&&node!==port;node=node.parentElement){
-   if(node.matches('select,[role=listbox]'))return;
-   if(node.scrollHeight>node.clientHeight+1&&/auto|scroll/.test(getComputedStyle(node).overflowY))return;
+ const hostSelector='#editModal.open:has(#editInvForm) > .modal,dialog.mmh-history-edit.iw226-custom-edit[open]';
+ const portSelector='.iw222-edit-scroll,.iw226-custom-edit-scroll';
+ const active=(target)=>{
+  if(!(target instanceof Element))return null;
+  const host=target.closest(hostSelector),port=host?.querySelector(portSelector);
+  if(!port||port.scrollHeight<=port.clientHeight+1||target.closest('select,[role=listbox],input[type=range],input[type=color]'))return null;
+  for(let node=target;node&&node!==host;node=node.parentElement){
+   if(node===port)break;
+   if(node.scrollHeight>node.clientHeight+1&&/auto|scroll/.test(getComputedStyle(node).overflowY))return null;
   }
-  const delta=e.deltaY*(e.deltaMode===1?16:e.deltaMode===2?port.clientHeight:1);
-  e.preventDefault();port.scrollTop+=delta;
+  return port;
+ };
+ window.addEventListener('wheel',e=>{
+  if(!e.cancelable||e.defaultPrevented||e.ctrlKey||e.metaKey||e.shiftKey||!e.deltaY||Math.abs(e.deltaX)>Math.abs(e.deltaY))return;
+  const port=active(e.target);if(!port)return;
+  e.preventDefault();port.scrollTop+=e.deltaY*(e.deltaMode===1?16:e.deltaMode===2?port.clientHeight:1);
  },{capture:true,passive:false});
+ let drag=null;
+ window.addEventListener('touchstart',e=>{
+  drag=null;if(e.touches.length!==1)return;
+  const port=active(e.target);if(!port)return;
+  const t=e.touches[0];drag={port,id:t.identifier,x:t.clientX,y:t.clientY,lastY:t.clientY,vertical:false};
+ },{capture:true,passive:true});
+ window.addEventListener('touchmove',e=>{
+  if(!drag||e.touches.length!==1||!drag.port.isConnected||!drag.port.closest(hostSelector)){drag=null;return;}
+  const t=e.touches[0];if(t.identifier!==drag.id){drag=null;return;}
+  const dx=t.clientX-drag.x,dy=t.clientY-drag.y;
+  if(!drag.vertical){if(Math.max(Math.abs(dx),Math.abs(dy))<8)return;if(Math.abs(dx)>=Math.abs(dy)){drag=null;return;}drag.vertical=true;}
+  if(!e.cancelable||e.defaultPrevented){drag=null;return;}
+  e.preventDefault();drag.port.scrollTop+=drag.lastY-t.clientY;drag.lastY=t.clientY;
+ },{capture:true,passive:false});
+ for(const type of ['touchend','touchcancel'])window.addEventListener(type,()=>{drag=null;},{capture:true,passive:true});
 })();
 </script>
 </body>
