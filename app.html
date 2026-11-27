@@ -28926,7 +28926,7 @@ function save(){lsSet(prefKey(),JSON.stringify(prefs));apply();window.mmhvaultFo
 window.mmhSetWorkspaceThemeV2=mode=>{if(!['system','light','dark'].includes(mode))return;prefs.theme=mode;lsSet(prefKey(),JSON.stringify(prefs));applyTheme(mode);const select=$('stPref_theme');if(select&&select.value!==mode)select.value=mode;};
 function row(icon,label,id,options,value){const l=document.createElement('label');l.className='st-row';const i=document.createElement('span');i.className='st-icon';i.textContent=icon;const t=document.createElement('span');t.textContent=label;const input=document.createElement(options?'select':'input');input.id=id;if(options){for(const [v,title] of options){const o=document.createElement('option');o.value=v;o.textContent=title;input.append(o)}input.value=value}else{input.type='checkbox';input.checked=!!value}l.append(i,t,input);return l;}
 function group(title){const g=document.createElement('section');g.className='st-group';const h=document.createElement('h2');h.textContent=title;const r=document.createElement('div');r.className='st-rows';g.append(h,r);$('stPreferences').append(g);return r;}
-function add(r,icon,label,name,options){const id='stPref_'+name;r.append(row(icon,label,id,options,prefs[name]));$(id).addEventListener('change',e=>{if(name==='theme'){window.mmhSetWorkspaceThemeV2(e.target.value);return}prefs[name]=options?e.target.value:e.target.checked;save();if(name==='currency')window.mmhRestoreAnalyzeCurrencyV918?.()});}
+function add(r,icon,label,name,options){const id='stPref_'+name;r.append(row(icon,label,id,options,prefs[name]));$(id).addEventListener('change',e=>{if(name==='theme'){window.mmhSetWorkspaceThemeV2(e.target.value);return}prefs[name]=options?e.target.value:e.target.checked;save();if(name==='currency'){window.mmhRestoreAnalyzeCurrencyV918?.();window.dispatchEvent(new Event('mmhvault:personal-display-currency-changed'))}});}
 
 function disclosure(title,source){const d=document.createElement('details');d.className='st-detail';const su=document.createElement('summary');su.textContent=title;const arrow=document.createElement('span');arrow.textContent='›';su.append(arrow);d.append(su);if(source)d.append(source);return d;}
 function stats(){const days=[...new Set(transactions.map(t=>String(t.tx_date||'').slice(0,10)).filter(d=>/^\d{4}-\d{2}-\d{2}$/.test(d)))];const set=new Set(days);let streak=0;const d=new Date();const local=()=>`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;if(!set.has(local()))d.setDate(d.getDate()-1);while(set.has(local())){streak++;d.setDate(d.getDate()-1)};[$('stStreak'),$('stDays'),$('stCount')].forEach((e,i)=>{if(e)e.textContent=[streak,days.length,transactions.length][i]});}
@@ -29128,16 +29128,23 @@ let selected='all',conceal=false,draft=null,editing=null,token=0,busy=false,quer
 // P9.26: the Accounts display unit is a per-user presentation preference only.
 const mmhAccountDisplayCodesV926=new Set(['USD','THB','MMK','CNY','AMD','JPY','KRW','KPW','HKD','MOP','TWD','MNT','BND','IDR','KHR','LAK','MYR','PHP','SGD','VND','AFN','BDT','BTN','INR','LKR','MVR','NPR','PKR','KGS','KZT','TJS','TMT','UZS','AZN','GEL','AED','BHD','ILS','IQD','IRR','JOD','KWD','LBP','OMR','QAR','SAR','SYP','TRY','YER','EUR','RUB','EGP','AUD']);
 function mmhAccountDisplayKeyV926(){const id=currentSessionUser?.id;return id?'mmhvault_account_display_currency_v926_'+id:'';}
-function mmhAccountDisplayRestoreV926(){
-  let value='USD';const key=mmhAccountDisplayKeyV926();
-  if(key){try{const saved=localStorage.getItem(key);if(mmhAccountDisplayCodesV926.has(saved))value=saved;}catch(_){}}
-  displayCurrency=value;rowDisplayCurrency='NATIVE';if(key){try{const saved=localStorage.getItem(key+'_rows');if(mmhAccountDisplayCodesV926.has(saved))rowDisplayCurrency=saved}catch(_){}}
-  const select=$('apCurrency');if(select)select.value=value;const rowSelect=$('apRowCurrency');if(rowSelect)rowSelect.value=rowDisplayCurrency;
+function mmhAccountDisplayDefaultV265(){
+ const id=currentSessionUser?.id;if(!id)return 'USD';
+ try{const value=JSON.parse(localStorage.getItem('mmhvault_settings_display_v2_'+id)||'{}')?.currency;return mmhAccountDisplayCodesV926.has(value)?value:'USD'}catch(_){return 'USD'}
 }
-function mmhAccountDisplaySaveV926(value){
-  if(!mmhAccountDisplayCodesV926.has(value))return;
-  displayCurrency=value;
-  const key=mmhAccountDisplayKeyV926();if(key){try{localStorage.setItem(key,value);}catch(_){}}
+function mmhAccountDisplayChoiceV265(rows=false){
+ const key=mmhAccountDisplayKeyV926();if(!key)return 'GLOBAL';
+ try{const value=localStorage.getItem(key+(rows?'_rows':''));return mmhAccountDisplayCodesV926.has(value)||(rows&&value==='NATIVE')?value:'GLOBAL'}catch(_){return 'GLOBAL'}
+}
+function mmhAccountDisplayRestoreV926(){
+ const choice=mmhAccountDisplayChoiceV265(),rowChoice=mmhAccountDisplayChoiceV265(true),fallback=mmhAccountDisplayDefaultV265();
+ displayCurrency=choice==='GLOBAL'?fallback:choice;rowDisplayCurrency=rowChoice==='GLOBAL'?fallback:rowChoice;
+ const select=$('apCurrency');if(select)select.value=choice;const rowSelect=$('apRowCurrency');if(rowSelect)rowSelect.value=rowChoice;
+}
+function mmhAccountDisplaySaveV926(value,rows=false){
+ if(value!=='GLOBAL'&&!mmhAccountDisplayCodesV926.has(value)&&!(rows&&value==='NATIVE'))return;
+ const key=mmhAccountDisplayKeyV926();if(key){try{if(value==='GLOBAL')localStorage.removeItem(key+(rows?'_rows':''));else localStorage.setItem(key+(rows?'_rows':''),value)}catch(_){}}
+ mmhAccountDisplayRestoreV926();
 }
 
 function visuals(){try{const d=JSON.parse(localStorage.getItem(key())||'{}');return d&&typeof d==='object'?d:{}}catch(_){return {}}}
@@ -29354,42 +29361,44 @@ function scheduleAccountsRenderV159(){
 }
 window.mmhAccountsRefreshV1=renderHome;window.mmhAccountsHomeV1=home;
 const totalPicker=$('apCurrencyPickerV2'),rowPicker=totalPicker.cloneNode(true);rowPicker.id='apRowCurrencyPickerV2';rowPicker.querySelector('#apCurrencyCurrentV2').id='apRowCurrencyCurrentV2';rowPicker.querySelector('#apCurrencySearchV2').id='apRowCurrencySearchV2';rowPicker.querySelector('label').htmlFor='apRowCurrencySearchV2';rowPicker.querySelector('#apCurrencyListV2').id='apRowCurrencyListV2';rowPicker.querySelector('#apCurrency').id='apRowCurrency';rowPicker.querySelector('#apRowCurrency').insertBefore(new Option('Account currency','NATIVE'),rowPicker.querySelector('#apRowCurrency').firstChild);totalPicker.after(rowPicker);
-for(const p of [totalPicker,rowPicker]){const select=p.querySelector('select');for(const code of mmhAccountDisplayCodesV926){if(![...select.options].some(o=>o.value===code))select.append(new Option(code,code))}}
+for(const p of [totalPicker,rowPicker]){const select=p.querySelector('select');select.prepend(new Option('Follow default','GLOBAL'));for(const code of mmhAccountDisplayCodesV926){if(![...select.options].some(o=>o.value===code))select.append(new Option(code,code))}}
 mmhAccountDisplayRestoreV926();
 // Shared V2 currency menu: Accounts and History use the same renderer, labels, ordering and rows.
 const flagMap={USD:'US',THB:'TH',MMK:'MM',CNY:'CN',AMD:'AM',JPY:'JP',KRW:'KR',KPW:'KP',HKD:'HK',MOP:'MO',TWD:'TW',MNT:'MN',BND:'BN',IDR:'ID',KHR:'KH',LAK:'LA',MYR:'MY',PHP:'PH',SGD:'SG',VND:'VN',AFN:'AF',BDT:'BD',BTN:'BT',INR:'IN',LKR:'LK',MVR:'MV',NPR:'NP',PKR:'PK',KGS:'KG',KZT:'KZ',TJS:'TJ',TMT:'TM',UZS:'UZ',AZN:'AZ',GEL:'GE',AED:'AE',BHD:'BH',ILS:'IL',IQD:'IQ',IRR:'IR',JOD:'JO',KWD:'KW',LBP:'LB',OMR:'OM',QAR:'QA',SAR:'SA',SYP:'SY',TRY:'TR',YER:'YE',EUR:'EU',RUB:'RU',EGP:'EG',AUD:'AU'};
 const sharedCurrencyFlagV3=code=>flagMap[code]?String.fromCodePoint(...[...flagMap[code]].map(x=>127397+x.charCodeAt(0)))+' ':'';
 function renderSharedCurrencyV3({select,search,list,group,label,includeNative=false}){
 const lang=String(document.documentElement.lang||'en').toLowerCase(),zh=lang.startsWith('zh'),my=lang.startsWith('my')||lang.startsWith('bur'),native=zh?'账户原币':my?'အကောင့် မူရင်းငွေကြေး':'Account currency';
-const codes=[...new Set(Array.from(select.options,o=>o.value).filter(c=>c&&c!=='NATIVE'))],counts=new Map();
+const follow=zh?'跟随默认币种':my?'မူလငွေကြေးအတိုင်း':'Follow default';const hasFollow=Array.from(select.options).some(o=>o.value==='GLOBAL');
+const codes=[...new Set(Array.from(select.options,o=>o.value).filter(c=>c&&c!=='NATIVE'&&c!=='GLOBAL'))],counts=new Map();
 for(const a of MMHVAULT_CONFIG.accounts||[]){if(a.active===false)continue;const c=String(a.currency||'').toUpperCase().replace(/^RMB$/,'CNY');counts.set(c,(counts.get(c)||0)+1)}
 const priority=['USD','THB','MMK','CNY','AMD'].filter(c=>codes.includes(c)),frequent=[...priority,...codes.filter(c=>!priority.includes(c)&&counts.has(c)).sort((a,b)=>counts.get(b)-counts.get(a)||a.localeCompare(b))],other=codes.filter(c=>!frequent.includes(c)).sort();
 const searchLabel=zh?'搜索币种':my?'ငွေကြေး ရှာရန်':'Search currencies';
 group.classList.add('mmh-shared-currency-v3');group.setAttribute('aria-label',label);group.querySelector('label').textContent=searchLabel;search.setAttribute('aria-label',searchLabel);search.placeholder=zh?'币种代码或名称':my?'ငွေကြေးကုဒ် သို့မဟုတ် အမည်':'Currency code or name';
 let names,englishNames;try{names=new Intl.DisplayNames([zh?'zh-CN':my?'my':'en'],{type:'currency'});englishNames=new Intl.DisplayNames(['en'],{type:'currency'})}catch(_){}
-const nameOf=(c,provider)=>{if(c==='NATIVE')return native;try{return provider?.of(c)||c}catch(_){return c}};
+const nameOf=(c,provider)=>{if(c==='GLOBAL')return follow;if(c==='NATIVE')return native;try{return provider?.of(c)||c}catch(_){return c}};
 const render=()=>{const term=search.value.trim().toLocaleLowerCase();list.replaceChildren();
 const append=(title,items)=>{const matches=items.filter(c=>!term||[c,nameOf(c,names),nameOf(c,englishNames),c==='CNY'?'RMB 人民币':''].some(v=>v.toLocaleLowerCase().includes(term)));if(!matches.length)return;const heading=document.createElement('div');heading.className='ap-currency-section-v2';heading.textContent=title;list.append(heading);
-for(const code of matches){const b=document.createElement('button');b.type='button';b.dataset.apCurrency=code;b.setAttribute('aria-pressed',String(code===select.value));const l=document.createElement('span'),r=document.createElement('span');l.textContent=code==='NATIVE'?native:sharedCurrencyFlagV3(code)+code;r.textContent=code==='NATIVE'?'':nameOf(code,names)+(code==='CNY'?' (RMB)':'');b.append(l,r);list.append(b)}};
-append(zh?'常用币种':my?'အသုံးများသော ငွေကြေး':'Frequently used',includeNative&&Array.from(select.options).some(o=>o.value==='NATIVE')?['NATIVE',...frequent]:frequent);append(zh?'其他币种':my?'အခြား ငွေကြေးများ':'All other currencies',other);
+for(const code of matches){const b=document.createElement('button');b.type='button';b.dataset.apCurrency=code;b.setAttribute('aria-pressed',String(code===select.value));const l=document.createElement('span'),r=document.createElement('span');l.textContent=code==='GLOBAL'?follow:code==='NATIVE'?native:sharedCurrencyFlagV3(code)+code;r.textContent=['GLOBAL','NATIVE'].includes(code)?'':nameOf(code,names)+(code==='CNY'?' (RMB)':'');b.append(l,r);list.append(b)}};
+append(zh?'常用币种':my?'အသုံးများသော ငွေကြေး':'Frequently used',[...(hasFollow?['GLOBAL']:[]),...(includeNative&&Array.from(select.options).some(o=>o.value==='NATIVE')?['NATIVE']:[]),...frequent]);append(zh?'其他币种':my?'အခြား ငွေကြေးများ':'All other currencies',other);
 if(!list.childElementCount){const e=document.createElement('div');e.className='ap-currency-section-v2';e.textContent=zh?'未找到币种':my?'ငွေကြေး မတွေ့ပါ':'No currencies found';list.append(e)}};
 search.oninput=render;render();
 }
 window.MMHCurrencyPickerV3=Object.freeze({render:renderSharedCurrencyV3,flag:sharedCurrencyFlagV3});
 function setupDisplayPickerV3(picker,isRows){
 const pickerSelect=picker.querySelector('select'),current=picker.querySelector('summary span'),search=picker.querySelector('input'),list=picker.querySelector('.ap-currency-list-v2');
-const allowed=v=>mmhAccountDisplayCodesV926.has(v)||(isRows&&v==='NATIVE');
-pickerSelect.onchange=e=>{const value=e.target.value;if(!allowed(value))return;if(isRows){rowDisplayCurrency=value;const key=mmhAccountDisplayKeyV926();if(key){try{localStorage.setItem(key+'_rows',value)}catch(_){}}}else mmhAccountDisplaySaveV926(value);renderHome()};
+const allowed=v=>v==='GLOBAL'||mmhAccountDisplayCodesV926.has(v)||(isRows&&v==='NATIVE');
+pickerSelect.onchange=e=>{const value=e.target.value;if(!allowed(value))return;mmhAccountDisplaySaveV926(value,isRows);renderHome()};
 function syncCurrencyPickerV2(){
 const lang=String(document.documentElement.lang||'en').toLowerCase(),zh=lang.startsWith('zh'),my=lang.startsWith('my')||lang.startsWith('bur'),label=isRows?(zh?'余额':my?'လက်ကျန်':'Balance'):(zh?'显示币种':my?'ပြသမည့် ငွေကြေး':'Display currency'),native=zh?'账户原币':my?'အကောင့် မူရင်းငွေကြေး':'Account currency';
-current.textContent=pickerSelect.value==='NATIVE'?(isRows?label:native):sharedCurrencyFlagV3(pickerSelect.value)+pickerSelect.value;
+const effective=isRows?rowDisplayCurrency:displayCurrency;current.textContent=pickerSelect.value==='GLOBAL'?sharedCurrencyFlagV3(effective)+effective+' · '+(zh?'默认':my?'မူလ':'Default'):pickerSelect.value==='NATIVE'?(isRows?label:native):sharedCurrencyFlagV3(pickerSelect.value)+pickerSelect.value;
 picker.querySelector('summary').setAttribute('aria-label',label+': '+current.textContent);
 renderSharedCurrencyV3({select:pickerSelect,search,list,group:picker.querySelector('.ap-currency-choices-v2'),label,includeNative:isRows});
 }
 picker.addEventListener('click',e=>{const btn=e.target.closest('[data-ap-currency]');if(!btn)return;const value=btn.dataset.apCurrency;if(!allowed(value))return;if(pickerSelect.value!==value){pickerSelect.value=value;pickerSelect.dispatchEvent(new Event('change',{bubbles:true}))}picker.open=false;picker.querySelector('summary').focus({preventScroll:true})});
-pickerSelect.addEventListener('change',syncCurrencyPickerV2);window.addEventListener('mmhvault-language-change',syncCurrencyPickerV2);window.addEventListener('mmhvault:config-owner-changed',()=>{picker.open=false;queueMicrotask(syncCurrencyPickerV2)});window.addEventListener('mmhvault:page-visible',()=>{picker.open=false;syncCurrencyPickerV2()});document.addEventListener('pointerdown',e=>{if(picker.open&&!picker.contains(e.target))picker.open=false},{passive:true});picker.addEventListener('toggle',()=>{if(picker.open){search.value='';syncCurrencyPickerV2();list.scrollTop=0}else{search.value=''}});picker.addEventListener('keydown',e=>{if(e.key==='Escape'){picker.open=false;picker.querySelector('summary').focus({preventScroll:true})}});syncCurrencyPickerV2();
+pickerSelect.addEventListener('change',syncCurrencyPickerV2);window.addEventListener('mmhvault:personal-display-currency-changed',syncCurrencyPickerV2);window.addEventListener('mmhvault-language-change',syncCurrencyPickerV2);window.addEventListener('mmhvault:config-owner-changed',()=>{picker.open=false;queueMicrotask(syncCurrencyPickerV2)});window.addEventListener('mmhvault:page-visible',()=>{picker.open=false;syncCurrencyPickerV2()});document.addEventListener('pointerdown',e=>{if(picker.open&&!picker.contains(e.target))picker.open=false},{passive:true});picker.addEventListener('toggle',()=>{if(picker.open){search.value='';syncCurrencyPickerV2();list.scrollTop=0}else{search.value=''}});picker.addEventListener('keydown',e=>{if(e.key==='Escape'){picker.open=false;picker.querySelector('summary').focus({preventScroll:true})}});syncCurrencyPickerV2();
 
 }
+window.addEventListener('mmhvault:personal-display-currency-changed',()=>{mmhAccountDisplayRestoreV926();scheduleAccountsRenderV159()});
 setupDisplayPickerV3(totalPicker,false);setupDisplayPickerV3(rowPicker,true);
 const original=window.mmhVaultRenderManager;window.mmhVaultRenderManager=function(){const r=original.apply(this,arguments);scheduleAccountsRenderV159();return r};const open=window.mmhOpenManagerV1;window.mmhOpenManagerV1=function(mode){if(mode!=='categories'){home();$('amFilter').value=selected;setPage('accounts-page');return}return open.apply(this,arguments)};renderHome();
 window.addEventListener('mmhvault:config-owner-changed',()=>{token++;busy=false;if(addModalActiveV2&&$('mmhVaultDialogV449')?.classList.contains('show'))mmhVaultResolveDialogV449(false);query='';sortMode='original';selected='all';conceal=false;mmhAccountDisplayRestoreV926();$('amSearch').value='';$('amSort').value='original';$('amFilter').value='all';home()});
