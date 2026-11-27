@@ -12968,7 +12968,7 @@ html.mmh-desktop-compact-v11110 body.mmh-workspace-active #moreNavMenu.more-nav-
     <div class="cfa-head">
       <div><div class="cfa-eyebrow">FINANCIAL ANALYSIS</div><h1 class="mmh-hint-anchor-v195 mmh-context-title-v199" data-mmh-hint-source="next" tabindex="0">Cash Flow Analyze</h1><p class="mmh-context-desc-v199">Income, spending and remaining funds for your selected period.</p></div>
       <div class="cfa-controls" aria-label="Period controls">
-        <label>Currency<select id="cfaCurrency"><option value="USD">$</option><option value="THB">฿</option><option value="MMK">K</option><option value="CNY">￥</option></select></label>
+        <label>Currency<select id="cfaCurrency"><option value="GLOBAL" data-i18n-en="Follow default" data-i18n-zh="跟随默认" data-i18n-my="မူလအတိုင်း">Follow default</option><option value="USD">$</option><option value="THB">฿</option><option value="MMK">K</option><option value="CNY">￥</option></select></label>
         <label>Period<select id="cfaMode"><option value="month">Month</option><option value="year">Year</option></select></label>
         <label id="cfaMonthWrap">Month<input id="cfaMonth" type="month"></label>
         <label id="cfaYearWrap" hidden>Year<select id="cfaYear"></select></label>
@@ -28577,33 +28577,31 @@ html,body{max-width:100%;overflow-x:clip}
   const analyzeCurrencyKeyV918=()=> 'mmhvault_analyze_currency_v918_'+currencyOwnerV918();
   const settingsCurrencyKeyV918=()=> 'mmhvault_settings_display_v2_'+currencyOwnerV918();
   const validCurrencyV918=c=>cashflowCurrenciesV918.includes(c)?c:null;
-  function readCurrencyV918(){
+  function defaultCurrencyV918(){
     try{
-      const chosen=validCurrencyV918(localStorage.getItem(analyzeCurrencyKeyV918()));
-      if(chosen)return chosen;
+      const live=validCurrencyV918(window.mmhSettingsDisplayPrefsV1237?.().currency);
+      if(live)return live;
       const settings=JSON.parse(localStorage.getItem(settingsCurrencyKeyV918())||'{}');
-      const legacy=validCurrencyV918(settings?.currency);
-      if(legacy)return legacy;
-    }catch(_e){}
-    return 'USD';
+      return validCurrencyV918(settings?.currency)||'USD';
+    }catch(_e){return 'USD'}
   }
+  function overrideCurrencyV918(){
+    try{return validCurrencyV918(localStorage.getItem(analyzeCurrencyKeyV918()))}catch(_e){return null}
+  }
+  function readCurrencyV918(){return overrideCurrencyV918()||defaultCurrencyV918()}
   function restoreCurrencyV918(){
     state.currency=readCurrencyV918();
-    const select=$('cfaCurrency');if(select)select.value=state.currency;
-    window.mmhSettingsSyncCashflowCurrencyV71?.(state.currency);
-    // Recalculate labels/amounts immediately, including when auth restores an inactive page.
+    const select=$('cfaCurrency');if(select)select.value=overrideCurrencyV918()||'GLOBAL';
     if($('cashflow-analyze'))render();
   }
   function saveCurrencyV918(code){
-    state.currency=validCurrencyV918(code)||'USD';
+    const chosen=validCurrencyV918(code);
+    if(code!=='GLOBAL'&&!chosen)return;
     try{
-      localStorage.setItem(analyzeCurrencyKeyV918(),state.currency);
-      // Keep the existing Settings default synchronized without overwriting unrelated prefs.
-      const key=settingsCurrencyKeyV918();
-      const stored=JSON.parse(localStorage.getItem(key)||'{}');
-      localStorage.setItem(key,JSON.stringify({...(stored&&typeof stored==='object'&&!Array.isArray(stored)?stored:{}),currency:state.currency}));
+      if(chosen)localStorage.setItem(analyzeCurrencyKeyV918(),chosen);
+      else localStorage.removeItem(analyzeCurrencyKeyV918());
     }catch(_e){}
-    window.mmhSettingsSyncCashflowCurrencyV71?.(state.currency);
+    restoreCurrencyV918();
   }
   window.mmhRestoreAnalyzeCurrencyV918=restoreCurrencyV918;
 
@@ -28923,20 +28921,14 @@ const prefOwner=()=>currentSessionUser?.id||'guest';
 const prefKey=(id=prefOwner())=>baseKey+'_'+id;
 function readPrefs(){const id=prefOwner();let raw=lsGet(prefKey(id));if(!raw){const legacy=lsGet(baseKey),claimed=lsGet(baseKey+'_legacy_owner');if(legacy&&(id==='guest'||!claimed||claimed===id)){raw=legacy;if(id!=='guest'){lsSet(prefKey(id),legacy);lsSet(baseKey+'_legacy_owner',id)}}}try{const stored=JSON.parse(raw||'{}'),theme=stored?.theme||(id==='guest'?lsGet('myfinance_theme'):'system');return {...defaults,...stored,theme:['system','light','dark'].includes(theme)?theme:'system'}}catch(_){return {...defaults}}}
 let prefs=readPrefs();window.mmhSettingsDisplayPrefsV1237=()=>({...prefs});
-// P7.1: keep the in-memory Settings form aligned with a direct Analyze currency selection.
-window.mmhSettingsSyncCashflowCurrencyV71=code=>{
-  if(!['USD','THB','MMK','CNY'].includes(code))return;
-  prefs.currency=code;
-  const select=document.getElementById('stPref_currency');
-  if(select&&select.value!==code)select.value=code;
-};
+// Personal page-specific currency choices never update global settings.
 window.mmhSettingsNumberV2=v=>Number(v||0).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2});
 function apply(){applyTheme(prefs.theme);document.body.classList.toggle('st-overview-compact',prefs.overview==='compact');document.body.classList.toggle('st-budget-compact',prefs.budget==='compact');}
 function save(){lsSet(prefKey(),JSON.stringify(prefs));apply();window.mmhvaultForceRenderAllV34421?.('settings-preferences');window.mmhRenderCashflowAnalyzeV1?.();}
 window.mmhSetWorkspaceThemeV2=mode=>{if(!['system','light','dark'].includes(mode))return;prefs.theme=mode;lsSet(prefKey(),JSON.stringify(prefs));applyTheme(mode);const select=$('stPref_theme');if(select&&select.value!==mode)select.value=mode;};
 function row(icon,label,id,options,value){const l=document.createElement('label');l.className='st-row';const i=document.createElement('span');i.className='st-icon';i.textContent=icon;const t=document.createElement('span');t.textContent=label;const input=document.createElement(options?'select':'input');input.id=id;if(options){for(const [v,title] of options){const o=document.createElement('option');o.value=v;o.textContent=title;input.append(o)}input.value=value}else{input.type='checkbox';input.checked=!!value}l.append(i,t,input);return l;}
 function group(title){const g=document.createElement('section');g.className='st-group';const h=document.createElement('h2');h.textContent=title;const r=document.createElement('div');r.className='st-rows';g.append(h,r);$('stPreferences').append(g);return r;}
-function add(r,icon,label,name,options){const id='stPref_'+name;r.append(row(icon,label,id,options,prefs[name]));$(id).addEventListener('change',e=>{if(name==='theme'){window.mmhSetWorkspaceThemeV2(e.target.value);return}prefs[name]=options?e.target.value:e.target.checked;save();if(name==='currency'&&$('cfaCurrency')){$('cfaCurrency').value=prefs.currency;$('cfaCurrency').dispatchEvent(new Event('change',{bubbles:true}))}});}
+function add(r,icon,label,name,options){const id='stPref_'+name;r.append(row(icon,label,id,options,prefs[name]));$(id).addEventListener('change',e=>{if(name==='theme'){window.mmhSetWorkspaceThemeV2(e.target.value);return}prefs[name]=options?e.target.value:e.target.checked;save();if(name==='currency')window.mmhRestoreAnalyzeCurrencyV918?.()});}
 
 function disclosure(title,source){const d=document.createElement('details');d.className='st-detail';const su=document.createElement('summary');su.textContent=title;const arrow=document.createElement('span');arrow.textContent='›';su.append(arrow);d.append(su);if(source)d.append(source);return d;}
 function stats(){const days=[...new Set(transactions.map(t=>String(t.tx_date||'').slice(0,10)).filter(d=>/^\d{4}-\d{2}-\d{2}$/.test(d)))];const set=new Set(days);let streak=0;const d=new Date();const local=()=>`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;if(!set.has(local()))d.setDate(d.getDate()-1);while(set.has(local())){streak++;d.setDate(d.getDate()-1)};[$('stStreak'),$('stDays'),$('stCount')].forEach((e,i)=>{if(e)e.textContent=[streak,days.length,transactions.length][i]});}
@@ -28951,7 +28943,7 @@ for(const id of ['accountAvatarV372','accountDisplayNameV372']){const e=$(id);e.
 const head=top.querySelector('.toolbar');head.querySelector('h2').textContent='My profile';head.querySelector('.small').textContent='Your identity and everyday progress';
 const summary=document.createElement('div');summary.className='st-stats';summary.innerHTML='<div><b id="stStreak">0</b><small>Day streak</small></div><div><b id="stDays">0</b><small>Days recorded</small></div><div><b id="stCount">0</b><small>Transactions</small></div>';top.querySelector('.settings-profile-editor').before(summary);
 let r=group('Appearance');add(r,'◫','Overview','overview',[['comfortable','Comfortable'],['compact','Compact']]);add(r,'◴','Budget','budget',[['comfortable','Comfortable'],['compact','Compact']]);add(r,'◐','Theme','theme',[['system','System'],['light','Light'],['dark','Dark']]);
-r=group('General');r.append(row('文','Language','stLanguage',[['en','English'],['zh','中文'],['my','မြန်မာ']],lsGet('mmhvault_language_v3363')||'en'));$('stLanguage').addEventListener('change',e=>window.setMMHVAULTLanguage?.(e.target.value));add(r,'$','Cashflow default currency','currency',[['USD','$ · USD'],['THB','฿ · THB'],['MMK','K · MMK'],['CNY','￥ · RMB']]);
+r=group('General');r.append(row('文','Language','stLanguage',[['en','English'],['zh','中文'],['my','မြန်မာ']],lsGet('mmhvault_language_v3363')||'en'));$('stLanguage').addEventListener('change',e=>window.setMMHVAULTLanguage?.(e.target.value));add(r,'$','Default display currency','currency',[['USD','$ · USD'],['THB','฿ · THB'],['MMK','K · MMK'],['CNY','￥ · RMB']]);
 const note=document.createElement('p');note.className='st-note';note.textContent='Amounts always display two decimal places. Investment quantities and original stored values retain their precision.';r.parentNode.append(note);
 r=group('Transactions');for(const type of ['Expense','Income','Transfer']){r.append(row(type==='Expense'?'↗':type==='Income'?'↙':'⇄',type==='Transfer'?'Default transfer source':'Default '+type.toLowerCase()+' category','stDefault'+type,[['','Use existing default']],''));$('stDefault'+type).addEventListener('change',e=>{const saved=txPrefs();saved[type]=e.target.value;lsSet(txKey(),JSON.stringify(saved))})}
 const security=account.querySelector('.account-security-v379');if(security)account.append(disclosure('Password & devices',security));const birthday=$('mmhBirthdaySettingsV34215');if(birthday)account.append(disclosure('Personal time',birthday));
@@ -36101,7 +36093,7 @@ html body #exAsiaV10 #asiaBaseV10.mmh-asia-native-select-p914{display:none!impor
 <!-- P9.27: Report/FX scoped responsive polish and truthful unavailable states. -->
 <link rel="stylesheet" href="css/mmhvault-core-analytics-p927.css?v=9.27.0" data-mmh-finance-analytics="p9.27">
 <!-- P9.28: scoped Settings, Feedback Center and Life Planner interaction polish. -->
-<link rel="stylesheet" href="css/mmhvault-settings-life-p928.css?v=2.0.65" data-mmh-settings-life="p9.28">
+<link rel="stylesheet" href="css/mmhvault-settings-life-p928.css?v=2.0.65.1" data-mmh-settings-life="p9.28">
 
 <!-- P9.53: Password & devices — provider switch restore + owner-scoped reset cooldown. -->
 <style id="mmhvault-email-recovery-v952">
