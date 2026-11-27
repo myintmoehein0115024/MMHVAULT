@@ -70,3 +70,21 @@ acOwner='acct-a';accountAPI.restore();assert.deepEqual(accountAPI.get(),['USD','
 accountAPI.save('ZZZ');assert.deepEqual(accountAPI.get(),['USD','CNY']);
 assert.equal(JSON.parse(data.get(globalKey('acct-a'))).currency,'CNY');
 console.log('PASS: 13 Accounts display preference assertions (synthetic storage)');
+
+const {readPersonalCashflowCurrencyChoiceV265:readChoiceV265}=await import('../js/mmhvault-cashflow-v2-ui.mjs');
+const choiceV265=(u,v)=>readChoiceV265(storage,u,v,codesV265);
+global('cash-reset','THB');data.set(overrideKey('cash-reset'),'JPY');
+assert.equal(choiceV265('cash-reset','analysis'),'JPY');
+assert.equal(getV265('cash-reset','analysis'),'JPY');
+assert(putV265('cash-reset','analysis','GLOBAL'));
+assert.equal(choiceV265('cash-reset','analysis'),'GLOBAL');
+assert.equal(getV265('cash-reset','analysis'),'THB');
+assert(putV265('cash-reset','analysis','THB'));
+global('cash-reset','MMK');
+assert.equal(getV265('cash-reset','analysis'),'THB');
+assert.equal(getV265('cash-reset','summary'),'MMK');
+assert.equal(getV265('cash-other','analysis'),'USD');
+assert(!putV265('cash-reset','analysis','ZZZ'));
+assert(!putV265('','analysis','GLOBAL'));
+assert.equal(resolveV265(storage,'cash-reset','analysis',codesV265,'USD','JPY'),'JPY');
+console.log('PASS: 12 Cash Flow follow-default, legacy migration and explicit-choice assertions');
