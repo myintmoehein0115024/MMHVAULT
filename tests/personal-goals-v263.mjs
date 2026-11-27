@@ -72,6 +72,35 @@ try{
    assert.deepEqual(await page.evaluate(()=>window.__fixtureActions),['Close','Edit Goal']);
    console.log('PASS Goals actual card/detail templates with stubbed data and dialog host',width,light?'light':'dark');
 
+
+   // Actual shared i18n engine, isolated from authenticated app boot.
+   const actual=(a,b)=>{const i=app.indexOf(a),j=app.indexOf(b,i+a.length);assert.ok(i>=0&&j>i,a);return app.slice(i,j)};
+   const engine=actual('const goalCopyV263=','const mmhI18nTextStateV135=new WeakMap();')+actual('function translateAttributes(root){','function translateDynamicText(base){')+actual('const mmhI18nTextStateV135=new WeakMap();','window.mmhI18nTextV135=')+actual('function walk(root){','function syncLanguageChoices()');
+   const states=await page.evaluate(({engine})=>{
+     const root=document.querySelector('#goals'),dialog=document.querySelector('.mmh-goal-dialog-v149');
+     // Reset manually injected sample filter labels to the English source.
+     root.querySelectorAll('.goal-filters-v113 button').forEach((b,i)=>b.textContent=['Active','Completed','Archived','All'][i]);
+     root.querySelector('.goal-card-title-v113 h3').textContent='Savings';
+     const meta=root.querySelector('#goalNextMetaV113');meta.setAttribute('data-goal-user-copy-v263','');meta.textContent='No dated goals';
+     const run=new Function('root','dialog',engine+`
+       let lang='en';const investCopySurfaceV236=()=>false,txUiSurfaceV2=()=>false;
+       return ['en','zh','my','en'].map(next=>{
+         lang=next;translateRoot(root);translateRoot(dialog);
+         const q=s=>root.querySelector(s);
+         return {title:q('h1').textContent,type:q('#goalTypeV113 option').textContent,currency:[...q('#goalCurrencyV113').options].map(x=>x.value),name:q('.goal-card-title-v113 h3').textContent,meta:q('#goalNextMetaV113').textContent,placeholder:q('#goalNameV113').placeholder,amount:q('.goal-amount-v113 strong').textContent,status:q('.goal-status-v113').textContent,detail:dialog.querySelector('.goal-detail-grid-v113 span').textContent};
+       });
+     `);return run(root,dialog);
+   },{engine});
+   const expected=[['Financial Goals','Emergency Fund','active','Progress'],['财务目标','应急基金','进行中','进度'],['ငွေကြေးရည်မှန်းချက်များ','အရေးပေါ်ရန်ပုံငွေ','ဆောင်ရွက်ဆဲ','တိုးတက်မှု'],['Financial Goals','Emergency Fund','active','Progress']];
+   for(const [i,state] of states.entries()){
+     assert.deepEqual([state.title,state.type,state.status,state.detail],expected[i]);
+     assert.deepEqual(state.currency,['THB','MMK','USD','CNY']);
+     assert.equal(state.name,'Savings');assert.equal(state.meta,'No dated goals');assert.equal(state.amount,'MMK 123,456,789.12');
+   }
+   assert.equal(states[0].placeholder,states[3].placeholder);
+   assert.notEqual(states[0].placeholder,states[1].placeholder);
+   assert.notEqual(states[0].placeholder,states[2].placeholder);
+   console.log('PASS Goals actual translation engine, 4 language states and protected names/currencies',width,light?'light':'dark');
    await page.locator('#goalFormPanelV113').evaluate(el=>el.hidden=true);
    assert.equal(await page.locator('#goalFormPanelV113').isVisible(),false);
   }finally{await page.close();}
