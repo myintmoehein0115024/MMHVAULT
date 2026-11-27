@@ -20116,7 +20116,7 @@ function translateAttributes(root){
       if(txUiSurfaceV2(el)&&(txUiOwnedV2(el)||txUiDataV2(el)))return;
       const key='i18n'+a.replace(/-([a-z])/g,(_,c)=>c.toUpperCase());
       if(!el.dataset[key]) el.dataset[key]=v;
-      const base=el.dataset[key]; const desired=txUiSurfaceV2(el)?txUiTextV2(base):lang==='zh'?(myWorkspaceUiV2(el)&&zhWorkspaceV2[base]||zh[base]||base):lang==='my'?myWorkspaceTextV2(base,el):base;if(v!==desired)el.setAttribute(a,desired);
+      const base=el.dataset[key]; const desired=el.closest('#budget')?budgetCopyTextV262(base,el):txUiSurfaceV2(el)?txUiTextV2(base):lang==='zh'?(myWorkspaceUiV2(el)&&zhWorkspaceV2[base]||zh[base]||base):lang==='my'?myWorkspaceTextV2(base,el):base;if(v!==desired)el.setAttribute(a,desired);
     });
   };
   if(root?.nodeType===Node.ELEMENT_NODE&&(root.matches?.('[placeholder],[title],[aria-label]')||(investCopySurfaceV236(root)&&root.hasAttribute('data-mmh-hint'))))applyAttrs(root);
@@ -20190,6 +20190,38 @@ function translateDynamicText(base){
   for(const [re,out] of reps){if(re.test(x)) return x.replace(re,out);}
   return x;
 }
+// Personal Budget V2 copy: presentation only; keep member category names and amounts intact.
+const budgetCopyV262=Object.freeze({
+ "Budget":["预算","အသုံးစရိတ်အစီအစဉ်"],"SPENDING PLAN":["支出计划","အသုံးစရိတ်အစီအစဉ်"],"Month":["月份","လ"],"Currency":["货币","ငွေကြေး"],
+ "Budget month":["预算月份","အစီအစဉ်လ"],"Budget currency":["预算货币","အစီအစဉ်ငွေကြေး"],
+ "MONTHLY BUDGET":["月度预算","လစဉ်အသုံးစရိတ်အစီအစဉ်"],"Monthly Budget":["月度预算","လစဉ်အသုံးစရိတ်အစီအစဉ်"],"SPENT":["已支出","သုံးစွဲပြီး"],"REMAINING":["剩余","ကျန်ရှိငွေ"],"UTILIZATION":["使用率","အသုံးပြုမှုနှုန်း"],
+ "Individual Expense target":["个人支出目标","ကိုယ်ပိုင်အသုံးစရိတ် ရည်မှန်းချက်"],"Actual individual expense":["实际个人支出","အမှန်တကယ် ကိုယ်ပိုင်အသုံးစရိတ်"],"Budget − spent":["预算 − 已支出","သတ်မှတ်ငွေ − သုံးစွဲငွေ"],
+ "Not set":["未设置","မသတ်မှတ်ရသေးပါ"],"Set a monthly budget":["设置月度预算","လစဉ်အသုံးစရိတ် သတ်မှတ်ရန်"],"Over budget":["超出预算","သတ်မှတ်ငွေ ကျော်လွန်နေသည်"],"Approaching limit":["接近上限","သတ်မှတ်ငွေ နီးကပ်နေသည်"],"Within budget":["预算范围内","သတ်မှတ်ငွေအတွင်း"],"Watch":["接近上限","သတိပြုရန်"],"On track":["正常","ပုံမှန်"],
+ "Monthly spending limit":["月度支出上限","လစဉ်သုံးစွဲငွေ အကန့်အသတ်"],"Clear Month":["清除本月","ယခုလ ရှင်းလင်းရန်"],"Save Budget":["保存预算","အစီအစဉ် သိမ်းရန်"],"Monthly budget used":["月度预算使用率","လစဉ်သတ်မှတ်ငွေ အသုံးပြုမှု"],
+ "Enter a budget to start tracking.":["设置预算后开始追踪。","စောင့်ကြည့်ရန် အသုံးစရိတ် သတ်မှတ်ပါ။"],"Enter a monthly limit to start tracking.":["设置月度上限后开始追踪。","စောင့်ကြည့်ရန် လစဉ်အကန့်အသတ် သတ်မှတ်ပါ။"],
+ "Category Budgets":["分类预算","အမျိုးအစားအလိုက် အသုံးစရိတ်"],"No category limit":["未设置分类上限","အမျိုးအစားအတွက် အကန့်အသတ် မရှိပါ"],"Spent":["已支出","သုံးစွဲပြီး"],"Optional":["选填","မဖြည့်လည်းရသည်"],"Archived / renamed":["已归档 / 已重命名","သိမ်းဆည်းထား / အမည်ပြောင်းထား"],"No Expense categories yet. Add categories in Settings → Category.":["暂无支出分类，请在设置 → 分类中添加。","အသုံးစရိတ် အမျိုးအစား မရှိသေးပါ။ ဆက်တင် → အမျိုးအစားတွင် ထည့်ပါ။"],
+ "QUICK REVIEW":["快速查看","အမြန်ကြည့်ရန်"],"Continue from your spending plan":["查看支出计划相关记录","အသုံးစရိတ်အစီအစဉ်မှ ဆက်လက်ကြည့်ရန်"],"Analyze spending":["分析支出","အသုံးစရိတ် သုံးသပ်ရန်"],"Open Cash Flow Analyze":["打开现金流分析","ငွေစီးဆင်းမှု သုံးသပ်ချက် ဖွင့်ရန်"],"Transaction history":["交易记录","ငွေစာရင်းမှတ်တမ်း"],"Review individual expenses":["查看个人支出","ကိုယ်ပိုင်အသုံးစရိတ် ကြည့်ရန်"],
+ "Plan your individual spending and compare it with real Transaction records.":["规划个人支出并与实际交易记录比较。","ကိုယ်ပိုင်အသုံးစရိတ် စီစဉ်ပြီး အမှန်တကယ် ငွေစာရင်းများနှင့် နှိုင်းယှဉ်ပါ။"],
+ "Individual Expense only. Personal, loans, investments, transfers and data adjustments are excluded.":["仅统计 Individual Expense，排除 Personal、贷款、投资、转账和数据调整。","Individual Expense သာ ပါဝင်သည်။ Personal၊ ချေးငွေ၊ ရင်းနှီးမြှုပ်နှံမှု၊ ငွေလွှဲနှင့် စာရင်းပြင်ဆင်မှု မပါဝင်ပါ။"],
+ "Set optional limits for the Expense categories you actually use.":["为实际使用的支出分类设置可选上限。","အသုံးပြုနေသော အသုံးစရိတ်အမျိုးအစားများအတွက် အကန့်အသတ် သတ်မှတ်နိုင်သည်။"],
+ "Budget amounts are stored in your private Supabase account and sync across devices when this page reloads. Actual spending comes from Transactions and is converted with the exchange rates saved in MMHVAULT.":["预算保存在您的私有 Supabase 账户中，重新加载页面时跨设备同步。实际支出来自交易记录，按 MMHVAULT 中保存的汇率换算。","အသုံးစရိတ်သတ်မှတ်ငွေကို သင့်ကိုယ်ပိုင် Supabase အကောင့်တွင် သိမ်းပြီး စာမျက်နှာ ပြန်ဖွင့်ချိန်တွင် စက်များအကြား ချိန်ညှိသည်။ အမှန်တကယ် အသုံးစရိတ်ကို ငွေစာရင်းမှ ရယူပြီး MMHVAULT တွင် သိမ်းထားသော ငွေလဲနှုန်းဖြင့် တွက်သည်။"]
+});
+function budgetCopyTextV262(base,el,locale=lang){
+ if(!el?.closest?.('#budget')||!['zh','my'].includes(locale))return base;
+ if(el.closest('.budget-category-name-v110>span,.budget-category-meta-v110 b,.budget-money-input-v110>b,.budget-category-input-v110>span,select option,.mmh-shared-trigger-v217'))return base;
+ const i=locale==='zh'?0:1;
+ if(Object.prototype.hasOwnProperty.call(budgetCopyV262,base))return budgetCopyV262[base][i];
+ let m;
+ if(m=base.match(/^(\d+) categor(?:y|ies)$/))return i?m[1]+' အမျိုးအစား':m[1]+' 个分类';
+ if(m=base.match(/^([\d.,]+)% used$/))return i?m[1]+'% သုံးစွဲပြီး':'已使用 '+m[1]+'%';
+ if(m=base.match(/^([\d.,]+)% used · (.+) (remaining|over budget)$/))return i?m[1]+'% သုံးစွဲပြီး · '+m[2]+(m[3]==='remaining'?' ကျန်ရှိ':' ကျော်လွန်'):'已使用 '+m[1]+'% · '+(m[3]==='remaining'?'剩余 ':'超出 ')+m[2];
+ if(m=base.match(/^Category limits: (.+)$/))return i?'အမျိုးအစားအလိုက် သတ်မှတ်ငွေ: '+m[1]:'分类上限：'+m[1];
+ if(m=base.match(/^Budget exceeded by (.+)\. Review this month’s individual spending or adjust the plan\.$/))return i?'သတ်မှတ်ငွေ '+m[1]+' ကျော်လွန်နေသည်။ ယခုလ အသုံးစရိတ်ကို ပြန်စစ်ပါ သို့မဟုတ် အစီအစဉ်ကို ပြင်ပါ။':'已超出预算 '+m[1]+'。请检查本月个人支出或调整计划。';
+ if(m=base.match(/^You have used ([\d.,]+)% of this month’s budget\. (.+) remains\.$/))return i?'ယခုလ သတ်မှတ်ငွေ၏ '+m[1]+'% သုံးစွဲပြီး '+m[2]+' ကျန်ရှိပါသည်။':'本月预算已使用 '+m[1]+'%，剩余 '+m[2]+'。';
+ if(m=base.match(/^(\d+) expense records? could not be converted because an exchange rate is unavailable\.$/))return i?'ငွေလဲနှုန်း မရှိသဖြင့် အသုံးစရိတ်မှတ်တမ်း '+m[1]+' ခုကို ပြောင်းတွက်၍ မရပါ။':'因缺少汇率，有 '+m[1]+' 条支出记录无法换算。';
+ return base;
+}
+
 const mmhI18nTextStateV135=new WeakMap();
 function translateTextNode(n){
   if(!n||n.nodeType!==Node.TEXT_NODE)return;
@@ -20212,7 +20244,7 @@ function translateTextNode(n){
     rec={base:current,last:current};
   }
 
-  const desired=txUiSurfaceV2(parent)?txUiTextV2(rec.base):lang==='zh'?(myWorkspaceUiV2(parent)&&Object.prototype.hasOwnProperty.call(zhWorkspaceV2,rec.base)?zhWorkspaceV2[rec.base]:translateDynamicText(rec.base)):lang==='my'?myWorkspaceTextV2(rec.base,parent):rec.base;
+  const desired=parent.closest('#budget')?budgetCopyTextV262(rec.base,parent):txUiSurfaceV2(parent)?txUiTextV2(rec.base):lang==='zh'?(myWorkspaceUiV2(parent)&&Object.prototype.hasOwnProperty.call(zhWorkspaceV2,rec.base)?zhWorkspaceV2[rec.base]:translateDynamicText(rec.base)):lang==='my'?myWorkspaceTextV2(rec.base,parent):rec.base;
   if(current!==desired){
     const raw=n.nodeValue;
     const lead=raw.match(/^\s*/)?.[0]||'',tail=raw.match(/\s*$/)?.[0]||'';
