@@ -397,3 +397,7 @@ html body.mmh-workspace-active #goals#goals.page.active .goal-amount-v113 :is(st
 html body.mmh-workspace-active #goals#goals.page.active .goal-meta-grid-v113 b{white-space:normal!important;overflow:visible!important;text-overflow:clip!important}
 html body.mmh-workspace-active #goals#goals.page.active .goal-card-actions-v113{display:grid!important;grid-template-columns:repeat(auto-fit,minmax(min(100%,84px),1fr))!important;gap:6px!important}
 html body.mmh-workspace-active #goals#goals.page.active .goal-card-actions-v113 .btn{width:100%!important;overflow-wrap:anywhere!important}
+
+/* V2.0.63 Goals shared native/trigger alignment, without changing global picker rules. */
+html body.mmh-workspace-active #goals#goals.page.active .goal-form-grid-v113 button.mmh-shared-trigger-v217{min-height:44px!important;height:44px!important;min-width:0!important;box-sizing:border-box!important;background:var(--gv-raised)!important;border:1px solid var(--gv-line)!important;border-radius:7px!important;color:var(--gv-text)!important}
+html body.mmh-workspace-active #goals#goals.page.active .goal-form-grid-v113 select.mmh-shared-native-v217.mmh-cat-native-v2{position:absolute!important;clip-path:inset(50%)!important;opacity:0!important;width:1px!important;height:1px!important;min-height:0!important;min-width:0!important;padding:0!important;border:0!important;pointer-events:none!important}
