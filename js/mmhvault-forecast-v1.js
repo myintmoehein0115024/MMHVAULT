@@ -72,6 +72,7 @@
   "Change currency, currently ": "ငွေကြေးပြောင်းရန်၊ လက်ရှိ ",
   "Currency": "ငွေကြေး",
   "Follow default": "မူလငွေကြေးအတိုင်း",
+  "Default": "မူလ",
   "Income": "ဝင်ငွေ",
   "Expenses & transfers": "အသုံးစရိတ်နှင့် ငွေလွှဲ",
   "Month ": "လ ",
@@ -478,13 +479,14 @@
  // A single compact money input: only the symbol is visible until activated.
  function currencyPickerHTML(kind,code,codes,label){
   const flag=window.MMHCurrencyPickerV3?.flag?.(code)||'',selected=kind==='view'?viewChoice:code;
-  return `<details class="fc-shared-picker ${kind==='view'?'fc-view-picker':''}" data-fc-picker-kind="${kind}" ${kind==='view'?'id="fc-view-picker"':''}><summary class="${kind==='field'?'fc-currency-trigger':''}" aria-label="${esc(label+' · '+code)}" title="${esc(label)}"><span>${esc(flag+code)}</span><span aria-hidden="true">⌄</span></summary><div class="fc-shared-menu mmh-shared-currency-v3"><label>${esc(tr('Search currencies','搜索币种'))}</label><input type="search" autocomplete="off" aria-label="${esc(tr('Search currencies','搜索币种'))}" placeholder="${esc(tr('Currency code or name','币种代码或名称'))}"><div class="ap-currency-list-v2"></div><select hidden aria-hidden="true" tabindex="-1">${codes.map(c=>`<option value="${c}"${c===selected?' selected':''}>${c==='GLOBAL'?esc(tr('Follow default','跟随默认币种')):c}</option>`).join('')}</select></div></details>`;
+  const displayLabel=flag+code+(kind==='view'&&selected==='GLOBAL'?' · '+tr('Default','默认'):'');
+  return `<details class="fc-shared-picker ${kind==='view'?'fc-view-picker':''}" data-fc-picker-kind="${kind}" ${kind==='view'?'id="fc-view-picker"':''}><summary class="${kind==='field'?'fc-currency-trigger':''}" aria-label="${esc(label+' · '+displayLabel)}" title="${esc(label)}"><span>${esc(displayLabel)}</span><span aria-hidden="true">⌄</span></summary><div class="fc-shared-menu mmh-shared-currency-v3"><label>${esc(tr('Search currencies','搜索币种'))}</label><input type="search" autocomplete="off" aria-label="${esc(tr('Search currencies','搜索币种'))}" placeholder="${esc(tr('Currency code or name','币种代码或名称'))}"><div class="ap-currency-list-v2"></div><select hidden aria-hidden="true" tabindex="-1">${codes.map(c=>`<option value="${c}"${c===selected?' selected':''}>${c==='GLOBAL'?esc(tr('Follow default','跟随默认币种')):c}</option>`).join('')}</select></div></details>`;
  }
  function setupCurrencyPicker(picker){
   const group=picker.querySelector('.fc-shared-menu'),select=group.querySelector('select'),search=group.querySelector('input'),list=group.querySelector('.ap-currency-list-v2'),label=picker.querySelector('summary').getAttribute('aria-label');
   search.value='';
   if(window.MMHCurrencyPickerV3?.render){try{window.MMHCurrencyPickerV3.render({select,search,list,group,label});return}catch(error){console.warn('[MMHVAULT Forecast] shared picker unavailable',error)}}
-  const render=()=>{const q=search.value.trim().toLocaleLowerCase();list.replaceChildren();for(const o of select.options){if(![o.value,currencyName(o.value)].join(' ').toLocaleLowerCase().includes(q))continue;const b=document.createElement('button');b.type='button';b.dataset.apCurrency=o.value;b.setAttribute('aria-pressed',String(o.value===select.value));const a=document.createElement('span'),n=document.createElement('span');a.textContent=o.value;n.textContent=currencyName(o.value);b.append(a,n);list.append(b)}};
+  const render=()=>{const q=search.value.trim().toLocaleLowerCase();list.replaceChildren();for(const o of select.options){const name=o.value==='GLOBAL'?tr('Follow default','跟随默认币种'):currencyName(o.value);if(![o.value,name,o.value==='GLOBAL'?'Follow default':''].join(' ').toLocaleLowerCase().includes(q))continue;const b=document.createElement('button');b.type='button';b.dataset.apCurrency=o.value;b.setAttribute('aria-pressed',String(o.value===select.value));const a=document.createElement('span'),n=document.createElement('span');a.textContent=o.value==='GLOBAL'?name:o.value;n.textContent=o.value==='GLOBAL'?'':name;b.append(a,n);list.append(b)}};
   search.oninput=render;render();
  }
  function syncForecastOverlay(){const overlay=el(ROOT)?.querySelector('.fc-dialog-overlay');if(!overlay||typeof overlay.showPopover!=='function')return;const notice=el('mmhVaultDialogV449'),blocked=!!notice?.classList.contains('show');if(!overlay.hasAttribute('popover'))overlay.setAttribute('popover','manual');if(blocked){if(overlay.matches(':popover-open'))overlay.hidePopover();}else if(active()&&!overlay.matches(':popover-open'))overlay.showPopover();if(notice&&notice!==forecastNoticeNode){forecastNoticeObserver?.disconnect();forecastNoticeNode=notice;forecastNoticeObserver=new MutationObserver(syncForecastOverlay);forecastNoticeObserver.observe(notice,{attributes:true,attributeFilter:['class']});}}
