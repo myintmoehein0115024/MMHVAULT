@@ -27,3 +27,27 @@ assert(!app.includes('mmhSettingsSyncCashflowCurrencyV71?.(state.currency)'),'no
 assert(app.includes('if(name===\'currency\')window.mmhRestoreAnalyzeCurrencyV918?.()'),'settings restore not change event');
 
 console.log('PASS: owner-scoped Analyze/default currency isolation; source scripts parse');
+
+const {resolvePersonalCashflowCurrencyV265:resolveV265,savePersonalCashflowCurrencyV265:saveV265}=await import('../js/mmhvault-cashflow-v2-ui.mjs');
+const codesV265=['USD','THB','MMK','JPY'],getV265=(u,v)=>resolveV265(storage,u,v,codesV265),putV265=(u,v,c)=>saveV265(storage,u,v,c,codesV265);
+global('cash-a','THB');
+assert.equal(getV265('cash-a','summary'),'THB');
+assert(putV265('cash-a','summary','JPY'));
+assert(putV265('cash-a','analysis','USD'));
+assert(putV265('cash-a','report','MMK'));
+assert.equal(getV265('cash-a','summary'),'JPY');
+assert.equal(getV265('cash-a','analysis'),'USD');
+assert.equal(getV265('cash-a','report'),'MMK');
+assert.equal(getV265('cash-b','summary'),'USD');
+assert.equal(getV265('cash-a','planning'),'THB');
+global('cash-a','MMK');
+assert.equal(getV265('cash-a','summary'),'JPY');
+assert.equal(getV265('cash-a','planning'),'MMK');
+assert(!putV265('cash-a','report','ZZZ'));
+assert(!putV265('','report','USD'));
+assert.equal(getV265('cash-a','report'),'MMK');
+assert.equal(getV265('','summary'),'USD');
+data.set(overrideKey('cash-b'),'JPY');
+assert.equal(getV265('cash-b','analysis'),'JPY');
+assert.equal(getV265('cash-b','report'),'USD');
+console.log('PASS: 17 active Cash Flow V2 display preference assertions (synthetic storage)');
