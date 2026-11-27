@@ -6,6 +6,21 @@ const css=fs.readFileSync('css/mmhvault-liquid-goals-p911.css','utf8');
 const start=app.indexOf('<section class="page" id="goals"'),end=app.indexOf('<section class="page" id="recurring"',start);
 assert.ok(start>=0&&end>start);
 const markup=app.slice(start,end).replace('class="page" id="goals"','class="page active" id="goals"');
+// Check actual Goals-only copy without running write handlers.
+const noticeStart=app.indexOf('  const goalNoticeCopyV263=');
+const noticeEnd=app.indexOf('  async function save(){',noticeStart);
+assert.ok(noticeStart>=0&&noticeEnd>noticeStart);
+const notice=new Function(app.slice(noticeStart,noticeEnd)+';return {copy:goalNoticeCopyV263,text:goalNoticeTextV263,question:goalDeleteQuestionV263};')();
+for(const [key,[zh,my]] of Object.entries(notice.copy)){
+ assert.equal(notice.text(key,'en'),key);assert.equal(notice.text(key,'zh'),zh);assert.equal(notice.text(key,'my'),my);
+ assert.notEqual(zh,key);assert.notEqual(my,key);
+}
+for(const locale of ['en','zh','my']){
+ const name='Archive <goal> 缅文 မြန်မာ';
+ assert.ok(notice.question(name,locale).includes(name));
+ assert.equal(notice.text('Unknown backend error',locale),'Unknown backend error');
+}
+console.log('PASS Goals validation, toast and confirmation copy EN/ZH/MY');
 const browser=await chromium.launch({headless:true});
 try{
  for(const width of [320,393,768,1440])for(const light of [false,true]){
