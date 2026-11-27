@@ -7,7 +7,7 @@ import * as planKit from './mmhvault-cashflow-v2-planning.mjs';
 import * as planView from './mmhvault-cashflow-v2-planning-view.mjs';
 import {reportContext} from './mmhvault-cashflow-v2-report-context.mjs';
 import {exportLocal} from './mmhvault-cashflow-v2-report-browser.mjs';
-import {enhanceCurrencies,actionIdentity,restoreAction} from './mmhvault-cashflow-v2-presentation.mjs';
+import {enhanceCurrencies,actionIdentity,restoreAction} from './mmhvault-cashflow-v2-presentation.mjs?v=2.0.39';
 import {summarizeMovements,movementKinds} from './mmhvault-cashflow-v2-movements.mjs';
 import {investmentReport} from './mmhvault-cashflow-v2-investment.mjs';
 const D={
@@ -184,13 +184,13 @@ export function mountCashflowV2(root,adapter){
   const filters=select('preset',presets.map(k=>[k,tr(k==='all'?'allTime':k)]),preset,'period')+select('account',opts(s.source.accounts),account,'account')+select('category',opts(s.source.categories),category,'category')+select('original',opts(s.codes),original,'original');
   const filterButton='<button type="button" data-action="filters" aria-expanded="'+filtersOpen+'" aria-controls="cfv2-advanced-filters">'+e(tr('filters'))+([account,category,original].filter(Boolean).length?' ('+[account,category,original].filter(Boolean).length+')':'')+'</button>';
   const controls='<div class="cfv2-filters">'+select('currency',s.codes.map(c=>[c,c]),currency,'currency')+(isFlow?calendarControls()+filterButton:'')+'</div>';
-  const toolbarCurrency='<select id="mmhCfV238Currency" class="cfv2-toolbar-currency" data-field="currency" aria-label="'+e(tr('currency'))+'" title="'+e(tr('currency'))+'">'+s.codes.map(c=>'<option value="'+e(c)+'"'+(c===currency?' selected':'')+'>'+e(c)+'</option>').join('')+'</select>';
-  const toolbar='<div class="cfv2-toolbar-controls">'+(isFlow?calendarControls()+filterButton:'')+toolbarCurrency+(isFlow?btn('report','report'):'')+'</div>';
+  const toolbarCurrency='<div class="cfv2-currency-anchor"><label><select class="cfv2-toolbar-currency" data-field="currency" aria-label="'+e(tr('currency'))+'" title="'+e(tr('currency'))+'">'+s.codes.map(c=>'<option value="'+e(c)+'"'+(c===currency?' selected':'')+'>'+e(c)+'</option>').join('')+'</select></label></div>';
+  const toolbar='<div class="cfv2-toolbar-controls">'+(isFlow?calendarControls()+'<div class="cfv2-filter-anchor">'+filterButton+'<div id="cfv2-advanced-filters" class="cfv2-filters" '+(filtersOpen?'':'hidden')+'>'+filters+'</div></div>':'')+toolbarCurrency+(isFlow?btn('report','report'):'')+'</div>';
   const heading='<div class="cfv2-title"><div><h1>'+e(tr('cashflow'))+'</h1><p class="cfv2-muted">'+e(tr('overviewNote'))+'</p></div>'+controls+'</div>';
   const nav='<header class="cfv2-top'+(adapter.releaseReadOnly?' cfv2-toolbar':'')+'"><div role="group" class="cfv2-tabs">'+(adapter.releaseReadOnly?['summary','analysis']:['summary','analysis','planning']).map(k=>'<button type="button" data-action="tab" data-key="'+k+'" aria-pressed="'+(tab===k)+'">'+e(tr(k==='summary'?'cashflow':k))+'</button>').join('')+'</div>'+(adapter.releaseReadOnly?toolbar:(isFlow?btn('report','report'):''))+'</header>';
   const customFields=isFlow&&preset==='custom'?'<form data-cfv2-range><input type="date" name="start" aria-label="'+e(tr('start'))+'" value="'+e(custom.start)+'" required><input type="date" name="end" aria-label="'+e(tr('end'))+'" value="'+e(custom.end)+'" required><button>'+e(tr('apply'))+'</button></form>':'';
-  root.innerHTML='<div class="cfv2">'+(adapter.releaseReadOnly?'':heading)+nav+(isFlow?'<div id="cfv2-advanced-filters" class="cfv2-filters" '+(filtersOpen?'':'hidden')+'>'+filters+'</div>'+customFields+'<p class="cfv2-muted cfv2-range">'+e(s.range.start+' – '+s.range.end)+'</p>'+kpis(s)+(tab==='summary'?summary(s):analysisPage(s)):planning(s))+modal(s)+'</div>';
-  enhanceCurrencies(root,adapter.releaseReadOnly?null:win.MMHCurrencyPickerV3,{labelFor:select=>tr(select.dataset.field==='original'?'original':'currency'),canChange:()=>adapter.owner()===owner&&last?.source.isCurrent?.()!==false});
+  root.innerHTML='<div class="cfv2">'+(adapter.releaseReadOnly?'':heading)+nav+(isFlow?(adapter.releaseReadOnly?'':'<div id="cfv2-advanced-filters" class="cfv2-filters" '+(filtersOpen?'':'hidden')+'>'+filters+'</div>')+customFields+'<p class="cfv2-muted cfv2-range">'+e(s.range.start+' – '+s.range.end)+'</p>'+kpis(s)+(tab==='summary'?summary(s):analysisPage(s)):planning(s))+modal(s)+'</div>';
+  enhanceCurrencies(adapter.releaseReadOnly?root.querySelector('.cfv2-currency-anchor'):root,win.MMHCurrencyPickerV3,{labelFor:select=>tr(select.dataset.field==='original'?'original':'currency'),canChange:()=>adapter.owner()===owner&&last?.source.isCurrent?.()!==false});
   const d=root.querySelector('[data-cfv2-dialog]');if(d){d.addEventListener('cancel',ev=>{ev.preventDefault();dialog='';paint()},{once:true});d.showModal();if(priorOwner===owner&&priorDialog===dialog){if(dialog==='report'&&priorField&&/^report(?:Type|-(?:month|year|start|end))$/.test(priorField)){const field=Array.from(d.querySelectorAll('[data-field]')).find(x=>x.dataset.field===priorField);if(field&&!field.disabled)field.focus({preventScroll:true})}d.querySelector('.cfv2-dialog-body').scrollTop=priorScroll}}else if(priorDialog&&priorOwner===owner){restoreAction(root,opener);opener=null}paintedDialog=dialog;
  }
  function download(format){
@@ -215,7 +215,7 @@ export function mountCashflowV2(root,adapter){
    }
    paint();return;
   }
-  if(a==='calendar-mode'&&['month','year'].includes(k)){preset=k;calendarKey='';grain=k==='month'?'week':'month';selected=''}else if(a==='calendar-step'&&['month','year'].includes(preset)&&['-1','1'].includes(k)){const today=adapter.today(),next=stepCalendar(preset,calendarKey||currentKey(preset,today),Number(k),today);if(next)calendarKey=next;selected=''}else if(a==='filters'){filtersOpen=!filtersOpen}else if(a==='tab'){tab=k;dialog=''}else if(a==='point'){selected=k}else if(a==='close'){dialog=''}else if(a==='export-report'){download(k);return}else if(['forecast','budget','goals','recurring'].includes(a)&&adapter.openModule){adapter.openModule(a);return}else dialog=a;
+  if(a==='calendar-mode'&&['month','year'].includes(k)){preset=k;calendarKey='';grain=k==='month'?'week':'month';selected=''}else if(a==='calendar-step'&&['month','year'].includes(preset)&&['-1','1'].includes(k)){const today=adapter.today(),next=stepCalendar(preset,calendarKey||currentKey(preset,today),Number(k),today);if(next)calendarKey=next;selected=''}else if(a==='filters'){filtersOpen=!filtersOpen}else if(a==='tab'){tab=k;dialog='';filtersOpen=false}else if(a==='point'){selected=k}else if(a==='close'){dialog=''}else if(a==='export-report'){download(k);return}else if(['forecast','budget','goals','recurring'].includes(a)&&adapter.openModule){adapter.openModule(a);return}else dialog=a;
   paint();
  }
  function change(ev){
@@ -223,6 +223,7 @@ export function mountCashflowV2(root,adapter){
   const source=ev.target,previousOwner=owner,restoreSharedFocus=adapter.releaseReadOnly&&source.id===(f==='currency'?'mmhCfV238Currency':sharedFilterIds[f])&&doc.activeElement===source.nextElementSibling&&source.nextElementSibling?.classList.contains('mmh-shared-trigger-v217');
   if(f==='currency')currency=v;else if(f==='calendarKey'){if(calendarBounds(preset,v,adapter.today()))calendarKey=v}else if(f==='preset'){calendarKey='';preset=v;grain=['today','week'].includes(v)?'day':['month','lastMonth'].includes(v)?'week':'month';if(v==='custom')custom=last?.range||dateRange('month',adapter.today())}
   else if(f==='planHorizon'||f==='planPreset'){const n=Number(v);if(Number.isInteger(n)&&n>=1&&n<=240)horizon=n}else if(f==='planGrain')planGrain=v;else if(f==='budgetPeriod'){budgetPeriod=v;budgetKey=''}else if(f==='budgetKey'){if(planKit.bounds(budgetPeriod,v))budgetKey=v}else if(f==='grain')grain=v;else if(f==='account')account=v;else if(f==='category')category=v;else if(f==='original')original=v;else if(f==='horizon')horizon=Number(v);else if(f==='largeThreshold')largeThreshold=v;else if(f==='reportType'){reportType=v;exportError=''}else if(f.startsWith('report-')){reportSelection={...reportSelection,[f.slice(7)]:v};exportError=''}selected='';paint();
+  if(adapter.releaseReadOnly&&f==='currency'&&previousOwner===owner){(root.querySelector('.cfv2-currency-anchor summary')||root.querySelector('.cfv2-currency-anchor select'))?.focus({preventScroll:true})}
   if(restoreSharedFocus&&win.requestAnimationFrame){
    const next=doc.getElementById(source.id);
    if(next&&root.contains(next))win.requestAnimationFrame(()=>win.requestAnimationFrame(()=>{
@@ -268,6 +269,12 @@ export function mountCashflowV2(root,adapter){
  }
  function submit(ev){if(ev.target.matches('[data-cfv2-plan]')){submitPlan(ev);return}if(!ev.target.matches('[data-cfv2-range]'))return;ev.preventDefault();const f=new win.FormData(ev.target),next={start:f.get('start'),end:f.get('end')};try{dateRange('custom',adapter.today(),null,next);custom=next;paint()}catch{ev.target.querySelector('[name=end]').setCustomValidity(tr('invalid'));ev.target.querySelector('[name=end]').reportValidity();ev.target.querySelector('[name=end]').addEventListener('input',x=>x.target.setCustomValidity(''),{once:true})}}
  const events=['mmhvault-language-change','mmhvault:config-owner-changed','mmhvault:data-state','mmhvault:data-loading','mmhvault:data-error','mmhvault:data-loaded','mmhvault:data-change','mmhvault:exchange-reference-updated','mmhvault:theme-mode-changed','mmhvault:budget-changed'];
- root.addEventListener('click',click);root.addEventListener('change',change);root.addEventListener('submit',submit);events.forEach(k=>win.addEventListener(k,paint));paint();
- return {refresh:paint,destroy(){disposed=true;last=null;root.removeEventListener('click',click);root.removeEventListener('change',change);root.removeEventListener('submit',submit);events.forEach(k=>win.removeEventListener(k,paint));root.replaceChildren()}};
+ function dismissToolbar(ev){
+  if(!adapter.releaseReadOnly||disposed||!root.contains(ev.target))return;
+  if(ev.type==='keydown'&&ev.key==='Escape'&&filtersOpen&&!ev.defaultPrevented&&!ev.target.closest('.mmh-shared-trigger-v217')){
+   ev.preventDefault();filtersOpen=false;paint();root.querySelector('[data-action="filters"]')?.focus({preventScroll:true});
+  }
+ }
+ root.addEventListener('click',click);root.addEventListener('change',change);root.addEventListener('submit',submit);root.addEventListener('keydown',dismissToolbar);events.forEach(k=>win.addEventListener(k,paint));paint();
+ return {refresh:paint,destroy(){disposed=true;last=null;root.removeEventListener('click',click);root.removeEventListener('change',change);root.removeEventListener('submit',submit);root.removeEventListener('keydown',dismissToolbar);events.forEach(k=>win.removeEventListener(k,paint));root.replaceChildren()}};
 }

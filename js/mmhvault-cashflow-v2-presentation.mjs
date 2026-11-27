@@ -8,7 +8,7 @@ export function sharedPickerAvailable(api){
  return typeof api?.render==='function'&&typeof api?.flag==='function';
 }
 export function enhanceCurrencies(root,api,{labelFor,canChange=()=>true}={}){
- if(!sharedPickerAvailable(api))return 0;
+ if(!root||!sharedPickerAvailable(api))return 0;
  const doc=root.ownerDocument;let count=0;
  for(const select of root.querySelectorAll('select[data-field="currency"],select[data-field="original"],select[name="currency"]')){
   const host=select.closest('label');if(!host||host.hidden)continue;
@@ -34,7 +34,7 @@ export function enhanceCurrencies(root,api,{labelFor,canChange=()=>true}={}){
    if(select.value!==code){select.value=code;update();select.dispatchEvent(new doc.defaultView.Event('change',{bubbles:true}))}
    if(details.isConnected)summary.focus({preventScroll:true});
   });
-  details.addEventListener('toggle',()=>{if(details.open){search.value='';try{api.render({select,search,list,group,label:title,includeNative:false});list.scrollTop=0}catch{host.hidden=false;details.remove()}}});
+  details.addEventListener('toggle',()=>{if(details.open){search.value='';try{api.render({select,search,list,group,label:title,includeNative:false});list.scrollTop=0;if(details.closest('.cfv2-currency-anchor'))search.focus({preventScroll:true})}catch{host.hidden=false;details.remove()}}});
   details.addEventListener('keydown',event=>{if(event.key==='Escape'&&details.open){event.preventDefault();event.stopPropagation();details.open=false;summary.focus({preventScroll:true})}});
  }
  return count;

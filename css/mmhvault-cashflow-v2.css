@@ -19,8 +19,8 @@ body.light .cfv2{--cf-bg:#fff;--cf-raised:#eef2f8;--cf-text:#202a3a;--cf-muted:#
 #cashflow-analyze > #mmhCashflowV2ReleaseRoot{min-width:0;max-width:100%}
 
 /* V2.0.37 — personal Cash Flow layout only, scoped to the mounted V2 workspace. */
-#cashflow-analyze > #mmhCashflowV2ReleaseRoot .cfv2{--cf-accent:#9bb7fb;--cf-bg:#141414;--cf-raised:#1c1c1c;--cf-border:#2d2d2d;--cf-text:#edf0f6;--cf-muted:#b1b8c5;gap:12px;width:100%;max-width:1320px;margin-inline:auto}
-body.light #cashflow-analyze > #mmhCashflowV2ReleaseRoot .cfv2{--cf-accent:#365fae;--cf-bg:#fff;--cf-raised:#f5f6f8;--cf-border:#d8dfe9;--cf-text:#202a3a;--cf-muted:#576477}
+#cashflow-analyze > #mmhCashflowV2ReleaseRoot .cfv2{--cf-accent:#9bb7fb;--cf-bg:#1c2531;--cf-raised:#273242;--cf-border:#344052;--cf-text:#edf0f6;--cf-muted:#b1b8c5;gap:12px;width:100%;max-width:1320px;margin-inline:auto}
+body.light #cashflow-analyze > #mmhCashflowV2ReleaseRoot .cfv2{--cf-accent:#365fae;--cf-bg:#fff;--cf-raised:#eef2f8;--cf-border:#d8dfe9;--cf-text:#202a3a;--cf-muted:#576477}
 html body #cashflow-analyze#cashflow-analyze{max-width:1320px!important}
 #mmhCashflowV2ReleaseRoot .cfv2-title{display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap}
 html body #cashflow-analyze #mmhCashflowV2ReleaseRoot .cfv2-title h1{font-size:24px!important;line-height:1.2!important;color:var(--cf-text)!important;margin:0 0 4px!important}
@@ -68,11 +68,11 @@ html body #cashflow-analyze#cashflow-analyze#cashflow-analyze #mmhCashflowV2Rele
 html body #cashflow-analyze#cashflow-analyze#cashflow-analyze #mmhCashflowV2ReleaseRoot .cfv2 .cfv2-calendar-toggle button{border:0!important;min-height:28px!important;padding:5px 9px}
 html body #cashflow-analyze#cashflow-analyze#cashflow-analyze #mmhCashflowV2ReleaseRoot .cfv2 .cfv2-calendar-toggle button[aria-pressed=true]{background:var(--cf-raised)!important;color:var(--cf-accent)!important;font-weight:600}
 html body #cashflow-analyze#cashflow-analyze#cashflow-analyze #mmhCashflowV2ReleaseRoot .cfv2 .cfv2-calendar-nav button{flex:none;width:34px;font-size:20px;padding:2px}
-html body #cashflow-analyze#cashflow-analyze#cashflow-analyze #mmhCashflowV2ReleaseRoot .cfv2 .cfv2-calendar-nav input{width:145px;max-width:100%}
-html body #cashflow-analyze#cashflow-analyze#cashflow-analyze #mmhCashflowV2ReleaseRoot .cfv2 .cfv2-calendar-nav input[type=number]{width:100px}
+html body #cashflow-analyze#cashflow-analyze#cashflow-analyze #mmhCashflowV2ReleaseRoot .cfv2 .cfv2-calendar-nav input{width:160px;min-width:160px;max-width:160px;flex:0 0 160px;font-variant-numeric:tabular-nums}
+
 html body #cashflow-analyze#cashflow-analyze#cashflow-analyze #mmhCashflowV2ReleaseRoot .cfv2 .cfv2-report-table :is(th,td){background:transparent!important;border-color:var(--cf-border)!important}
 html body #cashflow-analyze#cashflow-analyze#cashflow-analyze #mmhCashflowV2ReleaseRoot .cfv2 .cfv2-report-table th{color:var(--cf-muted)!important;font-weight:500}
-@media(max-width:767px){html body #cashflow-analyze#cashflow-analyze#cashflow-analyze #mmhCashflowV2ReleaseRoot .cfv2 :is(button,input,select):not(:where(.mmh-shared-trigger-v217,.mmh-shared-native-v217)){min-height:44px!important}html body #cashflow-analyze#cashflow-analyze#cashflow-analyze #mmhCashflowV2ReleaseRoot .cfv2 .cfv2-calendar-toggle button{min-height:36px!important}html body #cashflow-analyze#cashflow-analyze#cashflow-analyze #mmhCashflowV2ReleaseRoot .cfv2 .cfv2-calendar-nav{flex:1 1 auto}html body #cashflow-analyze#cashflow-analyze#cashflow-analyze #mmhCashflowV2ReleaseRoot .cfv2 .cfv2-calendar-nav input{flex:1 1 100px;width:130px}html body #cashflow-analyze#cashflow-analyze#cashflow-analyze #mmhCashflowV2ReleaseRoot .cfv2 .cfv2-calendar-nav button{width:44px}}
+@media(max-width:767px){html body #cashflow-analyze#cashflow-analyze#cashflow-analyze #mmhCashflowV2ReleaseRoot .cfv2 :is(button,input,select):not(:where(.mmh-shared-trigger-v217,.mmh-shared-native-v217)){min-height:44px!important}html body #cashflow-analyze#cashflow-analyze#cashflow-analyze #mmhCashflowV2ReleaseRoot .cfv2 .cfv2-calendar-toggle button{min-height:36px!important}html body #cashflow-analyze#cashflow-analyze#cashflow-analyze #mmhCashflowV2ReleaseRoot .cfv2 .cfv2-calendar-nav{flex:1 1 auto}html body #cashflow-analyze#cashflow-analyze#cashflow-analyze #mmhCashflowV2ReleaseRoot .cfv2 .cfv2-calendar-nav input{flex:0 0 132px;width:132px;min-width:132px;max-width:132px}html body #cashflow-analyze#cashflow-analyze#cashflow-analyze #mmhCashflowV2ReleaseRoot .cfv2 .cfv2-calendar-nav button{width:44px}}
 
 /* V2.0.38 — Personal Cash Flow single toolbar; no shared selectors or data changes. */
 #mmhCashflowV2ReleaseRoot .cfv2-top.cfv2-toolbar{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px 16px;padding:0 0 8px;min-width:0}
@@ -87,7 +87,7 @@ html body #cashflow-analyze#cashflow-analyze#cashflow-analyze #mmhCashflowV2Rele
  #mmhCashflowV2ReleaseRoot .cfv2-top.cfv2-toolbar{gap:8px;align-items:flex-start}
  #mmhCashflowV2ReleaseRoot .cfv2-toolbar-controls{flex:1 1 100%;justify-content:flex-start;margin-inline-start:0}
  #mmhCashflowV2ReleaseRoot .cfv2-toolbar-controls .cfv2-calendar-nav{flex:0 1 auto}
- #mmhCashflowV2ReleaseRoot .cfv2-toolbar-controls .cfv2-calendar-nav input{min-width:75px;max-width:140px}
+ #mmhCashflowV2ReleaseRoot .cfv2-toolbar-controls .cfv2-calendar-nav input{min-width:132px;max-width:132px}
  #mmhCashflowV2ReleaseRoot .cfv2-toolbar-controls [data-action="report"]{width:44px;height:44px}
  #mmhCashflowV2ReleaseRoot .cfv2-range{text-align:start}
 }
@@ -102,3 +102,50 @@ html body #cashflow-analyze #mmhCashflowV2ReleaseRoot .cfv2 :is(.cfv2-toolbar-co
 #mmhCashflowV2ReleaseRoot .cfv2-dialog[data-cfv2-kind="report"] .cfv2-dialog-body>section{min-width:0}
 #mmhCashflowV2ReleaseRoot .cfv2-dialog[data-cfv2-kind="report"] .cfv2-report-table{max-height:none;overflow-x:auto;overflow-y:hidden;overscroll-behavior-x:contain;overscroll-behavior-y:auto}
 #mmhCashflowV2ReleaseRoot .cfv2-dialog[data-cfv2-kind="report"] .cfv2-export{position:static}
+
+/* V2.0.39 — Personal Cash Flow only. Accounts V2 surfaces and compact anchored controls. */
+#cashflow-analyze > #mmhCashflowV2ReleaseRoot .cfv2{font-family:var(--mmh-notice-font,system-ui);font-size:13px;line-height:1.5}
+html body #cashflow-analyze#cashflow-analyze#cashflow-analyze #mmhCashflowV2ReleaseRoot .cfv2 .cfv2-card>header{background:transparent!important;border:0!important;border-bottom:1px solid var(--cf-border)!important;border-radius:0!important;padding:0 0 10px!important;min-height:36px!important;box-shadow:none!important}
+#mmhCashflowV2ReleaseRoot .cfv2-card,#mmhCashflowV2ReleaseRoot .cfv2-kpis .cfv2-metric{border-radius:12px}
+#mmhCashflowV2ReleaseRoot .cfv2-metric span,#mmhCashflowV2ReleaseRoot .cfv2-muted{font-size:12px}
+#mmhCashflowV2ReleaseRoot .cfv2-card h2{font-weight:650}
+#mmhCashflowV2ReleaseRoot .cfv2-list>div{font-size:13px}
+#mmhCashflowV2ReleaseRoot .cfv2-calendar-toggle{flex:none}
+#mmhCashflowV2ReleaseRoot .cfv2-calendar-toggle button{width:86px;flex:0 0 86px;white-space:nowrap;font-size:12px}
+#mmhCashflowV2ReleaseRoot .cfv2-calendar-nav{flex:none}
+#mmhCashflowV2ReleaseRoot .cfv2-filter-anchor,#mmhCashflowV2ReleaseRoot .cfv2-currency-anchor{position:relative;flex:0 0 auto;min-width:0}
+#mmhCashflowV2ReleaseRoot .cfv2-filter-anchor>[data-action="filters"]{display:flex;align-items:center;gap:8px}
+#mmhCashflowV2ReleaseRoot .cfv2-filter-anchor>[data-action="filters"]::after{content:"";width:6px;height:6px;border-inline-end:1.5px solid currentColor;border-bottom:1.5px solid currentColor;transform:rotate(45deg);margin-top:-3px}
+#mmhCashflowV2ReleaseRoot .cfv2-filter-anchor #cfv2-advanced-filters{position:absolute;z-index:30;inset-block-start:calc(100% + 8px);inset-inline-end:0;width:min(300px,calc(100vw - 32px));display:grid;grid-template-columns:minmax(0,1fr);gap:10px;padding:12px;background:var(--cf-raised);border:1px solid var(--cf-border);border-radius:12px;box-shadow:0 12px 30px #0003}
+#mmhCashflowV2ReleaseRoot .cfv2-filter-anchor #cfv2-advanced-filters>label{max-width:none;width:100%;font-size:12px;gap:5px}
+#mmhCashflowV2ReleaseRoot .cfv2-filter-anchor #cfv2-advanced-filters .mmh-shared-trigger-v217{width:100%!important;max-width:none!important}
+#mmhCashflowV2ReleaseRoot .cfv2-currency-anchor .cfv2-currency{width:100%;min-width:0}
+#mmhCashflowV2ReleaseRoot .cfv2-currency-anchor .cfv2-currency summary{display:flex;align-items:center;justify-content:space-between;gap:10px;white-space:nowrap;min-height:36px;padding:7px 12px;border-radius:10px;font-size:13px;list-style:none}
+#mmhCashflowV2ReleaseRoot .cfv2-currency-anchor summary::-webkit-details-marker{display:none}
+#mmhCashflowV2ReleaseRoot .cfv2-currency-anchor summary::after{content:"";width:6px;height:6px;border-inline-end:1.5px solid currentColor;border-bottom:1.5px solid currentColor;transform:rotate(45deg);margin-top:-3px}
+#mmhCashflowV2ReleaseRoot .cfv2-currency-anchor .ap-currency-choices-v2{position:absolute;z-index:31;inset-block-start:calc(100% + 8px);inset-inline-end:0;margin:0;width:min(360px,calc(100vw - 32px));padding:12px;background:var(--cf-raised);border-radius:12px;gap:8px;box-shadow:0 12px 30px #0003}
+#mmhCashflowV2ReleaseRoot .cfv2-currency-anchor .ap-currency-list-v2{max-height:min(340px,45vh);gap:4px;scrollbar-width:thin}
+html body #cashflow-analyze#cashflow-analyze#cashflow-analyze #mmhCashflowV2ReleaseRoot .cfv2 .cfv2-currency-anchor button[data-ap-currency]{background:var(--cf-bg)!important;min-height:42px!important;text-align:start;padding:8px 10px!important;font-size:13px;border-radius:8px!important}
+#mmhCashflowV2ReleaseRoot .cfv2-currency-anchor .ap-currency-section-v2{font-size:12px;padding:6px 4px}
+html body #cashflow-analyze#cashflow-analyze#cashflow-analyze #mmhCashflowV2ReleaseRoot .cfv2 .cfv2-currency-anchor button[data-ap-currency][aria-pressed=true]{border-color:var(--cf-accent)!important}
+html body #cashflow-analyze#cashflow-analyze#cashflow-analyze #mmhCashflowV2ReleaseRoot .cfv2 .cfv2-icon svg{display:block!important;width:19px!important;height:19px!important;min-width:19px!important;min-height:19px!important;fill:none!important;stroke:currentColor!important;stroke-width:1.8}
+@media(max-width:767px){
+ #mmhCashflowV2ReleaseRoot .cfv2-calendar-toggle button{width:74px;flex-basis:74px}
+ #mmhCashflowV2ReleaseRoot .cfv2-toolbar-controls{position:relative}
+ #mmhCashflowV2ReleaseRoot .cfv2-filter-anchor,#mmhCashflowV2ReleaseRoot .cfv2-currency-anchor{position:static}
+ #mmhCashflowV2ReleaseRoot .cfv2-filter-anchor #cfv2-advanced-filters,#mmhCashflowV2ReleaseRoot .cfv2-currency-anchor .ap-currency-choices-v2{inset-inline:0;width:100%;max-width:360px}
+ #mmhCashflowV2ReleaseRoot .cfv2-currency-anchor .cfv2-currency summary{min-height:44px}
+}
+
+/* Match the V2 workspace surface without touching the shared shell. */
+html body #cashflow-analyze:has(> #mmhCashflowV2ReleaseRoot){background:#19212e!important}
+html body.light #cashflow-analyze:has(> #mmhCashflowV2ReleaseRoot){background:#f2f5fa!important}
+#cashflow-analyze > #mmhCashflowV2ReleaseRoot .cfv2{background:transparent}
+#mmhCashflowV2ReleaseRoot .cfv2-card>header h2{line-height:1.4}
+
+#mmhCashflowV2ReleaseRoot .cfv2-currency-anchor .cfv2-currency:not([open])>.ap-currency-choices-v2{display:none!important}
+#mmhCashflowV2ReleaseRoot .cfv2-filter-anchor #cfv2-advanced-filters{border-radius:8px}
+#mmhCashflowV2ReleaseRoot .cfv2-currency-anchor .ap-currency-choices-v2{border-radius:8px}
+#mmhCashflowV2ReleaseRoot .cfv2-currency-anchor .ap-currency-list-v2{scrollbar-gutter:stable;overflow-x:hidden}
+html body #cashflow-analyze#cashflow-analyze#cashflow-analyze #mmhCashflowV2ReleaseRoot .cfv2 .cfv2-currency-anchor button[data-ap-currency]>span:last-child{color:var(--cf-muted)!important}
+html body #cashflow-analyze#cashflow-analyze#cashflow-analyze #mmhCashflowV2ReleaseRoot .cfv2 .cfv2-currency-anchor button[data-ap-currency]:hover{border-color:var(--cf-accent)!important}
