@@ -192,7 +192,7 @@
    earned:amount*completed/count,earnedU:salaryU*completed/count,daily:amount/count,
    pct:completed/count*100,hasOwn,valid:Number.isFinite(salaryU)};
  }
- function dailyMoney(n,c){return `${CURRENCY_MARKS[c]||c}${fmt(n)}`}
+ function dailyMoney(n,c){const mark=CURRENCY_MARKS[c]||c;return `${mark}${mark===c?' ':''}${fmt(n)}`}
  function salaryIsConfigured(month=''){
   if(!activeOwner||!state?.salaryConfigured||state.disabledBase.includes('salary'))return false;
   const d=dailyInfo(month);return Number.isFinite(d.amount)&&d.amount>0;
@@ -323,9 +323,11 @@
  function layout(){
   const root=el(ROOT);if(!root)return;
   const first=startKey(),end=effectiveEnd(first),max=shift(first,239),dates=range(first,end);
+  const overviewScroll=root.querySelector('.fc-month-overview')?.scrollTop||0;
   const previous=root.querySelector('details.fc-month');if(previous?.dataset.fcCard===selectedMonth)editOpen=previous.open;
   const previousFX=el('fc-fx-settings');if(previousFX)fxOpen=previousFX.open;
   if(!dates.includes(selectedMonth)){selectedMonth=dates[0]||'';editOpen=false}
+  if(!previousFX&&!validDisplayRate(exchangeRates())){fxOpen=true;if(!CORE_RATES.includes(state.viewCurrency)&&state.viewCurrency!=='USD')extraRate=state.viewCurrency}
 
   root.innerHTML=`<div class="fc-wrap">
     <header class="fc-head"><div><div class="fc-eyebrow">MMHVAULT · ${tr('FUTURE WEALTH PLANNER','未来资产预测')}</div><h1>${tr('Future Asset Forecast','未来资产预测')}</h1><p class="fc-muted">${tr('Forecast from next month, based on your current Dashboard assets.','从下个月起，使用 Dashboard 实时总资产逐月预测。')}</p></div><div class="fc-head-actions"><details class="fc-view-picker" id="fc-view-picker"><summary aria-label="${esc(tr('Forecast display currency','预测显示币种'))}">${esc(state.viewCurrency)} <span aria-hidden="true">⌄</span></summary><div class="fc-view-options">${CURRENCIES.map(c=>`<button type="button" data-fc-view-currency="${c}" aria-pressed="${state.viewCurrency===c}"><b>${c}</b><span>${esc(currencyName(c))}</span>${state.viewCurrency===c?'✓':''}</button>`).join('')}</div></details>${planningLinks()}<button type="button" class="fc-btn alt" data-fc-action="refresh">↻ ${tr('Refresh assets','刷新资产')}</button></div></header>
@@ -352,6 +354,7 @@
     <p class="fc-footer">${tr('Forecast settings are stored locally for each user, not in Supabase or cloud backup. Changing a currency automatically converts the current number to preserve its estimated USD value; you can then edit it. Real income/expenses and exchange rates are never changed. Current Dashboard assets, saved exchange rates, and the current month are re-read whenever this forecast refreshes. Future crypto/gold prices are assumed unchanged.','所有预测设置仅存于当前浏览器，按用户分别保存，不写入 Supabase 或云端备份。切换币种时会自动换算原金额以维持其美元估值，随后可修改数字；不影响任何真实收支或正式汇率。刷新时重新读取 Dashboard 资产、已保存汇率和当前月份。未来加密货币及黄金价格暂视为不变。')}</p>
   </div>`;
   const editor=root.querySelector('details.fc-month');if(editor)editor.open=editOpen;
+  const overview=root.querySelector('.fc-month-overview');if(overview)overview.scrollTop=overviewScroll;
   lastFirst=first;updateOutputs();updateSaveStatus();
  }
  function showWarning(message){const node=el('fc-warning');if(node){node.hidden=!message;node.textContent=message||''}}
@@ -505,6 +508,7 @@
    group.querySelector('.fc-currency-trigger')?.setAttribute('aria-expanded','false');
   });
  }
+ function openScenarioRate(c){if(!SCENARIO_CURRENCIES.includes(c))return;const old=el('fc-fx-settings');if(!CORE_RATES.includes(c))extraRate=c;if(old)old.open=true;fxOpen=true;layout();const panel=el('fc-fx-settings');if(panel)panel.open=true;}
  function chooseCurrency(group,to){
   const baseKey=group.dataset.fcBaseCcy,monthDate=group.dataset.fcMonthCcy,monthKeyField=group.dataset.fcCcyField;
   const key=baseKey||monthKeyField,f=fieldByKey(key);
@@ -514,7 +518,7 @@
    const from=baseCurrency(f),old=baseAmount(f);
    if(from===to){closeCurrencyMenus();return}
    const next=convert(old,from,to,before);
-   if(!Number.isFinite(next)){closeCurrencyMenus();window.mmhVaultMessageV740?.(tr('Set valid currency rates before switching.','切换币种之前，请先填写有效汇率。'),tr('Currency rates','汇率提示'));return}
+   if(!Number.isFinite(next)){closeCurrencyMenus();openScenarioRate(before[from]>0?to:from);window.mmhVaultMessageV740?.(tr('Set valid currency rates before switching.','切换币种之前，请先填写有效汇率。'),tr('Currency rates','汇率提示'));return}
    if(FIELD[key]){state.base[key]=Number(next.toFixed(2));state.baseCurrencies[key]=to}else{const item=state.customItems.find(x=>x.key===key);item.amount=Number(next.toFixed(2));item.currency=to}
   }else{
    if(!validMonth(monthDate))return;
@@ -524,7 +528,7 @@
    const own=state.months[monthDate]||{};
    const old=Object.prototype.hasOwnProperty.call(own,key)?own[key]:(f.base?baseAmount(f):0);
    const next=convert(old,oldCcy,to,before);
-   if(!Number.isFinite(next)){closeCurrencyMenus();window.mmhVaultMessageV740?.(tr('Set valid currency rates before switching.','切换币种之前，请先填写有效汇率。'),tr('Currency rates','汇率提示'));return}
+   if(!Number.isFinite(next)){closeCurrencyMenus();openScenarioRate(before[oldCcy]>0?to:oldCcy);window.mmhVaultMessageV740?.(tr('Set valid currency rates before switching.','切换币种之前，请先填写有效汇率。'),tr('Currency rates','汇率提示'));return}
    const m=state.months[monthDate]||(state.months[monthDate]={});m[key]=Number(next.toFixed(2));
    ccys[key]=to;
   }
