@@ -7,7 +7,7 @@
  const CURRENCIES=['USD','MMK','THB','CNY','JPY','KRW','SGD','MYR','IDR','PHP','VND','KHR','LAK','BND','HKD','MOP','TWD','MNT','KPW','INR','BDT','PKR','LKR','NPR','BTN','MVR','AFN','KZT','KGS','TJS','TMT','UZS','AMD','AZN','GEL','AED','BHD','IQD','IRR','ILS','JOD','KWD','LBP','OMR','QAR','SAR','SYP','YER','TRY','RUB','EUR'];
  const CORE_RATES=['THB','CNY','MMK'],SCENARIO_CURRENCIES=CURRENCIES.filter(c=>c!=='USD');
  const CURRENCY_MARKS=Object.fromEntries(CURRENCIES.map(c=>[c,({USD:'$',CNY:'¥',THB:'฿',MMK:'K'})[c]||c]));
- let selectedMonth='',editOpen=false,fxOpen=false,extraRate='JPY',modal='',modalReturn='',modalOrigin='';
+ let selectedMonth='',editOpen=false,fxOpen=false,extraRate='JPY',modal='',modalReturn='',modalOrigin='',monthScroll=0;
  const currencyName=c=>{try{const lang=localStorage.getItem('mmhvault_language_v3363');return new Intl.DisplayNames([lang==='zh'?'zh-CN':lang==='my'?'my':'en'],{type:'currency'}).of(c)||c}catch(_){return c}};
  const FIELDS=[
   {key:'salary',en:'Salary income',zh:'工资收入',def:2500,ccy:'USD',type:'income',base:true},
@@ -259,7 +259,7 @@
     try{localStorage.setItem(localKey(activeOwner),JSON.stringify({...state,version:3}));dirty=false;updateSaveStatus();return true}
     catch(e){console.warn('[MMHVAULT Forecast] Storage unavailable',e);showWarning(tr('Could not save settings on this device. Check browser storage.','保存失败，请检查浏览器存储是否可用。'));return false}
   }
- function syncOwner(){const id=owner();if(id!==activeOwner){activeOwner=id;state=getState(id);dirty=false;lastFirst='';selectedMonth='';editOpen=false;fxOpen=false;extraRate='JPY';modal='';modalReturn='';modalOrigin='';if(!id)el('mmhDailyDashboardV13')?.remove()}}
+ function syncOwner(){const id=owner();if(id!==activeOwner){activeOwner=id;state=getState(id);dirty=false;lastFirst='';selectedMonth='';editOpen=false;fxOpen=false;extraRate='JPY';modal='';modalReturn='';modalOrigin='';monthScroll=0;if(!id)el('mmhDailyDashboardV13')?.remove()}}
  function active(){return !!el(PAGE)?.classList.contains('active')}
  function ratesNow(){
   const obj=window.rates||(typeof rates!=='undefined'?rates:null);
@@ -439,6 +439,7 @@
   const render=()=>{const q=search.value.trim().toLocaleLowerCase();list.replaceChildren();for(const o of select.options){if(![o.value,currencyName(o.value)].join(' ').toLocaleLowerCase().includes(q))continue;const b=document.createElement('button');b.type='button';b.dataset.apCurrency=o.value;b.setAttribute('aria-pressed',String(o.value===select.value));const a=document.createElement('span'),n=document.createElement('span');a.textContent=o.value;n.textContent=currencyName(o.value);b.append(a,n);list.append(b)}};
   search.oninput=render;render();
  }
+ function positionForecastPicker(picker){const group=picker.querySelector('.fc-shared-menu,.fc-choice-menu');if(!group)return;const box=picker.querySelector('summary').getBoundingClientRect(),vw=document.documentElement.clientWidth,vh=window.innerHeight,w=Math.min(picker.matches('.fc-shared-picker')?310:220,vw-24),below=vh-box.bottom-14,above=box.top-14,up=below<200&&above>below,h=Math.max(80,Math.min(360,up?above:below));group.classList.add('fc-floating-menu');group.style.setProperty('--fc-menu-w',w+'px');group.style.setProperty('--fc-menu-x',Math.max(12,Math.min(vw-w-12,box.right-w))+'px');group.style.setProperty('--fc-menu-h',h+'px');group.style.setProperty('--fc-menu-y',(up?Math.max(12,box.top-h-5):box.bottom+5)+'px');}
  function closeForecastPickers(except=null){el(ROOT)?.querySelectorAll('.fc-shared-picker[open],.fc-choice-picker[open]').forEach(p=>{if(p!==except)p.open=false})}
  function pairField(label,fieldKey,value,currency,where,date='',placeholder=''){
   const isBase=where==='base',inputId=`fc-${isBase?'base':'month'}-${fieldKey}${date?'-'+date:''}`;
@@ -463,7 +464,7 @@
   const regularInputs=monthGroup('income')+monthGroup('expense');
   const extraInputs=FIELDS.filter(f=>!f.base).map(f=>rowField(date,f,overrides,ccys)).join('');
   const hasExtraChanges=FIELDS.some(f=>!f.base&&(Object.prototype.hasOwnProperty.call(overrides,f.key)||Object.prototype.hasOwnProperty.call(ccys,f.key)));
-  return `<div class="fc-month" data-fc-card="${date}"><div class="fc-month-detail-summary"><div class="fc-month-name">${esc(monthLabel(date))}<small>${tr('Month ','第')}${i+1}${tr(' · tap to edit','个月 · 点击调整')}</small></div><div class="fc-month-data"><small>${tr('Total income','总收入')}</small><strong data-fc-income="${date}">—</strong></div><div class="fc-month-data"><small>${tr('Personal spending','个人支出')}</small><strong class="fc-cost" data-fc-personal="${date}">—</strong><em class="fc-native" data-fc-personal-native="${date}">—</em></div><div class="fc-month-data"><small>${tr('Family transfers','家庭支出')}</small><strong class="fc-cost" data-fc-family="${date}">—</strong><em class="fc-native" data-fc-family-native="${date}">—</em></div><div class="fc-month-net"><small>${tr('Monthly change','当月净变化')}</small><strong data-fc-net="${date}">—</strong><em class="fc-native" data-fc-month-rate="${date}">—</em></div><div class="fc-month-total"><small>${tr('Month-end assets','月末总资产')}</small><strong data-fc-total="${date}">—</strong></div></div>${editable?`<div class="fc-month-fields"><div class="fc-month-hint">${tr('Changes here apply to this month only. Leave a value blank to use the regular amount.','这里的调整仅用于本月，留空将沿用常规金额。')}</div>
+  return `<div class="fc-month" data-fc-card="${date}"><div class="fc-month-detail-summary"><div class="fc-month-name">${esc(monthLabel(date))}<small>${tr('Month ','第')}${i+1}${tr('','个月')}</small></div><div class="fc-month-data"><small>${tr('Total income','总收入')}</small><strong data-fc-income="${date}">—</strong></div><div class="fc-month-data"><small>${tr('Personal spending','个人支出')}</small><strong class="fc-cost" data-fc-personal="${date}">—</strong><em class="fc-native" data-fc-personal-native="${date}">—</em></div><div class="fc-month-data"><small>${tr('Family transfers','家庭支出')}</small><strong class="fc-cost" data-fc-family="${date}">—</strong><em class="fc-native" data-fc-family-native="${date}">—</em></div><div class="fc-month-net"><small>${tr('Monthly change','当月净变化')}</small><strong data-fc-net="${date}">—</strong><em class="fc-native" data-fc-month-rate="${date}">—</em></div><div class="fc-month-total"><small>${tr('Month-end assets','月末总资产')}</small><strong data-fc-total="${date}">—</strong></div></div>${editable?`<div class="fc-month-fields"><div class="fc-month-hint">${tr('Changes here apply to this month only. Leave a value blank to use the regular amount.','这里的调整仅用于本月，留空将沿用常规金额。')}</div>
      <div class="fc-month-category-grid">${regularInputs}</div>
      <details class="fc-month-additional"${hasExtraChanges?' open':''}><summary><span class="fc-additional-icon" aria-hidden="true">＋</span><span class="fc-additional-title">${tr('Bonuses & extra spending','奖金与额外支出')}</span><span class="fc-additional-hint">${tr('Optional','可选')}</span><span class="fc-additional-chevron" aria-hidden="true">⌄</span></summary><div class="fc-month-additional-fields">${extraInputs}</div></details>
      <div class="fc-month-extra" data-fc-extra-note="${date}">—</div><div class="fc-month-actions"><button type="button" class="fc-btn alt" data-fc-clear-month="${date}">${tr('Clear month changes','清除本月调整')}</button></div></div>`:`<p class="fc-month-extra" data-fc-extra-note="${date}">—</p>`}</div>`;
@@ -496,7 +497,7 @@
  function layout(){
   const root=el(ROOT);if(!root)return;
   const first=startKey(),end=effectiveEnd(first),max=shift(first,239),dates=range(first,end);
-  const overviewScroll=root.querySelector('.fc-dialog .fc-month-overview')?.scrollTop||0,dialogScroll=root.querySelector('.fc-dialog-body')?.scrollTop||0;
+  const oldOverview=root.querySelector('.fc-dialog .fc-month-overview');if(oldOverview)monthScroll=oldOverview.scrollTop;const dialogScroll=root.querySelector('.fc-dialog-body')?.scrollTop||0;
   if(!dates.includes(selectedMonth)){selectedMonth=dates[0]||'';if(['view','edit'].includes(modal))modal=''}
   const regular=`<div class="fc-regular-grid">${regularEditorHTML('income')}${regularEditorHTML('expense')}</div>`;
   const target=`<div class="fc-rate-target"><label for="fc-savings-target">${tr('Savings rate target (%)','目标储蓄率 (%)')}</label><input id="fc-savings-target" type="number" min="0" max="100" step="0.1" inputmode="decimal" value="${state.targetSavingsRate}"></div>`;
@@ -522,7 +523,7 @@
     <section class="fc-panel fc-month-panel"><div class="fc-monthhead"><div><h2>${tr('Month-by-month forecast','逐月资产预测')}</h2><p>${tr('Choose a month to adjust its individual plan.','选择月份，单独调整该月计划。')}</p></div><div class="fc-row-actions">${dates.length?monthChoice(dates):''}${iconButton('list',tr('All months','全部月份'),'data-fc-open-modal="months"')}</div></div>${selectedMonth?monthTable([selectedMonth]):''}</section>
     <p class="fc-footer">${tr('Forecast settings are stored locally for each user, not in Supabase or cloud backup. Changing a currency automatically converts the current number to preserve its estimated USD value; you can then edit it. Real income/expenses and exchange rates are never changed. Current Dashboard assets, saved exchange rates, and the current month are re-read whenever this forecast refreshes. Future crypto/gold prices are assumed unchanged.','所有预测设置仅存于当前浏览器，按用户分别保存，不写入 Supabase 或云端备份。切换币种时会自动换算原金额以维持其美元估值，随后可修改数字；不影响任何真实收支或正式汇率。刷新时重新读取 Dashboard 资产、已保存汇率和当前月份。未来加密货币及黄金价格暂视为不变。')}</p>
   </div>${modalHTML(dates,regular,fx,target)}`;
-  const overview=root.querySelector('.fc-dialog .fc-month-overview');if(overview)overview.scrollTop=overviewScroll;
+  const overview=root.querySelector('.fc-dialog .fc-month-overview');if(overview)overview.scrollTop=monthScroll;
   const body=root.querySelector('.fc-dialog-body');if(body)body.scrollTop=dialogScroll;
   lastFirst=first;updateOutputs();updateSaveStatus();
  }
@@ -763,21 +764,22 @@
  function dateChanged(){syncOwner();resetDailyMonthOnCalendarChange();if(active()){if(lastFirst!==startKey()){layout();return}updateOutputs()}else if(el('dashboard')?.classList.contains('active'))mountDashboardDaily()}
  function stopMidnight(){if(midnightTimer){clearTimeout(midnightTimer);midnightTimer=0}}
  function scheduleMidnight(){stopMidnight();if(!(active()||el('dashboard')?.classList.contains('active'))||document.hidden)return;const now=new Date(),tomorrow=new Date(now.getFullYear(),now.getMonth(),now.getDate()+1,0,0,2);midnightTimer=setTimeout(()=>{midnightTimer=0;dateChanged();scheduleMidnight()},Math.max(1000,tomorrow-now))}
- function onVisible(){syncOwner();resetDailyMonthOnCalendarChange();if(active()){layout();scheduleMidnight()}else{stopMidnight();if(el('dashboard')?.classList.contains('active'))mountDashboardDaily()}}
+ function onVisible(){syncOwner();resetDailyMonthOnCalendarChange();if(active()){layout();scheduleMidnight()}else{modal='';modalReturn='';modalOrigin='';stopMidnight();if(el('dashboard')?.classList.contains('active'))mountDashboardDaily()}}
  function init(){
   const root=el(ROOT);if(!root)return;
   watchDashboard();
+  root.addEventListener('scroll',e=>{if(!e.target.closest?.('.fc-shared-menu,.fc-choice-menu'))closeForecastPickers()},true);
   root.addEventListener('input',onInput);root.addEventListener('change',onChange);root.addEventListener('click',onClick);
-  root.addEventListener('toggle',e=>{const picker=e.target;if(!picker.matches?.('.fc-shared-picker,.fc-choice-picker'))return;if(picker.open){closeForecastPickers(picker);if(picker.matches('.fc-shared-picker'))setupCurrencyPicker(picker)}},true);
+  root.addEventListener('toggle',e=>{const picker=e.target;if(!picker.matches?.('.fc-shared-picker,.fc-choice-picker'))return;if(picker.open){closeForecastPickers(picker);if(picker.matches('.fc-shared-picker'))setupCurrencyPicker(picker);positionForecastPicker(picker)}},true);
   document.addEventListener('pointerdown',e=>{const p=e.target.closest?.('#'+ROOT+' .fc-shared-picker,#'+ROOT+' .fc-choice-picker');closeForecastPickers(p||null)},{passive:true});
-  document.addEventListener('keydown',e=>{if(e.key==='Escape'){const picker=root.querySelector('.fc-shared-picker[open],.fc-choice-picker[open]');if(picker){e.preventDefault();closeForecastPickers();picker.querySelector('summary')?.focus({preventScroll:true})}else if(modal&&active()&&!el('mmhVaultDialogV449')?.classList.contains('show')){e.preventDefault();closeModal()}}});
+  document.addEventListener('keydown',e=>{if(!active()||el('mmhVaultDialogV449')?.classList.contains('show'))return;if(e.key==='Tab'&&modal){const dialog=root.querySelector('.fc-dialog');const controls=[...dialog?.querySelectorAll('button:not(:disabled),input:not(:disabled),summary,[tabindex="0"]')||[]].filter(x=>x.getClientRects().length&&getComputedStyle(x).visibility!=='hidden');if(controls.length){const first=controls[0],last=controls.at(-1);if(e.shiftKey&&(document.activeElement===first||!dialog.contains(document.activeElement))){e.preventDefault();last.focus()}else if(!e.shiftKey&&(document.activeElement===last||!dialog.contains(document.activeElement))){e.preventDefault();first.focus()}}}if(e.key==='Escape'){const picker=root.querySelector('.fc-shared-picker[open],.fc-choice-picker[open]');if(picker){e.preventDefault();closeForecastPickers();picker.querySelector('summary')?.focus({preventScroll:true})}else if(modal&&active()&&!el('mmhVaultDialogV449')?.classList.contains('show')){e.preventDefault();closeModal()}}});
   for(const name of ['mmhvault:page-visible','mmhvault:config-owner-changed','mmhvault:data-loaded','mmhvault:data-change','mmhvault:cache-restored','mmhvault:market-updated','mmhvault-language-change','languagechange']){
-   window.addEventListener(name,()=>{if(active()){if(['mmhvault-language-change','languagechange','mmhvault:config-owner-changed'].includes(name))onVisible();else dateChanged()}else{if(name==='mmhvault:config-owner-changed')syncOwner();if(el('dashboard')?.classList.contains('active')){if(['mmhvault-language-change','languagechange'].includes(name)){el('mmhDailyDashboardV13')?.remove()}watchDashboard();scheduleMidnight()}}},{passive:true});
+   window.addEventListener(name,()=>{if(active()){if(['mmhvault-language-change','languagechange','mmhvault:config-owner-changed'].includes(name))onVisible();else dateChanged()}else{if(name==='mmhvault:config-owner-changed')syncOwner();if(name==='mmhvault:page-visible'){modal='';modalReturn='';modalOrigin=''}if(el('dashboard')?.classList.contains('active')){if(['mmhvault-language-change','languagechange'].includes(name)){el('mmhDailyDashboardV13')?.remove()}watchDashboard();scheduleMidnight()}}},{passive:true});
   }
   document.addEventListener('visibilitychange',()=>{if(document.hidden)stopMidnight();else onVisible()},{passive:true});
   window.addEventListener('beforeunload',e=>{if(dirty){e.preventDefault();e.returnValue=''}});
   let chartResizeFrame=0;
-  window.addEventListener('resize',()=>{if(!active()||!state)return;cancelAnimationFrame(chartResizeFrame);chartResizeFrame=requestAnimationFrame(()=>{if(active()&&state)drawChart(calculate())})},{passive:true});
+  window.addEventListener('resize',()=>{if(!active()||!state)return;closeForecastPickers();cancelAnimationFrame(chartResizeFrame);chartResizeFrame=requestAnimationFrame(()=>{if(active()&&state)drawChart(calculate())})},{passive:true});
   window.addEventListener('pageshow',onVisible,{passive:true});window.addEventListener('focus',()=>{dateChanged();scheduleMidnight()},{passive:true});
   document.addEventListener('click',e=>{if(e.target.closest('#mmhDailyDashboardV13 [data-mmh-open-daily]')){e.preventDefault();window.setPage?.('forecast')}});
   syncOwner();onVisible();
