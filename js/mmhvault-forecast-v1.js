@@ -73,6 +73,7 @@
   "Changes here apply to this month only. Leave a value blank to use the regular amount.": "ပြောင်းလဲမှုများသည် ဤလအတွက်သာ ဖြစ်သည်။ ပုံမှန်ပမာဏကို သုံးရန် ကွက်လပ်ထားပါ။",
   "Bonuses & extra spending": "အပိုဆုနှင့် အပိုအသုံးစရိတ်",
   "Optional": "ရွေးချယ်နိုင်သည်",
+  "Clear forecast changes for this month only? Real transactions remain unchanged.":"ဤလအတွက် ခန့်မှန်းချက် ပြောင်းလဲမှုများကိုသာ ရှင်းမလား။ အမှန်တကယ် ငွေစာရင်းများ မပြောင်းလဲပါ။",
   "Clear month changes": "ဤလ၏ ပြောင်းလဲမှုများကို ရှင်းရန်",
   "items": "ခု",
   "Item name": "အမျိုးအစားအမည်",
@@ -488,7 +489,7 @@
       <div class="fc-save-bar"><span id="fc-save-status" role="status"></span><div class="fc-save-actions"><button type="button" class="fc-btn alt" data-fc-action="discard">${tr('Discard changes','撤销未保存修改')}</button><button id="fc-save-btn" type="button" class="fc-btn fc-save-primary" data-fc-action="save">✓ ${tr('Save settings','保存设置')}</button></div></div>
     </section>
     <section class="fc-panel"><h2>${tr('Projected asset growth','预计资产增长曲线')}</h2><p class="fc-muted">${tr('Monthly cash-flow estimates; no assumed investment gains.','按每月现金流计算；不预设投资收益。')}</p><div class="fc-chart" id="fc-chart" style="margin-top:8px"></div></section>
-    <section class="fc-panel fc-month-panel"><div class="fc-monthhead"><div><h2>${tr('Month-by-month forecast','逐月资产预测')}</h2><p>${tr('Choose a month to adjust its individual plan.','选择月份，单独调整该月计划。')}</p></div><label class="fc-field fc-month-picker"><span>${tr('Edit month','调整月份')}</span><input id="fc-edit-month" type="month" min="${first}" max="${dates.at(-1)||first}" value="${selectedMonth}" ${dates.length?'':'disabled'}></label></div><div class="fc-month-overview" tabindex="0"><table><thead><tr><th scope="col">${tr('Month','月份')}</th><th scope="col">${tr('Net change','净变化')}</th><th scope="col">${tr('End assets','期末资产')}</th></tr></thead><tbody>${dates.map(date=>`<tr data-fc-overview="${date}" class="${date===selectedMonth?'is-selected':''}"><th scope="row"><button type="button" data-fc-select-month="${date}">${esc(monthLabel(date))}</button></th><td data-fc-overview-net>—</td><td data-fc-overview-total>—</td></tr>`).join('')}</tbody></table></div><div id="fc-month-list" class="fc-months">${selectedMonth?monthHtml(selectedMonth,dates.indexOf(selectedMonth)):''}</div></section>
+    <section class="fc-panel fc-month-panel"><div class="fc-monthhead"><div><h2>${tr('Month-by-month forecast','逐月资产预测')}</h2><p>${tr('Choose a month to adjust its individual plan.','选择月份，单独调整该月计划。')}</p></div><label class="fc-field fc-month-picker"><span>${tr('Edit month','调整月份')}</span><select id="fc-edit-month" ${dates.length?'':'disabled'}>${dates.length?dates.map(date=>`<option value="${date}"${date===selectedMonth?' selected':''}>${esc(monthLabel(date))}</option>`).join(''):'<option value="">—</option>'}</select></label></div><div class="fc-month-overview" tabindex="0"><table><thead><tr><th scope="col">${tr('Month','月份')}</th><th scope="col">${tr('Net change','净变化')}</th><th scope="col">${tr('End assets','期末资产')}</th></tr></thead><tbody>${dates.map(date=>`<tr data-fc-overview="${date}" class="${date===selectedMonth?'is-selected':''}"><th scope="row"><button type="button" data-fc-select-month="${date}"${date===selectedMonth?' aria-current="date"':''}>${esc(monthLabel(date))}</button></th><td data-fc-overview-net>—</td><td data-fc-overview-total>—</td></tr>`).join('')}</tbody></table></div><div id="fc-month-list" class="fc-months">${selectedMonth?monthHtml(selectedMonth,dates.indexOf(selectedMonth)):''}</div></section>
     <p class="fc-footer">${tr('Forecast settings are stored locally for each user, not in Supabase or cloud backup. Changing a currency automatically converts the current number to preserve its estimated USD value; you can then edit it. Real income/expenses and exchange rates are never changed. Current Dashboard assets, saved exchange rates, and the current month are re-read whenever this forecast refreshes. Future crypto/gold prices are assumed unchanged.','所有预测设置仅存于当前浏览器，按用户分别保存，不写入 Supabase 或云端备份。切换币种时会自动换算原金额以维持其美元估值，随后可修改数字；不影响任何真实收支或正式汇率。刷新时重新读取 Dashboard 资产、已保存汇率和当前月份。未来加密货币及黄金价格暂视为不变。')}</p>
   </div>`;
   const editor=root.querySelector('details.fc-month');if(editor)editor.open=editOpen;
@@ -626,7 +627,7 @@
   if(node instanceof HTMLSelectElement&&node.id==='fc-extra-rate-currency'){
    if(!SCENARIO_CURRENCIES.includes(node.value)||CORE_RATES.includes(node.value))return;extraRate=node.value;layout();el('fc-extra-rate-currency')?.focus({preventScroll:true});return;
   }
-  if(node instanceof HTMLInputElement&&node.id==='fc-edit-month'){
+  if(node instanceof HTMLSelectElement&&node.id==='fc-edit-month'){
    if(!range(startKey(),effectiveEnd(startKey())).includes(node.value)){node.value=selectedMonth;return}selectForecastMonth(node.value);el('fc-edit-month')?.focus({preventScroll:true});return;
   }
   if(node instanceof HTMLInputElement&&node.id==='fc-day-month'){
@@ -661,7 +662,7 @@
    if(FIELD[key]){state.base[key]=Number(next.toFixed(2));state.baseCurrencies[key]=to}else{const item=state.customItems.find(x=>x.key===key);item.amount=Number(next.toFixed(2));item.currency=to}
   }else{
    if(!validMonth(monthDate))return;
-   const ccys=state.monthCurrencies[monthDate]||(state.monthCurrencies[monthDate]={});
+   const ccys=state.monthCurrencies[monthDate]||{};
    const oldCcy=ccys[key]||(f.base?baseCurrency(f):f.ccy);
    if(oldCcy===to){closeCurrencyMenus();return}
    const own=state.months[monthDate]||{};
@@ -669,19 +670,19 @@
    const next=convert(old,oldCcy,to,before);
    if(!Number.isFinite(next)){closeCurrencyMenus();openScenarioRate(before[oldCcy]>0?to:oldCcy);window.mmhVaultMessageV740?.(tr('Set valid currency rates before switching.','切换币种之前，请先填写有效汇率。'),tr('Currency rates','汇率提示'));return}
    const m=state.months[monthDate]||(state.months[monthDate]={});m[key]=Number(next.toFixed(2));
-   ccys[key]=to;
+   ccys[key]=to;state.monthCurrencies[monthDate]=ccys;
   }
   if(key==='salary')state.salaryConfigured=(baseKey?Number(state.base.salary)>0:Number(monthlyValues(monthDate).salary.amount)>0);
   closeCurrencyMenus();save();layout();mountDashboardDaily();
   const selector=baseKey?`[data-fc-base-ccy="${key}"] .fc-currency-trigger`:`[data-fc-month-ccy="${monthDate}"][data-fc-ccy-field="${key}"] .fc-currency-trigger`;
   el(ROOT)?.querySelector(selector)?.focus({preventScroll:true});
  }
- function selectForecastMonth(date){if(!range(startKey(),effectiveEnd(startKey())).includes(date))return;selectedMonth=date;editOpen=true;layout();const editor=el(ROOT)?.querySelector('details.fc-month');if(editor)editor.open=true;}
+ function selectForecastMonth(date){if(!range(startKey(),effectiveEnd(startKey())).includes(date))return;selectedMonth=date;editOpen=true;layout();const editor=el(ROOT)?.querySelector('details.fc-month');if(editor)editor.open=true;editOpen=true;}
  async function onClick(e){
   const root=el(ROOT),btn=e.target.closest('button');
   if(!btn||!root?.contains(btn))return;
   if(btn.dataset.fcViewCurrency){const c=btn.dataset.fcViewCurrency;if(!validCcy(c))return;state.viewCurrency=c;save();if(!validDisplayRate(exchangeRates())){if(!CORE_RATES.includes(c)&&c!=='USD')extraRate=c;const panel=el('fc-fx-settings');if(panel)panel.open=true;fxOpen=true}layout();el('fc-view-picker')?.querySelector('summary')?.focus({preventScroll:true});return}
-  if(btn.dataset.fcSelectMonth){selectForecastMonth(btn.dataset.fcSelectMonth);root.querySelector('details.fc-month summary')?.focus({preventScroll:true});return}
+  if(btn.dataset.fcSelectMonth){const date=btn.dataset.fcSelectMonth;selectForecastMonth(date);root.querySelector('[data-fc-select-month="'+date+'"]')?.focus({preventScroll:true});return}
   if(Object.hasOwn(planLabels,btn.dataset.fcPlanPage)){window.setPage?.(btn.dataset.fcPlanPage);return}
   if(btn.hasAttribute('data-fc-toggle-currency')){
    const group=btn.closest('.fc-money-pair'),wasOpen=group?.classList.contains('fc-picker-open');
@@ -709,7 +710,7 @@
    if(key==='salary')state.salaryConfigured=false;
    save();layout();return;
   }
-  if(btn.dataset.fcClearMonth){const date=btn.dataset.fcClearMonth;delete state.months[date];delete state.monthCurrencies[date];save();layout();return}
+  if(btn.dataset.fcClearMonth){const date=btn.dataset.fcClearMonth;if(!range(startKey(),effectiveEnd(startKey())).includes(date))return;if(!state.months[date]&&!state.monthCurrencies[date])return;const id=activeOwner,prior=state;if(typeof window.mmhVaultConfirmV740!=='function'||!(await window.mmhVaultConfirmV740(tr('Clear forecast changes for this month only? Real transactions remain unchanged.','仅清除本月预测调整？真实交易不会改变。'),tr('Clear month changes','清除本月调整'))))return;if(activeOwner!==id||state!==prior)return;delete state.months[date];delete state.monthCurrencies[date];save();layout();el(ROOT)?.querySelector('[data-fc-clear-month="'+date+'"]')?.focus({preventScroll:true});return}
   const action=btn.dataset.fcAction;
   if(action==='reset-day-salary'){
    const d=dailyInfo(state.dailyMonth).selected;const m=state.months[d],cc=state.monthCurrencies[d];
