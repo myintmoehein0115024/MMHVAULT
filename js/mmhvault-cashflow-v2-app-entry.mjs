@@ -1,7 +1,7 @@
 /* Explicit opt-in app mount. The host must supply lexical bindings from app.html.
  * Does not auto-run, hide legacy UI, modify navigation or request network data. */
 import {buildAdapter,makeLegacyPorts} from './mmhvault-cashflow-v2-adapter.mjs';
-import {mountCashflowV2} from './mmhvault-cashflow-v2-ui.mjs?v=2.0.41';
+import {mountCashflowV2} from './mmhvault-cashflow-v2-ui.mjs?v=2.0.42';
 const mounts=new WeakMap();
 export function validAppBindings(b){
  return !!b&&['owner','configOwner','config','currencies','groupOf','isLinkedInvestment'].every(k=>typeof b[k]==='function');

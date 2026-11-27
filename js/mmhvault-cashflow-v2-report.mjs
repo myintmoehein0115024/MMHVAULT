@@ -11,7 +11,7 @@ function reportKit(){
  }
  function report({type,scope,data,analytics,balances,history=[],context=null,movements=null,investment=null,label=k=>k}){
   if(!types.includes(type)||!scope||!data)throw new TypeError('Report data');
-  const t=data.totals,sections=[],section=(name,headers,rows)=>sections.push({name:label(name),headers:headers.map(label),rows});
+  const t=data.totals,sections=[],section=(name,headers,rows)=>sections.push({key:name,keys:headers,name:label(name),headers:headers.map(label),rows});
   const money=(k,v)=>[label(k),finite(v)?v:null,scope.currency];
   section('reportScope',['metric','value','unit'],[['type',label(type),''],['start',scope.start,''],['end',scope.end,''],['currency',scope.currency,''],['account',(scope.accounts||[]).join(', ')||label('all'),''],['category',(scope.categories||[]).join(', ')||label('all'),''],['original',(scope.originalCurrencies||[]).join(', ')||label('all'),'']].map(([k,...v])=>[label(k),...v]));
   section('reportSummary',['metric','value','unit'],[money('income',t.income),money('expense',t.expense),money('net',t.net),[label('savings'),finite(t.savingsRate)?t.savingsRate:null,'ratio']]);
