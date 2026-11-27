@@ -740,3 +740,15 @@ html body.mmh-workspace-active #forecast .fc-month details.fc-month-additional >
     gap:7px!important;
   }
 }
+
+/* Personal V2.0.63: sibling navigation, only Future Assets subpages. */
+html body.mmh-workspace-active :is(#budget#budget,#goals#goals,#recurring#recurring) .fc-planning-nav-v263{--pn-card:#273242;--pn-border:#344052;--pn-text:#edf0f6;--pn-muted:#b1b8c5;--pn-accent:#9bb7fb;display:flex!important;align-items:center!important;justify-content:space-between!important;gap:8px!important;min-width:0!important;padding:0 0 8px!important;margin:0!important;border:0!important;border-bottom:1px solid var(--pn-border)!important;background:transparent!important;box-shadow:none!important}
+html body.mmh-workspace-active.light :is(#budget#budget,#goals#goals,#recurring#recurring) .fc-planning-nav-v263{--pn-card:#eef2f8;--pn-border:#d8dfe9;--pn-text:#202a3a;--pn-muted:#576477;--pn-accent:#365fae}
+html body.mmh-workspace-active :is(#budget#budget,#goals#goals,#recurring#recurring) .fc-planning-nav-v263 button{box-sizing:border-box!important;display:inline-flex!important;align-items:center!important;justify-content:center!important;gap:6px!important;min-width:0!important;min-height:44px!important;height:44px!important;padding:7px!important;margin:0!important;background:var(--pn-card)!important;background-image:none!important;border:1px solid var(--pn-border)!important;border-radius:7px!important;color:var(--pn-muted)!important;box-shadow:none!important;font:600 12px/1.35 system-ui,sans-serif!important;cursor:pointer!important}
+html body.mmh-workspace-active :is(#budget#budget,#goals#goals,#recurring#recurring) .fc-planning-nav-v263 .fc-planning-back-v263{flex:0 1 auto!important;padding-inline:9px!important;background:transparent!important;color:var(--pn-text)!important}
+html body.mmh-workspace-active :is(#budget#budget,#goals#goals,#recurring#recurring) .fc-planning-back-v263 span{min-width:0;overflow-wrap:anywhere;text-align:start}
+html body.mmh-workspace-active :is(#budget#budget,#goals#goals,#recurring#recurring) .fc-planning-links-v263{display:flex!important;align-items:center!important;gap:5px!important;flex:0 0 auto!important}
+html body.mmh-workspace-active :is(#budget#budget,#goals#goals,#recurring#recurring) .fc-planning-links-v263 button{width:44px!important;flex:0 0 44px!important}
+html body.mmh-workspace-active :is(#budget#budget,#goals#goals,#recurring#recurring) .fc-planning-nav-v263 svg{display:block!important;width:19px!important;height:19px!important;flex:0 0 19px!important}
+html body.mmh-workspace-active :is(#budget#budget,#goals#goals,#recurring#recurring) .fc-planning-nav-v263 button[aria-current="page"]{border-color:var(--pn-accent)!important;color:var(--pn-accent)!important;cursor:default!important}
+html body.mmh-workspace-active :is(#budget#budget,#goals#goals,#recurring#recurring) .fc-planning-nav-v263 button:focus-visible{outline:2px solid var(--pn-accent)!important;outline-offset:2px!important}

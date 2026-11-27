@@ -40,7 +40,7 @@ try{
   const a=app.indexOf(start),b=app.indexOf(end,a+start.length);
   assert.ok(a>=0&&b>a,start);return app.slice(a,b);
  };
- const engine=copy[0]+actual('function translateAttributes(root){','function translateDynamicText(base){')+actual('const mmhI18nTextStateV135=new WeakMap();','window.mmhI18nTextV135=')+actual('function walk(root){','function syncLanguageChoices()');
+ const engine=copy[0]+actual('const goalCopyV263=','const mmhI18nTextStateV135=new WeakMap();')+actual('function translateAttributes(root){','function translateDynamicText(base){')+actual('const mmhI18nTextStateV135=new WeakMap();','window.mmhI18nTextV135=')+actual('function walk(root){','function syncLanguageChoices()');
  const switchPage=await browser.newPage();
  try{
   await switchPage.route('**/*',r=>r.abort());
