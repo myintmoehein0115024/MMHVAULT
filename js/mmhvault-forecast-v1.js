@@ -23,6 +23,9 @@
  const el=id=>document.getElementById(id);
  const isZh=()=>{try{return(localStorage.getItem('mmhvault_language_v3363')||'en')==='zh'}catch(_){return false}};
  const tr=(en,zh)=>isZh()?zh:en;
+ const planLabels={budget:['Budget','预算','ဘတ်ဂျက်'],goals:['Goals','目标','ရည်မှန်းချက်များ'],recurring:['Recurring','固定收支','ပုံမှန်ငွေဝင်ငွေထွက်']};
+ const planIcons={budget:'<path d="M3 6h16a2 2 0 0 1 2 2v10H3z M3 6V4h14 M21 11h-5v4h5"/>',goals:'<circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1"/>',recurring:'<path d="M4 9V6h14l-3-3m3 12v3H4l3 3M18 6l-3 3M4 18l3-3"/>'};
+ const planningLinks=()=>Object.keys(planLabels).map(key=>{const code=localStorage.getItem('mmhvault_language_v3363'),label=planLabels[key][code==='zh'?1:code==='my'?2:0];return '<button type="button" class="fc-plan-entry" data-fc-plan-page="'+key+'" title="'+label+'" aria-label="'+label+'"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'+planIcons[key]+'</svg></button>'}).join('');
  const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
  const pad=v=>String(v).padStart(2,'0');
  const monthKey=(d=new Date())=>`${d.getFullYear()}-${pad(d.getMonth()+1)}`;
@@ -320,7 +323,7 @@
   const open=new Set([...root.querySelectorAll('details.fc-month[open]')].map(e=>e.dataset.fcCard));
   const oldCards=!!root.querySelector('.fc-month');
   root.innerHTML=`<div class="fc-wrap">
-    <header class="fc-head"><div><div class="fc-eyebrow">MMHVAULT · ${tr('FUTURE WEALTH PLANNER','未来资产预测')}</div><h1>${tr('Future Asset Forecast','未来资产预测')}</h1><p class="fc-muted">${tr('Forecast from next month, based on your current Dashboard assets.','从下个月起，使用 Dashboard 实时总资产逐月预测。')}</p></div><button type="button" class="fc-btn alt" data-fc-action="refresh">↻ ${tr('Refresh assets','刷新资产')}</button></header>
+    <header class="fc-head"><div><div class="fc-eyebrow">MMHVAULT · ${tr('FUTURE WEALTH PLANNER','未来资产预测')}</div><h1>${tr('Future Asset Forecast','未来资产预测')}</h1><p class="fc-muted">${tr('Forecast from next month, based on your current Dashboard assets.','从下个月起，使用 Dashboard 实时总资产逐月预测。')}</p></div><div class="fc-head-actions">${planningLinks()}<button type="button" class="fc-btn alt" data-fc-action="refresh">↻ ${tr('Refresh assets','刷新资产')}</button></div></header>
     <div class="fc-display-bar"><label for="fc-display-currency">${tr('Display amounts in','金额显示币种')}</label><select id="fc-display-currency" aria-label="${esc(tr('Forecast display currency','预测显示币种'))}">${[['USD',tr('USD · US Dollar','USD · 美元')],['THB',tr('THB · Thai Baht','THB · 泰铢')],['CNY',tr('CNY · Chinese Yuan','CNY · 人民币')],['MMK',tr('MMK · Myanmar Kyat','MMK · 缅币')]].map(([c,label])=>`<option value="${c}"${state.viewCurrency===c?' selected':''}>${label}</option>`).join('')}</select></div>
     <div class="fc-stats"><div class="fc-stat"><span>${tr('Current total assets','当前总资产')}</span><strong id="fc-start">—</strong><small>${tr('Dashboard value, including receivables','Dashboard 实时资产，含应收款')}</small></div><div class="fc-stat good"><span>${tr('Regular monthly savings','每月常规净储蓄')}</span><strong id="fc-saving">—</strong><small>${tr('Before bonus and extra spending','未计奖金与额外消费')}</small></div><div class="fc-stat"><span>${tr('Forecast end assets','预测期末总资产')}</span><strong id="fc-result">—</strong><small id="fc-result-date">—</small></div><div class="fc-stat"><span>${tr('Projected gain','预计增长')}</span><strong id="fc-gain">—</strong><small id="fc-count">—</small></div></div>
     ${salaryIsConfigured(state.dailyMonth)?dailyPanelHTML():''}
@@ -523,6 +526,7 @@
  async function onClick(e){
   const root=el(ROOT),btn=e.target.closest('button');
   if(!btn||!root?.contains(btn))return;
+  if(Object.hasOwn(planLabels,btn.dataset.fcPlanPage)){window.setPage?.(btn.dataset.fcPlanPage);return}
   if(btn.hasAttribute('data-fc-toggle-currency')){
    const group=btn.closest('.fc-money-pair'),wasOpen=group?.classList.contains('fc-picker-open');
    closeCurrencyMenus();

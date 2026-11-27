@@ -11031,14 +11031,8 @@ html.mmh-desktop-compact-v11110 body.mmh-workspace-active #moreNavMenu.more-nav-
 <button aria-expanded="false" aria-haspopup="menu" class="more-nav-trigger" id="moreNavButton" type="button"><i class="mmh-nav-icon" aria-hidden="true">☰</i><span>More</span></button>
 </div>
 <div aria-hidden="true" class="more-nav-menu" id="moreNavMenu" role="menu">
-<button data-more-page="accounts-page" role="menuitem" type="button">👛<span>Accounts</span></button>
 <button data-more-page="exchange" role="menuitem" type="button">💱<span>Market</span></button>
-<button data-more-page="cashflow-analyze" role="menuitem" type="button">📊<span>Cash Flow Analyze</span></button>
-<button data-more-page="budget" role="menuitem" type="button">◒<span>Budget</span></button>
-<button data-more-page="goals" role="menuitem" type="button">◎<span>Goals</span></button>
-<button data-more-page="recurring" role="menuitem" type="button">↻<span>Recurring</span></button>
-<button data-more-page="life-planner" role="menuitem" type="button">▦<span>Life Planner</span></button>
-<button data-more-page="reports" role="menuitem" type="button">▤<span>Reports</span></button>
+<button data-more-page="forecast" role="menuitem" type="button">◈<span>Future Assets</span></button>
 <button data-more-page="settings" role="menuitem" type="button">⚙️<span>Settings</span></button>
 </div>
 <style id="mmhvault-retired-pages-v480">
@@ -14145,13 +14139,14 @@ function mmhVaultRefreshDashboardAccountOverviewV449(){
 let transactions=[], investments=[], rates={usd_mmk:4400,usd_thb:31.5,usd_cny:7.18}, realtimeReady=false, currentUserEmail="", currentSessionUser=null, currentCustomerId="";
 const $=id=>document.getElementById(id), n=v=>Number(v||0), fmt=v=>n(v).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2}), esc=v=>String(v??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m]));
 const today=()=>new Date().toISOString().slice(0,10);
-const MMHVAULT_PERSISTENT_PAGES_V136=new Set(["dashboard","transactions","invest","accounts-page","exchange","exAsiaV10","cashflow-analyze","budget","goals","recurring","forecast","reports","settings","life-planner"]);
+const MMHVAULT_PERSISTENT_PAGES_V136=new Set(["dashboard","transactions","invest","accounts-page","exchange","exAsiaV10","cashflow-analyze","budget","goals","recurring","forecast","settings"]);
 function mmhVaultPageKeyV136(userId=currentSessionUser?.id||""){return userId?`myfinance_page_${userId}`:"myfinance_page";}
 function mmhVaultStoredPageV136(userId=""){
   try{
     const scoped=sessionStorage.getItem(mmhVaultPageKeyV136(userId));
     const legacy=sessionStorage.getItem("myfinance_page");
     const page=scoped||legacy||"dashboard";
+    if(page==="reports")return "cashflow-analyze";
     return MMHVAULT_PERSISTENT_PAGES_V136.has(page)&&document.getElementById(page)?page:"dashboard";
   }catch(_e){return "dashboard";}
 }
@@ -14318,7 +14313,19 @@ function applyUserProfile(user){
   setText("accountEmailStatusV375",p.usernameOnly?"Not linked":p.email?(emailConfirmed?"Verified":"Pending"):"Not added");
   setText("accountGoogleStatusV375",providers.includes("google")?"Connected":"Not connected");
   const headerAvatar=$("headerAvatar"),accountAvatar=$("accountAvatarV372");
-  const applyAvatar=(el)=>{if(!el)return; if(p.avatar){el.innerHTML=`<img src="${esc(p.avatar)}" alt="">`;}else{el.textContent=p.initials;}};
+  const customPath=String(user?.user_metadata?.mmhvault_avatar_path||'');
+  const customKey=user?.id&&customPath.startsWith(user.id+'/profile/')?user.id+':'+customPath:'';
+  const applyAvatar=(el)=>{
+    if(!el)return;
+    if(customKey){
+      if(el.dataset.mmhCustomAvatarKey!==customKey){el.dataset.mmhCustomAvatarKey=customKey;el.textContent=p.initials}
+      else if(!el.querySelector('img')&&el.textContent!==p.initials)el.textContent=p.initials;
+      return;
+    }
+    delete el.dataset.mmhCustomAvatarKey;
+    if(p.avatar){const old=el.querySelector('img');if(old?.getAttribute('src')===p.avatar)return;const img=document.createElement('img');img.alt='';img.addEventListener('error',()=>{if(el.contains(img))el.textContent=p.initials},{once:true});img.src=p.avatar;el.replaceChildren(img)}
+    else el.textContent=p.initials;
+  };
   applyAvatar(headerAvatar);applyAvatar(accountAvatar);
   window.mmhProfileRefreshV1?.(user);
 }
@@ -28366,32 +28373,40 @@ html,body{max-width:100%;overflow-x:clip}
 (function(){
   const get=id=>document.getElementById(id),bucket='receipts';
   let cached={key:'',url:'',expires:0},pending=null,saving=false;
-  function paint(url){
+  function paint(url,key,user){
+    if(currentSessionUser?.id!==user.id||key!==user.id+':'+String(currentSessionUser?.user_metadata?.mmhvault_avatar_path||''))return;
     ['headerAvatar','accountAvatarV372'].forEach(id=>{
-      const host=get(id);if(!host)return;
-      host.textContent='';const img=document.createElement('img');img.src=url;img.alt='';host.appendChild(img);
+      const host=get(id);if(!host||host.dataset.mmhCustomAvatarKey!==key)return;
+      if(host.querySelector('img')?.getAttribute('src')===url)return;
+      const img=document.createElement('img');img.alt='';
+      img.addEventListener('error',()=>{if(host.dataset.mmhCustomAvatarKey===key&&host.contains(img)){host.textContent=getUserDisplayProfile(user).initials;if(cached.key===key&&cached.url===url)cached={key:'',url:'',expires:0}}},{once:true});
+      img.src=url;host.replaceChildren(img);
     });
   }
   async function refresh(user){
-    if(!user?.id)return;
+    if(!user?.id){cached={key:'',url:'',expires:0};pending=null;return}
+    if(currentSessionUser?.id!==user.id)return;
     const input=get('mmhProfileNameV1');
     if(input&&document.activeElement!==input)input.value=getUserDisplayProfile(user).name;
     const path=String(user.user_metadata?.mmhvault_avatar_path||'');
-    if(!path||!path.startsWith(user.id+'/profile/'))return;
-    const key=user.id+':'+path;
-    if(cached.key===key&&cached.expires>Date.now()){paint(cached.url);return;}
-    if(pending?.key===key)return;
-    const request=db.storage.from(bucket).createSignedUrl(path,300);
-    pending={key,request};
+    if(!path||!path.startsWith(user.id+'/profile/')){cached={key:'',url:'',expires:0};pending=null;return}
+    const key=user.id+':'+path,epoch=Number(window.__mmhSessionEpochV1239)||0;
+    const stillCurrent=()=>currentSessionUser?.id===user.id&&currentSessionUser?.user_metadata?.mmhvault_avatar_path===path&&(Number(window.__mmhSessionEpochV1239)||0)===epoch;
+    if(!stillCurrent())return;
+    if(cached.key===key&&cached.epoch===epoch&&cached.expires>Date.now()){paint(cached.url,key,user);return;}
+    if(pending?.key===key&&pending.epoch===epoch)return;
+    const token={key,epoch};pending=token;
     try{
-      const {data,error}=await request;
+      const {data,error}=await db.storage.from(bucket).createSignedUrl(path,300);
+      if(pending!==token||!stillCurrent())return;
       if(error||!data?.signedUrl)throw error||Error('Photo unavailable');
-      cached={key,url:data.signedUrl,expires:Date.now()+4*60*1000};
-      if(currentSessionUser?.id===user.id&&currentSessionUser?.user_metadata?.mmhvault_avatar_path===path)paint(cached.url);
-    }catch(err){console.warn('Profile photo could not be displayed',err);}
-    finally{if(pending?.key===key)pending=null;}
+      cached={key,epoch,url:data.signedUrl,expires:Date.now()+4*60*1000};
+      paint(cached.url,key,user);
+    }catch(err){if(pending===token&&stillCurrent())console.warn('Profile photo could not be displayed',err);}
+    finally{if(pending===token)pending=null;}
   }
   window.mmhProfileRefreshV1=refresh;
+  document.addEventListener('visibilitychange',()=>{if(!document.hidden&&currentSessionUser?.id)void refresh(currentSessionUser)});
   async function save(event){
     event.preventDefault();if(saving)return;
     const status=get('mmhProfileResultV1'),button=get('mmhProfileSaveV1'),input=get('mmhProfileNameV1'),file=get('mmhProfilePhotoV1')?.files?.[0];
@@ -30400,8 +30415,8 @@ function addTopbar(){
  window.addEventListener('mmhvault:theme-mode-changed',()=>closePicker());
  window.addEventListener('resize',placePicker,{passive:true});window.visualViewport?.addEventListener('resize',placePicker,{passive:true});window.visualViewport?.addEventListener('scroll',placePicker,{passive:true});window.addEventListener('mmhvault:page-visible',()=>closePicker());document.addEventListener('visibilitychange',()=>{if(document.hidden)closePicker()});
 
- const pageLabels={dashboard:['Overview','概览'], 'accounts-page':['Accounts','账户'],transactions:['Transactions','交易'],invest:['Invest','投资'],'cashflow-analyze':['Cash Flow','现金流'],exchange:['Market','市场'],reports:['Reports','报告'],budget:['Budget','预算'],goals:['Goals','目标'],recurring:['Recurring','周期交易'],forecast:['Forecast','预测'],settings:['Settings','设置'],'life-planner':['Life Planner','生活规划']};
- function syncWorkspaceVisual(){const code=localStorage.getItem('mmhvault_language_v3363')||'en',cn=code==='zh',current=document.querySelector('.page.active')?.id||'dashboard',label=current==='ledger-detail'&&document.querySelector('#ledger-detail.active #ldBody>.mmh-overview-card')?['Holding details','持仓详情']:(pageLabels[current]||[current,current]);const crumbLabel=$('wvWorkspaceLabel'),pageLabel=$('wvCurrentPage');const write=(el,value)=>{if(el&&el.textContent!==value)el.textContent=value};write(crumbLabel,cn?'工作区 /':code==='my'?'လုပ်ငန်းခွင် /':'Workspace /');const myLabels={"Holding details":"ပိုင်ဆိုင်မှု အသေးစိတ်","Overview":"ခြုံငုံသုံးသပ်ချက်","Accounts":"အကောင့်များ","Transactions":"ငွေလွှဲမှတ်တမ်းများ","Invest":"ရင်းနှီးမြှုပ်နှံမှု","Cash Flow":"ငွေဝင်ငွေထွက်","Exchange":"ငွေလဲနှုန်း","Market":"ဈေးကွက်","Reports":"အစီရင်ခံစာများ","Budget":"ဘတ်ဂျက်","Goals":"ရည်မှန်းချက်များ","Recurring":"ပုံမှန်ငွေပေးချေမှု","Forecast":"ခန့်မှန်းချက်","Settings":"ဆက်တင်များ","Life Planner":"ဘဝအစီအစဉ်"};write(pageLabel,code==='my'?(myLabels[label[0]]||label[0]):label[cn?1:0]);const nav=$('bottomNav');if(nav)nav.querySelectorAll('button[data-page]').forEach(b=>{const n=pageLabels[b.dataset.page],span=b.querySelector('span');if(n&&span){const value=code==='my'?(myLabels[n[0]]||n[0]):n[cn?1:0];if(span.textContent!==value)span.textContent=value}});const language=$('wvLanguageSelect');if(language&&language.value!==code)language.value=['en','zh','my'].includes(code)?code:'en';const flag=$('wvLanguageFlag');if(flag){const value=({en:'🇺🇸',zh:'🇨🇳',my:'🇲🇲'})[code]||'🇺🇸';if(flag.textContent!==value)flag.textContent=value;}const settingsLanguage=$('stLanguage');if(settingsLanguage&&settingsLanguage.value!==code)settingsLanguage.value=code;const theme=$('wvThemeSelectV2'),icon=$('wvThemeIconV2'),mode=document.body.dataset.mmhThemeMode||'system';if(theme&&theme.value!==mode)theme.value=mode;if(icon&&icon.dataset.mode!==mode){icon.dataset.mode=mode;const paths={system:'<rect x="3" y="4" width="18" height="13" rx="2"/><path d="M8 21h8m-4-4v4"/>',light:'<circle cx="12" cy="12" r="4"/><path d="M12 2v2m0 16v2M2 12h2m16 0h2M5 5l1.5 1.5m11 11L19 19M5 19l1.5-1.5m11-11L19 5"/>',dark:'<path d="M20.8 14.2A9 9 0 0 1 9.8 3.2 9 9 0 1 0 20.8 14.2Z"/>'};icon.innerHTML='<svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">'+(paths[mode]||paths.system)+'</svg>';}}
+ const pageLabels={dashboard:['Overview','概览'], 'accounts-page':['Accounts','账户'],transactions:['Transactions','交易'],invest:['Invest','投资'],'cashflow-analyze':['Cash Flow','现金流'],exchange:['Market','市场'],reports:['Reports','报告'],budget:['Budget','预算'],goals:['Goals','目标'],recurring:['Recurring','周期交易'],forecast:['Future Assets','未来资产'],settings:['Settings','设置'],'life-planner':['Life Planner','生活规划']};
+ function syncWorkspaceVisual(){const code=localStorage.getItem('mmhvault_language_v3363')||'en',cn=code==='zh',current=document.querySelector('.page.active')?.id||'dashboard',label=current==='ledger-detail'&&document.querySelector('#ledger-detail.active #ldBody>.mmh-overview-card')?['Holding details','持仓详情']:(pageLabels[current]||[current,current]);const crumbLabel=$('wvWorkspaceLabel'),pageLabel=$('wvCurrentPage');const write=(el,value)=>{if(el&&el.textContent!==value)el.textContent=value};write(crumbLabel,cn?'工作区 /':code==='my'?'လုပ်ငန်းခွင် /':'Workspace /');const myLabels={"Holding details":"ပိုင်ဆိုင်မှု အသေးစိတ်","Overview":"ခြုံငုံသုံးသပ်ချက်","Accounts":"အကောင့်များ","Transactions":"ငွေလွှဲမှတ်တမ်းများ","Invest":"ရင်းနှီးမြှုပ်နှံမှု","Cash Flow":"ငွေဝင်ငွေထွက်","Exchange":"ငွေလဲနှုန်း","Market":"ဈေးကွက်","Reports":"အစီရင်ခံစာများ","Budget":"ဘတ်ဂျက်","Goals":"ရည်မှန်းချက်များ","Recurring":"ပုံမှန်ငွေပေးချေမှု","Future Assets":"ခန့်မှန်းချက်","Settings":"ဆက်တင်များ","Life Planner":"ဘဝအစီအစဉ်"};write(pageLabel,code==='my'?(myLabels[label[0]]||label[0]):label[cn?1:0]);const nav=$('bottomNav');if(nav)nav.querySelectorAll('button[data-page]').forEach(b=>{const n=pageLabels[b.dataset.page],span=b.querySelector('span');if(n&&span){const value=code==='my'?(myLabels[n[0]]||n[0]):n[cn?1:0];if(span.textContent!==value)span.textContent=value}});const language=$('wvLanguageSelect');if(language&&language.value!==code)language.value=['en','zh','my'].includes(code)?code:'en';const flag=$('wvLanguageFlag');if(flag){const value=({en:'🇺🇸',zh:'🇨🇳',my:'🇲🇲'})[code]||'🇺🇸';if(flag.textContent!==value)flag.textContent=value;}const settingsLanguage=$('stLanguage');if(settingsLanguage&&settingsLanguage.value!==code)settingsLanguage.value=code;const theme=$('wvThemeSelectV2'),icon=$('wvThemeIconV2'),mode=document.body.dataset.mmhThemeMode||'system';if(theme&&theme.value!==mode)theme.value=mode;if(icon&&icon.dataset.mode!==mode){icon.dataset.mode=mode;const paths={system:'<rect x="3" y="4" width="18" height="13" rx="2"/><path d="M8 21h8m-4-4v4"/>',light:'<circle cx="12" cy="12" r="4"/><path d="M12 2v2m0 16v2M2 12h2m16 0h2M5 5l1.5 1.5m11 11L19 19M5 19l1.5-1.5m11-11L19 5"/>',dark:'<path d="M20.8 14.2A9 9 0 0 1 9.8 3.2 9 9 0 1 0 20.8 14.2Z"/>'};icon.innerHTML='<svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">'+(paths[mode]||paths.system)+'</svg>';}}
  controls.querySelector('#wvThemeSelectV2').addEventListener('change',e=>{const mode=e.target.value;if(typeof window.mmhSetWorkspaceThemeV2==='function')window.mmhSetWorkspaceThemeV2(mode);else applyTheme(mode);syncWorkspaceVisual()});window.addEventListener('mmhvault:theme-mode-changed',syncWorkspaceVisual);
  controls.querySelector('#wvLanguageSelect').addEventListener('change',e=>{window.setMMHVAULTLanguage?.(e.target.value)});
  window.addEventListener('mmhvault:page-visible',syncWorkspaceVisual);window.addEventListener('mmhvault-language-change',syncWorkspaceVisual);new MutationObserver(syncWorkspaceVisual).observe(document.body,{attributes:true,attributeFilter:['class']});syncWorkspaceVisual();
@@ -30417,7 +30432,7 @@ function addTopbar(){
  window.addEventListener('mmhvault:page-visible',closeSearchV2);
  search.addEventListener('keydown',e=>{if(e.key==='Escape'){closeSearchV2();searchToggle.focus()}},true);
  const supportButton=$('mmhTopSupportV1520');if(supportButton)supportButton.onclick=()=>{try{setPage('settings')}catch(_){}setTimeout(()=>window.mmhOpenSupportV1518?.(),100)};
- const runSearch=()=>{const q=search.value.trim();if(!q)return;const key=q.toLowerCase();if(key.includes('support')||key.includes('customer service')||key.includes('客服')){supportButton?.click();return}if(key.includes('notification')||key.includes('通知')){document.getElementById('mmhTopBellV500')?.click();return}if(key==='ai'||key.includes('ai chat')||key.includes('assistant')||key.includes('financial assistant')||key.includes('财务助手')||key.includes('ai助手')){try{window.mmhWriteAISnapshotV1115?.()}catch(_e){}location.assign('ai-chat.html');return}const pages={dashboard:'dashboard',home:'dashboard',transaction:'transactions',transactions:'transactions',invest:'invest',investment:'invest',accounts:'accounts-page',account:'accounts-page',setting:'settings',settings:'settings',feedback:'settings',exchange:'exchange',market:'exchange',currency:'exchange',analyze:'cashflow-analyze','cash flow':'cashflow-analyze',budget:'budget',预算:'budget',goal:'goals',goals:'goals',目标:'goals',recurring:'recurring',repeat:'recurring',subscription:'recurring',周期:'recurring',固定:'recurring',report:'reports',reports:'reports',monthly:'reports',月报:'reports',报告:'reports',forecast:'forecast',projection:'forecast',预测:'forecast',未来资产:'forecast'};const found=Object.keys(pages).find(k=>key.includes(k));if(found){setPage(pages[found]);if(pages[found]==='settings'&&key.includes('feedback'))setTimeout(()=>document.querySelector('#settings .fb-nav')?.click(),180);return}setPage('transactions');setTimeout(()=>{const tx=$('txSearch');if(tx){tx.value=q;tx.dispatchEvent(new Event('input',{bubbles:true}));tx.focus();}},160)};
+ const runSearch=()=>{const q=search.value.trim();if(!q)return;const key=q.toLowerCase();if(key.includes('support')||key.includes('customer service')||key.includes('客服')){supportButton?.click();return}if(key.includes('notification')||key.includes('通知')){document.getElementById('mmhTopBellV500')?.click();return}if(key==='ai'||key.includes('ai chat')||key.includes('assistant')||key.includes('financial assistant')||key.includes('财务助手')||key.includes('ai助手')){supportButton?.click();return}const pages={dashboard:'dashboard',home:'dashboard',transaction:'transactions',transactions:'transactions',invest:'invest',investment:'invest',accounts:'accounts-page',account:'accounts-page',setting:'settings',settings:'settings',feedback:'settings',exchange:'exchange',market:'exchange',currency:'exchange',analyze:'cashflow-analyze','cash flow':'cashflow-analyze',budget:'budget',预算:'budget',goal:'goals',goals:'goals',目标:'goals',recurring:'recurring',repeat:'recurring',subscription:'recurring',周期:'recurring',固定:'recurring',report:'cashflow-analyze',reports:'cashflow-analyze',monthly:'cashflow-analyze',月报:'cashflow-analyze',报告:'cashflow-analyze',forecast:'forecast',projection:'forecast',预测:'forecast',未来资产:'forecast'};const found=Object.keys(pages).find(k=>key.includes(k));if(found){setPage(pages[found]);if(pages[found]==='settings'&&key.includes('feedback'))setTimeout(()=>document.querySelector('#settings .fb-nav')?.click(),180);return}setPage('transactions');setTimeout(()=>{const tx=$('txSearch');if(tx){tx.value=q;tx.dispatchEvent(new Event('input',{bubbles:true}));tx.focus();}},160)};
  search.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();runSearch()}if(e.key==='Escape')search.value=''});
  window.addEventListener('keydown',e=>{if((e.metaKey||e.ctrlKey)&&e.key.toLowerCase()==='k'){e.preventDefault();openSearchV2()}});
  const clockEl=$('mmhTopDateV500');clockEl.classList.add('wvLiveClockV2');clockEl.setAttribute('aria-label','Local date and time');crumb.append(clockEl);
@@ -31013,13 +31028,14 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
   let menu=null,more=null,adminEpoch=0,view='main',renderEpoch=0,switchTimer=0;
   const railMedia=window.matchMedia('(min-width:1100px), (min-width:900px) and (hover:hover) and (pointer:fine)');
   let railTree=null,railOpen=false,railAdminEpoch=0;
-  const mainPages=new Set(['exchange','cashflow-analyze','reports','settings','life-planner']);
-  const extraPages=new Set(['budget','goals','recurring','forecast']);
-  const toolPages=new Set(['exchange','cashflow-analyze','reports']);
+  const mainPages=new Set(['exchange','settings','forecast']);
+  const extraPages=new Set(['budget','goals','recurring']);
+  const toolPages=new Set(['exchange','forecast']);
   const secondary=new Set([...mainPages,...extraPages].filter(page=>page!=='cashflow-analyze'));
   const zh=()=>localStorage.getItem('mmhvault_language_v3363')==='zh';
-  const tr=(cn,en)=>zh()?cn:en;
-  function viewForPage(page){return extraPages.has(page)?'extra':toolPages.has(page)?'tools':page==='settings'?'account':'main';}
+  const navMy={'More menu':'နောက်ထပ် မီနူး','Workspace tools':'လုပ်ငန်းခွင် ကိရိယာများ','Market & Planning':'ဈေးကွက်နှင့် အစီအစဉ်','Market · Future Assets':'ဈေးကွက် · အနာဂတ်ပိုင်ဆိုင်မှု','Market':'ဈေးကွက်','Future Assets':'အနာဂတ်ပိုင်ဆိုင်မှု','Settings':'ဆက်တင်များ','Administrator':'စီမံခန့်ခွဲသူ','Back':'နောက်သို့','Back to More menu':'နောက်ထပ် မီနူးသို့','Select to open':'ဖွင့်ရန် ရွေးပါ'};
+  const tr=(cn,en)=>zh()?cn:localStorage.getItem('mmhvault_language_v3363')==='my'?(navMy[en]||en):en;
+  function viewForPage(page){return (extraPages.has(page)||toolPages.has(page))?'tools':page==='settings'?'account':'main';}
 
   function currentPage(){return document.querySelector('.page.active')?.id||'';}
   function iconButton(page,icon,label,id=''){
@@ -31093,9 +31109,8 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
     const copy=document.createElement('div');copy.className='mmh-more-view-title-v153';
     const titles={
       main:['MORE','更多工具','Workspace tools'],
-      tools:['TOOLS','财务工具','Finance Tools'],
-      extra:['PLANNING','财务规划','Financial Planning'],
-      account:['ACCOUNT','设置与管理','Settings & Admin']
+      tools:['TOOLS','市场与规划','Market & Planning'],
+      account:['ACCOUNT','设置','Settings']
     };
     const t=titles[page]||titles.main;
     copy.innerHTML='<span>'+t[0]+'</span><strong>'+tr(t[1],t[2])+'</strong>';
@@ -31111,23 +31126,12 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
     list.setAttribute('aria-label',tr('更多工具选项','More menu')+' / '+page);
     list.tabIndex=0;
     if(page==='main'){
-      list.append(pageButton('life-planner','▦',tr('生活规划','Life Planner')));
-      list.append(groupButton('tools','⇄',tr('财务工具','Finance Tools'),tr('汇率 · 分析 · 报表','Exchange · Analyze · Reports')));
-      list.append(groupButton('extra','◈',tr('财务规划','Financial Planning'),tr('预算 · 目标 · 预测','Budget · Goals · Forecast')));
-      list.append(linkButton('ai-chat.html','✦',tr('AI 助手','AI Assistant'),tr('私人 · 只读','Private · read-only')));
-      list.append(groupButton('account','⚙',tr('设置与管理','Settings & Admin'),tr('设置 · 管理后台','Settings · Administrator')));
+      list.append(groupButton('tools','⇄',tr('市场与规划','Market & Planning'),tr('市场 · 未来资产','Market · Future Assets')));
+      list.append(groupButton('account','⚙',tr('设置','Settings'),tr('设置','Settings')));
     }else if(page==='tools'){
       [
         ['exchange','⇄',tr('市场','Market')],
-        ['cashflow-analyze','◉',tr('收支分析','Analyze')],
-        ['reports','▤',tr('报表','Reports')]
-      ].forEach(([id,ico,label])=>list.append(pageButton(id,ico,label)));
-    }else if(page==='extra'){
-      [
-        ['budget','◒',tr('预算','Budget')],
-        ['goals','◎',tr('财务目标','Goals')],
-        ['recurring','↻',tr('周期记录','Recurring')],
-        ['forecast','◈',tr('未来资产预测','Future Assets')]
+        ['forecast','◈',tr('未来资产','Future Assets')]
       ].forEach(([id,ico,label])=>list.append(pageButton(id,ico,label)));
     }else if(page==='account'){
       list.append(pageButton('settings','⚙',tr('设置','Settings')));
@@ -31136,7 +31140,7 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
     wrap.append(list);
     const foot=document.createElement('div');
     foot.className='mmh-more-foot-v14';
-    foot.textContent=tr('所有原有功能均保留 · 选择后进入对应页面','All existing tools are kept · Select to open');
+    foot.textContent=tr('选择后进入对应页面','Select to open');
     wrap.append(foot);
     return wrap;
   }
@@ -31152,14 +31156,14 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
   function mobileDrawer(){
     const code=localStorage.getItem('mmhvault_language_v3363')||'en';
     const t=(en,cn,my)=>code==='zh'?cn:code==='my'?my:en;
-    const labels={dashboard:t('Overview','概览','ခြုံငုံသုံးသပ်ချက်'),'accounts-page':t('Accounts','账户','အကောင့်များ'),transactions:t('Transactions','交易','ငွေလွှဲမှတ်တမ်းများ'),invest:t('Invest','投资','ရင်းနှီးမြှုပ်နှံမှု'),'cashflow-analyze':t('Cash Flow','现金流','ငွေဝင်ငွေထွက်'),exchange:t('Market','市场','ဈေးကွက်'),reports:t('Reports','报表','အစီရင်ခံစာများ'),budget:t('Budget','预算','ဘတ်ဂျက်'),goals:t('Goals','财务目标','ရည်မှန်းချက်များ'),recurring:t('Recurring','周期记录','ပုံမှန်ငွေပေးချေမှု'),forecast:t('Future Assets','未来资产预测','အနာဂတ်ပိုင်ဆိုင်မှု'),settings:t('Settings','设置','ဆက်တင်များ')};
+    const labels={dashboard:t('Overview','概览','ခြုံငုံသုံးသပ်ချက်'),'accounts-page':t('Accounts','账户','အကောင့်များ'),transactions:t('Transactions','交易','ငွေလွှဲမှတ်တမ်းများ'),invest:t('Invest','投资','ရင်းနှီးမြှုပ်နှံမှု'),'cashflow-analyze':t('Cash Flow','现金流','ငွေဝင်ငွေထွက်'),exchange:t('Market','市场','ဈေးကွက်'),reports:t('Reports','报表','အစီရင်ခံစာများ'),budget:t('Budget','预算','ဘတ်ဂျက်'),goals:t('Goals','财务目标','ရည်မှန်းချက်များ'),recurring:t('Recurring','周期记录','ပုံမှန်ငွေပေးချေမှု'),forecast:t('Future Assets','未来资产','အနာဂတ်ပိုင်ဆိုင်မှု'),settings:t('Settings','设置','ဆက်တင်များ')};
     const panel=document.createElement('section');panel.className='wv-mobile-drawer-v2';panel.setAttribute('role','dialog');panel.setAttribute('aria-modal','true');panel.setAttribute('aria-label',t('Workspace navigation','工作区导航','လုပ်ငန်းခွင် လမ်းညွှန်'));
     const head=document.createElement('div');head.className='wv-mobile-drawer-head';const img=document.createElement('img');img.src='images/mmhvault-v2-auth-mark.webp';img.alt='';const brand=document.createElement('b');brand.textContent='MMHVAULT';const x=document.createElement('button');x.type='button';x.className='wv-mobile-drawer-close';x.textContent='×';x.setAttribute('aria-label',t('Close','关闭','ပိတ်ရန်'));x.onclick=()=>{close();more?.focus({preventScroll:true})};head.append(img,brand,x);
     const scroll=document.createElement('div');scroll.className='wv-mobile-drawer-scroll';const caption=document.createElement('p');caption.textContent=t('Workspace','工作区','လုပ်ငန်းခွင်');scroll.append(caption);
     const glyphs={dashboard:'▦','accounts-page':'▣',transactions:'⇄',invest:'↗','cashflow-analyze':'▥'};
     for(const id of Object.keys(glyphs)){const b=pageButton(id,glyphs[id],labels[id]);b.classList.add('wv-mobile-main');scroll.append(b)}
     const moreGroup=document.createElement('details');moreGroup.open=true;const moreSummary=document.createElement('summary');moreSummary.textContent=t('⋯   More','⋯   更多','⋯   နောက်ထပ်');moreGroup.append(moreSummary);const groups=document.createElement('div');groups.className='wv-mobile-groups';
-    for(const [id,name,icon] of [['tools',t('Finance Tools','财务工具','ငွေကြေး ကိရိယာများ'),'⇄'],['extra',t('Financial Planning','财务规划','ငွေကြေး အစီအစဉ်'),'◎'],['account',t('Settings & Admin','设置与管理','ဆက်တင်နှင့် စီမံခန့်ခွဲမှု'),'⚙']]){
+    for(const [id,name,icon] of [['tools',t('Market & Planning','市场与规划','ဈေးကွက်နှင့် အစီအစဉ်'),'⇄'],['account',t('Settings','设置','ဆက်တင်များ'),'⚙']]){
       const group=document.createElement('details');group.setAttribute('name','wv-mobile-more-group');const summary=document.createElement('summary');summary.textContent=icon+'   '+name;group.append(summary);
       summary.addEventListener('click',()=>{if(!group.open)for(const sibling of groups.children){if(sibling!==group)sibling.open=false}});
       const leaves=document.createElement('div');leaves.className='wv-mobile-leaves';
@@ -31182,7 +31186,7 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
     return stage;
   }
   function syncPageButtons(scope=menu){
-    scope?.querySelectorAll('[data-more-page]').forEach(b=>b.classList.toggle('active',b.dataset.morePage===currentPage()));
+    scope?.querySelectorAll('[data-more-page]').forEach(b=>b.classList.toggle('active',b.dataset.morePage===(extraPages.has(currentPage())?'forecast':currentPage())));
   }
   function setViewImmediate(nextView){
     clearTimeout(switchTimer);
@@ -31317,8 +31321,8 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
       railTree.hidden=!desktop||!railOpen;
       if(desktop){more.setAttribute('aria-expanded',String(railOpen));more.classList.toggle('active',secondary.has(page));}
       syncPageButtons(railTree);
-      railTree.querySelectorAll('[data-more-page]').forEach(b=>{if(b.dataset.morePage===page)b.setAttribute('aria-current','page');else b.removeAttribute('aria-current')});
-      if(railTree.dataset.current!==page){railTree.dataset.current=page;if(secondary.has(page)){const leaf=Array.from(railTree.querySelectorAll('[data-more-page]')).find(b=>b.dataset.morePage===page);if(leaf){railOpen=true;const group=leaf.closest('details');if(group){for(const sibling of railTree.querySelectorAll('details'))if(sibling!==group)sibling.open=false;group.open=true;}if(desktop){railTree.hidden=false;more.setAttribute('aria-expanded','true');}}}}
+      railTree.querySelectorAll('[data-more-page]').forEach(b=>{if(b.dataset.morePage===(extraPages.has(page)?'forecast':page))b.setAttribute('aria-current','page');else b.removeAttribute('aria-current')});
+      if(railTree.dataset.current!==page){railTree.dataset.current=page;if(secondary.has(page)){const leaf=Array.from(railTree.querySelectorAll('[data-more-page]')).find(b=>b.dataset.morePage===(extraPages.has(page)?'forecast':page));if(leaf){railOpen=true;const group=leaf.closest('details');if(group){for(const sibling of railTree.querySelectorAll('details'))if(sibling!==group)sibling.open=false;group.open=true;}if(desktop){railTree.hidden=false;more.setAttribute('aria-expanded','true');}}}}
     }
   }
   async function syncRailAdmin(){
@@ -35019,7 +35023,14 @@ body.light .mmh-notify-metric-v125{background:rgba(241,248,252,.82);border-color
 body.light .mmh-notify-metric-v125>strong{color:#18384f}
 @media(max-width:560px){.mmh-notify-metrics-v125{grid-template-columns:1fr}.mmh-notify-metric-v125{padding:10px 11px}.mmh-notify-metric-v125>strong{font-size:12.5px}}
 </style>
-<script src="js/mmhvault-forecast-v1.js?v=9.9.2"></script>
+<style id="mmh-future-entry-v250">
+#forecast #mmhForecastRootV1 .fc-head-actions{display:flex;align-items:center;justify-content:flex-end;gap:6px;flex-wrap:wrap;flex-shrink:0}
+#forecast #mmhForecastRootV1 .fc-plan-entry{display:grid;place-items:center;width:36px;height:36px;min-width:36px;padding:0;border:1px solid var(--wv-border,#344052);border-radius:7px;background:var(--wv-raised,#273246);color:var(--wv-text,#eef1f6);cursor:pointer}
+#forecast #mmhForecastRootV1 .fc-plan-entry svg{width:19px;height:19px}
+#forecast #mmhForecastRootV1 .fc-plan-entry:focus-visible{outline:2px solid var(--wv-accent,#91adf2);outline-offset:2px}
+@media(max-width:560px){#forecast #mmhForecastRootV1 .fc-head-actions{width:100%;justify-content:flex-end}}
+</style>
+<script src="js/mmhvault-forecast-v1.js?v=2.0.50"></script>
 <script defer src="js/mmhvault-life-planner-v1.js?v=9.49.0"></script>
 <script defer src="js/mmhvault-life-habits-v21.js?v=2.6.0"></script>
 <script defer src="js/mmhvault-life-spending-v31.js?v=9.49.0"></script>
@@ -39361,8 +39372,8 @@ html body #invest#invest #mmhUnifiedHistoryV1 #mmhHistoryRowsV1 .iw226-ledger-fo
 }
 </style>
 <script src="js/mmhvault-market-workspace-v2.js?v=2.0.6-release1" defer></script>
-<link rel="stylesheet" href="css/mmhvault-cashflow-v2.css?v=2.0.49">
-<script type="module" src="js/mmhvault-cashflow-v2-release.mjs?v=2.0.49"></script>
+<link rel="stylesheet" href="css/mmhvault-cashflow-v2.css?v=2.0.50">
+<script type="module" src="js/mmhvault-cashflow-v2-release.mjs?v=2.0.50"></script>
 <style id="mmhInvestUiPolishV227">
 /* Scoped UI-only: use the shared Transaction palette, preserve form actions. */
 html body #editModal#editModal#editModal#editModal #editInvForm#editInvForm :is(#eiSource,label:has(#eiSource) button,.mmh-shared-trigger-v217,.mmh-receipt-cta-p22){
