@@ -209,3 +209,18 @@ html body.mmh-workspace-active #transactions #txForm .receipt-drop-icon-v3300{fl
  html body.mmh-workspace-active #editModal .modal,html body.mmh-workspace-active #transactions #txManagePanel #category-manage,html body.mmh-workspace-active #header{background:#0b253d!important}
 }
 @media(prefers-reduced-motion:reduce){html body.mmh-workspace-active #transactions #txHistoryPanel .hc-day{transition:none!important}}
+
+/* Personal V2.0.59 — restrained summary edges; no financial or layout changes. */
+html body.mmh-workspace-active #transactions#transactions.page.active #txHistoryPanel .hc-totals > div:has(> #hcIncome){--hc-edge-rgb:91,207,171}
+html body.mmh-workspace-active #transactions#transactions.page.active #txHistoryPanel .hc-totals > div:has(> #hcExpense){--hc-edge-rgb:232,140,153}
+html body.mmh-workspace-active #transactions#transactions.page.active #txHistoryPanel .hc-totals > div:has(> #hcRemaining){--hc-edge-rgb:133,205,240}
+html body.mmh-workspace-active #transactions#transactions.page.active #txHistoryPanel .hc-totals > div:is(:has(> #hcIncome),:has(> #hcExpense),:has(> #hcRemaining)){
+  position:relative!important;
+}
+html body.mmh-workspace-active #transactions#transactions.page.active #txHistoryPanel .hc-totals > div:is(:has(> #hcIncome),:has(> #hcExpense),:has(> #hcRemaining))::after{
+  content:""!important;position:absolute!important;
+  inset:auto 8px 0!important;width:auto!important;height:2px!important;
+  background:linear-gradient(90deg,transparent,rgba(var(--hc-edge-rgb),.58),transparent)!important;
+  border:0!important;border-radius:0!important;box-shadow:none!important;filter:none!important;
+  opacity:1!important;transform:none!important;pointer-events:none!important;z-index:0!important;
+}
