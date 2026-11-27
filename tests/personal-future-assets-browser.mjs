@@ -27,8 +27,8 @@ try {
   await page.addScriptTag({content:shared});
   await page.addScriptTag({content:js});
   const dialog=page.locator('.fc-dialog');
-  const within=async locator=>{const b=await locator.boundingBox();assert.ok(b&&b.x>=-1&&b.y>=-1&&b.x+b.width<=width+1&&b.y+b.height<=844+1,'element within viewport');return b;};
-  const anchored=async (trigger,menu)=>{await menu.and(page.locator(':popover-open')).waitFor({state:'visible',timeout:8000});const a=await trigger.boundingBox(),m=await within(menu);assert.ok(Math.min(Math.abs(m.y-(a.y+a.height)),Math.abs(m.y+m.height-a.y))<=8,'menu vertically adjacent to trigger');assert.ok(m.x<=a.x+a.width+1&&m.x+m.width>=a.x-1,'menu horizontally overlaps trigger');};
+  const within=async locator=>{const b=await locator.boundingBox();assert.ok(b&&b.x>=-1&&b.y>=-1&&b.x+b.width<=width+1&&b.y+b.height<=844+1,'element within viewport: '+JSON.stringify(b));return b;};
+  const anchored=async (trigger,menu)=>{await menu.and(page.locator(':popover-open')).waitFor({state:'visible',timeout:8000});const a=await trigger.boundingBox(),m=await within(menu);assert.ok(Math.min(Math.abs(m.y-(a.y+a.height)),Math.abs(m.y+m.height-a.y))<=8,'menu vertically adjacent to trigger: '+JSON.stringify({a,m}));assert.ok(m.x<=a.x+a.width+1&&m.x+m.width>=a.x-1,'menu horizontally overlaps trigger');};
   for(const selector of ['[data-fc-picker-kind="view"]','[data-fc-date-picker="end"]','[data-fc-date-picker="selected"]']){
    console.log('CHECK anchored picker',selector);
    const p=page.locator(selector),trigger=p.locator('summary');await trigger.click();await anchored(trigger,p.locator('.fc-shared-menu,.fc-choice-menu'));await page.keyboard.press('Escape');assert.equal(await p.getAttribute('open'),null);

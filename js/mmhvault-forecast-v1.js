@@ -763,7 +763,25 @@
  function init(){
   const root=el(ROOT);if(!root)return;
   watchDashboard();
-  document.addEventListener('scroll',e=>{if(!e.target.closest?.('.fc-shared-menu,.fc-choice-menu'))closeForecastPickers()},true);
+  // Keep an open picker attached during delayed/native scroll-to-trigger events.
+  let pickerScrollFrame=0;
+  document.addEventListener('scroll',e=>{
+   if(!active()||e.target.closest?.('.fc-shared-menu,.fc-choice-menu'))return;
+   cancelAnimationFrame(pickerScrollFrame);
+   pickerScrollFrame=requestAnimationFrame(()=>{
+    const p=root.querySelector('.fc-shared-picker[open],.fc-choice-picker[open]'),trigger=p?.querySelector('summary');if(!trigger)return;
+    const b=trigger.getBoundingClientRect(),vv=window.visualViewport,x=vv?.offsetLeft||0,y=vv?.offsetTop||0;
+    let l=x,t=y,r=x+(vv?.width||document.documentElement.clientWidth),bottom=y+(vv?.height||window.innerHeight);
+    for(let a=trigger.parentElement;a&&a!==document.body;a=a.parentElement){
+     if(a.matches('.fc-dialog-overlay[popover]'))break;
+     const s=getComputedStyle(a),q=a.getBoundingClientRect();
+     if(/auto|scroll|hidden|clip/.test(s.overflowX)){l=Math.max(l,q.left);r=Math.min(r,q.right)}
+     if(/auto|scroll|hidden|clip/.test(s.overflowY)){t=Math.max(t,q.top);bottom=Math.min(bottom,q.bottom)}
+    }
+    if(b.right<=l||b.left>=r||b.bottom<=t||b.top>=bottom){hideForecastPicker(p);p.open=false;return}
+    positionForecastPicker(p);
+   });
+  },true);
   window.visualViewport?.addEventListener('resize',()=>{const p=root.querySelector('.fc-shared-picker[open],.fc-choice-picker[open]');if(p)positionForecastPicker(p)});
   root.addEventListener('wheel',e=>{if(modal&&e.target.closest('.fc-dialog-overlay')&&!e.target.closest('.fc-dialog-body,.fc-shared-menu,.fc-choice-menu'))e.preventDefault()},{passive:false});
   root.addEventListener('input',onInput);root.addEventListener('click',onClick);
