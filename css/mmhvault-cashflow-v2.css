@@ -482,3 +482,16 @@ html body #cashflow-analyze#cashflow-analyze#cashflow-analyze#cashflow-analyze#c
 html body #cashflow-analyze#cashflow-analyze#cashflow-analyze#cashflow-analyze#cashflow-analyze#cashflow-analyze#cashflow-analyze #mmhCashflowV2ReleaseRoot .cfv2 .cfv2-toolbar-controls:has(.cfv2-calendar-nav) .cfv2-calendar-nav{grid-column:2/4;grid-row:1}
 html body #cashflow-analyze#cashflow-analyze#cashflow-analyze#cashflow-analyze#cashflow-analyze#cashflow-analyze#cashflow-analyze #mmhCashflowV2ReleaseRoot .cfv2 .cfv2-toolbar-controls:has(.cfv2-calendar-nav) :is(.cfv2-filter-anchor,.cfv2-currency-anchor,[data-action=report]){grid-row:2}
 }
+
+/* Personal V2.0.52 mobile toolbar: filters above tabs; report aligned right. */
+@media screen and (max-width:767px){
+  html body #cashflow-analyze#cashflow-analyze#cashflow-analyze#cashflow-analyze#cashflow-analyze#cashflow-analyze #mmhCashflowV2ReleaseRoot .cfv2 .cfv2-top.cfv2-toolbar>.cfv2-toolbar-controls{grid-row:1!important;grid-template-columns:repeat(2,minmax(0,1fr))!important}
+  html body #cashflow-analyze#cashflow-analyze#cashflow-analyze#cashflow-analyze#cashflow-analyze#cashflow-analyze #mmhCashflowV2ReleaseRoot .cfv2 .cfv2-top.cfv2-toolbar>.cfv2-tabs{grid-row:2!important;box-sizing:border-box!important;min-height:44px!important;align-items:center!important;padding-inline-end:52px!important}
+  html body #cashflow-analyze#cashflow-analyze#cashflow-analyze#cashflow-analyze#cashflow-analyze#cashflow-analyze #mmhCashflowV2ReleaseRoot .cfv2 .cfv2-toolbar-controls>.cfv2-filter-anchor{grid-column:1!important}
+  html body #cashflow-analyze#cashflow-analyze#cashflow-analyze#cashflow-analyze#cashflow-analyze#cashflow-analyze #mmhCashflowV2ReleaseRoot .cfv2 .cfv2-toolbar-controls>.cfv2-currency-anchor{grid-column:2!important}
+  html body #cashflow-analyze#cashflow-analyze#cashflow-analyze#cashflow-analyze#cashflow-analyze#cashflow-analyze #mmhCashflowV2ReleaseRoot .cfv2 .cfv2-toolbar-controls>[data-action=report]{position:absolute!important;inset:auto!important;inset-block-start:calc(100% + 8px)!important;inset-inline-end:0!important;grid-column:auto!important;grid-row:auto!important;width:44px!important;height:44px!important;z-index:1!important}
+}
+@media screen and (min-width:430px) and (max-width:767px){
+  html body #cashflow-analyze#cashflow-analyze#cashflow-analyze#cashflow-analyze#cashflow-analyze#cashflow-analyze #mmhCashflowV2ReleaseRoot .cfv2 .cfv2-top.cfv2-toolbar>.cfv2-toolbar-controls:has(.cfv2-calendar-nav){grid-template-columns:minmax(0,1.05fr) minmax(0,1.35fr)!important}
+  html body #cashflow-analyze#cashflow-analyze#cashflow-analyze#cashflow-analyze#cashflow-analyze#cashflow-analyze #mmhCashflowV2ReleaseRoot .cfv2 .cfv2-toolbar-controls:has(.cfv2-calendar-nav)>.cfv2-calendar-nav{grid-column:2!important;grid-row:1!important}
+}
