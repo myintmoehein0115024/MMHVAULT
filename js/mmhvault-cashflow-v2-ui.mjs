@@ -13,6 +13,9 @@ import {summarizeMovements,movementKinds} from './mmhvault-cashflow-v2-movements
 import {investmentReport} from './mmhvault-cashflow-v2-investment.mjs';
 const D={
  analysisBy:['Analysis by','分析对象','ခွဲခြမ်းစိတ်ဖြာမည့်အရာ'],
+ goalSaved:['Saved','已存金额','စုဆောင်းပြီးငွေ'],goalCompleted:['Completed','已完成','ပြီးစီးသည်'],scheduleStatus:['Status','状态','အခြေအနေ'],scheduleType:['Type','类型','အမျိုးအစား'],scheduleTransfer:['Transfer','转账','ငွေလွှဲ'],scheduleWeekly:['Weekly','每周','အပတ်စဉ်'],scheduleMonthly:['Monthly','每月','လစဉ်'],scheduleYearly:['Yearly','每年','နှစ်စဉ်'],scheduleNote:['Scheduled only · not counted as actual cash flow','仅计划收支 · 不计入实际现金流','စီစဉ်ထားသောစာရင်းသာ · အမှန်တကယ် ငွေစီးဆင်းမှုတွင် မပါဝင်ပါ'],goalsNote:['Current saved progress · not historical balances','当前已保存进度 · 非历史余额','လက်ရှိသိမ်းထားသော တိုးတက်မှု · ယခင်လက်ကျန်မဟုတ်ပါ'],
+ budgetCurrent:['Current monthly budget','当前月度预算','ယခုလ အသုံးစရိတ်အစီအစဉ်'],budgetUtilization:['Budget utilization','预算使用率','အသုံးစရိတ်အစီအစဉ် အသုံးပြုမှုနှုန်း'],budgetLimit:['Budget limit','预算限额','အသုံးစရိတ် ကန့်သတ်ချက်'],budgetBasis:['Individual expenses only · current month · budget currency','仅个人日常支出 · 当前月 · 预算原币','တစ်ဦးချင်း အသုံးစရိတ်သာ · ယခုလ · မူရင်းငွေကြေး'],
+ expenseCount:['Expense records','支出笔数','အသုံးစရိတ် အရေအတွက်'],topThreeShare:['Top 3 categories share','前三支出类别占比','ထိပ်ဆုံး အသုံးစရိတ် ၃ မျိုး အချိုး'],movementCount:['Records','笔数','မှတ်တမ်း အရေအတွက်'],investmentUnavailable:['Investment data source not ready or unavailable','投资数据来源未就绪或不可用','ရင်းနှီးမြှုပ်နှံမှု ဒေတာ မရရှိသေးပါ'],investmentFiltered:['Investment P/L is unavailable with account, category or original-currency filters','账户、类别或原币筛选下暂不显示投资盈亏','အကောင့်၊ အမျိုးအစား သို့မဟုတ် မူရင်းငွေကြေး စစ်ထုတ်မှုတွင် ရင်းနှီးမြှုပ်နှံမှု အမြတ်/အရှုံး မရနိုင်ပါ'],
  reportSelectAll:['Select all','全选','အားလုံးရွေးရန်'],reportContent:['Report content','报表内容','အစီရင်ခံစာ အကြောင်းအရာ'],reportContentHint:['Choose the sections for preview and all exports','勾选需要预览及导出的内容','ကြည့်ရှုရန်နှင့် ထုတ်ယူရန် အပိုင်းများကို ရွေးပါ'],reportExport:['Export','导出','ထုတ်ယူရန်'],reportChoose:['Choose at least one section','请至少勾选一个内容模块','အနည်းဆုံး တစ်ပိုင်း ရွေးပါ'],
  calendarMonthly:['Monthly','按月','လစဉ်'],calendarYearly:['Yearly','按年','နှစ်စဉ်'],calendarPrev:['Previous period','上一期','ယခင်ကာလ'],calendarNext:['Next period','下一期','နောက်ကာလ'],calendarPick:['Select period','选择周期','ကာလရွေးရန်'],
  cashflow:['Cash Flow','现金流','ငွေစီးဆင်းမှု'],analysis:['Analyze','分析','ခွဲခြမ်းစိတ်ဖြာမှု'],overviewNote:['Understand where your money comes from and goes.','了解资金的来源与去向。','ငွေဝင်ငွေထွက်ကို နားလည်ရန်'],filters:['Filters','筛选','စစ်ထုတ်ရန်'],resetFilters:['Reset filters','重置筛选','စစ်ထုတ်မှု ပြန်သတ်မှတ်ရန်'],comparison:['Period comparison','周期对比','ကာလနှိုင်းယှဉ်မှု'],weekly:['Week','周','ပတ်'],selectedPeriod:['Selected period','所选周期','ရွေးထားသောကာလ'],periodDetail:['Period details','周期明细','ကာလအသေးစိတ်'],noPrior:['No records in the prior period','上一周期暂无记录','ယခင်ကာလ မှတ်တမ်းမရှိပါ'],percentagePoints:['pp','个百分点','ရာခိုင်နှုန်းအမှတ်'],incomeLegend:['Income','收入','ဝင်ငွေ'],expenseLegend:['Spending','支出','အသုံးစရိတ်'],
@@ -46,7 +49,7 @@ export function mountCashflowV2(root,adapter){
   const selectedLabel=values.find(([v])=>v===value)?.[1]||tr('all');
   return '<div class="cfv2-inline-field"><span>'+e(tr(label))+'</span><details name="'+(name.startsWith('report')?'cfv2-report-pickers':'cfv2-inline-filters')+'" class="cfv2-inline-picker" data-filter-field="'+e(name)+'"><summary aria-label="'+e(tr(label)+': '+selectedLabel)+'">'+e(selectedLabel)+'</summary><div class="cfv2-inline-options" role="group" aria-label="'+e(tr(label))+'">'+values.map(([v,l])=>'<button type="button" data-filter-option="'+e(v)+'" aria-pressed="'+(v===value)+'"><span>'+e(l)+'</span><span aria-hidden="true">'+(v===value?'✓':'')+'</span></button>').join('')+'</div></details><select hidden tabindex="-1" aria-hidden="true" data-field="'+e(name)+'">'+values.map(([v,l])=>'<option value="'+e(v)+'"'+(v===value?' selected':'')+'>'+e(l)+'</option>').join('')+'</select></div>';
  };
- const card=(title,body,action='',kind='details',controls='')=>'<section class="cfv2-card"><header><h2>'+e(tr(title))+'</h2>'+((controls||action)?'<div class="cfv2-card-controls">'+controls+(action?(action==='periodDetail'?btn(action,kind).replace('aria-label="'+e(tr(kind))+'" title="'+e(tr(kind))+'"','aria-label="'+e(tr(action))+'" title="'+e(tr(action))+'"'):btn(action,kind)):'')+'</div>':'')+'</header>'+body+'</section>';
+ const card=(title,body,action='',kind='details',controls='')=>'<section class="cfv2-card"><header><h2>'+e(tr(title))+'</h2>'+((controls||action)?'<div class="cfv2-card-controls">'+controls+(action?(['periodDetail','spending'].includes(action)?btn(action,kind).replace('aria-label="'+e(tr(kind))+'" title="'+e(tr(kind))+'"','aria-label="'+e(tr(action))+'" title="'+e(tr(action))+'"'):btn(action,kind)):'')+'</div>':'')+'</header>'+body+'</section>';
  const metric=(k,v,kind='')=>'<div class="cfv2-metric '+kind+'"><span>'+e(tr(k))+'</span><strong>'+e(v)+'</strong></div>';
  const empty=k=>'<p class="cfv2-muted">'+e(tr(k))+'</p>';
  const grains=['day','week','month','quarter','year'];
@@ -89,7 +92,7 @@ export function mountCashflowV2(root,adapter){
   const data=summarize(args),prev=summarize({...args,scope:{...scope,...previousRange(range)}}),series=data.complete?trend(data.included,range,grain):[];
   const analytics=analyze(data,{fixedOf:source.fixedOf,largeThreshold:largeThreshold.trim()!==''?Number(largeThreshold):null});
   const comparison=compare(data.totals,prev.totals);
-  const plan=source.planning?.(currency)||null;
+  const plan=source.planning?.(currency)||null,configured=source.configured?.()||null;
   const normalized=planKit.validPlan(plan);
   const target=normalized?plan.goals.find(g=>g.kind==='savingsRate')?.target:null;
   const hs={...(source.healthInputs?.(currency)||{}),...(target!=null?{savingsTarget:target}:{})};
@@ -110,34 +113,48 @@ export function mountCashflowV2(root,adapter){
   let reportModel=null;
   if(dialog==='report'){const sel={month:today.slice(0,7),year:today.slice(0,4),start:range.start,end:range.end,...reportSelection};try{const rc=codes.includes(reportCurrency)?reportCurrency:currency,rr=actualRange(reportRange(reportType,sel,range,today),today),rs={...scope,...rr,currency:rc},rd=summarize({...args,scope:rs}),ra=analyze(rd,{fixedOf:source.fixedOf}),rb=source.balances?.(rs)||{};const reportActual=(period,key,c)=>{const r=planKit.bounds(period,key);if(!r||r.start>today)return null;return summarize({...args,scope:{...actualRange(r,today),currency:c,accounts:[],categories:[],originalCurrencies:[]}})};const context=reportContext({scope:rs,today,plan:source.planning?.(rc)||null,actual:reportActual,prior:summarize({...args,scope:{...rs,...previousRange(rs)}}),currentAssets:source.currentAssets?.(rc)??null,healthInputs:source.healthInputs?.(rc)});reportModel=makeReport({context,investment:investmentReport({owner:uid,source:investmentSource,scope:rs,today}),movements:summarizeMovements({...args,scope:rs}),type:reportType,scope:rs,data:rd,analytics:ra,balances:reconcile({...rb,net:rd.totals.net}),history:history({rows:source.verifiedHistory?.(),owner:uid,currency:rc,rate:source.displayRate(rc)}),label:tr});}catch{reportModel=null}}
   if(adapter.owner()!==uid||source.isCurrent?.()===false)return null;
-  return {source,codes,range,scope,data,movements,investment,prev,series,bal,plan,planModel,currentAssets,analytics,comparison,healthData,historyData,reportModel};
+  return {source,codes,range,scope,data,movements,investment,prev,series,bal,plan,planModel,configured,currentAssets,analytics,comparison,healthData,historyData,reportModel};
  }
  function chart(series){
   if(!series.length)return empty('noData');
   const max=Math.max(1,...series.map(x=>Math.max(x.income,x.expense)));
   return '<div class="cfv2-chart-scroll"><div class="cfv2-chart">'+series.map(b=>'<button type="button" data-action="point" data-key="'+e(b.key)+'" title="'+e(b.key+' · '+tr('income')+' '+fmt(b.income)+' · '+tr('expense')+' '+fmt(b.expense))+'" aria-label="'+e(b.key+' '+fmt(b.net))+'"><span class="cfv2-bars"><i style="height:'+Math.max(0,b.income/max*100)+'%"></i><i style="height:'+Math.max(0,b.expense/max*100)+'%"></i></span><small>'+e(b.key)+'</small></button>').join('')+'</div></div>';
  }
- function dimension(rows){return rows?.length?'<div class="cfv2-list">'+rows.map(r=>'<div><span>'+e(r.name)+'</span><strong><span class="cfv2-tone positive" title="'+e(tr('incomeLegend'))+'">'+e(fmt(r.income))+'</span> / <span class="cfv2-tone negative" title="'+e(tr('expenseLegend'))+'">'+e(fmt(r.expense))+'</span></strong></div>').join('')+'</div>':empty('noData')}
- function rank(rows){return rows?.length?'<div class="cfv2-list">'+rows.map(r=>'<div><span>'+e(r.category)+' · '+e(r.date)+' · '+e(r.account)+'</span><strong class="cfv2-tone negative">'+e(fmt(r.amount))+'</strong></div>').join('')+'</div>':empty('noData')}
+ function detailTable(headers,rows){return '<div class="cfv2-separated-table"><table><thead><tr>'+headers.map(k=>'<th scope="col">'+e(tr(k))+'</th>').join('')+'</tr></thead><tbody>'+rows.map(row=>'<tr>'+row.map(cell=>'<td>'+cell+'</td>').join('')+'</tr>').join('')+'</tbody></table></div>'}
+ function amountCell(v,kind,c=currency){return '<strong class="cfv2-tone '+e(kind)+'">'+e(fmt(v,c))+'</strong>'}
+ function dimension(rows,by=analysisDimension){return rows?.length?detailTable([by==='accounts'?'account':'currency','incomeLegend','expenseLegend'],rows.map(r=>[e(r.name),amountCell(r.income,'positive'),amountCell(r.expense,'negative')])):empty('noData')}
+ function rank(rows){return rows?.length?detailTable(['category','date','account','amount'],rows.map(r=>[e(r.category),e(r.date),e(r.account),amountCell(r.amount,'negative')])):empty('noData')}
  function historyList(rows){return rows?.length?'<div class="cfv2-list">'+rows.map(r=>'<div><span>'+e(r.date)+'</span><strong>'+e(fmt(r.amount))+'</strong></div>').join('')+'</div>':empty('unavailable')}
  function healthPanel(h){return '<div class="cfv2-metrics">'+metric('score',h.score===null?'—':h.score+' / 100','accent')+metric('expenseRatio',pct(h.expenseRatio),'negative')+metric('cashRatio',pct(h.cashRatio),'')+metric('investmentRatio',pct(h.investmentRatio))+metric('emergencyMonths',safeNum(h.emergencyMonths)?h.emergencyMonths.toFixed(1):'—')+'</div>'}
  function categoryBars(rows){return rows?.length?'<div class="cfv2-list">'+rows.map(r=>'<div><span>'+e(r.name)+'<progress max="100" value="'+Math.max(0,Math.min(100,(r.share??0)*100))+'"></progress></span><strong class="cfv2-tone negative">'+e(fmt(r.amount))+' <small>· '+e(pct(r.share))+'</small></strong></div>').join('')+'</div>':empty('noData')}
  function analysisPanel(s){const a=s.analytics;if(!a)return empty('missing');
   const dimensionPicker=filterSelect('analysisDimension',['accounts','currencies'].map(k=>[k,tr(k)]),analysisDimension,'analysisBy');
-  return '<div class="cfv2-pair">'+card('categories',categoryBars(a.categories))+card('analysisBy',dimension(a[analysisDimension]),'','details',dimensionPicker)+'</div>'+
-   '<div class="cfv2-pair">'+card('spending','<div class="cfv2-metrics">'+metric('fixed',fmt(a.fixed.fixed),'negative')+metric('variable',fmt(a.fixed.variable),'negative')+metric('unknown',fmt(a.fixed.unknown))+metric('avgExpense',fmt(a.averageExpense),'negative')+metric('individual',fmt(s.data.totals.individual),'negative')+metric('personal',fmt(s.data.totals.personal),'negative')+'</div>')+card('health',healthPanel(s.healthData))+'</div>';
+  const top=a.categories.slice().sort((x,y)=>y.amount-x.amount).slice(0,3),share=s.data.totals.expense>0?top.reduce((n,r)=>n+r.amount,0)/s.data.totals.expense:null;
+  const insight='<div class="cfv2-metrics cfv2-spend-insights">'+metric('expenseCount',String(a.expenseCount))+metric('topThreeShare',pct(share))+'</div>';
+  return '<div class="cfv2-pair">'+card('categories',insight+categoryBars(a.categories),'spending')+card('analysisBy',dimension(a[analysisDimension]),'','details',dimensionPicker)+'</div>'+card('health',healthPanel(s.healthData));
+ }
+ function spendingPanel(s){const a=s.analytics;if(!a)return empty('missing');return '<div class="cfv2-metrics">'+metric('fixed',fmt(a.fixed.fixed),'negative')+metric('variable',fmt(a.fixed.variable),'negative')+metric('unknown',fmt(a.fixed.unknown))+metric('avgExpense',fmt(a.averageExpense),'negative')+metric('individual',fmt(s.data.totals.individual),'negative')+metric('personal',fmt(s.data.totals.personal),'negative')+'</div>';
  }
  function configuredPlanning(s){
-  if(!s.planModel||!planKit.validPlan(s.plan))return '';
-  const p=s.plan,m=s.planModel,cards=[];
-  if(p.budgets.length){const b=m.budget;const rows=p.budgets.map(x=>'<div><span>'+e(x.key+' · '+tr(x.period+'Group'))+'</span><strong>'+e(fmt(x.total,x.currency))+'</strong></div>').join('');
-   cards.push(card('budget',(b?'<div class="cfv2-metrics">'+metric('budget',fmt(b.total,b.currency))+metric('used',fmt(b.used,b.currency),'negative')+metric('remaining',fmt(b.remaining,b.currency),tone(b.remaining))+'</div>':'')+'<div class="cfv2-list">'+rows+'</div>'))}
+  const valid=!!s.planModel&&planKit.validPlan(s.plan),p=valid?s.plan:{budgets:[],goals:[],recurring:[]},m=s.planModel,cards=[];
+  if(p.budgets.length){const b=m.budget;
+   const current=b?'<p class="cfv2-muted">'+e(b.key+' · '+tr('budgetBasis'))+'</p><div class="cfv2-metrics">'+metric('budgetLimit',fmt(b.total,b.currency))+metric('used',fmt(b.used,b.currency),'negative')+metric('remaining',fmt(b.remaining,b.currency),tone(b.remaining))+metric('budgetUtilization',pct(b.ratio),b.over?'negative':'')+'</div>'+(safeNum(b.ratio)?'<progress max="100" value="'+Math.max(0,Math.min(100,b.ratio*100))+'"></progress>':'')+(b.categories.length?detailTable(['category','budgetLimit','used','remaining'],b.categories.map(c=>[e(c.category),amountCell(c.amount,'',b.currency),amountCell(c.used,'negative',b.currency),amountCell(c.remaining,tone(c.remaining),b.currency)])):''):'';
+   const other=p.budgets.filter(x=>!b||x.id!==b.id);
+   cards.push(card(b&&adapter.releaseReadOnly?'budgetCurrent':'budget',current+(other.length?detailTable(['period','budgetLimit'],other.map(x=>[e(x.key+' · '+tr(x.period+'Group')),amountCell(x.total,'',x.currency)])):'')))}
   if(p.goals.length)cards.push(card('goals','<div class="cfv2-list">'+m.goals.map(g=>'<div><span>'+e(g.name)+'</span><strong>'+e(g.kind==='savingsRate'?pct(g.progress)+' / '+pct(g.target):fmt(g.progress,g.currency)+' / '+fmt(g.target,g.currency))+'</strong></div>').join('')+'</div>'));
   if(p.recurring.length)cards.push(card('recurring','<div class="cfv2-list">'+m.recurring.rows.map(r=>'<div><span>'+e(r.name)+'</span><strong class="cfv2-tone '+(r.kind==='income'?'positive':r.kind==='expense'?'negative':'')+'">'+e(fmt(r.amount,r.currency))+'</strong></div>').join('')+'</div>'));
+  const live=s.configured;
+  if(live?.goals?.length&&!p.goals.length)cards.push(card('goalsCurrent','<p class="cfv2-muted">'+e(tr('goalsNote'))+'</p>'+detailTable(['name','goalSaved','target','progress','due','scheduleStatus'],live.goals.map(g=>[e(g.name),amountCell(g.progress,'positive',g.currency),amountCell(g.target,'',g.currency),e(pct(g.progress/g.target)),e(g.due||'—'),e(tr(g.status==='completed'?'goalCompleted':'active'))]))));
+  if(live?.recurring?.length&&!p.recurring.length){
+   const native=(account,value,kind)=>{const c=s.source.accountRate?.(account)?.currency;return c?amountCell(value,kind,c):'—'};
+   const type=r=>tr(r.type==='Income'?'incomeLegend':r.type==='Expense'?'expenseLegend':'scheduleTransfer');
+   const frequency=r=>tr({weekly:'scheduleWeekly',monthly:'scheduleMonthly',yearly:'scheduleYearly'}[r.frequency]);
+   cards.push(card('recurringCurrent','<p class="cfv2-muted">'+e(tr('scheduleNote'))+'</p>'+detailTable(['name','scheduleType','inflow','outflow','frequency','due','scheduleStatus'],live.recurring.map(r=>[e(r.name),e(type(r)),r.toAccount?native(r.toAccount,r.to,'positive'):'—',r.fromAccount?native(r.fromAccount,r.from,'negative'):'—',e(frequency(r)),e(r.due),e(tr(r.status))]))));
+  }
   return cards.length?'<div class="cfv2-configured-grid">'+cards.join('')+'</div>':'';
  }
- function movementPanel(m,detail=false){return '<p class="cfv2-muted">'+e(tr('movementNote'))+'</p><div class="cfv2-list">'+movementKinds.map(k=>{const v=m.groups[k];return '<div><span>'+e(tr(k)+' · '+v.count)+'</span><strong class="cfv2-tone '+(detail?'':tone(v.net))+'">'+e(detail?tr('inflow')+' '+fmt(v.inflow)+' / '+tr('outflow')+' '+fmt(v.outflow)+' / '+tr('net')+' '+fmt(v.net):fmt(v.net))+'</strong></div>'}).join('')+'</div>'}
- function investmentPanel(m,detail=false){if(!m)return empty('unavailable');return '<p class="cfv2-muted">'+e(tr('investmentNote')+' · '+m.asOf)+'</p>'+m.rows.map(r=>'<section><h2>'+e(tr(r.asset==='Gold'?'goldAsset':'cryptoAsset')+' · '+r.currency)+'</h2><div class="cfv2-metrics">'+metric('periodRealized',fmt(r.periodRealized,r.currency),tone(r.periodRealized))+(detail?metric('holdingCost',fmt(r.cost,r.currency))+metric('holdingValue',fmt(r.value,r.currency))+metric('realized',fmt(r.realized,r.currency))+metric('unrealized',fmt(r.unreal,r.currency))+metric('lifetimePL',fmt(r.total,r.currency)):'')+'</div></section>').join('')}
+ function movementPanel(m,detail=false){const note='<p class="cfv2-muted">'+e(tr('movementNote'))+'</p>';return note+detailTable(detail?['type','movementCount','inflow','outflow','net']:['type','movementCount','net'],movementKinds.map(k=>{const v=m.groups[k];return [e(tr(k)),e(v.count),...(detail?[amountCell(v.inflow,'positive'),amountCell(v.outflow,'negative')]:[]),amountCell(v.net,tone(v.net))]}))}
+ function investmentPanel(m,detail=false){if(!m)return empty('unavailable');const metrics=detail?[['periodRealized','periodRealized'],['holdingCost','cost'],['holdingValue','value'],['realized','realized'],['unrealized','unreal'],['lifetimePL','total']]:[['periodRealized','periodRealized'],['unrealized','unreal'],['lifetimePL','total']];return '<p class="cfv2-muted">'+e(tr('investmentNote')+' · '+m.asOf)+'</p>'+detailTable(['metric',...m.rows.map(r=>tr(r.asset==='Gold'?'goldAsset':'cryptoAsset')+' · '+r.currency)],metrics.map(([label,key])=>[e(tr(label)),...m.rows.map(r=>amountCell(r[key],['cost','value'].includes(key)?'':tone(r[key]),r.currency))]));}
  function kpis(s){
   const t=s.data.totals;
   return '<div class="cfv2-metrics cfv2-kpis">'+metric('income',fmt(t.income),'positive')+metric('expense',fmt(t.expense),'negative')+metric('net',fmt(t.net),safeNum(t.net)&&t.net>=0?'positive':'negative')+metric('savings',pct(t.savingsRate),safeNum(t.savingsRate)&&t.savingsRate>=0?'positive':'')+'</div>';
@@ -157,9 +174,9 @@ export function mountCashflowV2(root,adapter){
  }
  function analysisPage(s){
   const bal=s.bal;
-  return (s.data.complete?'':'<p role="status" class="cfv2-warning">'+e(tr('missing'))+'</p>')+'<div class="cfv2-overview-grid">'+card('comparison',comparePanel(s))+card('sources',items(s.data.incomeSources,'positive'))+'</div>'+analysisPanel(s)+
-   '<div class="cfv2-pair">'+card('movements',movementPanel(s.movements),'movements')+card('investmentReport',investmentPanel(s.investment),'investmentReport')+'</div>'+
-   card('balance','<div class="cfv2-metrics">'+metric('opening',fmt(bal.opening))+metric('closing',fmt(bal.closing))+metric('change',fmt(bal.change),tone(bal.change))+metric('other',fmt(bal.nonCashflowChange))+'</div>'+metric('current',fmt(s.currentAssets)),'balance','history')+configuredPlanning(s);
+  return (s.data.complete?'':'<p role="status" class="cfv2-warning">'+e(tr('missing'))+'</p>')+'<div class="cfv2-overview-grid">'+card('comparison',comparePanel(s))+card('sources',items(s.data.incomeSources,'positive'))+'</div>'+analysisPanel(s)+configuredPlanning(s)+
+   '<div class="cfv2-pair">'+card('movements',movementPanel(s.movements),'movements')+card('investmentReport',s.investment?investmentPanel(s.investment):empty(['accounts','categories','originalCurrencies'].some(k=>s.scope[k]?.length)?'investmentFiltered':'investmentUnavailable'),s.investment?'investmentReport':'')+'</div>'+
+   ([bal.opening,bal.closing,bal.change,bal.nonCashflowChange,s.currentAssets].some(safeNum)||s.historyData?.length?card('balance','<div class="cfv2-metrics">'+metric('opening',fmt(bal.opening))+metric('closing',fmt(bal.closing))+metric('change',fmt(bal.change),tone(bal.change))+metric('other',fmt(bal.nonCashflowChange))+'</div>'+metric('current',fmt(s.currentAssets)),'balance','history'):'');
  }
  function planContext(s){
   const today=adapter.today(),bk=budgetKey||(budgetPeriod==='year'?today.slice(0,4):today.slice(0,7));
@@ -208,9 +225,10 @@ export function mountCashflowV2(root,adapter){
   else if(dialog==='trend')body=chart(s.series)+'<div class="cfv2-list">'+s.series.map(r=>'<div><span>'+e(r.key)+'</span><strong>'+e(fmt(r.income)+' / '+fmt(r.expense)+' / '+fmt(r.net)+' · '+pct(r.savingsRate))+'</strong></div>').join('')+'</div>';
   else if(dialog==='sources')body=items(s.data.incomeSources);
   else if(dialog==='categories')body=categoryBars(s.analytics?.categories);
-  else if(dialog==='accounts')body=dimension(s.analytics?.accounts);
-  else if(dialog==='currencies')body=dimension(s.analytics?.currencies);
-  else if(dialog==='ranking')body='<label>'+e(tr('threshold'))+' ('+e(currency)+')<input type="number" min="0.01" step="any" data-field="largeThreshold" value="'+e(largeThreshold)+'"></label>'+(s.analytics?.large?'<h2>'+e(tr('large'))+'</h2>'+rank(s.analytics.large):'')+rank(s.analytics?.ranked);
+  else if(dialog==='accounts')body=dimension(s.analytics?.accounts,'accounts');
+  else if(dialog==='currencies')body=dimension(s.analytics?.currencies,'currencies');
+  else if(dialog==='ranking')body='<label class="cfv2-rank-threshold">'+e(tr('threshold'))+' ('+e(currency)+')<input type="number" min="0.01" step="any" data-field="largeThreshold" value="'+e(largeThreshold)+'"></label>'+rank(s.analytics?.large??s.analytics?.ranked);
+  else if(dialog==='spending')body=spendingPanel(s);
   else if(dialog==='health')body=healthPanel(s.healthData);
   else if(dialog==='movements')body=movementPanel(s.movements,true);
   else if(dialog==='investmentReport')body=investmentPanel(s.investment,true);
@@ -348,7 +366,7 @@ export function mountCashflowV2(root,adapter){
   paint();
  }
  function submit(ev){if(ev.target.matches('[data-cfv2-plan]')){submitPlan(ev);return}if(!ev.target.matches('[data-cfv2-range]'))return;ev.preventDefault();const f=new win.FormData(ev.target),next={start:f.get('start'),end:f.get('end')};try{dateRange('custom',adapter.today(),null,next);custom=next;paint()}catch{ev.target.querySelector('[name=end]').setCustomValidity(tr('invalid'));ev.target.querySelector('[name=end]').reportValidity();ev.target.querySelector('[name=end]').addEventListener('input',x=>x.target.setCustomValidity(''),{once:true})}}
- const events=['mmhvault-language-change','mmhvault:config-owner-changed','mmhvault:data-state','mmhvault:data-loading','mmhvault:data-error','mmhvault:data-loaded','mmhvault:data-change','mmhvault:exchange-reference-updated','mmhvault:theme-mode-changed','mmhvault:budget-changed'];
+ const events=['mmhvault-language-change','mmhvault:config-owner-changed','mmhvault:data-state','mmhvault:data-loading','mmhvault:data-error','mmhvault:data-loaded','mmhvault:data-change','mmhvault:exchange-reference-updated','mmhvault:theme-mode-changed','mmhvault:budget-changed','mmhvault:market-updated'];
  function closeToolbarFilters(){
   filtersOpen=false;
   const panel=root.querySelector('#cfv2-advanced-filters'),button=root.querySelector('[data-action="filters"]');

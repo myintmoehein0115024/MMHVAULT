@@ -1,5 +1,6 @@
 /* V2.0.35 — V2 is the sole visible Cash Flow; preserve hidden classic DOM for existing integrations. */
-import {mountAppCashflowV2} from './mmhvault-cashflow-v2-app-entry.mjs?v=2.0.48';
+import {mountAppCashflowV2} from './mmhvault-cashflow-v2-app-entry.mjs?v=2.0.49';
+import {createBudgetBridge,createConfiguredBridge,readInvestmentSource} from './mmhvault-cashflow-v2-readonly-sources.mjs?v=2.0.49';
 export function installCashflowRelease(doc,win,bindings,mount=mountAppCashflowV2){
  const page=doc.getElementById('cashflow-analyze'),legacy=page?.querySelector(':scope > .cfa-shell');
  if(!page||!legacy)return null;
@@ -7,22 +8,25 @@ export function installCashflowRelease(doc,win,bindings,mount=mountAppCashflowV2
  if(root?.dataset.cfv2Installed==='true')return null;
  if(!root){root=doc.createElement('div');root.id='mmhCashflowV2ReleaseRoot';legacy.before(root)}
  root.dataset.cfv2Installed='true';root.hidden=false;legacy.hidden=true;legacy.inert=true;
- let handle=null,mountedOwner='',mountedEpoch=0,phase='',suspended=false;
+ let handle=null,mountedOwner='',mountedEpoch=0,phase='',suspended=false,budgetBridge=null,configuredBridge=null;
  const active=()=>!suspended&&page.classList.contains('active');
  const owner=()=>String(bindings.owner()||'');const epoch=()=>Number(win.__mmhSessionEpochV1239)||0;
  const ready=()=>!!owner()&&String(bindings.configOwner()||'')===owner();
  const words=()=>{const l=String(doc.documentElement.lang||'en').toLowerCase();return l.startsWith('zh')?['正在准备 Cash Flow…','Cash Flow 暂不可用，请重试。','重试']:l.startsWith('my')?['Cash Flow ပြင်ဆင်နေသည်…','Cash Flow မရနိုင်သေးပါ။ ထပ်မံကြိုးစားပါ။','ထပ်ကြိုးစားရန်']:['Preparing Cash Flow…','Cash Flow is unavailable. Please retry.','Retry']};
  function status(error=false){phase=error?'error':'waiting';const w=words(),p=doc.createElement('p');p.setAttribute('role','status');p.className='cfv2-muted';p.textContent=w[error?1:0];const panel=doc.createElement('div');panel.className='cfv2 cfv2-card';panel.append(p);if(error){const b=doc.createElement('button');b.type='button';b.textContent=w[2];b.addEventListener('click',sync);panel.append(b)}root.replaceChildren(panel)}
- function dispose(){try{handle?.destroy()}catch{}handle=null;mountedOwner='';phase='';root.replaceChildren()}
- function sync(){if(!active()){if(handle||phase)dispose();return}if(handle&&(!ready()||mountedOwner!==owner()||mountedEpoch!==epoch()))dispose();if(!ready()){if(phase!=='waiting')status();return}if(handle)return;
-  let next=null;const uid=owner();try{next=mount(root,{...bindings,releaseReadOnly:true});if(!next||typeof next.destroy!=='function'||!ready()||owner()!==uid||!active())throw Error('Mount unavailable');handle=next;mountedOwner=uid;mountedEpoch=epoch();phase='mounted'}catch{try{next?.destroy?.()}catch{}dispose();if(active())status(true)}
+ function dispose(){budgetBridge?.destroy();budgetBridge=null;configuredBridge?.destroy();configuredBridge=null;try{handle?.destroy()}catch{}handle=null;mountedOwner='';phase='';root.replaceChildren()}
+ function sync(){if(!active()){if(handle||phase)dispose();return}if(handle&&(!ready()||mountedOwner!==owner()||mountedEpoch!==epoch()))dispose();if(!ready()){if(phase!=='waiting')status();return}if(handle){budgetBridge?.ensure();return}
+  let next=null;const uid=owner(),sessionEpoch=epoch();try{budgetBridge=typeof bindings.readBudget==='function'?createBudgetBridge({owner:uid,isCurrent:()=>ready()&&active()&&owner()===uid&&epoch()===sessionEpoch,readBudget:bindings.readBudget,onChange:()=>handle?.refresh()}):null;configuredBridge=typeof bindings.readConfigured==='function'?createConfiguredBridge({owner:uid,isCurrent:()=>ready()&&active()&&owner()===uid&&epoch()===sessionEpoch,readRows:bindings.readConfigured,onChange:()=>handle?.refresh()}):null;next=mount(root,{...bindings,releaseReadOnly:true,planningBridge:budgetBridge||bindings.planningBridge,configured:()=>configuredBridge?.current()});if(!next||typeof next.destroy!=='function'||!ready()||owner()!==uid||!active())throw Error('Mount unavailable');handle=next;mountedOwner=uid;mountedEpoch=epoch();phase='mounted';budgetBridge?.ensure();void configuredBridge?.refresh('goals');void configuredBridge?.refresh('recurring')}catch{try{next?.destroy?.()}catch{}dispose();if(active())status(true)}
  }
  const reset=()=>{if(handle&&ready()&&mountedOwner===owner()&&mountedEpoch===epoch()){sync();return}dispose();sync()},hide=()=>{suspended=true;dispose()},show=()=>{suspended=false;sync()};
  const language=()=>{if(!handle&&active())status(phase==='error')};
+ const budgetChanged=()=>{if(active())void budgetBridge?.refresh()};
+ const goalsChanged=()=>{if(active())void configuredBridge?.refresh('goals')};
+ const recurringChanged=()=>{if(active())void configuredBridge?.refresh('recurring')};
  const events=['mmhvault:page-visible','mmhvault:data-state','mmhvault:data-loaded','mmhvault:data-change','mmhvault:cache-restored','mmhvault:sync-complete'];
- events.forEach(e=>win.addEventListener(e,sync));win.addEventListener('mmhvault:config-owner-changed',reset);win.addEventListener('pagehide',hide);win.addEventListener('pageshow',show);win.addEventListener('mmhvault-language-change',language);
+ events.forEach(e=>win.addEventListener(e,sync));win.addEventListener('mmhvault:config-owner-changed',reset);win.addEventListener('pagehide',hide);win.addEventListener('pageshow',show);win.addEventListener('mmhvault-language-change',language);win.addEventListener('mmhvault:budget-changed',budgetChanged);win.addEventListener('mmhvault:goals-changed',goalsChanged);win.addEventListener('mmhvault:recurring-changed',recurringChanged);
  const observer=new win.MutationObserver(sync);observer.observe(page,{attributes:true,attributeFilter:['class']});
- sync();return {active:()=>!!handle,destroy(){suspended=true;observer.disconnect();events.forEach(e=>win.removeEventListener(e,sync));win.removeEventListener('mmhvault:config-owner-changed',reset);win.removeEventListener('pagehide',hide);win.removeEventListener('pageshow',show);win.removeEventListener('mmhvault-language-change',language);dispose();delete root.dataset.cfv2Installed}}
+ sync();return {active:()=>!!handle,destroy(){suspended=true;observer.disconnect();events.forEach(e=>win.removeEventListener(e,sync));win.removeEventListener('mmhvault:config-owner-changed',reset);win.removeEventListener('pagehide',hide);win.removeEventListener('pageshow',show);win.removeEventListener('mmhvault-language-change',language);win.removeEventListener('mmhvault:budget-changed',budgetChanged);win.removeEventListener('mmhvault:goals-changed',goalsChanged);win.removeEventListener('mmhvault:recurring-changed',recurringChanged);dispose();delete root.dataset.cfv2Installed}}
 }
 if(typeof document!=='undefined'&&typeof window!=='undefined')try{installCashflowRelease(document,window,{
  owner:()=>typeof currentSessionUser==='undefined'?'':currentSessionUser?.id||'',
@@ -30,5 +34,8 @@ if(typeof document!=='undefined'&&typeof window!=='undefined')try{installCashflo
  config:()=>typeof MMHVAULT_CONFIG==='undefined'?null:MMHVAULT_CONFIG,
  currencies:()=>typeof MMHVAULT_ACCOUNT_CURRENCY_CODES_V140==='undefined'?[]:MMHVAULT_ACCOUNT_CURRENCY_CODES_V140,
  groupOf:t=>typeof inferTxGroup==='function'?inferTxGroup(t):'',
- isLinkedInvestment:t=>typeof isLinkedInvestmentTx!=='function'||isLinkedInvestmentTx(t)
+ isLinkedInvestment:t=>typeof isLinkedInvestmentTx!=='function'||isLinkedInvestmentTx(t),
+ readBudget:async(uid,month)=>{if(typeof db==='undefined'||typeof currentSessionUser==='undefined'||currentSessionUser?.id!==uid||typeof MMHVAULT_CONFIG_OWNER==='undefined'||MMHVAULT_CONFIG_OWNER!==uid)throw Error('Session unavailable');const {data,error}=await db.from('budgets').select('user_id,budget_month,currency,monthly_amount,category_budgets').eq('user_id',uid).eq('budget_month',month+'-01').maybeSingle();if(error||currentSessionUser?.id!==uid||MMHVAULT_CONFIG_OWNER!==uid)throw Error('Budget unavailable');return data??null},
+ readConfigured:async(kind,uid)=>{const same=()=>typeof db!=='undefined'&&typeof currentSessionUser!=='undefined'&&currentSessionUser?.id===uid&&typeof MMHVAULT_CONFIG_OWNER!=='undefined'&&MMHVAULT_CONFIG_OWNER===uid;if(!same())throw Error('Session unavailable');const spec=kind==='goals'?['financial_goals','id,user_id,name,currency,target_amount,current_amount,target_date,status','updated_at',false]:kind==='recurring'?['recurring_transactions','id,user_id,name,tx_type,from_account,from_amount,to_account,to_amount,frequency,next_due_date,status','next_due_date',true]:null;if(!spec)throw Error('Unsupported module');const rows=[];for(let start=0;start<10000;start+=500){const {data,error}=await db.from(spec[0]).select(spec[1]).eq('user_id',uid).order(spec[2],{ascending:spec[3]}).order('id',{ascending:true}).range(start,start+499);if(error||!same()||!Array.isArray(data)||!data.every(r=>r?.user_id===uid))throw Error('Configured data unavailable');rows.push(...data);if(data.length<500)return rows}throw Error('Configured data limit')},
+ investmentSource:uid=>readInvestmentSource(window,uid,window.livePrices||(typeof livePrices!=='undefined'?livePrices:{}),typeof goldMarketState!=='undefined'?goldMarketState?.pricePerKyattha:window.goldMarketState?.pricePerKyattha)
 })}catch{}

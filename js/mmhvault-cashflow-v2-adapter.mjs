@@ -53,6 +53,7 @@ function buildAdapter(ports){
   const verifiedHistory=()=>{if(!same())return [];const r=ports.historyRows?.(uid);return same()&&r?.owner===uid&&r?.verified===true&&Array.isArray(r.rows)?r.rows:[]};
   const healthInputs=c=>{if(!same())return null;const r=ports.healthInputs?.(c,uid);return same()&&r?.owner===uid&&r?.verified===true?r.data??null:null};
   const investmentSource=()=>{if(!same())return null;const p=ports.investmentSource?.(uid);return same()&&p?.owner===uid&&p.ready===true?p:null};
+  const configured=()=>{if(!same())return null;const p=ports.configured?.(uid);return same()&&p?.owner===uid?p:null};
   const planning=c=>{
    if(!same())return null;
    const p=ports.planning?.(c,uid);
@@ -60,7 +61,7 @@ function buildAdapter(ports){
    return p.data??null;
   };
   if(!same())return null;
-  return {owner:uid,ready:true,isCurrent:same,rows,earliest:dates[0]||ports.today(),currencies:[...currencySet],accounts:[...new Set(accounts.map(a=>a.name).filter(Boolean))],categories:[...new Set([...state.categories,...rows.map(r=>r.category)].filter(c=>typeof c==='string'&&c))],accountRate,displayRate,groupOf:t=>same()?ports.groupOf(t):'',isLinkedInvestment:t=>!same()||ports.isLinkedInvestment(t),balances,currentAssets,planning,investmentSource,verifiedHistory,healthInputs,fixedOf:r=>same()?ports.fixedOf?.(r,uid):null};
+  return {owner:uid,ready:true,isCurrent:same,rows,earliest:dates[0]||ports.today(),currencies:[...currencySet],accounts:[...new Set(accounts.map(a=>a.name).filter(Boolean))],categories:[...new Set([...state.categories,...rows.map(r=>r.category)].filter(c=>typeof c==='string'&&c))],accountRate,displayRate,groupOf:t=>same()?ports.groupOf(t):'',isLinkedInvestment:t=>!same()||ports.isLinkedInvestment(t),balances,currentAssets,planning,configured,investmentSource,verifiedHistory,healthInputs,fixedOf:r=>same()?ports.fixedOf?.(r,uid):null};
  }
  return {owner:ports.owner,today:ports.today,language:ports.language,read,releaseReadOnly:ports.releaseReadOnly===true,...(ports.openModule?{openModule:k=>{const s=read();if(s)ports.openModule(k,s.owner)}}:{})};
 }
@@ -86,7 +87,7 @@ function makeLegacyPorts(host,bindings){
   },
   groupOf:bindings.groupOf,isLinkedInvestment:bindings.isLinkedInvestment,
   // No trusted historical/current valuation or planning bridge is wired here yet.
-  history:bindings.history,currentAssets:bindings.currentAssets,investmentSource:bindings.investmentSource,planning:bindings.planning||((c,uid)=>{const s=bindings.planningBridge?.current();return s?.owner===uid&&s.plan?{owner:uid,verified:true,data:s.plan}:null}),historyRows:bindings.historyRows,healthInputs:bindings.healthInputs,fixedOf:bindings.fixedOf,openModule:bindings.openModule
+  history:bindings.history,currentAssets:bindings.currentAssets,investmentSource:bindings.investmentSource,configured:bindings.configured,planning:bindings.planning||((c,uid)=>{const s=bindings.planningBridge?.current();return s?.owner===uid&&s.plan?{owner:uid,verified:true,data:s.plan}:null}),historyRows:bindings.historyRows,healthInputs:bindings.healthInputs,fixedOf:bindings.fixedOf,openModule:bindings.openModule
  };
 }
 export {buildAdapter,makeLegacyPorts};
