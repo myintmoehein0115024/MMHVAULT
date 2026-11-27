@@ -311,7 +311,9 @@ html body.mmh-workspace-active #forecast#forecast.page.active #mmhForecastRootV1
 html body.mmh-workspace-active #forecast#forecast.page.active #mmhForecastRootV1 .fc-view-options>button:is(:hover,:focus-visible,[aria-pressed=true]){background:var(--uv-raised);color:var(--uv-accent)}
 html body.mmh-workspace-active #forecast#forecast.page.active #mmhForecastRootV1 .fc-view-options>button>span{overflow-wrap:anywhere}
 html body.mmh-workspace-active #forecast#forecast.page.active #mmhForecastRootV1 .fc-stat{min-height:90px!important;border-radius:8px!important;padding:12px!important;text-align:center}
-html body.mmh-workspace-active #forecast#forecast.page.active #mmhForecastRootV1 .fc-stat::after{content:none!important}
+/* Preserve the approved subtle bottom accent without restoring legacy card backgrounds. */
+html body.mmh-workspace-active #forecast#forecast.page.active #mmhForecastRootV1 .fc-stat::after{content:""!important;position:absolute;inset:auto 12px 0;height:2px;pointer-events:none;background:linear-gradient(90deg,transparent,rgba(133,205,240,.38),transparent)}
+html body.mmh-workspace-active #forecast#forecast.page.active #mmhForecastRootV1 .fc-stat:nth-child(2)::after{background:linear-gradient(90deg,transparent,rgba(247,201,109,.72),transparent)}
 html body.mmh-workspace-active #forecast#forecast.page.active #mmhForecastRootV1 .fc-stat strong{font-family:inherit!important;font-size:clamp(17px,1.8vw,24px)!important;font-weight:700!important;letter-spacing:normal!important}
 html body.mmh-workspace-active #forecast#forecast.page.active #mmhForecastRootV1 .fc-panel{border-radius:9px!important;padding:12px!important}
 html body.mmh-workspace-active #forecast#forecast.page.active #mmhForecastRootV1 :is(.fc-regular-group,.fc-savings-goal,.fc-month-category,.fc-month-additional,.fc-day-main,.fc-day-info>div,.fc-day-gauge-core){background:var(--uv-card)!important;background-image:none!important;border-color:var(--uv-line)!important;border-radius:8px!important;box-shadow:none!important;color:var(--uv-text)!important}
