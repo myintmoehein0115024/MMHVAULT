@@ -12122,7 +12122,13 @@ html.mmh-desktop-compact-v11110 body.mmh-workspace-active #moreNavMenu.more-nav-
   const el=id=>document.getElementById(id);
   const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   let filter='ALL',sideFilter='ALL',categoryFilter='ALL',resetRecordScroll=true,recordOwner=null;
-  let renderedFilters=null,renderedLedger=null;
+  let renderedFilters=null,renderedLedger=null,recordPage=0,recordPageKey='';
+  const recordPageSize=8;
+  function recordPageSlice(cards,page,previousKey,owner,reset){
+    const key=JSON.stringify([owner||'',...cards.map(x=>x.key)]),pages=Math.max(1,Math.ceil(cards.length/recordPageSize));
+    const index=reset||key!==previousKey?0:Math.max(0,Math.min(Number.isInteger(page)?page:0,pages-1));
+    return {key,pages,index,rows:cards.slice(index*recordPageSize,(index+1)*recordPageSize)};
+  }
   function replaceRecordMarkup(host,html,previous,selector){
     if(previous===html&&host.querySelector(selector))return false;
     host.innerHTML=html;return true;
@@ -12241,11 +12247,11 @@ html.mmh-desktop-compact-v11110 body.mmh-workspace-active #moreNavMenu.more-nav-
       fees:(numeric(x.fee)&&Number(x.fee)!==0?money(x.fee):'—')+' / '+(numeric(x.other_cost)&&Number(x.other_cost)!==0?money(x.other_cost):'—')};
   }
   function ledgerLine(date,name,description,account,type,amount){
-    return '<span class="iw226-ledger-line"><time class="iw226-record-date">'+date+'</time><span class="iw226-record-description"><strong class="iw226-record-name">'+name+'</strong>'+description+'</span><span class="iw226-record-account">'+account+'</span><span class="iw226-record-type">'+type+'</span><span class="iw226-record-amount">'+amount+'</span></span>';
+    return '<span class="iw226-ledger-line"><time class="iw226-record-date">'+date+'</time><span class="iw226-record-description"><strong class="iw226-record-name">'+name+'</strong>'+description+'</span><span class="iw226-record-account">'+account+'</span><span class="iw226-record-type">'+type+'</span><span class="iw226-record-amount">'+amount+'</span><span class="iw226-record-chevron" aria-hidden="true">›</span></span>';
   }
   function rowHTML(x){
     const v=display(x),field=(label,value)=>'<div class="mmh-history-detail"><small>'+label+'</small><b>'+value+'</b></div>',fee=v=>numeric(v)&&Number(v)!==0?esc(currencyMark(x.currency))+' '+esc(moneyDigits(v)):'—';
-    return '<article class="iw226-ledger-record iw226-trade-record" tabindex="0" role="button" aria-label="'+esc(recordText('View investment details','查看投资详情','ရင်းနှီးမြှုပ်နှံမှု အသေးစိတ်ကြည့်ရန်'))+'" data-investment-id="'+esc(x.id)+'" data-investment-kind="'+esc(x.kind)+'">'+ledgerLine(esc(x.date||'—'),esc(x.name||'—'),x.note?'<small class="iw226-record-note">'+esc(x.note)+'</small>':'',v.account,v.type+' '+v.side,'<span class="iw224-record-money">'+v.amount+'</span><small class="iw224-record-qty">'+v.qty+'</small>')+'<div hidden style="display:none!important"><div class="mmh-history-grid">'+
+    return '<article class="iw226-ledger-record iw226-trade-record" tabindex="0" role="button" aria-label="'+esc(recordText('View investment details','查看投资详情','ရင်းနှီးမြှုပ်နှံမှု အသေးစိတ်ကြည့်ရန်'))+'" data-investment-id="'+esc(x.id)+'" data-investment-kind="'+esc(x.kind)+'">'+ledgerLine(esc(x.date||'—'),esc(x.name||'—'),'<small class="iw226-record-subtitle">'+esc([x.account,x.side==='Sell'?recordText('Sell','卖出','ရောင်းချ'):recordText('Buy','买入','ဝယ်ယူ')].filter(Boolean).join(' · '))+'</small>',v.account,v.type+' '+v.side,'<span class="iw224-record-money">'+v.amount+'</span><small class="iw224-record-qty">'+v.qty+'</small>')+'<div hidden style="display:none!important"><div class="mmh-history-grid">'+
       field(recordText('Source account','来源账户','မူရင်းအကောင့်'),v.account)+field(recordText('Trade amount','交易金额','အရောင်းအဝယ် ပမာဏ'),v.amount)+field(recordText('Trade price','成交价格','အရောင်းအဝယ် ဈေးနှုန်း'),v.price)+field(recordText('Trade quantity','交易数量','အရေအတွက်'),v.qty)+
       field(recordText('Fee','手续费','ဝန်ဆောင်ခ'),fee(x.fee))+field(recordText('Other costs','其他费用','အခြား ကုန်ကျစရိတ်'),fee(x.other_cost))+field(recordText('Realized P/L','已实现盈亏','ရရှိပြီး အမြတ်/အရှုံး'),v.pl)+
       field(recordText('Note','备注','မှတ်ချက်'),esc(x.note||'—'))+'</div><div class="mmh-history-actions">'+(x.receipt?v.receipt+' ':'')+v.actions+'</div></div></article>';
@@ -12259,7 +12265,7 @@ html.mmh-desktop-compact-v11110 body.mmh-workspace-active #moreNavMenu.more-nav-
   function walletRow222(r){
     const x=r.x,transfer=r.side==='Transfer',sym=String((transfer?x.asset_symbol:(x.fee_asset_symbol||x.asset_symbol))||''),rawQty=transfer?x.quantity:x.fee_quantity,qty=rawQty==null||rawQty===''?NaN:Number(rawQty);
     const label=transfer?recordText('Transfer','转账','လွှဲပြောင်းမှု'):recordText('Gas fee','链上手续费','ကွန်ရက် ဝန်ဆောင်ခ');
-    return '<button type="button" class="iw226-ledger-record" data-iw224-side="'+(transfer?'transfer':'gas')+'" data-iw222-wallet-id="'+esc(x.id)+'">'+ledgerLine(esc(r.date||'—'),esc(sym||'—'),'',esc((x.from_wallet||'—')+(transfer?' → '+(x.to_wallet||'—'):'')),esc(label),(Number.isFinite(qty)?esc(qty.toLocaleString(undefined,{maximumFractionDigits:8})):'—')+' '+esc(sym)+(transfer&&Number(x.fee_quantity)>0?'<small class="iw224-record-qty">'+esc(recordText('Fee','手续费','ဝန်ဆောင်ခ'))+' '+esc(Number(x.fee_quantity).toLocaleString(undefined,{maximumFractionDigits:8}))+' '+esc(x.fee_asset_symbol||sym)+'</small>':''))+'</button>';
+    return '<button type="button" class="iw226-ledger-record" data-iw224-side="'+(transfer?'transfer':'gas')+'" data-iw222-wallet-id="'+esc(x.id)+'">'+ledgerLine(esc(r.date||'—'),esc(sym||'—'),'<small class="iw226-record-subtitle">'+esc([(x.from_wallet||'—')+(transfer?' → '+(x.to_wallet||'—'):''),label].join(' · '))+'</small>',esc((x.from_wallet||'—')+(transfer?' → '+(x.to_wallet||'—'):'')),esc(label),(Number.isFinite(qty)?esc(qty.toLocaleString(undefined,{maximumFractionDigits:8})):'—')+' '+esc(sym)+(transfer&&Number(x.fee_quantity)>0?'<small class="iw224-record-qty">'+esc(recordText('Fee','手续费','ဝန်ဆောင်ခ'))+' '+esc(Number(x.fee_quantity).toLocaleString(undefined,{maximumFractionDigits:8}))+' '+esc(x.fee_asset_symbol||sym)+'</small>':''))+'</button>';
   }
   const categoryOf=x=>x?.side==='Transfer'?'Transfer':x?.side==='Gas'?'Fee':x?.kind==='custom'?'Custom':'Trade';
   function render(){
@@ -12280,9 +12286,11 @@ html.mmh-desktop-compact-v11110 body.mmh-workspace-active #moreNavMenu.more-nav-
     const filterMarkup='<div class="iw222-filterbar">'+picker('iw222-asset',recordText('Asset','资产','ပိုင်ဆိုင်မှု'),types,filter,t=>t==='ALL'?recordText('All assets','全部资产','ပိုင်ဆိုင်မှု အားလုံး'):t)+picker('iw222-activity',recordText('Activity','活动','လုပ်ဆောင်မှု'),sides,sideFilter,t=>labels[t])+picker('iw222-category',recordText('Category','分类','အမျိုးအစား'),categories,categoryFilter,t=>categoryLabels[t])+'<button type="button" id="iw222-reset" aria-label="'+recordText('Reset filters','重置筛选','စစ်ထုတ်မှု ပြန်သတ်မှတ်')+'">'+recordText('Reset','重置','ပြန်သတ်မှတ်')+'</button><span class="iw222-count"></span></div>';
     replaceRecordMarkup(filters,filterMarkup,renderedFilters,'.iw222-filterbar');renderedFilters=filterMarkup;
     const count=filters.querySelector('.iw222-count'),countText=cards.length+' / '+(rows.length+wallet.length);if(count&&count.textContent!==countText)count.textContent=countText;
-    const headings=[recordText('Date','日期','ရက်စွဲ'),recordText('Description','说明','ဖော်ပြချက်'),recordText('Account','账户','အကောင့်'),recordText('Type','类型','အမျိုးအစား'),recordText('Amount','金额','ပမာဏ')];
     list.setAttribute('role','region');list.setAttribute('aria-label',title);list.tabIndex=0;
-    let ledgerMarkup=cards.length?'<div class="iw226-ledger-header" aria-hidden="true"><span class="iw226-ledger-line">'+headings.map(h=>'<span>'+esc(h)+'</span>').join('')+'</span></div><div class="iw226-ledger-list">'+cards.map(x=>x.isWallet?walletRow222(x.row):rowHTML(x.row)).join('')+'</div>':'<div class="mmh-ui-empty">'+recordText('No matching records.','没有符合筛选条件的记录。','ကိုက်ညီသော မှတ်တမ်း မရှိပါ။')+'</div>';
+    const headings=[recordText('Date','日期','ရက်စွဲ'),recordText('Description','描述','ဖော်ပြချက်'),recordText('Account','账户','အကောင့်'),recordText('Type','类型','အမျိုးအစား'),recordText('Amount','金额','ပမာဏ')];
+    const page=recordPageSlice(cards,recordPage,recordPageKey,uid,resetRecordScroll);recordPage=page.index;recordPageKey=page.key;
+    let ledgerMarkup=cards.length?'<div class="iw226-ledger-header" aria-hidden="true"><span class="iw226-ledger-line">'+headings.map(h=>'<span>'+esc(h)+'</span>').join('')+'<span></span></span></div><div class="iw226-ledger-list">'+page.rows.map(x=>x.isWallet?walletRow222(x.row):rowHTML(x.row)).join('')+'</div>':'<div class="mmh-ui-empty">'+recordText('No matching records.','没有符合筛选条件的记录。','ကိုက်ညီသော မှတ်တမ်း မရှိပါ။')+'</div>';
+    ledgerMarkup+='<div class="iw226-ledger-footer"><button type="button" id="iw226-prev"'+(recordPage===0?' disabled':'')+'>'+recordText('Previous','上一页','ယခင်')+'</button><span aria-live="polite">'+(recordPage+1)+' / '+page.pages+'</span><button type="button" id="iw226-next"'+(recordPage+1>=page.pages?' disabled':'')+'>'+recordText('Next','下一页','နောက်သို့')+'</button></div>';
     if(uid&&!walletReady&&(filter==='ALL'||filter==='Crypto')&&['ALL','Wallet','Transfer','Gas'].includes(sideFilter))ledgerMarkup='<div class="mmh-ui-empty" role="status">'+recordText('Wallet records are not loaded yet.','钱包记录尚未加载。','ပိုက်ဆံအိတ် မှတ်တမ်းများ မရရှိသေးပါ။')+'</div>'+ledgerMarkup;
     if(window.mmhCustomInvestLoaded!==true)ledgerMarkup='<div class="mmh-ui-empty">'+recordText('Custom records are unavailable or still loading.','自定义记录尚未加载。','စိတ်ကြိုက် မှတ်တမ်းများ ရယူနေဆဲ ဖြစ်သည်။')+'</div>'+ledgerMarkup;
     const active=document.activeElement;
@@ -12292,6 +12300,7 @@ html.mmh-desktop-compact-v11110 body.mmh-workspace-active #moreNavMenu.more-nav-
     if(changed||resetRecordScroll)list.scrollTop=resetRecordScroll?0:previousScroll;resetRecordScroll=false;
     try{window.dispatchEvent(new CustomEvent('mmhvault:list-rendered',{detail:{page:'invest',section:'history'}}));}catch(_e){}
   }
+  document.addEventListener('click',e=>{const b=e.target.closest('#mmhHistoryRowsV1 #iw226-prev,#mmhHistoryRowsV1 #iw226-next');if(!b||b.disabled||!currentSessionUser?.id||currentSessionUser.id!==recordOwner)return;const id=b.id;recordPage+=id==='iw226-prev'?-1:1;render();const next=el(id);(next&&!next.disabled?next:el(id==='iw226-prev'?'iw226-next':'iw226-prev'))?.focus({preventScroll:true});});
   window.mmhSetUnifiedRecordFilterV222=(value='ALL')=>{filter='ALL';sideFilter=value;categoryFilter='ALL';resetRecordScroll=true;render();};
   document.addEventListener('click',e=>{const filters=el('mmhHistoryFiltersV1');if(!filters)return;const b=e.target.closest('#mmhHistoryFiltersV1 [data-iw223-value]'),pick=e.target.closest('#mmhHistoryFiltersV1 .iw223-picker details');if(b&&pick){const id=pick.id;if(id==='iw222-asset')filter=b.dataset.iw223Value;else if(id==='iw222-activity')sideFilter=b.dataset.iw223Value;else if(id==='iw222-category')categoryFilter=b.dataset.iw223Value;else return;resetRecordScroll=true;render();el(id)?.querySelector('summary')?.focus({preventScroll:true});return}filters.querySelectorAll('details[open]').forEach(d=>{if(d!==pick)d.open=false})});
   function historyPickerKey224(e){
@@ -12309,7 +12318,7 @@ html.mmh-desktop-compact-v11110 body.mmh-workspace-active #moreNavMenu.more-nav-
   document.addEventListener('click',e=>{if(e.target.closest('#iw222-reset')){window.mmhSetUnifiedRecordFilterV222();el('iw222-reset')?.focus({preventScroll:true});return;}const b=e.target.closest('#mmhHistoryRowsV1 [data-iw222-wallet-id]');if(!b)return;const row=walletEntries222().find(r=>String(r.x.id)===b.dataset.iw222WalletId);if(row)window.mmhOpenWalletMovementDetailV177?.(row.x.id);});
   window.addEventListener('languagechange',render);
   window.addEventListener('mmhvault-language-change',render);
-  window.addEventListener('mmhvault:config-owner-changed',()=>{filter='ALL';sideFilter='ALL';categoryFilter='ALL';resetRecordScroll=true;recordOwner=null;renderedFilters=null;renderedLedger=null;el('mmhHistoryRowsV1')?.replaceChildren();el('mmhHistoryFiltersV1')?.replaceChildren();setTimeout(()=>{try{render();}catch(e){console.warn('[MMHVAULT] investment history owner repaint failed',e);}},0);});
+  window.addEventListener('mmhvault:config-owner-changed',()=>{filter='ALL';sideFilter='ALL';categoryFilter='ALL';resetRecordScroll=true;recordOwner=null;recordPage=0;recordPageKey='';renderedFilters=null;renderedLedger=null;el('mmhHistoryRowsV1')?.replaceChildren();el('mmhHistoryFiltersV1')?.replaceChildren();setTimeout(()=>{try{render();}catch(e){console.warn('[MMHVAULT] investment history owner repaint failed',e);}},0);});
 
   window.mmhRenderInvestHistoryV1=render;
   const deleting=new Set();
@@ -12358,27 +12367,27 @@ html.mmh-desktop-compact-v11110 body.mmh-workspace-active #moreNavMenu.more-nav-
     const row=window.mmhCustomInvestRecords?.find(x=>String(x.id)===String(id));if(!row)return;
     const user=(await db.auth.getUser()).data.user;if(!user){await window.mmhEditDeleteUI.message('Edit unavailable','Please sign in again.');return;}
     if(action==='delete'){confirmDelete({kind:'custom',id:row.id,name:row.asset_name},user);return;}
-    const modal=document.createElement('dialog');modal.className='mmh-history-edit';
-    modal.innerHTML='<form method="dialog" class="mmh-history-edit-form"><h2>Edit '+esc(row.asset_name||'Investment')+'</h2>'+
-      '<label>Date<input name="date" type="date" required value="'+esc(row.inv_date||'')+'"></label>'+
-      '<label>Source Account<select name="account" required>'+(!MMHVAULT_CONFIG.accounts.some(a=>a.name===row.source_account&&a.active!==false)?'<option value="" selected disabled>'+esc(row.source_account||'Unknown account')+' · archived; select an active account</option>':'')+((MMHVAULT_CONFIG.accounts||[]).filter(a=>a.active!==false).map(a=>'<option value="'+esc(a.name)+'" '+(a.name===row.source_account?'selected':'')+'>'+esc(a.name)+' · '+esc(a.currency||'Currency unavailable')+'</option>').join(''))+'</select></label>'+
-      '<label>Amount<input name="amount" type="number" step="any" min="0.000001" required value="'+esc(row.amount)+'"></label>'+
-      '<label>Purchase Price<input name="price" type="number" step="any" min="0.000001" required value="'+esc(row.buy_price)+'"></label>'+
-      '<label>Fee<input name="fee" type="number" step="any" min="0" value="'+esc(row.fee??0)+'"></label>'+
-      '<label>Other Cost<input name="other" type="number" step="any" min="0" value="'+esc(row.other_cost??0)+'"></label>'+
-      '<label>Market Price (optional)<input name="market" type="number" step="any" min="0" value="'+esc(row.market_price??'')+'"></label>'+
-      '<label>Note<input name="note" value="'+esc(row.note||'')+'"></label>'+
-      '<label>Attach receipt (image or PDF, optional)<input name="receipt" type="file" accept="image/*,.pdf"></label>'+
-      '<div data-funds class="mmh-ui-empty"></div>'+
-      '<div class="mmh-history-dialog-actions"><button type="button" data-cancel>Cancel</button><button type="submit">Save Changes</button></div></form>';
+    const modal=document.createElement('dialog');modal.className='mmh-history-edit iw226-custom-edit';
+    modal.innerHTML='<form method="dialog" class="mmh-history-edit-form"><h2>'+recordText("Edit ","编辑 ","ပြင်ဆင်ရန် ")+esc(row.asset_name||recordText("Investment","投资","ရင်းနှီးမြှုပ်နှံမှု"))+'</h2><div class="iw226-custom-edit-scroll"><div class="iw226-custom-edit-grid">'+
+      '<label>'+recordText("Date","日期","ရက်စွဲ")+'<input name="date" type="date" required value="'+esc(row.inv_date||'')+'"></label>'+
+      '<label>'+recordText("Source Account","资金来源账户","ငွေရင်းအကောင့်")+'<select name="account" required>'+(!(MMHVAULT_CONFIG.accounts||[]).some(a=>a.name===row.source_account&&a.active!==false)?'<option value="" selected disabled>'+esc(row.source_account||recordText("Unknown account","未知账户","မသိသောအကောင့်"))+recordText(" · archived; select an active account"," · 已归档，请选择有效账户"," · သိမ်းဆည်းထားသောအကောင့်၊ အသုံးပြုနေသောအကောင့်ကို ရွေးပါ")+'</option>':'')+((MMHVAULT_CONFIG.accounts||[]).filter(a=>a.active!==false).map(a=>'<option value="'+esc(a.name)+'" '+(a.name===row.source_account?'selected':'')+'>'+esc(a.name)+' · '+esc(a.currency||recordText("Currency unavailable","币种不可用","ငွေကြေးအမျိုးအစား မရနိုင်ပါ"))+'</option>').join(''))+'</select></label>'+
+      '<label>'+recordText("Amount","金额","ငွေပမာဏ")+'<input name="amount" type="number" step="any" min="0.000001" required value="'+esc(row.amount)+'"></label>'+
+      '<label>'+recordText("Purchase Price","买入价格","ဝယ်ယူဈေးနှုန်း")+'<input name="price" type="number" step="any" min="0.000001" required value="'+esc(row.buy_price)+'"></label>'+
+      '<label>'+recordText("Fee","手续费","ဝန်ဆောင်ခ")+'<input name="fee" type="number" step="any" min="0" value="'+esc(row.fee??0)+'"></label>'+
+      '<label>'+recordText("Other Cost","其他费用","အခြားကုန်ကျစရိတ်")+'<input name="other" type="number" step="any" min="0" value="'+esc(row.other_cost??0)+'"></label>'+
+      '<label>'+recordText("Market Price (optional)","市场价格（可选）","ဈေးကွက်ဈေးနှုန်း (ရွေးချယ်နိုင်သည်)")+'<input name="market" type="number" step="any" min="0" value="'+esc(row.market_price??'')+'"></label>'+
+      '<label>'+recordText("Note","备注","မှတ်ချက်")+'<input name="note" value="'+esc(row.note||'')+'"></label>'+
+      '<label>'+recordText("Attach receipt (image or PDF, optional)","添加收据（图片或 PDF，可选）","ပြေစာထည့်ရန် (ပုံ သို့ PDF၊ ရွေးချယ်နိုင်သည်)")+'<input name="receipt" type="file" accept="image/*,.pdf"></label>'+
+      '<div data-funds class="mmh-ui-empty"></div></div></div>'+
+      '<div class="mmh-history-dialog-actions"><button type="button" data-cancel>'+recordText("Cancel","取消","မလုပ်တော့ပါ")+'</button><button type="submit">'+recordText("Save Changes","保存修改","ပြောင်းလဲမှုများ သိမ်းဆည်းရန်")+'</button></div></form>';
     document.getElementById('invest').append(modal);
     modal.querySelector('[data-cancel]').onclick=()=>modal.close();
     modal.addEventListener('close',()=>modal.remove(),{once:true});
     const funds=()=>{const f=modal.querySelector('form'),fd=new FormData(f),a=window.mmhCustomInvestAccount?.(fd.get('account'));
-      if(!a){f.querySelector('[data-funds]').textContent='Select an active account with a supported currency.';return;}
+      if(!a){f.querySelector('[data-funds]').textContent=recordText("Select an active account with a supported currency.","请选择币种受支持的有效账户。","ပံ့ပိုးထားသော ငွေကြေးအမျိုးအစားရှိသည့် အသုံးပြုနေသောအကောင့်ကို ရွေးပါ။");return;}
       const required=Number(fd.get('amount'))+Number(fd.get('fee'))+Number(fd.get('other'));
       const available=balance(a.name)+(a.name===row.source_account?Number(row.amount||0)+Number(row.fee||0)+Number(row.other_cost||0):0);
-      f.querySelector('[data-funds]').textContent='Available including this investment: '+mmhCurrencySymbolV194(a.currency)+' '+available.toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})+' · Required after edit: '+mmhCurrencySymbolV194(a.currency)+' '+required.toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})+(required>available?' · Insufficient balance':'');};
+      f.querySelector('[data-funds]').textContent=recordText("Available including this investment: ","可用余额（含本笔投资）：","ဤရင်းနှီးမြှုပ်နှံမှု အပါအဝင် ရရှိနိုင်သောလက်ကျန်: ")+mmhCurrencySymbolV194(a.currency)+' '+available.toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})+recordText(" · Required after edit: "," · 修改后所需金额："," · ပြင်ဆင်ပြီးနောက် လိုအပ်ငွေ: ")+mmhCurrencySymbolV194(a.currency)+' '+required.toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})+(required>available?recordText(" · Insufficient balance"," · 余额不足"," · လက်ကျန်ငွေ မလုံလောက်ပါ"):'');};
     for(const name of ['account','amount','fee','other'])modal.querySelector('[name="'+name+'"]').addEventListener('input',funds);
     funds();
     modal.querySelector('form').addEventListener('submit',async e=>{
@@ -12401,6 +12410,7 @@ html.mmh-desktop-compact-v11110 body.mmh-workspace-active #moreNavMenu.more-nav-
       }catch(err){window.mmhEditDeleteUI.inline('Edit failed: '+(err?.message||err),form);submit.disabled=false;}
     });
     modal.showModal();
+    window.MMHTransactionDialogLayoutV2?.();
   }
   document.addEventListener('click',e=>{
     const typeButton=e.target.closest('#mmhHistoryFiltersV1 button[data-history-type]');
@@ -28869,12 +28879,15 @@ function init(){
  const L=(en,zh,my)=>{const lang=String(window.getMMHVAULTLanguage?.()||document.documentElement.lang||'en').toLowerCase();return /^zh/.test(lang)?zh:/^(my|mm)/.test(lang)?my:en};
  const E=v=>String(v??'').replace(/[&<>]/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[m]));
  const read=sel=>card.querySelector(sel)?.textContent?.trim()||'—';
- const fields=[...card.querySelectorAll('.mmh-history-detail')].map(x=>'<div class="mmh-wallet-detail-item-v177"><small>'+E(x.querySelector('small')?.textContent||'')+'</small><b>'+E(x.querySelector('b')?.textContent||'—')+'</b></div>').join('');
+ const item=(label,value)=>'<div class="mmh-tx-detail-item-v800"><div class="mmh-tx-detail-label-v800">'+E(label)+'</div><div class="mmh-tx-detail-value-v800">'+E(value||'—')+'</div></div>';
+ const noteLabel=L('Note','备注','မှတ်ချက်'),rows=[...card.querySelectorAll('.mmh-history-detail')].map(x=>({label:x.querySelector('small')?.textContent?.trim()||'',value:x.querySelector('b')?.textContent||'—'}));
+ const fields=item(L('Date','日期','ရက်စွဲ'),read('time'))+rows.filter(x=>x.label!==noteLabel).map(x=>item(x.label,x.value)).join('');
+ const note=rows.find(x=>x.label===noteLabel)?.value||'—';
  const actions=[{label:L('Close','关闭','ပိတ်ရန်'),value:false}],labels={receipt:L('View receipt','查看凭证','ပြေစာကြည့်ရန်'),edit:L('Edit','编辑','ပြင်ဆင်ရန်'),delete:L('Delete','删除','ဖျက်ရန်')};
  for(const action of ['receipt','edit','delete'])if(card.querySelector('[data-history-action="'+action+'"]'))actions.push({label:labels[action],value:action,className:action==='delete'?'danger':action==='edit'?'primary':''});
  const invalidate=()=>{if(document.querySelector('#mmhVaultDialogV449.show .iw224-trade-dialog'))window.mmhVaultCloseDialogV449?.();if(document.querySelector('#mmhVaultDialogV449 .iw224-trade-dialog')){document.getElementById('mmhVaultDialogBodyV449')?.replaceChildren();document.getElementById('mmhVaultDialogActionsV449')?.replaceChildren();}};
  window.addEventListener('mmhvault:config-owner-changed',invalidate,{once:true});let result;
- try{result=await window.mmhVaultOpenDialogV449({title:L('Investment details','投资详情','ရင်းနှီးမြှုပ်နှံမှု အသေးစိတ်'),message:'',body:'<div class="mmh-wallet-detail-v177"><div class="mmh-wallet-detail-hero-v177"><div><small>'+E([...card.querySelectorAll('.iw226-record-type > span')].map(x=>x.textContent.trim()).join(' · '))+'</small><h3>'+E(read('.iw226-record-name'))+'</h3><span>'+E(read('time'))+'</span></div><strong>'+E(read('.iw224-record-money'))+'</strong></div><div class="mmh-wallet-detail-grid-v177">'+fields+'</div></div>',actions,dialogClass:'mmh-wallet-detail-dialog-v177 iw224-trade-dialog',bodyClass:'mmh-wallet-detail-body-v177'});}
+ try{result=await window.mmhVaultOpenDialogV449({title:L('Investment details','投资详情','ရင်းနှီးမြှုပ်နှံမှု အသေးစိတ်'),message:'',body:'<div class="mmh-wallet-detail-v177 mmh-tx-detail-v800"><div class="mmh-tx-detail-hero-v800"><div><div class="mmh-tx-detail-eyebrow-v800">'+E(L('Investment detail','投资详情','ရင်းနှီးမြှုပ်နှံမှု အသေးစိတ်'))+'</div><div class="mmh-tx-detail-title-v800">'+E(read('.iw226-record-name'))+'</div><span class="mmh-tx-detail-chip-v800">'+E(read('.iw226-record-type'))+'</span></div><div class="mmh-tx-detail-amount-v800">'+E(read('.iw224-record-money'))+'</div></div><div class="mmh-tx-detail-grid-v800">'+fields+'</div><div class="mmh-tx-detail-note-v800"><strong>'+E(noteLabel)+'</strong><div class="mmh-tx-detail-value-v800" style="white-space:pre-wrap">'+E(note)+'</div></div><div class="mmh-tx-detail-receipt-v800"><span aria-hidden="true">▧</span><strong>'+E(L('Receipt','凭证','ပြေစာ'))+'</strong><span>'+E(actions.some(a=>a.value==='receipt')?L('Attached','已附加','ပူးတွဲထားသည်'):L('No receipt attached','未附加凭证','ပြေစာ မပူးတွဲထားပါ'))+'</span></div></div>',actions,dialogClass:'mmh-wallet-detail-dialog-v177 iw224-trade-dialog',bodyClass:'mmh-wallet-detail-body-v177'});}
  finally{window.removeEventListener('mmhvault:config-owner-changed',invalidate)}
  if(!['receipt','edit','delete'].includes(result)||currentSessionUser?.id!==uid)return;
  const fresh=[...document.querySelectorAll('#mmhHistoryRowsV1 .iw226-trade-record')].find(x=>x.dataset.investmentId===id&&x.dataset.investmentKind===kind);
@@ -34259,7 +34272,7 @@ body.light #settings .cs-panel-v1518{background:linear-gradient(160deg,#fff,#f3f
  async function load(){const el=$('mmhWalletHistoryV172');if(!el)return;if(window.mmhWalletDataOwnerV191&&window.mmhWalletDataOwnerV191===currentSessionUser?.id){rows=window.mmhWalletMovementsV174||[];renderHistory();window.mmhRenderWalletBreakdownV174?.();return}try{const u=(await db.auth.getUser()).data.user;if(!u){el.innerHTML=`<div class="mmh-wallet-empty-v172">${T('Please sign in.','请先登录。')}</div>`;return}const r={data:await mmhPersonalReadWalletV191(u.id)};if(currentSessionUser?.id!==u.id)return;rows=r.data||[];window.mmhWalletMovementsV174=rows;window.mmhWalletDataOwnerV191=u.id;renderHistory();window.mmhRenderWalletBreakdownV174?.();window.mmhRenderInvestHistoryV1?.()}catch(err){el.innerHTML=`<div class="mmh-wallet-empty-v172">${E(err?.message||T('Unable to load wallet history.','无法加载钱包记录。'))}</div>`}}
  async function deleteWalletMovementDirectV175(id){const r=await db.rpc('mmh_delete_crypto_wallet_movement_v4',{p_id:id});if(r.error)throw r.error;return {alreadyGone:false}}
  async function removeMovement(id,expectedOwner=currentSessionUser?.id){const uid=currentSessionUser?.id;if(!id||!uid||uid!==expectedOwner||window.mmhWalletDataOwnerV191!==uid)return;const row=(window.mmhWalletMovementsV174||[]).find(x=>x?.user_id===uid&&String(x.id)===String(id));if(!row)return;if(!await window.mmhEditDeleteUI?.confirm?.(T('Delete wallet activity','删除钱包记录'),`${row.from_wallet||'Wallet'} → ${row.to_wallet||'Wallet'}`,T('The linked network-fee holding adjustment will also be reversed.','对应的链上手续费持仓扣减也会一起恢复。')))return;if(currentSessionUser?.id!==uid||window.mmhWalletDataOwnerV191!==uid)return;try{const auth=(await db.auth.getUser()).data.user;if(auth?.id!==uid||currentSessionUser?.id!==uid||window.mmhWalletDataOwnerV191!==uid)return;const result=await deleteWalletMovementDirectV175(id);try{await loadAll({force:true})}catch(_e){}await load();window.mmhRenderWalletBreakdownV174?.();window.mmhRenderInvestHistoryV1?.();window.mmhEditDeleteUI?.toast?.(result.alreadyGone?T('Wallet activity was already removed.','钱包记录已不存在，列表已刷新。'):T('Wallet activity deleted.','钱包记录已删除。'))}catch(err){await window.mmhEditDeleteUI?.message?.(T('Delete failed','删除失败'),err?.message||String(err));return}}
- function walletMovementDetailHTML(x){const transfer=x?.movement_type==='transfer',fee=N(x?.fee_quantity),feeSym=String(x?.fee_asset_symbol||x?.asset_symbol||'').toUpperCase(),price=N(x?.fee_unit_price_usd),qty=N(x?.quantity),route=transfer?`${E(x?.from_wallet||'Wallet')} → ${E(x?.to_wallet||'Wallet')}`:`${E(x?.from_wallet||'Wallet')} · ${T('Network Fee','链上手续费')}`,item=(label,value)=>`<div class="mmh-wallet-detail-item-v177"><small>${E(label)}</small><b>${E(value||'—')}</b></div>`;return `<div class="mmh-wallet-detail-v177"><div class="mmh-wallet-detail-hero-v177"><div><small>${transfer?T('Wallet transfer','钱包转账'):T('Network fee','链上手续费')}</small><h3>${route}</h3><span>${E(x?.movement_date||'—')} · ${E(x?.network||T('Network not set','未填写网络'))}</span></div><strong>${transfer?E(qty.toLocaleString(undefined,{maximumFractionDigits:8}))+' '+E(x?.asset_symbol||''):E(fee.toLocaleString(undefined,{maximumFractionDigits:8}))+' '+E(feeSym)}</strong></div><div class="mmh-wallet-detail-grid-v177">${item(T('Asset','币种'),String(x?.asset_symbol||'').toUpperCase())}${item(T('Quantity','数量'),transfer?qty.toLocaleString(undefined,{maximumFractionDigits:8}):'—')}${item(T('From wallet','转出钱包'),x?.from_wallet||'—')}${item(T('To wallet','转入钱包'),transfer?(x?.to_wallet||'—'):'—')}${item(T('Fee asset','手续费币种'),feeSym||'—')}${item(T('Network fee','网络手续费'),fee>0?fee.toLocaleString(undefined,{maximumFractionDigits:8})+' '+feeSym:'0')}${item(T('Fee value','手续费价值'),fee>0&&price>0?'$ '+(fee*price).toFixed(2):'—')}${item(T('Network','网络'),x?.network||'—')}</div>${x?.tx_hash?`<div class="mmh-wallet-detail-line-v177"><small>Tx Hash</small><code>${E(x.tx_hash)}</code></div>`:''}${x?.note?`<div class="mmh-wallet-detail-note-v177"><small>${T('Note','备注')}</small><p>${E(x.note)}</p></div>`:''}</div>`}
+ function walletMovementDetailHTML(x){const transfer=x?.movement_type==='transfer',fee=N(x?.fee_quantity),feeSym=String(x?.fee_asset_symbol||x?.asset_symbol||'').toUpperCase(),price=N(x?.fee_unit_price_usd),qty=N(x?.quantity),route=transfer?`${E(x?.from_wallet||'Wallet')} → ${E(x?.to_wallet||'Wallet')}`:`${E(x?.from_wallet||'Wallet')} · ${T('Network Fee','链上手续费')}`,item=(label,value)=>`<div class="mmh-tx-detail-item-v800"><div class="mmh-tx-detail-label-v800">${E(label)}</div><div class="mmh-tx-detail-value-v800">${E(value||'—')}</div></div>`;return `<div class="mmh-wallet-detail-v177 mmh-tx-detail-v800"><div class="mmh-tx-detail-hero-v800"><div><div class="mmh-tx-detail-eyebrow-v800">${T('Wallet activity detail','钱包活动详情')}</div><div class="mmh-tx-detail-title-v800">${route}</div><span class="mmh-tx-detail-chip-v800">${transfer?T('Wallet transfer','钱包转账'):T('Network fee','链上手续费')}</span></div><div class="mmh-tx-detail-amount-v800">${transfer?E(qty.toLocaleString(undefined,{maximumFractionDigits:8}))+' '+E(x?.asset_symbol||''):E(fee.toLocaleString(undefined,{maximumFractionDigits:8}))+' '+E(feeSym)}</div></div><div class="mmh-tx-detail-grid-v800">${item(T('Date','日期'),x?.movement_date||'—')}${item(T('Asset','币种'),String(x?.asset_symbol||'').toUpperCase())}${item(T('Quantity','数量'),transfer?qty.toLocaleString(undefined,{maximumFractionDigits:8}):'—')}${item(T('From wallet','转出钱包'),x?.from_wallet||'—')}${item(T('To wallet','转入钱包'),transfer?(x?.to_wallet||'—'):'—')}${item(T('Fee asset','手续费币种'),feeSym||'—')}${item(T('Network fee','网络手续费'),fee>0?fee.toLocaleString(undefined,{maximumFractionDigits:8})+' '+feeSym:'0')}${item(T('Fee value','手续费价值'),fee>0&&price>0?'$ '+(fee*price).toFixed(2):'—')}${item(T('Network','网络'),x?.network||'—')}</div>${x?.tx_hash?`<div class="mmh-tx-detail-note-v800"><strong>Tx Hash</strong><div class="mmh-tx-detail-value-v800">${E(x.tx_hash)}</div></div>`:''}${x?.note?`<div class="mmh-tx-detail-note-v800"><strong>${T('Note','备注')}</strong><div class="mmh-tx-detail-value-v800" style="white-space:pre-wrap">${E(x.note)}</div></div>`:''}</div>`}
  async function openWalletMovementDetailV177(id){const uid=currentSessionUser?.id;if(!uid||window.mmhWalletDataOwnerV191!==uid)return;const x=(window.mmhWalletMovementsV174||[]).find(r=>r?.user_id===uid&&String(r?.id)===String(id));if(!x){await window.mmhEditDeleteUI?.message?.(T('Wallet activity unavailable','钱包记录不可用'),T('Reload the page and try again.','请刷新页面后重试。'));return}const actions=[{label:T('Close','关闭'),onClick:()=>true}];if(x.movement_type==='transfer')actions.push({label:T('Edit transfer','编辑转账'),className:'primary',onClick:()=>{setTimeout(()=>window.mmhOpenWalletEditNoticeV225?.(x),0);return true;}});actions.push({label:T('Delete','删除'),className:'danger',onClick:()=>{setTimeout(()=>removeMovement(x.id,uid),0);return true;}});if(typeof window.mmhVaultOpenDialogV449==='function')return window.mmhVaultOpenDialogV449({title:T('Wallet activity detail','钱包活动详情'),message:(x.from_wallet||'Wallet')+(x.movement_type==='transfer'?' → '+(x.to_wallet||'Wallet'):''),body:walletMovementDetailHTML(x),actions,dialogClass:'mmh-wallet-detail-dialog-v177 iw224-trade-dialog',bodyClass:'mmh-wallet-detail-body-v177'});await window.mmhEditDeleteUI?.message?.(T('Wallet activity detail','钱包活动详情'),`${x.from_wallet||'Wallet'} → ${x.to_wallet||'Wallet'} · ${x.quantity||0} ${x.asset_symbol||''}`)}
  window.mmhOpenWalletMovementDetailV177=openWalletMovementDetailV177;
  function renderHistory(){const el=$('mmhWalletHistoryV172');if(!el)return;window.mmhRenderInvestHistoryV1?.();if(!rows.length){el.innerHTML=`<div class="mmh-wallet-empty-v172">${T('No wallet activity yet. Your first OKX → MetaMask transfer can be recorded here.','暂无钱包活动。你的第一笔 OKX → MetaMask 转账可以记录在这里。')}</div>`;return}el.innerHTML=rows.map(x=>{const transfer=x.movement_type==='transfer',fee=N(x.fee_quantity),feeSym=String(x.fee_asset_symbol||x.asset_symbol||'').toUpperCase(),price=N(x.fee_unit_price_usd),route=transfer?`${E(x.from_wallet||'Wallet')} → ${E(x.to_wallet||'Wallet')}`:`${E(x.from_wallet||'Wallet')} · ${T('Network Fee','链上手续费')}`,meta=[x.movement_date,E(x.network||''),x.tx_hash?T('Tx recorded','已记录 Tx'):null].filter(Boolean).join(' · ');return `<article class="mmh-wallet-row-v172 mmh-wallet-row-clickable-v177" data-wallet-detail-v177="${E(x.id)}" tabindex="0" role="button"><div class="mmh-wallet-icon-v172">${transfer?'⇄':'⛽'}</div><div><h4>${route}</h4><p>${meta}${x.note?` · ${E(x.note)}`:''}</p><div class="mmh-wallet-row-actions-v177"><button type="button" class="mmh-wallet-detail-btn-v177" data-wallet-open-v177="${E(x.id)}">${T('Details','详情')} ›</button><button type="button" class="mmh-wallet-delete-v174" data-wallet-delete-v174="${E(x.id)}">${T('Delete','删除')}</button></div></div><div class="mmh-wallet-amount-v172"><b>${transfer?E(Number(x.quantity).toLocaleString(undefined,{maximumFractionDigits:8}))+' '+E(x.asset_symbol):T('Fee','手续费')+' '+E(Number(fee).toLocaleString(undefined,{maximumFractionDigits:8}))+' '+E(feeSym)}</b>${fee>0&&transfer?`<small>${T('Network fee','链上手续费')} ${E(Number(fee).toLocaleString(undefined,{maximumFractionDigits:8}))} ${E(feeSym)}${price>0?' · ≈ $'+(fee*price).toFixed(2):''}</small>`:fee>0&&price>0?`<small>≈ $${(fee*price).toFixed(2)}</small>`:''}</div></article>`}).join('');el.querySelectorAll('[data-wallet-delete-v174]').forEach(b=>b.addEventListener('click',e=>{e.preventDefault();e.stopPropagation();removeMovement(b.dataset.walletDeleteV174)}));el.querySelectorAll('[data-wallet-open-v177]').forEach(b=>b.addEventListener('click',e=>{e.preventDefault();e.stopPropagation();openWalletMovementDetailV177(b.dataset.walletOpenV177)}));el.querySelectorAll('[data-wallet-detail-v177]').forEach(card=>{card.addEventListener('click',e=>{if(e.target.closest('button'))return;openWalletMovementDetailV177(card.dataset.walletDetailV177)});card.addEventListener('keydown',e=>{if((e.key==='Enter'||e.key===' ')&&!e.target.closest('button')){e.preventDefault();openWalletMovementDetailV177(card.dataset.walletDetailV177)}})})}
@@ -37725,81 +37738,86 @@ html body #ledger-detail#ledger-detail#ledger-detail#ledger-detail #ldBody .tx-m
 html body #transactions#transactions#transactions#transactions#transactions#transactions#transactions #txHistoryPanel#txHistoryPanel #hcRemaining[data-net-sign=positive]{color:var(--uv-positive)!important}
 html body #transactions#transactions#transactions#transactions#transactions#transactions#transactions #txHistoryPanel#txHistoryPanel #hcRemaining[data-net-sign=negative]{color:var(--uv-negative)!important}
 /* Actual transaction details dialog, not the underlying ledger page. */
-html body #mmhVaultDialogV449#mmhVaultDialogV449#mmhVaultDialogV449#mmhVaultDialogV449 .mmh-v449-dialog:has(.mmh-tx-detail-v800[data-mmh-tx-direction]){width:min(720px,calc(100vw - 24px))!important;max-width:calc(100vw - 24px)!important;border-radius:10px!important;background:var(--uv-card)!important;background-image:none!important;box-shadow:0 12px 36px #0003!important;font-family:var(--mmh-notice-font,system-ui)!important}
-html body #mmhVaultDialogV449#mmhVaultDialogV449#mmhVaultDialogV449#mmhVaultDialogV449 .mmh-v449-dialog:has(.mmh-tx-detail-v800[data-mmh-tx-direction]) :is(.mmh-v449-dialog-head,.mmh-v449-dialog-body,.mmh-v449-dialog-actions){padding:12px 16px!important;background:var(--uv-card)!important;background-image:none!important;border-color:var(--uv-line)!important;box-shadow:none!important}
-html body #mmhVaultDialogV449#mmhVaultDialogV449#mmhVaultDialogV449#mmhVaultDialogV449 .mmh-tx-detail-v800[data-mmh-tx-direction]{gap:9px!important;font-family:var(--mmh-notice-font,system-ui)!important}
-html body #mmhVaultDialogV449#mmhVaultDialogV449#mmhVaultDialogV449#mmhVaultDialogV449 .mmh-tx-detail-v800[data-mmh-tx-direction] :is(.mmh-tx-detail-hero-v800,.mmh-tx-detail-item-v800,.mmh-tx-detail-note-v800,.mmh-tx-detail-receipt-v800,.mmh-tx-reuse-hint-v142){min-height:0!important;padding:10px 12px!important;border-radius:7px!important;background:var(--uv-card)!important;background-image:none!important;border:1px solid var(--uv-line)!important;box-shadow:none!important;color:var(--uv-text)!important}
-html body #mmhVaultDialogV449#mmhVaultDialogV449#mmhVaultDialogV449#mmhVaultDialogV449 .mmh-tx-detail-v800[data-mmh-tx-direction] .mmh-tx-detail-hero-v800{align-items:center!important;flex-wrap:wrap!important}
-html body #mmhVaultDialogV449#mmhVaultDialogV449#mmhVaultDialogV449#mmhVaultDialogV449 .mmh-tx-detail-v800[data-mmh-tx-direction] :is(.mmh-tx-detail-title-v800,.mmh-tx-detail-amount-v800){font:650 22px/1.35 var(--mmh-notice-font,system-ui)!important;color:var(--uv-text)!important;text-shadow:none!important;letter-spacing:normal!important;white-space:normal!important;overflow-wrap:anywhere!important}
-html body #mmhVaultDialogV449#mmhVaultDialogV449#mmhVaultDialogV449#mmhVaultDialogV449 .mmh-tx-detail-v800[data-mmh-tx-direction] :is(.mmh-tx-detail-eyebrow-v800,.mmh-tx-detail-label-v800,small){color:var(--uv-muted)!important;font:500 11px/1.4 var(--mmh-notice-font,system-ui)!important;letter-spacing:normal!important}
-html body #mmhVaultDialogV449#mmhVaultDialogV449#mmhVaultDialogV449#mmhVaultDialogV449 .mmh-tx-detail-v800[data-mmh-tx-direction] :is(.mmh-tx-detail-value-v800,strong){color:var(--uv-text)!important;font:550 13px/1.4 var(--mmh-notice-font,system-ui)!important}
-html body #mmhVaultDialogV449#mmhVaultDialogV449#mmhVaultDialogV449#mmhVaultDialogV449 .mmh-tx-detail-v800[data-mmh-tx-direction] :is(.mmh-tx-detail-chip-v800,.mmh-tx-reuse-hint-v142>span){background:var(--uv-raised)!important;background-image:none!important;border:1px solid var(--uv-line)!important;border-radius:6px!important;color:var(--uv-muted)!important}
+html body #mmhVaultDialogV449#mmhVaultDialogV449#mmhVaultDialogV449#mmhVaultDialogV449 .mmh-v449-dialog:has(:is(.mmh-tx-detail-v800[data-mmh-tx-direction],.iw224-trade-dialog .mmh-wallet-detail-v177)){width:min(720px,calc(100vw - 24px))!important;max-width:calc(100vw - 24px)!important;border-radius:10px!important;background:var(--uv-card)!important;background-image:none!important;box-shadow:0 12px 36px #0003!important;font-family:var(--mmh-notice-font,system-ui)!important}
+html body #mmhVaultDialogV449#mmhVaultDialogV449#mmhVaultDialogV449#mmhVaultDialogV449 .mmh-v449-dialog:has(:is(.mmh-tx-detail-v800[data-mmh-tx-direction],.iw224-trade-dialog .mmh-wallet-detail-v177)) :is(.mmh-v449-dialog-head,.mmh-v449-dialog-body,.mmh-v449-dialog-actions){padding:12px 16px!important;background:var(--uv-card)!important;background-image:none!important;border-color:var(--uv-line)!important;box-shadow:none!important}
+html body #mmhVaultDialogV449#mmhVaultDialogV449#mmhVaultDialogV449#mmhVaultDialogV449 :is(.mmh-tx-detail-v800[data-mmh-tx-direction],.iw224-trade-dialog .mmh-wallet-detail-v177){gap:9px!important;font-family:var(--mmh-notice-font,system-ui)!important}
+html body #mmhVaultDialogV449#mmhVaultDialogV449#mmhVaultDialogV449#mmhVaultDialogV449 :is(.mmh-tx-detail-v800[data-mmh-tx-direction],.iw224-trade-dialog .mmh-wallet-detail-v177) :is(:is(.mmh-tx-detail-hero-v800,.mmh-wallet-detail-hero-v177),:is(.mmh-tx-detail-item-v800,.mmh-wallet-detail-item-v177),:is(.mmh-tx-detail-note-v800,.mmh-wallet-detail-note-v177),.mmh-tx-detail-receipt-v800,.mmh-tx-reuse-hint-v142){min-height:0!important;padding:10px 12px!important;border-radius:7px!important;background:var(--uv-card)!important;background-image:none!important;border:1px solid var(--uv-line)!important;box-shadow:none!important;color:var(--uv-text)!important}
+html body #mmhVaultDialogV449#mmhVaultDialogV449#mmhVaultDialogV449#mmhVaultDialogV449 :is(.mmh-tx-detail-v800[data-mmh-tx-direction],.iw224-trade-dialog .mmh-wallet-detail-v177) :is(.mmh-tx-detail-hero-v800,.mmh-wallet-detail-hero-v177){align-items:center!important;flex-wrap:wrap!important}
+html body #mmhVaultDialogV449#mmhVaultDialogV449#mmhVaultDialogV449#mmhVaultDialogV449 :is(.mmh-tx-detail-v800[data-mmh-tx-direction],.iw224-trade-dialog .mmh-wallet-detail-v177) :is(.mmh-tx-detail-title-v800,.mmh-tx-detail-amount-v800){font:650 22px/1.35 var(--mmh-notice-font,system-ui)!important;color:var(--uv-text)!important;text-shadow:none!important;letter-spacing:normal!important;white-space:normal!important;overflow-wrap:anywhere!important}
+html body #mmhVaultDialogV449#mmhVaultDialogV449#mmhVaultDialogV449#mmhVaultDialogV449 :is(.mmh-tx-detail-v800[data-mmh-tx-direction],.iw224-trade-dialog .mmh-wallet-detail-v177) :is(.mmh-tx-detail-eyebrow-v800,.mmh-tx-detail-label-v800,small){color:var(--uv-muted)!important;font:500 11px/1.4 var(--mmh-notice-font,system-ui)!important;letter-spacing:normal!important}
+html body #mmhVaultDialogV449#mmhVaultDialogV449#mmhVaultDialogV449#mmhVaultDialogV449 :is(.mmh-tx-detail-v800[data-mmh-tx-direction],.iw224-trade-dialog .mmh-wallet-detail-v177) :is(.mmh-tx-detail-value-v800,strong){color:var(--uv-text)!important;font:550 13px/1.4 var(--mmh-notice-font,system-ui)!important}
+html body #mmhVaultDialogV449#mmhVaultDialogV449#mmhVaultDialogV449#mmhVaultDialogV449 :is(.mmh-tx-detail-v800[data-mmh-tx-direction],.iw224-trade-dialog .mmh-wallet-detail-v177) :is(.mmh-tx-detail-chip-v800,.mmh-tx-reuse-hint-v142>span){background:var(--uv-raised)!important;background-image:none!important;border:1px solid var(--uv-line)!important;border-radius:6px!important;color:var(--uv-muted)!important}
 html body #mmhVaultDialogV449#mmhVaultDialogV449#mmhVaultDialogV449#mmhVaultDialogV449 .mmh-tx-detail-v800[data-mmh-tx-direction=Expense] :is(.mmh-tx-detail-amount-v800,.mmh-tx-detail-chip-v800){color:var(--uv-negative)!important}
 html body #mmhVaultDialogV449#mmhVaultDialogV449#mmhVaultDialogV449#mmhVaultDialogV449 .mmh-tx-detail-v800[data-mmh-tx-direction=Income] :is(.mmh-tx-detail-amount-v800,.mmh-tx-detail-chip-v800){color:var(--uv-positive)!important}
 html body #mmhVaultDialogV449#mmhVaultDialogV449#mmhVaultDialogV449#mmhVaultDialogV449 .mmh-tx-detail-v800[data-mmh-tx-direction=Transfer] :is(.mmh-tx-detail-amount-v800,.mmh-tx-detail-chip-v800){color:var(--uv-accent)!important}
-html body #mmhVaultDialogV449#mmhVaultDialogV449#mmhVaultDialogV449#mmhVaultDialogV449 .mmh-tx-detail-v800[data-mmh-tx-direction] .mmh-tx-detail-grid-v800{grid-template-columns:repeat(3,minmax(0,1fr))!important;gap:8px!important}
-html body #mmhVaultDialogV449#mmhVaultDialogV449#mmhVaultDialogV449#mmhVaultDialogV449 .mmh-v449-dialog:has(.mmh-tx-detail-v800[data-mmh-tx-direction]) .mmh-v449-dialog-actions button{min-height:36px!important;padding:7px 12px!important;font:550 13px/1.4 var(--mmh-notice-font,system-ui)!important;border-radius:7px!important}
-html body #mmhVaultDialogV449#mmhVaultDialogV449#mmhVaultDialogV449#mmhVaultDialogV449 .mmh-v449-dialog:has(.mmh-tx-detail-v800[data-mmh-tx-direction]) .mmh-v449-dialog-actions button.primary{background:var(--mmh-notice-active)!important;color:var(--uv-accent)!important;border-color:var(--uv-accent)!important}
+html body #mmhVaultDialogV449#mmhVaultDialogV449#mmhVaultDialogV449#mmhVaultDialogV449 :is(.mmh-tx-detail-v800[data-mmh-tx-direction],.iw224-trade-dialog .mmh-wallet-detail-v177) :is(.mmh-tx-detail-grid-v800,.mmh-wallet-detail-grid-v177){grid-template-columns:repeat(3,minmax(0,1fr))!important;gap:8px!important}
+html body #mmhVaultDialogV449#mmhVaultDialogV449#mmhVaultDialogV449#mmhVaultDialogV449 .mmh-v449-dialog:has(:is(.mmh-tx-detail-v800[data-mmh-tx-direction],.iw224-trade-dialog .mmh-wallet-detail-v177)) .mmh-v449-dialog-actions button{min-height:36px!important;padding:7px 12px!important;font:550 13px/1.4 var(--mmh-notice-font,system-ui)!important;border-radius:7px!important}
+html body #mmhVaultDialogV449#mmhVaultDialogV449#mmhVaultDialogV449#mmhVaultDialogV449 .mmh-v449-dialog:has(:is(.mmh-tx-detail-v800[data-mmh-tx-direction],.iw224-trade-dialog .mmh-wallet-detail-v177)) .mmh-v449-dialog-actions button.primary{background:var(--mmh-notice-active)!important;color:var(--uv-accent)!important;border-color:var(--uv-accent)!important}
 /* Only the transaction edit form, not other dialogs using #editModal. */
-html body #editModal#editModal#editModal#editModal.open:has(#editTxForm){background:var(--mmh-notice-scrim)!important;background-image:none!important;backdrop-filter:none!important;-webkit-backdrop-filter:none!important;padding:12px!important}
-html body #editModal#editModal#editModal#editModal.open:has(#editTxForm)>.modal{width:min(760px,100%)!important;max-width:760px!important;max-height:calc(100dvh - 24px)!important;height:auto!important;min-height:0!important;padding:0!important;border-radius:10px!important;border:1px solid var(--uv-line)!important;background:var(--uv-card)!important;background-image:none!important;color:var(--uv-text)!important;box-shadow:0 12px 36px #0003!important;font-family:var(--mmh-notice-font,system-ui)!important;display:flex!important;flex-direction:column!important;overflow:hidden!important}
-html body #editModal#editModal#editModal#editModal:has(#editTxForm) :is(.modal>.toolbar,#editTxForm>.actions){padding:12px 16px!important;margin:0!important;background:var(--uv-card)!important;background-image:none!important;border-color:var(--uv-line)!important;box-shadow:none!important;backdrop-filter:none!important}
-html body #editModal#editModal#editModal#editModal:has(#editTxForm) #editModalTitle{color:var(--uv-text)!important;font:650 17px/1.4 var(--mmh-notice-font,system-ui)!important;letter-spacing:normal!important;text-shadow:none!important}
-html body #editModal#editModal#editModal#editModal:has(#editTxForm) #editModalBody{padding:0!important;overflow:hidden!important;display:flex!important;flex:1 1 auto!important;min-height:0!important}
-html body #editModal#editModal#editModal#editModal #editTxForm{width:100%!important;display:flex!important;flex-direction:column!important;min-height:0!important;min-width:0!important;margin:0!important}
-html body #editModal#editModal#editModal#editModal #editTxForm .mmh-edit-scroll-p22{flex:1 1 auto!important;min-height:0!important;padding:12px 16px!important;overflow-y:auto!important;overflow-x:hidden!important;overscroll-behavior:contain!important}
-html body #editModal#editModal#editModal#editModal #editTxForm .formgrid{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:10px!important}
-html body #editModal#editModal#editModal#editModal #editTxForm .mmh-form-section-v1{padding:5px 0!important;margin:0!important;border-color:var(--uv-line)!important;background:none!important;min-height:0!important;grid-column:1/-1}
-html body #editModal#editModal#editModal#editModal #editTxForm :is(.mmh-form-section-v1 span,.formgrid>label){color:var(--uv-muted)!important;font:550 12px/1.4 var(--mmh-notice-font,system-ui)!important;letter-spacing:normal!important;text-shadow:none!important}
-html body #editModal#editModal#editModal#editModal #editTxForm :is(input:not([type=file]),select,textarea){box-sizing:border-box!important;width:100%!important;min-width:0!important;min-height:38px!important;height:38px!important;padding:7px 10px!important;border-radius:7px!important;border:1px solid var(--uv-line)!important;background:var(--uv-raised)!important;background-image:none!important;color:var(--uv-text)!important;box-shadow:none!important;font:500 13px/1.4 var(--mmh-notice-font,system-ui)!important}
-html body.light #editModal#editModal#editModal#editModal #editTxForm :is(input,select,textarea){color-scheme:light!important}
-html body:not(.light) #editModal#editModal#editModal#editModal #editTxForm :is(input,select,textarea){color-scheme:dark!important}
-html body #editModal#editModal#editModal#editModal #editTxForm :is(input,select,textarea):focus-visible{outline:1px solid var(--uv-accent)!important;outline-offset:1px!important;box-shadow:none!important}
-html body #editModal#editModal#editModal#editModal #editTxForm :is(.receipt-upload-v3300,.receipt-dropzone-v3300,.receipt-upload-icon-v3300,.receipt-drop-icon-v3300,.receipt-upload-badge-v3300,.mmh-receipt-cta-p22,.receipt-manage-v3309){background:var(--uv-card)!important;background-image:none!important;border-color:var(--uv-line)!important;border-radius:7px!important;box-shadow:none!important;color:var(--uv-text)!important}
-html body #editModal#editModal#editModal#editModal #editTxForm :is(.receipt-upload-title-v3300,.receipt-drop-copy-v3300 strong){color:var(--uv-text)!important}
-html body #editModal#editModal#editModal#editModal #editTxForm :is(.receipt-upload-sub-v3300,.receipt-drop-copy-v3300 span,.receipt-upload-footer-v3300 span){color:var(--uv-muted)!important}
-html body #editModal#editModal#editModal#editModal:has(#editTxForm) .btn{min-height:36px!important;padding:7px 12px!important;border-radius:7px!important;background:var(--uv-raised)!important;background-image:none!important;border:1px solid var(--uv-line)!important;color:var(--uv-text)!important;box-shadow:none!important;font:550 13px/1.4 var(--mmh-notice-font,system-ui)!important}
-html body #editModal#editModal#editModal#editModal #editTxForm>.actions .btn.primary{background:var(--mmh-notice-active)!important;color:var(--uv-accent)!important;border-color:var(--uv-accent)!important}
-html body #editModal#editModal#editModal#editModal #editTxForm>.actions{flex:0 0 auto!important;position:relative!important;bottom:auto!important;border-top:1px solid var(--uv-line)!important;display:flex!important;justify-content:flex-end!important;gap:8px!important}
-@media(max-width:600px){html body #mmhVaultDialogV449#mmhVaultDialogV449#mmhVaultDialogV449#mmhVaultDialogV449 .mmh-tx-detail-v800[data-mmh-tx-direction] .mmh-tx-detail-grid-v800{grid-template-columns:repeat(2,minmax(0,1fr))!important}html body #editModal#editModal#editModal#editModal #editTxForm .formgrid{grid-template-columns:minmax(0,1fr)!important}html body #editModal#editModal#editModal#editModal #editTxForm :is(input:not([type=file]),select,textarea){font-size:16px!important}html body #editModal#editModal#editModal#editModal.open:has(#editTxForm)>.modal{height:calc(100dvh - 24px)!important}}
-@media(max-width:350px){html body #mmhVaultDialogV449#mmhVaultDialogV449#mmhVaultDialogV449#mmhVaultDialogV449 .mmh-tx-detail-v800[data-mmh-tx-direction] .mmh-tx-detail-grid-v800{grid-template-columns:minmax(0,1fr)!important}}
+html body #editModal#editModal#editModal#editModal.open:has(:is(#editTxForm,#editInvForm)){background:var(--mmh-notice-scrim)!important;background-image:none!important;backdrop-filter:none!important;-webkit-backdrop-filter:none!important;padding:12px!important}
+html body #editModal#editModal#editModal#editModal.open:has(:is(#editTxForm,#editInvForm))>.modal{width:min(760px,100%)!important;max-width:760px!important;max-height:calc(100dvh - 24px)!important;height:auto!important;min-height:0!important;padding:0!important;border-radius:10px!important;border:1px solid var(--uv-line)!important;background:var(--uv-card)!important;background-image:none!important;color:var(--uv-text)!important;box-shadow:0 12px 36px #0003!important;font-family:var(--mmh-notice-font,system-ui)!important;display:flex!important;flex-direction:column!important;overflow:hidden!important}
+html body #editModal#editModal#editModal#editModal:has(:is(#editTxForm,#editInvForm)) :is(.modal>.toolbar,:is(#editTxForm,#editInvForm)>.actions){padding:12px 16px!important;margin:0!important;background:var(--uv-card)!important;background-image:none!important;border-color:var(--uv-line)!important;box-shadow:none!important;backdrop-filter:none!important}
+html body #editModal#editModal#editModal#editModal:has(:is(#editTxForm,#editInvForm)) #editModalTitle{color:var(--uv-text)!important;font:650 17px/1.4 var(--mmh-notice-font,system-ui)!important;letter-spacing:normal!important;text-shadow:none!important}
+html body #editModal#editModal#editModal#editModal:has(:is(#editTxForm,#editInvForm)) #editModalBody{padding:0!important;overflow:hidden!important;display:flex!important;flex:1 1 auto!important;min-height:0!important}
+html body #editModal#editModal#editModal#editModal :is(#editTxForm,#editInvForm){width:100%!important;display:flex!important;flex-direction:column!important;min-height:0!important;min-width:0!important;margin:0!important}
+html body #editModal#editModal#editModal#editModal :is(#editTxForm,#editInvForm) :is(.mmh-edit-scroll-p22,.iw222-edit-scroll){flex:1 1 auto!important;min-height:0!important;padding:12px 16px!important;overflow-y:auto!important;overflow-x:hidden!important;overscroll-behavior:contain!important}
+html body #editModal#editModal#editModal#editModal :is(#editTxForm,#editInvForm) .formgrid{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:10px!important}
+html body #editModal#editModal#editModal#editModal :is(#editTxForm,#editInvForm) .mmh-form-section-v1{padding:5px 0!important;margin:0!important;border-color:var(--uv-line)!important;background:none!important;min-height:0!important;grid-column:1/-1}
+html body #editModal#editModal#editModal#editModal :is(#editTxForm,#editInvForm) :is(.mmh-form-section-v1 span,.formgrid>label){color:var(--uv-muted)!important;font:550 12px/1.4 var(--mmh-notice-font,system-ui)!important;letter-spacing:normal!important;text-shadow:none!important}
+html body #editModal#editModal#editModal#editModal :is(#editTxForm,#editInvForm) :is(input:not([type=file]),select,textarea){box-sizing:border-box!important;width:100%!important;min-width:0!important;min-height:38px!important;height:38px!important;padding:7px 10px!important;border-radius:7px!important;border:1px solid var(--uv-line)!important;background:var(--uv-raised)!important;background-image:none!important;color:var(--uv-text)!important;box-shadow:none!important;font:500 13px/1.4 var(--mmh-notice-font,system-ui)!important}
+html body.light #editModal#editModal#editModal#editModal :is(#editTxForm,#editInvForm) :is(input,select,textarea){color-scheme:light!important}
+html body:not(.light) #editModal#editModal#editModal#editModal :is(#editTxForm,#editInvForm) :is(input,select,textarea){color-scheme:dark!important}
+html body #editModal#editModal#editModal#editModal :is(#editTxForm,#editInvForm) :is(input,select,textarea):focus-visible{outline:1px solid var(--uv-accent)!important;outline-offset:1px!important;box-shadow:none!important}
+html body #editModal#editModal#editModal#editModal :is(#editTxForm,#editInvForm) :is(.receipt-upload-v3300,.receipt-dropzone-v3300,.receipt-upload-icon-v3300,.receipt-drop-icon-v3300,.receipt-upload-badge-v3300,.mmh-receipt-cta-p22,.receipt-manage-v3309){background:var(--uv-card)!important;background-image:none!important;border-color:var(--uv-line)!important;border-radius:7px!important;box-shadow:none!important;color:var(--uv-text)!important}
+html body #editModal#editModal#editModal#editModal :is(#editTxForm,#editInvForm) :is(.receipt-upload-title-v3300,.receipt-drop-copy-v3300 strong){color:var(--uv-text)!important}
+html body #editModal#editModal#editModal#editModal :is(#editTxForm,#editInvForm) :is(.receipt-upload-sub-v3300,.receipt-drop-copy-v3300 span,.receipt-upload-footer-v3300 span){color:var(--uv-muted)!important}
+html body #editModal#editModal#editModal#editModal:has(:is(#editTxForm,#editInvForm)) .btn{min-height:36px!important;padding:7px 12px!important;border-radius:7px!important;background:var(--uv-raised)!important;background-image:none!important;border:1px solid var(--uv-line)!important;color:var(--uv-text)!important;box-shadow:none!important;font:550 13px/1.4 var(--mmh-notice-font,system-ui)!important}
+html body #editModal#editModal#editModal#editModal :is(#editTxForm,#editInvForm)>.actions .btn.primary{background:var(--mmh-notice-active)!important;color:var(--uv-accent)!important;border-color:var(--uv-accent)!important}
+html body #editModal#editModal#editModal#editModal :is(#editTxForm,#editInvForm)>.actions{flex:0 0 auto!important;position:relative!important;bottom:auto!important;border-top:1px solid var(--uv-line)!important;display:flex!important;justify-content:flex-end!important;gap:8px!important}
+@media(max-width:600px){html body #mmhVaultDialogV449#mmhVaultDialogV449#mmhVaultDialogV449#mmhVaultDialogV449 :is(.mmh-tx-detail-v800[data-mmh-tx-direction],.iw224-trade-dialog .mmh-wallet-detail-v177) :is(.mmh-tx-detail-grid-v800,.mmh-wallet-detail-grid-v177){grid-template-columns:repeat(2,minmax(0,1fr))!important}html body #editModal#editModal#editModal#editModal :is(#editTxForm,#editInvForm) .formgrid{grid-template-columns:minmax(0,1fr)!important}html body #editModal#editModal#editModal#editModal :is(#editTxForm,#editInvForm) :is(input:not([type=file]),select,textarea){font-size:16px!important}html body #editModal#editModal#editModal#editModal.open:has(:is(#editTxForm,#editInvForm))>.modal{height:calc(100dvh - 24px)!important}}
+@media(max-width:350px){html body #mmhVaultDialogV449#mmhVaultDialogV449#mmhVaultDialogV449#mmhVaultDialogV449 :is(.mmh-tx-detail-v800[data-mmh-tx-direction],.iw224-trade-dialog .mmh-wallet-detail-v177) :is(.mmh-tx-detail-grid-v800,.mmh-wallet-detail-grid-v177){grid-template-columns:minmax(0,1fr)!important}}
+/* Invest detail uses the Transaction frame; record-specific markup keeps its own semantics. */
+html body #mmhVaultDialogV449#mmhVaultDialogV449#mmhVaultDialogV449#mmhVaultDialogV449 .iw224-trade-dialog .mmh-wallet-detail-v177 :is(.mmh-wallet-detail-hero-v177 h3,.mmh-wallet-detail-hero-v177>strong){font:650 22px/1.35 var(--mmh-notice-font,system-ui)!important;color:var(--uv-text)!important;margin:0!important;white-space:normal!important;overflow-wrap:anywhere!important}
+html body #mmhVaultDialogV449#mmhVaultDialogV449#mmhVaultDialogV449#mmhVaultDialogV449 .iw224-trade-dialog .mmh-wallet-detail-v177 :is(small,.mmh-wallet-detail-hero-v177 span){color:var(--uv-muted)!important;font:500 11px/1.4 var(--mmh-notice-font,system-ui)!important;letter-spacing:normal!important;text-transform:none!important}
+html body #mmhVaultDialogV449#mmhVaultDialogV449#mmhVaultDialogV449#mmhVaultDialogV449 .iw224-trade-dialog .mmh-wallet-detail-v177 :is(.mmh-wallet-detail-item-v177 b,.mmh-wallet-detail-line-v177 code,.mmh-wallet-detail-note-v177 p){font:550 13px/1.4 var(--mmh-notice-font,system-ui)!important;color:var(--uv-text)!important;overflow-wrap:anywhere!important;white-space:pre-wrap!important}
+html body #mmhVaultDialogV449#mmhVaultDialogV449#mmhVaultDialogV449#mmhVaultDialogV449 .iw224-trade-dialog .mmh-wallet-detail-v177 .mmh-wallet-detail-line-v177{min-height:0!important;padding:10px 12px!important;border-radius:7px!important;background:var(--uv-card)!important;background-image:none!important;border:1px solid var(--uv-line)!important;box-shadow:none!important;color:var(--uv-text)!important}
 </style>
 
 <style id="mmhTransactionWorkspaceBoundedDialogsV2">
 /* Keep actual overlay and scrim inside the visible workspace, excluding rail/header/bottom nav. */
 html body #mmhVaultDialogV449#mmhVaultDialogV449#mmhVaultDialogV449#mmhVaultDialogV449.mmh-tx-bounded-v2.show,
-html body #editModal#editModal#editModal#editModal.mmh-tx-bounded-v2.open:has(#editTxForm){
+html body #editModal#editModal#editModal#editModal.mmh-tx-bounded-v2.open:has(:is(#editTxForm,#editInvForm)){
  position:fixed!important;inset:var(--tx-bound-top,8px) var(--tx-bound-right,8px) var(--tx-bound-bottom,8px) var(--tx-bound-left,8px)!important;
  width:auto!important;height:auto!important;max-width:none!important;max-height:none!important;min-width:0!important;min-height:0!important;
  margin:0!important;padding:0!important;box-sizing:border-box!important;display:flex!important;align-items:center!important;justify-content:center!important;overflow:hidden!important;
  background:var(--mmh-notice-scrim)!important;background-image:none!important;backdrop-filter:none!important;-webkit-backdrop-filter:none!important;
 }
 html body #mmhVaultDialogV449#mmhVaultDialogV449#mmhVaultDialogV449#mmhVaultDialogV449.mmh-tx-bounded-v2>.mmh-v449-dialog,
-html body #editModal#editModal#editModal#editModal.mmh-tx-bounded-v2.open:has(#editTxForm)>.modal{
+html body #editModal#editModal#editModal#editModal.mmh-tx-bounded-v2.open:has(:is(#editTxForm,#editInvForm))>.modal{
  box-sizing:border-box!important;width:min(760px,100%)!important;max-width:100%!important;min-width:0!important;
  height:auto!important;max-height:100%!important;min-height:0!important;flex:0 1 auto!important;display:flex!important;flex-direction:column!important;overflow:hidden!important;margin:0!important;
 }
 html body #mmhVaultDialogV449#mmhVaultDialogV449#mmhVaultDialogV449#mmhVaultDialogV449.mmh-tx-bounded-v2 :is(.mmh-v449-dialog-head,.mmh-v449-dialog-actions),
-html body #editModal#editModal#editModal#editModal.mmh-tx-bounded-v2:has(#editTxForm)>.modal>.toolbar{
+html body #editModal#editModal#editModal#editModal.mmh-tx-bounded-v2:has(:is(#editTxForm,#editInvForm))>.modal>.toolbar{
  flex:0 0 auto!important;min-height:0!important;
 }
 html body #mmhVaultDialogV449#mmhVaultDialogV449#mmhVaultDialogV449#mmhVaultDialogV449.mmh-tx-bounded-v2 .mmh-v449-dialog-body{
  flex:1 1 auto!important;min-height:0!important;overflow-y:auto!important;overflow-x:hidden!important;overscroll-behavior:contain!important;scrollbar-width:thin;scrollbar-color:var(--uv-line) transparent;
 }
-html body #editModal#editModal#editModal#editModal.mmh-tx-bounded-v2.open:has(#editTxForm)>.modal{height:min(740px,100%)!important;}
+html body #editModal#editModal#editModal#editModal.mmh-tx-bounded-v2.open:has(:is(#editTxForm,#editInvForm))>.modal{height:min(740px,100%)!important;}
 html body #editModal#editModal#editModal#editModal.mmh-tx-bounded-v2 #editModalBody,
-html body #editModal#editModal#editModal#editModal.mmh-tx-bounded-v2 #editTxForm{
+html body #editModal#editModal#editModal#editModal.mmh-tx-bounded-v2 :is(#editTxForm,#editInvForm){
  flex:1 1 0!important;min-height:0!important;max-height:100%!important;display:flex!important;flex-direction:column!important;overflow:hidden!important;
  background:var(--uv-card)!important;background-image:none!important;box-shadow:none!important;
 }
-html body #editModal#editModal#editModal#editModal.mmh-tx-bounded-v2 #editTxForm .mmh-edit-scroll-p22{
+html body #editModal#editModal#editModal#editModal.mmh-tx-bounded-v2 :is(#editTxForm,#editInvForm) :is(.mmh-edit-scroll-p22,.iw222-edit-scroll){
  flex:1 1 0!important;min-height:0!important;overflow-y:auto!important;overflow-x:hidden!important;overscroll-behavior:contain!important;
  background:var(--uv-card)!important;background-image:none!important;box-shadow:none!important;scrollbar-width:thin;scrollbar-color:var(--uv-line) transparent;
 }
-html body #editModal#editModal#editModal#editModal.mmh-tx-bounded-v2 #editTxForm>.actions{
+html body #editModal#editModal#editModal#editModal.mmh-tx-bounded-v2 :is(#editTxForm,#editInvForm)>.actions{
  flex:0 0 auto!important;position:static!important;margin:0!important;padding:10px 14px!important;min-height:0!important;display:flex!important;flex-wrap:wrap!important;justify-content:flex-end!important;
 }
-html body #editModal#editModal#editModal#editModal.mmh-tx-bounded-v2 #editTxForm>.actions .btn{min-width:0!important;max-width:100%!important;}
+html body #editModal#editModal#editModal#editModal.mmh-tx-bounded-v2 :is(#editTxForm,#editInvForm)>.actions .btn{min-width:0!important;max-width:100%!important;}
 /* A full-height canvas and no inherited desktop gutter for transaction ledger details. */
 html body.mmh-workspace-active:has(#ledger-detail.active #ldBody .tx-mobile-card-v371),
 html body.mmh-workspace-active:has(#ledger-detail.active #ldBody .tx-mobile-card-v371) main.wrap.wrap.wrap{
@@ -37811,11 +37829,11 @@ html body.mmh-workspace-active:has(#ledger-detail.active #ldBody .tx-mobile-card
 }
 @media(max-height:540px){
  html body #mmhVaultDialogV449#mmhVaultDialogV449#mmhVaultDialogV449#mmhVaultDialogV449.mmh-tx-bounded-v2 :is(.mmh-v449-dialog-head,.mmh-v449-dialog-actions),
- html body #editModal#editModal#editModal#editModal.mmh-tx-bounded-v2:has(#editTxForm)>.modal>.toolbar,
- html body #editModal#editModal#editModal#editModal.mmh-tx-bounded-v2 #editTxForm>.actions{padding:6px 10px!important;}
+ html body #editModal#editModal#editModal#editModal.mmh-tx-bounded-v2:has(:is(#editTxForm,#editInvForm))>.modal>.toolbar,
+ html body #editModal#editModal#editModal#editModal.mmh-tx-bounded-v2 :is(#editTxForm,#editInvForm)>.actions{padding:6px 10px!important;}
 }
 @media(max-width:600px){
- html body #editModal#editModal#editModal#editModal.mmh-tx-bounded-v2.open:has(#editTxForm)>.modal{height:100%!important;}
+ html body #editModal#editModal#editModal#editModal.mmh-tx-bounded-v2.open:has(:is(#editTxForm,#editInvForm))>.modal{height:100%!important;}
 }
 </style>
 <script id="mmhTransactionWorkspaceDialogGeometryV2">
@@ -37826,7 +37844,10 @@ if(!detail||!edit)return;
 const px=n=>Math.max(0,Math.round(n))+'px';
 function update(){
  const b=window.MMHWorkspaceDialogBoundsV2?.(null);
- for(const [host,active] of [[detail,detail.classList.contains('show')&&!!detail.querySelector('.mmh-tx-detail-v800[data-mmh-tx-direction]')],[edit,edit.classList.contains('open')&&!!edit.querySelector('#editTxForm')]]){
+ const custom=document.querySelector('dialog.mmh-history-edit.iw226-custom-edit[open]');
+ const hosts=[[detail,detail.classList.contains('show')&&!!detail.querySelector('.mmh-tx-detail-v800[data-mmh-tx-direction],.iw224-trade-dialog .mmh-wallet-detail-v177')],[edit,edit.classList.contains('open')&&!!edit.querySelector('#editTxForm,#editInvForm')]];
+ if(custom)hosts.push([custom,true]);
+ for(const [host,active] of hosts){
    host.classList.toggle('mmh-tx-bounded-v2',active&&!!b);
    if(!active||!b)continue;
    const vv=window.visualViewport;
@@ -38046,16 +38067,16 @@ html body.mmh-workspace-active #transactions#transactions#transactions#transacti
 }
 html body.mmh-workspace-active #transactions#transactions#transactions#transactions#transactions#transactions#transactions#transactions#transactions #txHistoryPanel#txHistoryPanel#txHistoryPanel,
 html body.mmh-workspace-active #transactions#transactions#transactions#transactions#transactions#transactions#transactions#transactions#transactions #txHistoryPanel#txHistoryPanel#txHistoryPanel>.panel{margin-top:0!important;background:var(--tv-card)!important;background-image:none!important}
-html body #editModal#editModal#editModal#editModal #editTxForm #editReceiptManageV3309{padding:0!important;margin:8px 0 0!important;border:0!important;background:transparent!important;box-shadow:none!important}
-html body #editModal#editModal#editModal#editModal #editTxForm #editReceiptManageV3309:empty{display:none!important}
-html body #editModal#editModal#editModal#editModal #editTxForm .receipt-manage-empty-v3309{padding:8px 10px!important;border:0!important;border-radius:6px!important;background:var(--uv-raised)!important;background-image:none!important;color:var(--uv-muted)!important;box-shadow:none!important;text-align:left!important;font:400 12px/1.45 var(--mmh-notice-font,system-ui)!important}
-html body #editModal#editModal#editModal#editModal #editTxForm .receipt-manage-state-v3309{padding:8px 10px!important;gap:8px!important;border:1px solid var(--uv-line)!important;border-radius:7px!important;background:var(--uv-card)!important;background-image:none!important;box-shadow:none!important}
-html body #editModal#editModal#editModal#editModal #editTxForm .receipt-manage-icon-v3309{flex:none;border:1px solid var(--uv-line)!important;border-radius:6px!important;background:var(--uv-raised)!important;background-image:none!important;color:var(--uv-positive)!important;box-shadow:none!important}
-html body #editModal#editModal#editModal#editModal #editTxForm .receipt-manage-copy-v3309 strong{color:var(--uv-text)!important;font:600 12px/1.4 var(--mmh-notice-font,system-ui)!important}
-html body #editModal#editModal#editModal#editModal #editTxForm .receipt-manage-copy-v3309 span{color:var(--uv-muted)!important;font:400 11px/1.4 var(--mmh-notice-font,system-ui)!important}
-html body #editModal#editModal#editModal#editModal #editTxForm .receipt-manage-actions-v3309{gap:5px!important;flex-wrap:wrap!important}
-html body #editModal#editModal#editModal#editModal #editTxForm .receipt-manage-actions-v3309 .btn{min-height:34px!important;padding:5px 9px!important;font-size:12px!important}
-html body #editModal#editModal#editModal#editModal #editTxForm .receipt-manage-actions-v3309 .btn.danger{color:var(--uv-negative)!important}
+html body #editModal#editModal#editModal#editModal :is(#editTxForm,#editInvForm) :is(#editReceiptManageV3309,#editInvestmentReceiptManageV3309){padding:0!important;margin:8px 0 0!important;border:0!important;background:transparent!important;box-shadow:none!important}
+html body #editModal#editModal#editModal#editModal :is(#editTxForm,#editInvForm) :is(#editReceiptManageV3309,#editInvestmentReceiptManageV3309):empty{display:none!important}
+html body #editModal#editModal#editModal#editModal :is(#editTxForm,#editInvForm) .receipt-manage-empty-v3309{padding:8px 10px!important;border:0!important;border-radius:6px!important;background:var(--uv-raised)!important;background-image:none!important;color:var(--uv-muted)!important;box-shadow:none!important;text-align:left!important;font:400 12px/1.45 var(--mmh-notice-font,system-ui)!important}
+html body #editModal#editModal#editModal#editModal :is(#editTxForm,#editInvForm) .receipt-manage-state-v3309{padding:8px 10px!important;gap:8px!important;border:1px solid var(--uv-line)!important;border-radius:7px!important;background:var(--uv-card)!important;background-image:none!important;box-shadow:none!important}
+html body #editModal#editModal#editModal#editModal :is(#editTxForm,#editInvForm) .receipt-manage-icon-v3309{flex:none;border:1px solid var(--uv-line)!important;border-radius:6px!important;background:var(--uv-raised)!important;background-image:none!important;color:var(--uv-positive)!important;box-shadow:none!important}
+html body #editModal#editModal#editModal#editModal :is(#editTxForm,#editInvForm) .receipt-manage-copy-v3309 strong{color:var(--uv-text)!important;font:600 12px/1.4 var(--mmh-notice-font,system-ui)!important}
+html body #editModal#editModal#editModal#editModal :is(#editTxForm,#editInvForm) .receipt-manage-copy-v3309 span{color:var(--uv-muted)!important;font:400 11px/1.4 var(--mmh-notice-font,system-ui)!important}
+html body #editModal#editModal#editModal#editModal :is(#editTxForm,#editInvForm) .receipt-manage-actions-v3309{gap:5px!important;flex-wrap:wrap!important}
+html body #editModal#editModal#editModal#editModal :is(#editTxForm,#editInvForm) .receipt-manage-actions-v3309 .btn{min-height:34px!important;padding:5px 9px!important;font-size:12px!important}
+html body #editModal#editModal#editModal#editModal :is(#editTxForm,#editInvForm) .receipt-manage-actions-v3309 .btn.danger{color:var(--uv-negative)!important}
 html body #receiptViewerModalV3297#receiptViewerModalV3297{position:fixed!important;inset:var(--rv-top,8px) var(--rv-right,8px) var(--rv-bottom,8px) var(--rv-left,8px)!important;z-index:2147483500!important;padding:0!important;margin:0!important;box-sizing:border-box!important;background:var(--mmh-notice-scrim)!important;background-image:none!important;backdrop-filter:none!important;-webkit-backdrop-filter:none!important}
 html body #receiptViewerModalV3297#receiptViewerModalV3297:not(.show){display:none!important}
 html body #receiptViewerModalV3297#receiptViewerModalV3297.show{display:flex!important;align-items:center!important;justify-content:center!important}
@@ -38068,8 +38089,8 @@ html body #receiptViewerModalV3297#receiptViewerModalV3297 .receipt-viewer-actio
 html body #receiptViewerModalV3297#receiptViewerModalV3297 :is(#receiptZoomLabelV3297,#receiptZoomFloatLabelV3299,.receipt-viewer-loading-v3297){color:var(--uv-muted)!important;font:500 12px/1.4 var(--mmh-notice-font,system-ui)!important}
 html body #receiptViewerModalV3297#receiptViewerModalV3297 .receipt-viewer-body-v3297{flex:1 1 0!important;min-height:0!important;min-width:0!important;overflow:auto!important;overscroll-behavior:contain!important;background:var(--uv-raised)!important;background-image:none!important;box-shadow:none!important}
 @media(max-width:520px){
-html body #editModal#editModal#editModal#editModal #editTxForm .receipt-manage-state-v3309{flex-wrap:wrap!important}
-html body #editModal#editModal#editModal#editModal #editTxForm .receipt-manage-actions-v3309{width:100%!important}
+html body #editModal#editModal#editModal#editModal :is(#editTxForm,#editInvForm) .receipt-manage-state-v3309{flex-wrap:wrap!important}
+html body #editModal#editModal#editModal#editModal :is(#editTxForm,#editInvForm) .receipt-manage-actions-v3309{width:100%!important}
 html body #receiptViewerModalV3297#receiptViewerModalV3297 .receipt-viewer-head-v3297{padding:8px!important;gap:6px!important}
 html body #receiptViewerModalV3297#receiptViewerModalV3297 .receipt-viewer-title-v3297{font-size:13px!important}
 }
@@ -38908,28 +38929,6 @@ html body #ledger-detail#ledger-detail#ledger-detail#ledger-detail#ledger-detail
 }
 </style>
 <style id="mmh-invest-records-v222-r3">
-html body #editModal#editModal#editModal#editModal.open:has(#editInvForm)>.modal{width:min(760px,100%)!important;max-width:760px!important;max-height:calc(100dvh - 24px)!important;height:min(900px,calc(100dvh - 24px))!important;min-height:0!important;padding:0!important;border-radius:10px!important;border:1px solid var(--uv-line)!important;background:var(--uv-card)!important;background-image:none!important;color:var(--uv-text)!important;box-shadow:0 12px 36px #0003!important;font-family:var(--mmh-notice-font,system-ui)!important;display:flex!important;flex-direction:column!important;overflow:hidden!important}
-html body #editModal#editModal#editModal#editModal:has(#editInvForm) :is(.modal>.toolbar,#editInvForm>.actions){padding:12px 16px!important;margin:0!important;background:var(--uv-card)!important;background-image:none!important;border-color:var(--uv-line)!important;box-shadow:none!important;backdrop-filter:none!important}
-html body #editModal#editModal#editModal#editModal:has(#editInvForm) #editModalTitle{color:var(--uv-text)!important;font:650 17px/1.4 var(--mmh-notice-font,system-ui)!important;letter-spacing:normal!important;text-shadow:none!important}
-html body #editModal#editModal#editModal#editModal:has(#editInvForm) #editModalBody{padding:0!important;overflow:hidden!important;display:flex!important;flex:1 1 auto!important;min-height:0!important}
-html body #editModal#editModal#editModal#editModal #editInvForm{width:100%!important;display:flex!important;flex-direction:column!important;min-height:0!important;min-width:0!important;margin:0!important}
-html body #editModal#editModal#editModal#editModal #editInvForm .iw222-edit-scroll{flex:1 1 auto!important;min-height:0!important;padding:12px 16px!important;overflow-y:auto!important;overflow-x:hidden!important;overscroll-behavior:contain!important}
-html body #editModal#editModal#editModal#editModal #editInvForm .formgrid{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:10px!important}
-html body #editModal#editModal#editModal#editModal #editInvForm .mmh-form-section-v1{padding:5px 0!important;margin:0!important;border-color:var(--uv-line)!important;background:none!important;min-height:0!important;grid-column:1/-1}
-html body #editModal#editModal#editModal#editModal #editInvForm :is(.mmh-form-section-v1 span,.formgrid>label){color:var(--uv-muted)!important;font:550 12px/1.4 var(--mmh-notice-font,system-ui)!important;letter-spacing:normal!important;text-shadow:none!important}
-html body #editModal#editModal#editModal#editModal #editInvForm :is(input:not([type=file]),select,textarea){box-sizing:border-box!important;width:100%!important;min-width:0!important;min-height:38px!important;height:38px!important;padding:7px 10px!important;border-radius:7px!important;border:1px solid var(--uv-line)!important;background:var(--uv-raised)!important;background-image:none!important;color:var(--uv-text)!important;box-shadow:none!important;font:500 13px/1.4 var(--mmh-notice-font,system-ui)!important}
-html body.light #editModal#editModal#editModal#editModal #editInvForm :is(input,select,textarea){color-scheme:light!important}
-html body:not(.light) #editModal#editModal#editModal#editModal #editInvForm :is(input,select,textarea){color-scheme:dark!important}
-html body #editModal#editModal#editModal#editModal #editInvForm :is(input,select,textarea):focus-visible{outline:1px solid var(--uv-accent)!important;outline-offset:1px!important;box-shadow:none!important}
-html body #editModal#editModal#editModal#editModal #editInvForm :is(.receipt-upload-v3300,.receipt-dropzone-v3300,.receipt-upload-icon-v3300,.receipt-drop-icon-v3300,.receipt-upload-badge-v3300,.mmh-receipt-cta-p22,.receipt-manage-v3309){background:var(--uv-card)!important;background-image:none!important;border-color:var(--uv-line)!important;border-radius:7px!important;box-shadow:none!important;color:var(--uv-text)!important}
-html body #editModal#editModal#editModal#editModal #editInvForm :is(.receipt-upload-title-v3300,.receipt-drop-copy-v3300 strong){color:var(--uv-text)!important}
-html body #editModal#editModal#editModal#editModal #editInvForm :is(.receipt-upload-sub-v3300,.receipt-drop-copy-v3300 span,.receipt-upload-footer-v3300 span){color:var(--uv-muted)!important}
-html body #editModal#editModal#editModal#editModal:has(#editInvForm) .btn{min-height:36px!important;padding:7px 12px!important;border-radius:7px!important;background:var(--uv-raised)!important;background-image:none!important;border:1px solid var(--uv-line)!important;color:var(--uv-text)!important;box-shadow:none!important;font:550 13px/1.4 var(--mmh-notice-font,system-ui)!important}
-html body #editModal#editModal#editModal#editModal #editInvForm>.actions .btn.primary{background:var(--mmh-notice-active)!important;color:var(--uv-accent)!important;border-color:var(--uv-accent)!important}
-html body #editModal#editModal#editModal#editModal #editInvForm>.actions{flex:0 0 auto!important;position:relative!important;bottom:auto!important;border-top:1px solid var(--uv-line)!important;display:flex!important;justify-content:flex-end!important;gap:8px!important}
-@media(max-width:600px){html body #editModal#editModal#editModal#editModal #editInvForm .formgrid{grid-template-columns:minmax(0,1fr)!important}html body #editModal#editModal#editModal#editModal #editInvForm :is(input:not([type=file]),select,textarea){font-size:16px!important}html body #editModal#editModal#editModal#editModal.open:has(#editInvForm)>.modal{height:calc(100dvh - 24px)!important}}
-
-html body #editModal#editModal#editModal#editModal #editInvForm .receipt-manage-state-v3309{background:var(--uv-raised)!important;background-image:none!important;color:var(--uv-text)!important;border-color:var(--uv-line)!important;box-shadow:none!important}
 html body #editModal#editModal#editModal#editModal #editInvForm .btn.danger{color:var(--uv-negative)!important}
 html body #editModal#editModal#editModal#editModal #editInvForm .iw222-edit-scroll>.receipt-upload-v3300{margin-top:12px!important}
 html body dialog.mmh-history-edit.mmh-history-edit[open]{box-sizing:border-box!important;width:min(560px,calc(100vw - 24px))!important;max-height:calc(100dvh - 24px)!important;padding:0!important;overflow:auto!important;overscroll-behavior:contain!important;background:var(--uv-card)!important;background-image:none!important;color:var(--uv-text)!important;border:1px solid var(--uv-line)!important;border-radius:10px!important;box-shadow:0 12px 36px #0003!important}
@@ -39082,21 +39081,6 @@ html body #invest #mmhHistoryFiltersV1 #iw225-delete-all{
  background:transparent!important;border:1px solid color-mix(in srgb,var(--uv-negative,#f095a1) 58%,var(--uv-line,#354152))!important;
  color:var(--uv-negative,#f095a1)!important;font-weight:650!important;
 }
-html body #invest #editModal.open:has(#editInvForm){display:flex!important;align-items:center!important;justify-content:center!important;overflow:hidden!important}
-html body #editModal.open:has(#editInvForm)>.modal{
- width:min(760px,calc(100vw - 24px))!important;max-width:760px!important;height:min(900px,calc(100dvh - 24px))!important;
- max-height:calc(100dvh - 24px)!important;min-height:0!important;padding:0!important;display:flex!important;flex-direction:column!important;overflow:hidden!important;
- background:var(--uv-card,#18212d)!important;background-image:none!important;color:var(--uv-text,#ecf1f8)!important;border-color:var(--uv-line,#354152)!important;
-}
-html body #editModal.open:has(#editInvForm) #editModalBody{min-height:0!important;flex:1 1 auto!important;display:flex!important;overflow:hidden!important;padding:0!important}
-html body #editModal.open:has(#editInvForm) #editInvForm{min-height:0!important;height:100%!important;display:flex!important;flex-direction:column!important}
-html body #editModal.open:has(#editInvForm) #editInvForm .iw222-edit-scroll{
- flex:1 1 auto!important;min-height:0!important;overflow-y:auto!important;overflow-x:hidden!important;overscroll-behavior:contain!important;-webkit-overflow-scrolling:touch!important;
- scrollbar-width:thin;scrollbar-color:var(--uv-line,#354152) transparent!important;
-}
-html body #editModal.open:has(#editInvForm) #editInvForm>.actions{
- flex:0 0 auto!important;position:sticky!important;bottom:0!important;z-index:3!important;background:var(--uv-card,#18212d)!important;border-top:1px solid var(--uv-line,#354152)!important;
-}
 html body dialog.mmh-history-edit[open]{
  display:flex!important;flex-direction:column!important;box-sizing:border-box!important;width:min(620px,calc(100vw - 24px))!important;
  max-height:calc(100dvh - 24px)!important;min-height:0!important;padding:0!important;overflow:hidden!important;
@@ -39114,8 +39098,32 @@ html body #mmhVaultDialogV449 .mmh-wallet-detail-dialog-v177 .mmh-wallet-detail-
 html body #mmhVaultDialogV449 .mmh-wallet-detail-dialog-v177 :is(.mmh-wallet-detail-item-v177,.mmh-wallet-detail-line-v177,.mmh-wallet-detail-note-v177){background:var(--uv-raised,#253141)!important;background-image:none!important;border-color:var(--uv-line,#354152)!important}
 @media(max-width:699px){
  html body #invest #mmhHistoryFiltersV1 .iw223-picker{flex:1 1 calc(50% - 8px)!important;min-width:0!important}
- html body #editModal.open:has(#editInvForm)>.modal{width:calc(100vw - 12px)!important;height:calc(100dvh - 12px)!important}
 }
+/* Custom investment edit: same frame, spacing, controls and independent scroll as Transaction. */
+html body dialog.mmh-history-edit.iw226-custom-edit[open]{width:min(760px,calc(100vw - 24px))!important;max-width:760px!important;max-height:calc(100dvh - 24px)!important;overflow:hidden!important;border-radius:10px!important;box-shadow:none!important;font-family:var(--mmh-notice-font,system-ui)!important}
+html body dialog.mmh-history-edit.iw226-custom-edit[open] .mmh-history-edit-form{flex:1 1 auto!important;width:100%!important;min-height:0!important;overflow:hidden!important;padding:0!important;gap:0!important;margin:0!important}
+html body dialog.mmh-history-edit.iw226-custom-edit[open] h2{position:relative!important;top:auto!important;margin:0!important;padding:12px 16px!important;font:650 17px/1.4 var(--mmh-notice-font,system-ui)!important;overflow-wrap:anywhere}
+html body dialog.mmh-history-edit.iw226-custom-edit[open] .iw226-custom-edit-scroll{flex:1 1 auto;min-height:0;min-width:0;padding:12px 16px;overflow-y:auto;overflow-x:hidden;overscroll-behavior:contain}
+html body dialog.mmh-history-edit.iw226-custom-edit[open] .iw226-custom-edit-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;min-width:0}
+html body dialog.mmh-history-edit.iw226-custom-edit[open] .iw226-custom-edit-grid>label{display:flex!important;flex-direction:column!important;gap:7px!important;margin:0!important;min-width:0!important;color:var(--uv-muted)!important;letter-spacing:normal!important;text-shadow:none!important;font:550 12px/1.4 var(--mmh-notice-font,system-ui)!important}
+html body dialog.mmh-history-edit.iw226-custom-edit[open] .iw226-custom-edit-grid>label:has([name=note]),html body dialog.mmh-history-edit.iw226-custom-edit[open] .iw226-custom-edit-grid>label:has([name=receipt]){grid-column:1/-1}
+html body dialog.mmh-history-edit.iw226-custom-edit[open] :is(input:not([type=file]),select){box-sizing:border-box!important;width:100%!important;min-width:0!important;min-height:38px!important;height:38px!important;padding:7px 10px!important;border-radius:7px!important;border:1px solid var(--uv-line)!important;background:var(--uv-raised)!important;background-image:none!important;color:var(--uv-text)!important;box-shadow:none!important;font:500 13px/1.4 var(--mmh-notice-font,system-ui)!important}
+html body dialog.mmh-history-edit.iw226-custom-edit[open] :is(input,select,button):focus-visible{outline:1px solid var(--uv-accent)!important;outline-offset:1px!important;box-shadow:none!important}
+html body dialog.mmh-history-edit.iw226-custom-edit[open] .mmh-history-dialog-actions{position:relative!important;bottom:auto!important;flex:0 0 auto!important;display:flex!important;justify-content:flex-end!important;gap:8px!important;margin:0!important;padding:12px 16px!important}
+html body dialog.mmh-history-edit.iw226-custom-edit[open] .mmh-history-dialog-actions button{min-height:36px!important;padding:7px 12px!important;border-radius:7px!important;background:var(--uv-raised)!important;background-image:none!important;border:1px solid var(--uv-line)!important;color:var(--uv-text)!important;box-shadow:none!important;font:550 13px/1.4 var(--mmh-notice-font,system-ui)!important}
+@media(max-width:600px){html body dialog.mmh-history-edit.iw226-custom-edit[open]{height:calc(100dvh - 24px)!important}html body dialog.mmh-history-edit.iw226-custom-edit[open] .iw226-custom-edit-grid{grid-template-columns:minmax(0,1fr)}html body dialog.mmh-history-edit.iw226-custom-edit[open] :is(input:not([type=file]),select){font-size:16px!important}}
+html body dialog.mmh-history-edit.iw226-custom-edit[open]::backdrop{background:var(--mmh-notice-scrim)!important;background-image:none!important;backdrop-filter:none!important;-webkit-backdrop-filter:none!important}
+html body.light dialog.mmh-history-edit.iw226-custom-edit[open] :is(input,select){color-scheme:light!important}
+html body:not(.light) dialog.mmh-history-edit.iw226-custom-edit[open] :is(input,select){color-scheme:dark!important}
+html body dialog.mmh-history-edit.iw226-custom-edit[open] .mmh-history-dialog-actions button[type=submit]{background:var(--mmh-notice-active)!important;color:var(--uv-accent)!important;border-color:var(--uv-accent)!important}
+/* Keep native modal focus trapping; share Transaction workspace geometry. */
+html body dialog.mmh-history-edit.iw226-custom-edit[open].mmh-tx-bounded-v2{
+ position:fixed!important;inset:var(--tx-bound-top) var(--tx-bound-right) var(--tx-bound-bottom) var(--tx-bound-left)!important;margin:auto!important;
+ width:min(760px,max(1px,calc(100% - var(--tx-bound-left) - var(--tx-bound-right))))!important;
+ height:min(740px,max(1px,calc(100% - var(--tx-bound-top) - var(--tx-bound-bottom))))!important;max-width:none!important;max-height:none!important;
+}
+@media(max-width:600px){html body dialog.mmh-history-edit.iw226-custom-edit[open].mmh-tx-bounded-v2{height:max(1px,calc(100% - var(--tx-bound-top) - var(--tx-bound-bottom)))!important}}
+@media(max-height:540px){html body dialog.mmh-history-edit.iw226-custom-edit[open].mmh-tx-bounded-v2 :is(h2,.mmh-history-dialog-actions){padding:6px 10px!important}}
 </style>
 <script id="mmh-invest-v225-records-js">
 (function(){
@@ -39175,100 +39183,40 @@ html body #invest#invest#invest #mmhHistoryFiltersV1#mmhHistoryFiltersV1 .iw222-
   display:flex!important;align-items:flex-end!important;gap:8px!important;flex-wrap:wrap!important;
   background:transparent!important;
 }
-/* One scroll viewport and one ledger row structure. */
-html body #invest #mmhUnifiedHistoryV1 #mmhHistoryRowsV1{display:block!important;box-sizing:border-box!important;min-width:0!important;min-height:0!important;max-width:100%!important;height:min(60dvh,640px)!important;max-height:min(60dvh,640px)!important;overflow-y:auto!important;overflow-x:hidden!important;overscroll-behavior-y:contain!important;touch-action:pan-y pinch-zoom!important;-webkit-overflow-scrolling:touch;scrollbar-width:thin;scrollbar-gutter:stable;scrollbar-color:var(--uv-line,#354152) transparent;background:var(--uv-card)!important;background-image:none!important;border:1px solid var(--uv-line);border-radius:8px;padding:0!important}
+/* Transactions History V2 metrics and responsive columns, scoped to Invest records. */
+html body #invest #mmhUnifiedHistoryV1 #mmhHistoryRowsV1{
+ --ir-card:#1c2531;--ir-raised:#273242;--ir-line:#344052;--ir-text:#edf0f6;--ir-muted:#b1b8c5;--ir-accent:#9bb7fb;--ir-positive:#4ad0ad;--ir-negative:#f18d98;
+ display:block!important;box-sizing:border-box!important;width:100%!important;min-width:0!important;min-height:0!important;max-width:100%!important;height:auto!important;max-height:none!important;overflow:hidden!important;overscroll-behavior:auto!important;scrollbar-gutter:auto!important;background:var(--ir-card)!important;background-image:none!important;border:1px solid var(--ir-line)!important;border-radius:8px!important;padding:0!important;
+}
+html body.light #invest #mmhUnifiedHistoryV1 #mmhHistoryRowsV1{--ir-card:#fff;--ir-raised:#eef2f8;--ir-line:#d8dfe9;--ir-text:#202a3a;--ir-muted:#576477;--ir-accent:#365fae;--ir-positive:#087b60;--ir-negative:#b73950}
 #invest #mmhHistoryRowsV1 .iw226-ledger-list{display:block;min-width:0;overflow:visible}
-#invest #mmhHistoryRowsV1 .iw226-ledger-header{position:sticky;top:0;z-index:2;padding:8px 10px;background:var(--uv-card);border-bottom:1px solid var(--uv-line);font-size:11px;font-weight:650;color:var(--uv-muted)}
-#invest #mmhUnifiedHistoryV1 #mmhHistoryRowsV1 .iw226-ledger-record{display:block!important;width:100%!important;min-width:0!important;box-sizing:border-box!important;min-height:56px!important;padding:8px 10px!important;margin:0!important;border:0!important;border-bottom:1px solid var(--uv-line)!important;border-radius:0!important;background:var(--uv-card)!important;background-image:none!important;color:var(--uv-text)!important;text-align:left!important;box-shadow:none!important;cursor:pointer;font:inherit;appearance:none!important;-webkit-appearance:none!important;touch-action:pan-y pinch-zoom!important}
-#invest #mmhUnifiedHistoryV1 #mmhHistoryRowsV1 .iw226-ledger-record:last-child{border-bottom:0!important}
-@media(hover:hover) and (pointer:fine){#invest #mmhUnifiedHistoryV1 #mmhHistoryRowsV1 .iw226-ledger-record:hover{background:var(--uv-raised)!important}}
-#invest #mmhHistoryRowsV1 .iw226-ledger-record:focus-visible,#invest #mmhHistoryRowsV1:focus-visible{outline:2px solid var(--uv-accent);outline-offset:-2px}
-#invest #mmhHistoryRowsV1 .iw226-ledger-line{display:grid;grid-template-columns:minmax(70px,.8fr) minmax(0,1.4fr) minmax(0,1.2fr) minmax(0,.8fr) minmax(0,1.2fr);gap:8px;align-items:center;width:100%;min-width:0}
+#invest #mmhHistoryRowsV1 .iw226-ledger-header{padding:12px 14px;background:var(--ir-raised);border-bottom:1px solid var(--ir-line);font-size:12px;font-weight:500;color:var(--ir-muted)}
+#invest #mmhUnifiedHistoryV1 #mmhHistoryRowsV1 .iw226-ledger-record{display:block!important;width:100%!important;min-width:0!important;box-sizing:border-box!important;min-height:56px!important;padding:12px 14px!important;margin:0!important;border:0!important;border-bottom:1px solid var(--ir-line)!important;border-radius:0!important;background:transparent!important;background-image:none!important;color:var(--ir-text)!important;text-align:left!important;box-shadow:none!important;cursor:pointer;font:500 13px/1.4 system-ui,sans-serif!important;appearance:none!important;-webkit-appearance:none!important}
+@media(hover:hover) and (pointer:fine){#invest #mmhUnifiedHistoryV1 #mmhHistoryRowsV1 .iw226-ledger-record:hover{background:var(--ir-raised)!important}}
+#invest #mmhHistoryRowsV1 :is(.iw226-ledger-record,.iw226-ledger-footer button):focus-visible{outline:2px solid var(--ir-accent);outline-offset:-2px}
+#invest #mmhHistoryRowsV1 .iw226-ledger-line{display:grid;grid-template-columns:minmax(90px,.85fr) minmax(0,1.7fr) minmax(0,1.25fr) minmax(0,.85fr) minmax(0,1.3fr) 16px;gap:12px;align-items:center;width:100%;min-width:0}
 #invest #mmhHistoryRowsV1 .iw226-ledger-line>*{min-width:0;overflow-wrap:anywhere;line-height:1.4}
-#invest #mmhHistoryRowsV1 .iw226-record-name{display:block;font-size:13px;font-weight:650}
-#invest #mmhHistoryRowsV1 :is(.iw226-record-date,.iw226-record-note,.iw224-record-qty){display:block;color:var(--uv-muted);font-size:11px;font-weight:400}
-#invest #mmhHistoryRowsV1 .iw226-record-note{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-#invest #mmhHistoryRowsV1 :is(.iw226-record-account,.iw226-record-type){font-size:12px}
+#invest #mmhHistoryRowsV1 .iw226-record-name{display:block;font-size:inherit;font-weight:650}
+#invest #mmhHistoryRowsV1 :is(.iw226-record-date,.iw226-record-account){color:var(--ir-muted)}
+#invest #mmhHistoryRowsV1 :is(.iw226-record-subtitle,.iw224-record-qty){display:block;color:var(--ir-muted);font-size:11px;font-weight:400;margin-top:3px}
 #invest #mmhHistoryRowsV1 .iw226-record-type>span{display:block;background:none!important;border:0!important;padding:0!important;box-shadow:none!important}
-#invest #mmhHistoryRowsV1 .iw226-record-type .mmh-side-buy{color:var(--uv-positive)!important}
-#invest #mmhHistoryRowsV1 .iw226-record-type .mmh-side-sell{color:var(--uv-negative)!important}
-#invest #mmhHistoryRowsV1 .iw226-record-amount,#invest #mmhHistoryRowsV1 .iw226-ledger-header .iw226-ledger-line>span:last-child{text-align:right;font-variant-numeric:tabular-nums}
-#invest #mmhHistoryRowsV1 .iw226-record-amount{font-size:13px;font-weight:650}
-@media(max-width:620px){
- #invest #mmhHistoryRowsV1 .iw226-ledger-header{display:none}
- #invest #mmhHistoryRowsV1 .iw226-ledger-line{grid-template-columns:minmax(0,1fr) minmax(0,.85fr) minmax(0,1fr);grid-template-areas:"date type amount" "desc account amount";gap:3px 7px}
- #invest #mmhHistoryRowsV1 .iw226-record-date{grid-area:date}
- #invest #mmhHistoryRowsV1 .iw226-record-description{grid-area:desc}
- #invest #mmhHistoryRowsV1 .iw226-record-account{grid-area:account}
- #invest #mmhHistoryRowsV1 .iw226-record-type{grid-area:type}
- #invest #mmhHistoryRowsV1 .iw226-record-amount{grid-area:amount}
-}
-html body #editModal.mmh-invest-edit-modal-v225{
-  display:flex!important;align-items:center!important;justify-content:center!important;
-  overflow:hidden!important;padding:12px!important;
-}
-html body #editModal.mmh-invest-edit-modal-v225>.modal{
-  width:min(760px,calc(100vw - 24px))!important;
-  max-width:760px!important;
-  height:min(900px,calc(100dvh - 24px))!important;
-  max-height:calc(100dvh - 24px)!important;
-  min-height:0!important;padding:0!important;
-  display:flex!important;flex-direction:column!important;overflow:hidden!important;
-  background:var(--uv-card,#18212d)!important;background-image:none!important;
-  border:1px solid var(--uv-line,#354152)!important;border-radius:14px!important;
-  color:var(--uv-text,#ecf1f8)!important;
-  box-shadow:0 24px 70px rgba(0,0,0,.45)!important;
-}
-html body #editModal.mmh-invest-edit-modal-v225>.modal>.toolbar{
-  flex:0 0 auto!important;
-  margin:0!important;padding:14px 16px!important;
-  background:var(--uv-card,#18212d)!important;background-image:none!important;
-  border-bottom:1px solid var(--uv-line,#354152)!important;
-  position:sticky!important;top:0!important;z-index:4!important;
-}
-html body #editModal.mmh-invest-edit-modal-v225 #editModalBody{
-  flex:1 1 auto!important;min-height:0!important;
-  display:flex!important;overflow:hidden!important;
-  padding:0!important;background:var(--uv-card,#18212d)!important;background-image:none!important;
-}
-html body #editModal.mmh-invest-edit-modal-v225 #editInvForm{
-  width:100%!important;height:100%!important;min-height:0!important;
-  display:flex!important;flex-direction:column!important;margin:0!important;
-}
-html body #editModal.mmh-invest-edit-modal-v225 #editInvForm .iw222-edit-scroll{
-  flex:1 1 auto!important;min-height:0!important;
-  overflow-y:auto!important;overflow-x:hidden!important;
-  overscroll-behavior:contain!important;-webkit-overflow-scrolling:touch!important;
-  scrollbar-width:thin!important;scrollbar-color:var(--uv-line,#354152) transparent!important;
-  padding:16px!important;background:var(--uv-card,#18212d)!important;background-image:none!important;
-}
-html body #editModal.mmh-invest-edit-modal-v225 #editInvForm>.actions{
-  flex:0 0 auto!important;position:sticky!important;bottom:0!important;z-index:5!important;
-  display:flex!important;justify-content:flex-end!important;gap:8px!important;
-  margin:0!important;padding:12px 16px!important;
-  background:var(--uv-card,#18212d)!important;background-image:none!important;
-  border-top:1px solid var(--uv-line,#354152)!important;
-}
-html body #editModal.mmh-invest-edit-modal-v225 #editInvForm>.actions .btn{
-  min-height:40px!important;border-radius:9px!important;
-  background:var(--uv-raised,#253141)!important;background-image:none!important;
-  border:1px solid var(--uv-line,#354152)!important;color:var(--uv-text,#ecf1f8)!important;
-}
-html body #editModal.mmh-invest-edit-modal-v225 #editInvForm>.actions .btn.primary{
-  background:var(--mmh-notice-active,#183c5c)!important;
-  border-color:var(--uv-accent,#9bb8f8)!important;color:var(--uv-accent,#9bb8f8)!important;
-}
-@media(max-width:699px){
-  html body #invest #mmhUnifiedHistoryV1 #mmhHistoryRowsV1{
-    height:min(54dvh,520px)!important;max-height:min(54dvh,520px)!important;
-  }
-  html body #editModal.mmh-invest-edit-modal-v225{padding:6px!important}
-  html body #editModal.mmh-invest-edit-modal-v225>.modal{
-    width:calc(100vw - 12px)!important;height:calc(100dvh - 12px)!important;
-    max-height:calc(100dvh - 12px)!important;border-radius:14px!important;
-  }
-  html body #editModal.mmh-invest-edit-modal-v225 #editInvForm .iw222-edit-scroll{padding:12px!important}
-  html body #editModal.mmh-invest-edit-modal-v225 #editInvForm>.actions{padding:10px 12px!important}
+#invest #mmhHistoryRowsV1 .iw226-record-type .mmh-side-buy{color:var(--ir-positive)!important}
+#invest #mmhHistoryRowsV1 .iw226-record-type .mmh-side-sell{color:var(--ir-negative)!important}
+#invest #mmhHistoryRowsV1 [data-iw224-side=transfer] .iw226-record-type{color:var(--ir-accent)}
+#invest #mmhHistoryRowsV1 .iw226-record-amount,#invest #mmhHistoryRowsV1 .iw226-ledger-header .iw226-ledger-line>span:nth-child(5){text-align:right;font-weight:650;font-variant-numeric:tabular-nums}
+#invest #mmhHistoryRowsV1 .iw226-record-chevron{color:var(--ir-muted);text-align:center}
+#invest #mmhHistoryRowsV1 .iw226-ledger-footer{display:flex;align-items:center;justify-content:flex-end;gap:10px;padding:10px 14px;font-size:12px;color:var(--ir-muted)}
+html body #invest#invest #mmhUnifiedHistoryV1 #mmhHistoryRowsV1 .iw226-ledger-footer button{min-height:34px!important;padding:5px 12px!important;background:var(--ir-raised)!important;background-image:none!important;border:1px solid var(--ir-line)!important;border-radius:6px!important;color:var(--ir-text)!important;box-shadow:none!important;cursor:pointer}
+#invest #mmhHistoryRowsV1 .iw226-ledger-footer button:disabled{opacity:.4;cursor:default!important}
+@media(max-width:767px){
+ #invest #mmhHistoryRowsV1 .iw226-ledger-header{display:none!important}
+ #invest #mmhUnifiedHistoryV1 #mmhHistoryRowsV1 .iw226-ledger-record{padding:11px 10px!important}
+ #invest #mmhHistoryRowsV1 .iw226-ledger-line{grid-template-columns:minmax(0,1fr) minmax(0,40%) 12px;gap:4px 8px}
+ #invest #mmhHistoryRowsV1 .iw226-record-description{grid-column:1;grid-row:1}
+ #invest #mmhHistoryRowsV1 .iw226-record-date{grid-column:1;grid-row:2;font-size:11px}
+ #invest #mmhHistoryRowsV1 :is(.iw226-record-account,.iw226-record-type){display:none}
+ #invest #mmhHistoryRowsV1 .iw226-record-amount{grid-column:2;grid-row:1/3}
+ #invest #mmhHistoryRowsV1 .iw226-record-chevron{grid-column:3;grid-row:1/3}
 }
 </style>
 <script src="js/mmhvault-market-workspace-v2.js?v=2.0.6-release1" defer></script>
