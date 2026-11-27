@@ -28579,8 +28579,6 @@ html,body{max-width:100%;overflow-x:clip}
   const validCurrencyV918=c=>cashflowCurrenciesV918.includes(c)?c:null;
   function defaultCurrencyV918(){
     try{
-      const live=validCurrencyV918(window.mmhSettingsDisplayPrefsV1237?.().currency);
-      if(live)return live;
       const settings=JSON.parse(localStorage.getItem(settingsCurrencyKeyV918())||'{}');
       return validCurrencyV918(settings?.currency)||'USD';
     }catch(_e){return 'USD'}
