@@ -277,3 +277,7 @@ html body.mmh-workspace-active #budget#budget.page.active .budget-category-input
  html body.mmh-workspace-active #budget#budget.page.active .budget-controls-v110 button.mmh-shared-trigger-v217:not([hidden]){min-height:44px!important}
 }
 @media(max-width:349px){html body.mmh-workspace-active #budget#budget.page.active .budget-quick-v147{grid-template-columns:minmax(0,1fr)!important}}
+
+/* Keep native month and shared currency trigger at identical optical height. */
+html body.mmh-workspace-active #budget#budget.page.active .budget-controls-v110 :is(#budgetMonthV110,button.mmh-shared-trigger-v217:not([hidden])){box-sizing:border-box!important;height:44px!important;min-height:44px!important;max-height:44px!important;line-height:1.4!important;margin:0!important}
+html body.mmh-workspace-active #budget#budget.page.active #budgetMonthV110::-webkit-date-and-time-value{margin:0;min-height:1.4em;text-align:start}
