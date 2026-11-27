@@ -2,7 +2,7 @@ name: Personal Budget isolated visual QA (NO DEPLOY)
 on:
   pull_request:
     branches: [main]
-    paths: ['css/mmhvault-liquid-budget-p910.css','tests/personal-budget-v2.mjs','.github/workflows/personal-budget-v2.yml']
+    paths: ['app.html','css/mmhvault-liquid-budget-p910.css','css/mmhvault-forecast-v1.css','js/mmhvault-forecast-v1.js','tests/personal-budget-v2.mjs','tests/personal-planning-nav-v263.mjs','.github/workflows/personal-budget-v2.yml']
 permissions:
   contents: read
 jobs:
@@ -16,7 +16,8 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
-      - run: node --check tests/personal-budget-v2.mjs
+      - run: node --check tests/personal-budget-v2.mjs && node --check tests/personal-planning-nav-v263.mjs && node --check js/mmhvault-forecast-v1.js
       - run: npm install --no-save --package-lock=false --ignore-scripts playwright@1.51.1
       - run: npx playwright install --with-deps chromium
       - run: node tests/personal-budget-v2.mjs
+      - run: node tests/personal-planning-nav-v263.mjs
