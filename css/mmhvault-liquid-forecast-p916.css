@@ -296,3 +296,82 @@ html body.mmh-workspace-active #forecast.active #mmhForecastRootV1 .fc-stat.good
   html body.mmh-workspace-active #forecast.active #mmhForecastRootV1 .fc-head-actions>.fc-btn{max-width:100%!important;min-width:0!important}
   html body.mmh-workspace-active #forecast.active #mmhForecastRootV1 .fc-display-bar select{min-height:44px!important;min-width:0!important}
 }
+
+
+/* Personal V2.0.54: compact forecast, isolated V2 tokens and month editor. */
+html body.mmh-workspace-active #forecast#forecast.page.active #mmhForecastRootV1 .fc-head{padding:8px 12px!important;gap:8px!important;border-radius:8px!important;position:relative!important;z-index:15!important}
+html body.mmh-workspace-active #forecast#forecast.page.active #mmhForecastRootV1 .fc-head>div:first-child{flex:1 1 220px!important}
+html body.mmh-workspace-active #forecast#forecast.page.active #mmhForecastRootV1 .fc-head-actions{flex:0 1 auto!important;gap:6px!important}
+html body.mmh-workspace-active #forecast#forecast.page.active #mmhForecastRootV1 .fc-view-picker{position:relative;min-width:82px;flex:0 0 auto;max-width:100%;}
+html body.mmh-workspace-active #forecast#forecast.page.active #mmhForecastRootV1 .fc-view-picker>summary{display:flex;align-items:center;justify-content:center;gap:9px;list-style:none;cursor:pointer;box-sizing:border-box;min-height:40px;padding:6px 12px;border:1px solid var(--uv-line);border-radius:7px;background:var(--uv-raised);color:var(--uv-text);font:inherit;font-size:12px;font-weight:650;white-space:nowrap}
+html body.mmh-workspace-active #forecast#forecast.page.active #mmhForecastRootV1 .fc-view-picker>summary::-webkit-details-marker{display:none}
+html body.mmh-workspace-active #forecast#forecast.page.active #mmhForecastRootV1 .fc-view-picker:not([open]) .fc-view-options{display:none}
+html body.mmh-workspace-active #forecast#forecast.page.active #mmhForecastRootV1 .fc-view-options{position:absolute;right:0;top:calc(100% + 5px);z-index:350;width:min(270px,calc(100vw - 40px));max-height:min(310px,45dvh);overflow-y:auto;overscroll-behavior:contain;padding:5px;background:var(--uv-card);color:var(--uv-text);border:1px solid var(--uv-line);border-radius:8px;box-shadow:0 10px 28px #0003}
+html body.mmh-workspace-active #forecast#forecast.page.active #mmhForecastRootV1 .fc-view-options>button{display:grid;grid-template-columns:44px minmax(0,1fr) auto;align-items:center;gap:8px;text-align:left;width:100%;min-height:36px;padding:6px 8px;border:0;border-radius:5px;background:none;color:var(--uv-text);font:inherit;font-size:12px;cursor:pointer}
+html body.mmh-workspace-active #forecast#forecast.page.active #mmhForecastRootV1 .fc-view-options>button:is(:hover,:focus-visible,[aria-pressed=true]){background:var(--uv-raised);color:var(--uv-accent)}
+html body.mmh-workspace-active #forecast#forecast.page.active #mmhForecastRootV1 .fc-view-options>button>span{overflow-wrap:anywhere}
+html body.mmh-workspace-active #forecast#forecast.page.active #mmhForecastRootV1 .fc-stat{min-height:90px!important;border-radius:8px!important;padding:12px!important;text-align:center}
+html body.mmh-workspace-active #forecast#forecast.page.active #mmhForecastRootV1 .fc-stat::after{content:none!important}
+html body.mmh-workspace-active #forecast#forecast.page.active #mmhForecastRootV1 .fc-stat strong{font-family:inherit!important;font-size:clamp(17px,1.8vw,24px)!important;font-weight:700!important;letter-spacing:normal!important}
+html body.mmh-workspace-active #forecast#forecast.page.active #mmhForecastRootV1 .fc-panel{border-radius:9px!important;padding:12px!important}
+html body.mmh-workspace-active #forecast#forecast.page.active #mmhForecastRootV1 :is(.fc-regular-group,.fc-savings-goal,.fc-month-category,.fc-month-additional,.fc-day-main,.fc-day-info>div,.fc-day-gauge-core){background:var(--uv-card)!important;background-image:none!important;border-color:var(--uv-line)!important;border-radius:8px!important;box-shadow:none!important;color:var(--uv-text)!important}
+html body.mmh-workspace-active #forecast#forecast.page.active #mmhForecastRootV1 .fc-day-gauge-core{border-radius:50%!important}
+html body.mmh-workspace-active #forecast#forecast.page.active #mmhForecastRootV1 :is(.fc-regular-heading,.fc-regular-item,.fc-day-edit,.fc-month-fields,.fc-month summary,.fc-regular-list,.fc-month-category-head){border-color:var(--uv-line)!important;background-image:none!important;box-shadow:none!important}
+html body.mmh-workspace-active #forecast#forecast.page.active #mmhForecastRootV1 :is(.fc-regular-heading,.fc-month-category-head,.fc-month-additional>summary,.fc-regular-item){background:transparent!important;color:var(--uv-text)!important}
+html body.mmh-workspace-active #forecast#forecast.page.active #mmhForecastRootV1 :is(.fc-regular-title,.fc-regular-heading strong,.fc-month-category-head strong,.fc-month-additional .fc-additional-title,.fc-rate-heading>span,.fc-day-title h2,.fc-day-main>strong,.fc-day-info strong,.fc-day-edit-copy strong){font-family:inherit!important;color:var(--uv-text)!important}
+html body.mmh-workspace-active #forecast#forecast.page.active #mmhForecastRootV1 :is(.fc-regular-tag,.fc-subhead,.fc-rate-heading strong,.fc-add-item,.fc-day-motivation,.fc-day-gauge-core strong){color:var(--uv-accent)!important;font-family:inherit!important;background-image:none!important}
+html body.mmh-workspace-active #forecast#forecast.page.active #mmhForecastRootV1 :is(.fc-regular-tag,.fc-group-symbol,.fc-additional-icon){background:var(--uv-raised)!important;border-color:var(--uv-line)!important;box-shadow:none!important}
+html body.mmh-workspace-active #forecast#forecast.page.active #mmhForecastRootV1 :is(.fc-regular-heading small,.fc-rate-heading small,.fc-rate-target label,.fc-monthhead p,.fc-month-hint,.fc-native,.fc-day-main>small,.fc-day-info small,.fc-day-edit-copy small,.fc-day-disclaimer,.fc-day-milestones small,.fc-day-milestones b,.fc-month-extra,.fc-range-note,.fc-field>label,.fc-field>span){color:var(--uv-muted)!important;font-family:inherit!important}
+html body.mmh-workspace-active #forecast#forecast.page.active #mmhForecastRootV1 :is(.fc-money-pair,.fc-field>input,.fc-field>select,.fc-rate-target input,.fc-regular-name){background:var(--uv-raised)!important;background-image:none!important;border:1px solid var(--uv-line)!important;border-radius:7px!important;box-shadow:none!important;color:var(--uv-text)!important;font-family:inherit!important;min-width:0}
+html body.mmh-workspace-active #forecast#forecast.page.active #mmhForecastRootV1 .fc-money-pair input[type=number]{background:transparent!important;color:var(--uv-text)!important;font-family:inherit!important;border:0!important;box-shadow:none!important}
+html body.mmh-workspace-active #forecast#forecast.page.active #mmhForecastRootV1 .fc-money-pair .fc-currency-trigger{background:transparent!important;border-color:var(--uv-line)!important;color:var(--uv-text)!important;font-size:12px!important;font-family:inherit!important;flex-basis:44px!important;width:44px!important}
+html body.mmh-workspace-active #forecast#forecast.page.active #mmhForecastRootV1 .fc-money-pair:focus-within{border-color:var(--uv-accent)!important;box-shadow:none!important}
+html body.mmh-workspace-active #forecast#forecast.page.active #mmhForecastRootV1 .fc-money-pair .fc-currency-menu{background:var(--uv-card)!important;background-image:none!important;border:1px solid var(--uv-line)!important;border-radius:8px!important;max-height:min(270px,42dvh);overflow-y:auto;overscroll-behavior:contain;box-shadow:0 8px 24px #0003!important}
+html body.mmh-workspace-active #forecast#forecast.page.active #mmhForecastRootV1 .fc-money-pair .fc-currency-option{color:var(--uv-text)!important;min-height:36px!important;font-family:inherit!important}
+html body.mmh-workspace-active #forecast#forecast.page.active #mmhForecastRootV1 .fc-money-pair .fc-currency-option small{color:var(--uv-muted)!important;overflow-wrap:anywhere}
+html body.mmh-workspace-active #forecast#forecast.page.active #mmhForecastRootV1 .fc-money-pair .fc-currency-option:is(.selected,:hover,:focus-visible){background:var(--uv-raised)!important;background-image:none!important;color:var(--uv-accent)!important}
+html body.mmh-workspace-active #forecast#forecast.page.active #mmhForecastRootV1 :is(.fc-currency-mark,.fc-option-symbol,.fc-option-check){color:var(--uv-accent)!important;font-family:inherit!important}
+html body.mmh-workspace-active #forecast#forecast.page.active #mmhForecastRootV1 .fc-btn{background:var(--uv-raised)!important;background-image:none!important;border:1px solid var(--uv-line)!important;border-radius:7px!important;color:var(--uv-text)!important;box-shadow:none!important;font-family:inherit!important}
+html body.mmh-workspace-active #forecast#forecast.page.active #mmhForecastRootV1 .fc-save-primary{background:var(--uv-accent)!important;color:var(--uv-card)!important;border-color:var(--uv-accent)!important}
+html body.mmh-workspace-active #forecast#forecast.page.active #mmhForecastRootV1 :is(.fc-rate-track,.fc-day-bar){background:var(--uv-raised)!important;box-shadow:none!important}
+html body.mmh-workspace-active #forecast#forecast.page.active #mmhForecastRootV1 :is(.fc-rate-track i,.fc-day-bar i){background:var(--uv-accent)!important;box-shadow:none!important}
+html body.mmh-workspace-active #forecast#forecast.page.active #mmhForecastRootV1 .fc-day-gauge{background:conic-gradient(var(--uv-accent) var(--fc-day-progress),var(--uv-raised) 0)!important;box-shadow:none!important}
+html body.mmh-workspace-active #forecast#forecast.page.active #mmhForecastRootV1 .fc-chart .fc-gridline{stroke:var(--uv-line)!important}
+html body.mmh-workspace-active #forecast#forecast.page.active #mmhForecastRootV1 .fc-chart .fc-plot{stroke:var(--uv-accent)!important;filter:none!important}
+html body.mmh-workspace-active #forecast#forecast.page.active #mmhForecastRootV1 .fc-chart .fc-fill{fill:var(--uv-accent)!important;opacity:.09}
+html body.mmh-workspace-active #forecast#forecast.page.active #mmhForecastRootV1 .fc-chart text{fill:var(--uv-muted)!important}
+html body.mmh-workspace-active #forecast#forecast.page.active #mmhForecastRootV1 :is(.fc-positive,.fc-stat.good>strong){color:var(--uv-positive)!important}
+html body.mmh-workspace-active #forecast#forecast.page.active #mmhForecastRootV1 :is(.fc-negative,.fc-cost){color:var(--uv-negative)!important}
+html body.mmh-workspace-active #forecast#forecast.page.active #mmhForecastRootV1 .fc-month summary .fc-month-total strong{color:var(--uv-text)!important}
+html body.mmh-workspace-active #forecast#forecast.page.active #mmhForecastRootV1 .fc-fx-settings{margin:10px 0 0;padding:0 10px 8px;border:1px solid var(--uv-line);border-radius:7px;background:var(--uv-card)}
+html body.mmh-workspace-active #forecast#forecast.page.active #mmhForecastRootV1 .fc-fx-settings>summary{display:flex;justify-content:space-between;align-items:center;gap:8px;list-style:none;cursor:pointer;min-height:38px;font-size:12px;color:var(--uv-text)}
+html body.mmh-workspace-active #forecast#forecast.page.active #mmhForecastRootV1 .fc-fx-settings>summary::-webkit-details-marker{display:none}
+html body.mmh-workspace-active #forecast#forecast.page.active #mmhForecastRootV1 .fc-fx-settings>summary>span{color:var(--uv-muted);font-size:11px;text-align:right}
+html body.mmh-workspace-active #forecast#forecast.page.active #mmhForecastRootV1 .fc-fx-settings:not([open]){padding-bottom:0}
+html body.mmh-workspace-active #forecast#forecast.page.active #mmhForecastRootV1 .fc-extra-rate{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin:8px 0 0}
+html body.mmh-workspace-active #forecast#forecast.page.active #mmhForecastRootV1 .fc-monthhead{align-items:center!important;gap:8px!important}
+html body.mmh-workspace-active #forecast#forecast.page.active #mmhForecastRootV1 .fc-month-picker{flex:0 1 180px;min-width:0;max-width:100%}
+html body.mmh-workspace-active #forecast#forecast.page.active #mmhForecastRootV1 .fc-month-overview{max-height:290px;overflow:auto;overscroll-behavior:contain;border:1px solid var(--uv-line);border-radius:7px;margin:8px 0}
+html body.mmh-workspace-active #forecast#forecast.page.active #mmhForecastRootV1 .fc-month-overview table{width:100%;table-layout:fixed;border-collapse:collapse;font-size:12px;font-family:inherit;white-space:normal;color:var(--uv-text)}
+html body.mmh-workspace-active #forecast#forecast.page.active #mmhForecastRootV1 .fc-month-overview :is(th,td){padding:7px 9px;border-bottom:1px solid var(--uv-line);text-align:right;overflow-wrap:anywhere;font-variant-numeric:tabular-nums}
+html body.mmh-workspace-active #forecast#forecast.page.active #mmhForecastRootV1 .fc-month-overview thead th{position:sticky;top:0;z-index:1;background:var(--uv-raised);color:var(--uv-muted);font-weight:600}
+html body.mmh-workspace-active #forecast#forecast.page.active #mmhForecastRootV1 .fc-month-overview tr>:first-child{text-align:left;width:32%}
+html body.mmh-workspace-active #forecast#forecast.page.active #mmhForecastRootV1 .fc-month-overview tbody tr.is-selected{background:var(--uv-raised)}
+html body.mmh-workspace-active #forecast#forecast.page.active #mmhForecastRootV1 .fc-month-overview th button{border:0;background:none;color:var(--uv-accent);font:inherit;font-weight:650;text-align:left;cursor:pointer;padding:3px 0;overflow-wrap:anywhere;max-width:100%}
+html body.mmh-workspace-active #forecast#forecast.page.active #mmhForecastRootV1 .fc-month-overview tbody tr:last-child>*{border-bottom:0}
+html body.mmh-workspace-active #forecast#forecast.page.active #mmhForecastRootV1 .fc-months{gap:0!important}
+html body.mmh-workspace-active #forecast#forecast.page.active #mmhForecastRootV1 .fc-month{border-radius:8px!important}
+html body.mmh-workspace-active #forecast#forecast.page.active #mmhForecastRootV1 .fc-warning:not([hidden]){margin:0!important;padding:8px 10px;border:1px solid var(--uv-line);border-radius:7px;background:var(--uv-raised)!important;color:var(--uv-negative)!important}
+html body.mmh-workspace-active #forecast#forecast.page.active #mmhForecastRootV1 :is(button,summary,select):focus-visible{outline:2px solid var(--uv-accent)!important;outline-offset:2px!important}
+@media(max-width:760px){
+html body.mmh-workspace-active #forecast#forecast.page.active #mmhForecastRootV1 .fc-head-actions{flex:1 1 100%!important;width:100%!important;justify-content:flex-start!important;gap:5px!important}
+html body.mmh-workspace-active #forecast#forecast.page.active #mmhForecastRootV1 .fc-view-picker>summary{min-height:44px}
+html body.mmh-workspace-active #forecast#forecast.page.active #mmhForecastRootV1 .fc-view-options{left:0;right:auto}
+html body.mmh-workspace-active #forecast#forecast.page.active #mmhForecastRootV1 .fc-stat{min-height:82px!important;padding:9px!important}
+html body.mmh-workspace-active #forecast#forecast.page.active #mmhForecastRootV1 .fc-stat strong{font-size:clamp(14px,4.2vw,19px)!important}
+html body.mmh-workspace-active #forecast#forecast.page.active #mmhForecastRootV1 .fc-panel{padding:10px!important}
+html body.mmh-workspace-active #forecast#forecast.page.active #mmhForecastRootV1 .fc-monthhead{flex-wrap:wrap!important}
+html body.mmh-workspace-active #forecast#forecast.page.active #mmhForecastRootV1 .fc-month-picker{flex:1 1 100%}
+html body.mmh-workspace-active #forecast#forecast.page.active #mmhForecastRootV1 .fc-month-overview :is(th,td){padding:7px 5px;font-size:11px}
+html body.mmh-workspace-active #forecast#forecast.page.active #mmhForecastRootV1 .fc-extra-rate{grid-template-columns:minmax(0,1fr)}
+}
