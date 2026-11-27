@@ -23,8 +23,146 @@
  const FIELD=Object.fromEntries(FIELDS.map(x=>[x.key,x]));
  let activeOwner='',state=null,lastFirst='',midnightTimer=0,lastDailyCalendar='',dirty=false,customSequence=0;
  const el=id=>document.getElementById(id);
- const isZh=()=>{try{return(localStorage.getItem('mmhvault_language_v3363')||'en')==='zh'}catch(_){return false}};
- const tr=(en,zh)=>isZh()?zh:en;
+ const language=()=>{try{return localStorage.getItem('mmhvault_language_v3363')||'en'}catch(_){return 'en'}};
+ const isZh=()=>language()==='zh';
+ const myLabels=Object.freeze({
+  "Unsaved changes · click Save settings to keep them after refresh": "မသိမ်းရသေးသော ပြောင်းလဲမှုများ · ပြန်ဖွင့်ပြီးနောက် ဆက်ထားရန် ဆက်တင်များသိမ်းပါ",
+  "Settings saved on this device": "ဤစက်တွင် ဆက်တင်များ သိမ်းပြီးပါပြီ",
+  "Could not save settings on this device. Check browser storage.": "ဤစက်တွင် ဆက်တင်များ မသိမ်းနိုင်ပါ။ ဘရောက်ဇာ၏ သိုလှောင်မှုကို စစ်ဆေးပါ။",
+  "Daily salary progress": "နေ့စဉ် လစာတိုးတက်မှု",
+  "Each completed day adds one day of estimated salary. This is not money actually received.": "ပြီးဆုံးသည့်နေ့တိုင်းအတွက် ခန့်မှန်းလစာတစ်ရက်စာ ထည့်တွက်သည်။ အမှန်တကယ်ရရှိသော ငွေမဟုတ်ပါ။",
+  "View month": "ကြည့်ရန်လ",
+  "Completed month progress": "လအတွင်း ပြီးဆုံးသည့်အချိုး",
+  "completed": "ပြီးဆုံး",
+  "Estimated salary earned for completed days": "ပြီးဆုံးသည့်ရက်များအတွက် ခန့်မှန်းလစာ",
+  "Monthly salary": "လစဉ်လစာ",
+  "Days in month": "တစ်လရှိရက်များ",
+  "Completed days": "ပြီးဆုံးသည့်ရက်များ",
+  "Earned per day": "တစ်ရက်စာ ခန့်မှန်းလစာ",
+  "Salary for the selected month": "ရွေးထားသည့်လ၏ လစာ",
+  "Edit just this month, or leave it matching your regular salary. Future forecast months are unchanged.": "ဤလအတွက်သာ ပြင်ပါ သို့မဟုတ် ပုံမှန်လစာအတိုင်းထားပါ။ အနာဂတ်ခန့်မှန်းလများ မပြောင်းလဲပါ။",
+  "Use regular salary": "ပုံမှန်လစာကို သုံးပါ",
+  "Progress uses the device’s local calendar and counts completed days only. Historic months without saved salary overrides use your current regular salary. Display equivalents use current scenario FX; this estimate never modifies Dashboard assets, transactions or Supabase.": "စက်၏ ဒေသစံတော်ချိန် ပြက္ခဒိန်အရ ပြီးဆုံးသည့်ရက်များကိုသာ တွက်သည်။ သီးခြားလစာ မသိမ်းထားသော ယခင်လများအတွက် လက်ရှိပုံမှန်လစာကို သုံးသည်။ ပြသသည့်ငွေပမာဏသည် ခန့်မှန်းငွေလဲနှုန်းကို သုံးပြီး Dashboard ပိုင်ဆိုင်မှု၊ ငွေစာရင်းများနှင့် Supabase ကို မပြောင်းလဲပါ။",
+  "Approx. ": "ခန့်မှန်း ",
+  "Exchange rate unavailable": "ငွေလဲနှုန်း မရရှိနိုင်ပါ",
+  "days": "ရက်",
+  " / day": " / ရက်",
+  "Your journey begins today.": "ယနေ့မှ စတင်ပါသည်။",
+  "🏆 Month complete!": "🏆 လတစ်လ ပြီးဆုံးပါပြီ။",
+  "✨ Another day of progress.": "✨ နောက်ထပ် တစ်ရက် တိုးတက်လာပါပြီ။",
+  "Day ": "ရက် ",
+  "": "",
+  "DAILY PROGRESS": "နေ့စဉ် တိုးတက်မှု",
+  "Another day, another step": "တစ်ရက်ပြီးတစ်ရက် တိုးတက်မှု",
+  "Estimated salary for completed days this month": "ယခုလ ပြီးဆုံးသည့်ရက်များအတွက် ခန့်မှန်းလစာ",
+  "View in Future Planner →": "Future Planner တွင် ကြည့်ရန် →",
+  "Earned by completed days": "ပြီးဆုံးရက်များအလိုက် ခန့်မှန်းလစာ",
+  "Estimate only · not received cash": "ခန့်မှန်းချက်သာ · လက်ခံရရှိငွေမဟုတ်ပါ",
+  "Daily ": "နေ့စဉ် ",
+  "Change currency, currently ": "ငွေကြေးပြောင်းရန်၊ လက်ရှိ ",
+  "Currency": "ငွေကြေး",
+  "Income": "ဝင်ငွေ",
+  "Expenses & transfers": "အသုံးစရိတ်နှင့် ငွေလွှဲ",
+  "Month ": "လ ",
+  " · tap to edit": " · ပြင်ရန် နှိပ်ပါ",
+  "Total income": "စုစုပေါင်းဝင်ငွေ",
+  "Personal spending": "ကိုယ်ပိုင်အသုံးစရိတ်",
+  "Family transfers": "မိသားစုသို့ ငွေလွှဲ",
+  "Monthly change": "လစဉ် အသားတင်ပြောင်းလဲမှု",
+  "Month-end assets": "လကုန် ပိုင်ဆိုင်မှု",
+  "Changes here apply to this month only. Leave a value blank to use the regular amount.": "ပြောင်းလဲမှုများသည် ဤလအတွက်သာ ဖြစ်သည်။ ပုံမှန်ပမာဏကို သုံးရန် ကွက်လပ်ထားပါ။",
+  "Bonuses & extra spending": "အပိုဆုနှင့် အပိုအသုံးစရိတ်",
+  "Optional": "ရွေးချယ်နိုင်သည်",
+  "Clear month changes": "ဤလ၏ ပြောင်းလဲမှုများကို ရှင်းရန်",
+  "items": "ခု",
+  "Item name": "အမျိုးအစားအမည်",
+  "Remove ": "ဖယ်ရှားရန် ",
+  "Remove item": "အမျိုးအစား ဖယ်ရှားရန်",
+  "No items yet. Add one below.": "မရှိသေးပါ။ အောက်တွင် ထည့်ပါ။",
+  "Add income": "ဝင်ငွေထည့်ရန်",
+  "Add expense": "အသုံးစရိတ်ထည့်ရန်",
+  "FUTURE WEALTH PLANNER": "အနာဂတ် ပိုင်ဆိုင်မှုအစီအစဉ်",
+  "Future Asset Forecast": "အနာဂတ် ပိုင်ဆိုင်မှုခန့်မှန်းချက်",
+  "Forecast from next month, based on your current Dashboard assets.": "လက်ရှိ Dashboard ပိုင်ဆိုင်မှုကို အခြေခံ၍ နောက်လမှ စတင်ခန့်မှန်းသည်။",
+  "Forecast display currency": "ခန့်မှန်းချက်ပြသရန် ငွေကြေး",
+  "Refresh assets": "ပိုင်ဆိုင်မှု ပြန်လည်ဖတ်ရန်",
+  "Current total assets": "လက်ရှိ စုစုပေါင်းပိုင်ဆိုင်မှု",
+  "Dashboard value, including receivables": "ရရန်ရှိငွေများအပါအဝင် Dashboard တန်ဖိုး",
+  "Regular monthly savings": "ပုံမှန် လစဉ်စုငွေ",
+  "Before bonus and extra spending": "အပိုဆုနှင့် အပိုအသုံးစရိတ် မပါဝင်သေးပါ",
+  "Forecast end assets": "ခန့်မှန်းကာလအဆုံး ပိုင်ဆိုင်မှု",
+  "Projected gain": "ခန့်မှန်းတိုးလာမည့် ပမာဏ",
+  "Regular monthly income & spending": "ပုံမှန် လစဉ်ဝင်ငွေနှင့် အသုံးစရိတ်",
+  "Edit your recurring income and expenses. Only this forecast changes.": "ပုံမှန်ဝင်ငွေနှင့် အသုံးစရိတ်ကို ပြင်ပါ။ ဤခန့်မှန်းချက်သာ ပြောင်းလဲမည်။",
+  "MONTHLY PLAN": "လစဉ်အစီအစဉ်",
+  "Regular monthly cash-flow breakdown": "ပုံမှန် လစဉ်ငွေဝင်ငွေထွက် အသေးစိတ်",
+  "Regular income": "ပုံမှန်ဝင်ငွေ",
+  "Family + Special transfer": "မိသားစုနှင့် အထူးငွေလွှဲ",
+  "Regular savings rate": "ပုံမှန်စုငွေနှုန်း",
+  "Savings rate target (%)": "ရည်မှန်းစုငွေနှုန်း (%)",
+  "Progress toward target": "ရည်မှန်းချက်တိုးတက်မှု",
+  "Forecast exchange rates": "ခန့်မှန်းငွေလဲနှုန်းများ",
+  "Local simulation only": "စက်တွင်းခန့်မှန်းမှုအတွက်သာ",
+  "1 USD/U equals the currency shown. Empty uses the saved Exchange rate if available; otherwise enter a local scenario rate.": "1 USD/U အတွက် ဖော်ပြထားသော ငွေကြေးပမာဏ။ ကွက်လပ်ထားပါက သိမ်းထားသော Exchange နှုန်းကို ရှိလျှင် သုံးမည်။ မရှိပါက စက်တွင်းခန့်မှန်းနှုန်း ထည့်ပါ။",
+  "Other currency": "အခြားငွေကြေး",
+  "Forecast through (year / month)": "ခန့်မှန်းကာလအဆုံး (နှစ် / လ)",
+  "Export CSV": "CSV ထုတ်ရန်",
+  "Reset scenario": "မူလခန့်မှန်းအစီအစဉ် ပြန်ထားရန်",
+  "Discard changes": "မသိမ်းရသေးသော ပြောင်းလဲမှုများ ပယ်ဖျက်ရန်",
+  "Save settings": "ဆက်တင်များ သိမ်းရန်",
+  "Projected asset growth": "ခန့်မှန်းပိုင်ဆိုင်မှု တိုးတက်မှု",
+  "Monthly cash-flow estimates; no assumed investment gains.": "လစဉ်ငွေဝင်ငွေထွက် ခန့်မှန်းချက်ဖြစ်ပြီး ရင်းနှီးမြှုပ်နှံမှုအမြတ်ကို ထည့်မတွက်ပါ။",
+  "Month-by-month forecast": "လစဉ်ခန့်မှန်းချက်",
+  "Choose a month to adjust its individual plan.": "လတစ်လကို ရွေး၍ ထိုလ၏ အစီအစဉ်ကို သီးခြားပြင်ပါ။",
+  "Edit month": "ပြင်ရန်လ",
+  "Month": "လ",
+  "Net change": "အသားတင်ပြောင်းလဲမှု",
+  "End assets": "ကာလအဆုံး ပိုင်ဆိုင်မှု",
+  "Forecast settings are stored locally for each user, not in Supabase or cloud backup. Changing a currency automatically converts the current number to preserve its estimated USD value; you can then edit it. Real income/expenses and exchange rates are never changed. Current Dashboard assets, saved exchange rates, and the current month are re-read whenever this forecast refreshes. Future crypto/gold prices are assumed unchanged.": "ခန့်မှန်းဆက်တင်များကို သုံးစွဲသူတစ်ဦးချင်းအလိုက် ဤဘရောက်ဇာတွင်သာ သိမ်းပြီး Supabase သို့မဟုတ် cloud backup တွင် မသိမ်းပါ။ ငွေကြေးပြောင်းလဲပါက ခန့်မှန်း USD တန်ဖိုးကို ထိန်းထားရန် ပမာဏကို အလိုအလျောက်တွက်ပြောင်းပြီး နောက်မှ ပြင်နိုင်သည်။ အမှန်တကယ်ဝင်ငွေ၊ အသုံးစရိတ်နှင့် ငွေလဲနှုန်းများကို မပြောင်းလဲပါ။ ပြန်လည်ဖတ်တိုင်း Dashboard ပိုင်ဆိုင်မှု၊ သိမ်းထားသည့် ငွေလဲနှုန်းနှင့် လက်ရှိလကို ပြန်ဖတ်သည်။ အနာဂတ် crypto နှင့် ရွှေဈေး မပြောင်းလဲဟု ယူဆထားသည်။",
+  "The selected end month is in the past. Select a later month.": "ရွေးထားသော အဆုံးလသည် ကျော်လွန်သွားပါပြီ။ နောက်လတစ်လကို ရွေးပါ။",
+  "Maximum forecast length: 240 months.": "အများဆုံး ခန့်မှန်းကာလ 240 လ။",
+  "Sign in to see your assets.": "ပိုင်ဆိုင်မှုကြည့်ရန် အကောင့်ဝင်ပါ။",
+  "Dashboard assets are not ready; refresh financial data.": "Dashboard ပိုင်ဆိုင်မှု မရရှိသေးပါ။ ဘဏ္ဍာရေးဒေတာ ပြန်လည်ဖတ်ပါ။",
+  "Enter a positive saved or scenario rate for ": "သိမ်းထားသော သို့မဟုတ် ခန့်မှန်း အပေါင်းတန်ဖိုးရှိ ငွေလဲနှုန်း ထည့်ပါ — ",
+  "Enter a valid display exchange rate for ": "ပြသရန် မှန်ကန်သော ငွေလဲနှုန်း ထည့်ပါ — ",
+  "Set a local forecast exchange rate for ": "စက်တွင်းခန့်မှန်း ငွေလဲနှုန်း သတ်မှတ်ပါ — ",
+  "Add income to calculate the rate": "နှုန်းတွက်ရန် ဝင်ငွေထည့်ပါ",
+  "Above target by ": "ရည်မှန်းချက်ထက် ပို၍ ",
+  " percentage points": " ရာခိုင်နှုန်းပွိုင့်",
+  "Below target by ": "ရည်မှန်းချက်ထက် လျော့၍ ",
+  "Forecast months: ": "ခန့်မှန်းလများ: ",
+  "Savings rate: ": "စုငွေနှုန်း: ",
+  "Extra spending: ": "အပိုအသုံးစရိတ်: ",
+  "All spending: ": "စုစုပေါင်းအသုံးစရိတ်: ",
+  "Waiting for valid assets, rates and date.": "မှန်ကန်သော ပိုင်ဆိုင်မှု၊ ငွေလဲနှုန်းနှင့် ရက်စွဲကို စောင့်ဆိုင်းနေသည်။",
+  "Forecast through ": "ခန့်မှန်းကာလအဆုံး ",
+  "Enter a valid nonnegative number.": "သုည သို့မဟုတ် အပေါင်းကိန်း ထည့်ပါ။",
+  "Enter a rate from 0 to 100.": "0 မှ 100 အတွင်း နှုန်းတစ်ခု ထည့်ပါ။",
+  "Use a positive valid exchange rate.": "မှန်ကန်သော အပေါင်းတန်ဖိုးရှိ ငွေလဲနှုန်းကို သုံးပါ။",
+  "Choose a month within the next 240 months.": "လာမည့် 240 လအတွင်း လတစ်လ ရွေးပါ။",
+  "Invalid month": "လ မမှန်ကန်ပါ",
+  "Set valid currency rates before switching.": "မပြောင်းမီ မှန်ကန်သော ငွေလဲနှုန်းများ သတ်မှတ်ပါ။",
+  "Currency rates": "ငွေလဲနှုန်းများ",
+  "Other income ": "အခြားဝင်ငွေ ",
+  "Other expense ": "အခြားအသုံးစရိတ် ",
+  "Enter a name for every custom item.": "စိတ်ကြိုက်အမျိုးအစားတိုင်းအတွက် အမည်ထည့်ပါ။",
+  "Name required": "အမည်လိုအပ်သည်",
+  "Forecast settings saved on this device.": "ခန့်မှန်းဆက်တင်များကို ဤစက်တွင် သိမ်းပြီးပါပြီ။",
+  "Saved": "သိမ်းပြီး",
+  "Reset local forecast settings for this account? Real transactions remain unchanged.": "ဤအကောင့်၏ စက်တွင်းခန့်မှန်းဆက်တင်များကို မူလအတိုင်း ပြန်ထားမလား။ အမှန်တကယ်ငွေစာရင်းများ မပြောင်းလဲပါ။",
+  "Reset forecast": "ခန့်မှန်းချက် ပြန်သတ်မှတ်ရန်",
+  "Salary income": "လစာဝင်ငွေ",
+  "Living allowance income": "နေထိုင်စရိတ် ထောက်ပံ့ငွေ",
+  "Personal expenses": "ကိုယ်ပိုင်အသုံးစရိတ်",
+  "Family + Special Transfer": "မိသားစုနှင့် အထူးငွေလွှဲ",
+  "Extra bonus": "အပိုဆု",
+  "Other income A": "အခြားဝင်ငွေ A",
+  "Other income B": "အခြားဝင်ငွေ B",
+  "Extra spending A": "အပိုအသုံးစရိတ် A",
+  "Extra spending B": "အပိုအသုံးစရိတ် B"
+});
+ const tr=(en,zh)=>isZh()?zh:language()==='my'&&Object.hasOwn(myLabels,en)?myLabels[en]:en;
+ const fieldLabel=f=>FIELD[f.key]?tr(f.en,f.zh):f.en;
  const planLabels={budget:['Budget','预算','ဘတ်ဂျက်'],goals:['Goals','目标','ရည်မှန်းချက်များ'],recurring:['Recurring','固定收支','ပုံမှန်ငွေဝင်ငွေထွက်']};
  const planIcons={budget:'<path d="M3 6h16a2 2 0 0 1 2 2v10H3z M3 6V4h14 M21 11h-5v4h5"/>',goals:'<circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1"/>',recurring:'<path d="M4 9V6h14l-3-3m3 12v3H4l3 3M18 6l-3 3M4 18l3-3"/>'};
  const planningLinks=()=>Object.keys(planLabels).map(key=>{const code=localStorage.getItem('mmhvault_language_v3363'),label=planLabels[key][code==='zh'?1:code==='my'?2:0];return '<button type="button" class="fc-plan-entry" data-fc-plan-page="'+key+'" title="'+label+'" aria-label="'+label+'"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'+planIcons[key]+'</svg></button>'}).join('');
@@ -34,7 +172,7 @@
  const shift=(key,step)=>{const m=/^(\d{4})-(0[1-9]|1[0-2])$/.exec(String(key||''));if(!m)return '';return monthKey(new Date(+m[1],+m[2]-1+step,1,12))};
  const startKey=()=>shift(monthKey(),1);
  const validMonth=s=>/^(\d{4})-(0[1-9]|1[0-2])$/.test(String(s||''));
- const monthLabel=key=>{if(!validMonth(key))return '—';const [y,m]=key.split('-').map(Number);return isZh()?`${y}年${m}月`:new Date(y,m-1,1,12).toLocaleDateString('en-US',{month:'short',year:'numeric'})};
+ const monthLabel=key=>{if(!validMonth(key))return '—';const [y,m]=key.split('-').map(Number);return isZh()?`${y}年${m}月`:new Date(y,m-1,1,12).toLocaleDateString(language()==='my'?'my-MM':'en-US',{month:'short',year:'numeric'})};
  const val=v=>{const n=Number(v);return Number.isFinite(n)&&n>=0&&n<=1e12?n:null};
  const fmt=n=>Number(n).toLocaleString(isZh()?'zh-CN':'en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
  const usd=n=>`${fmt(n)} U`;
@@ -292,7 +430,7 @@
   let ph=f.base?baseAmount(f):0;
   const orig=f.base?baseCurrency(f):f.ccy;
   if(ccy!==orig){const converted=convert(ph,orig,ccy,exchangeRates());if(Number.isFinite(converted))ph=Number(converted.toFixed(2))}
-  return pairField(tr(f.en,f.zh),f.key,own?over[f.key]:'',ccy,'month',date,ph);
+  return pairField(fieldLabel(f),f.key,own?over[f.key]:'',ccy,'month',date,ph);
  }
  function monthHtml(date,i){
   const overrides=state.months[date]||{},ccys=state.monthCurrencies[date]||{};
@@ -313,7 +451,7 @@
    const title=income?tr('Income','收入'):tr('Expenses & transfers','支出与转账');
    return `<div class="fc-regular-group ${income?'fc-group-income':'fc-group-expense'}"><div class="fc-regular-heading"><span class="fc-group-symbol" aria-hidden="true">${income?'↙':'↗'}</span><strong>${title}</strong><small>${items.length} ${tr('items','项')}</small></div>
     <div class="fc-regular-list">${items.length?items.map(f=>{
-     const custom=!FIELD[f.key],label=tr(f.en,f.zh);
+     const custom=!FIELD[f.key],label=fieldLabel(f);
      const heading=custom?`<input type="text" maxlength="48" class="fc-regular-name" data-fc-label="${esc(f.key)}" aria-label="${esc(tr('Item name','项目名称'))}" value="${esc(label)}">`:`<span class="fc-regular-title">${esc(label)}</span>`;
      return `<div class="fc-regular-item" data-fc-regular-item="${esc(f.key)}"><div class="fc-regular-label">${heading}</div><div class="fc-regular-entry">${pairField(label,f.key,baseAmount(f),baseCurrency(f),'base')}</div><button type="button" class="fc-remove-item" data-fc-remove="${esc(f.key)}" aria-label="${esc(tr('Remove ','删除')+label)}" title="${esc(tr('Remove item','删除项目'))}">×</button></div>`;
     }).join(''):`<p class="fc-regular-empty">${tr('No items yet. Add one below.','暂无项目，可点击下方添加。')}</p>`}</div>
@@ -421,18 +559,19 @@
  function drawChart(out){
   const host=el('fc-chart');if(!host)return;
   if(!out.valid||!validDisplayRate(out.fx)){host.textContent=tr('Waiting for valid assets, rates and date.','请确认资产、汇率和结束年月有效。');return}
-  const data=[{date:monthKey(),total:out.worth.total},...out.rows],W=900,H=205,R=18,T=18,B=33;
+  const data=[{date:monthKey(),total:out.worth.total},...out.rows],W=Math.max(300,Math.min(1100,host.clientWidth||900)),H=W<520?175:205,R=28,T=18,B=33;
   let L=72;
   let lo=Math.min(...data.map(x=>x.total)),hi=Math.max(...data.map(x=>x.total));
   if(hi===lo){hi+=1;lo-=1}const gap=(hi-lo)*.07;lo-=gap;hi+=gap;
-  const factor=displayRate(out.fx),ticks=Array.from({length:4},(_,i)=>Math.round((hi-(hi-lo)*i/3)*factor).toLocaleString('en-US'));
-  L=Math.min(190,Math.max(72,Math.ceil(Math.max(...ticks.map(t=>t.length))*6.8+18)));
+  const factor=displayRate(out.fx),axisFmt=new Intl.NumberFormat('en-US',W<520?{notation:'compact',maximumFractionDigits:1}:{maximumFractionDigits:0}),ticks=Array.from({length:4},(_,i)=>axisFmt.format((hi-(hi-lo)*i/3)*factor));
+  L=Math.min(Math.floor(W*.36),Math.max(45,Math.ceil(Math.max(...ticks.map(t=>t.length))*7+15)));
   const x=i=>L+(W-L-R)*i/Math.max(1,data.length-1),y=v=>T+(H-T-B)*(hi-v)/(hi-lo);
   const points=data.map((v,i)=>`${x(i).toFixed(2)},${y(v.total).toFixed(2)}`),poly=points.join(' '),area=`${L},${H-B} ${poly} ${x(data.length-1).toFixed(2)},${H-B}`;
-  const every=Math.max(1,Math.ceil((data.length-1)/6));
-  const labels=data.map((d,i)=>(i%every===0||i===data.length-1)?`<text x="${x(i)}" y="${H-8}" text-anchor="middle">${esc(d.date.slice(2))}</text>`:'').join('');
-  const grid=Array.from({length:4},(_,i)=>{const yy=T+(H-T-B)*i/3,amount=hi-(hi-lo)*i/3;return `<line class="fc-gridline" x1="${L}" x2="${W-R}" y1="${yy}" y2="${yy}"/><text x="${L-7}" y="${yy+3}" text-anchor="end">${esc(Math.round(amount*factor).toLocaleString('en-US'))}</text>`}).join('');
-  host.innerHTML=`<svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" role="img" aria-label="${esc(tr('Forecast through ','资产预测截至 ')+monthLabel(out.end)+': '+displayMoney(out.rows.at(-1).total,out.fx))}">${grid}<polygon class="fc-fill" points="${area}"/><polyline class="fc-plot" points="${poly}"/><circle cx="${x(data.length-1)}" cy="${y(data.at(-1).total)}" r="4" fill="var(--uv-accent,#9bb7fb)"/>${labels}</svg>`;
+  const intervals=Math.max(1,Math.min(data.length-1,W<520?3:6));
+  const indices=new Set(Array.from({length:intervals+1},(_,i)=>Math.round(i*(data.length-1)/intervals)));
+  const labels=data.map((d,i)=>indices.has(i)?`<text x="${x(i)}" y="${H-8}" text-anchor="middle">${esc(d.date.slice(2))}</text>`:'').join('');
+  const grid=Array.from({length:4},(_,i)=>{const yy=T+(H-T-B)*i/3,amount=hi-(hi-lo)*i/3;return `<line class="fc-gridline" x1="${L}" x2="${W-R}" y1="${yy}" y2="${yy}"/><text x="${L-7}" y="${yy+3}" text-anchor="end">${esc(axisFmt.format(amount*factor))}</text>`}).join('');
+  host.innerHTML=`<svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="xMidYMid meet" role="img" aria-label="${esc(tr('Forecast through ','资产预测截至 ')+monthLabel(out.end)+': '+displayMoney(out.rows.at(-1).total,out.fx))}">${grid}<polygon class="fc-fill" points="${area}"/><polyline class="fc-plot" points="${poly}"/><circle cx="${x(data.length-1)}" cy="${y(data.at(-1).total)}" r="4" fill="var(--uv-accent,#9bb7fb)"/>${labels}</svg>`;
  }
  function exportCSV(){
   const out=calculate();if(!out.valid)return;
@@ -610,6 +749,8 @@
   }
   document.addEventListener('visibilitychange',()=>{if(document.hidden)stopMidnight();else onVisible()},{passive:true});
   window.addEventListener('beforeunload',e=>{if(dirty){e.preventDefault();e.returnValue=''}});
+  let chartResizeFrame=0;
+  window.addEventListener('resize',()=>{if(!active()||!state)return;cancelAnimationFrame(chartResizeFrame);chartResizeFrame=requestAnimationFrame(()=>{if(active()&&state)drawChart(calculate())})},{passive:true});
   window.addEventListener('pageshow',onVisible,{passive:true});window.addEventListener('focus',()=>{dateChanged();scheduleMidnight()},{passive:true});
   document.addEventListener('click',e=>{if(e.target.closest('#mmhDailyDashboardV13 [data-mmh-open-daily]')){e.preventDefault();window.setPage?.('forecast')}});
   syncOwner();onVisible();
