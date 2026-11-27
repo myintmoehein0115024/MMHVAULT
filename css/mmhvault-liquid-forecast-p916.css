@@ -377,3 +377,54 @@ html body.mmh-workspace-active #forecast#forecast.page.active #mmhForecastRootV1
 html body.mmh-workspace-active #forecast#forecast.page.active #mmhForecastRootV1 .fc-month-overview :is(th,td){padding:7px 5px;font-size:11px}
 html body.mmh-workspace-active #forecast#forecast.page.active #mmhForecastRootV1 .fc-extra-rate{grid-template-columns:minmax(0,1fr)}
 }
+
+
+/* Personal V2.0.54: compact regular editor and chart; preserve approved stat accents. */
+html body.mmh-workspace-active #forecast#forecast.page.active #mmhForecastRootV1 .fc-regular-intro{align-items:center!important;gap:8px!important;margin:0 0 10px!important}
+html body.mmh-workspace-active #forecast#forecast.page.active #mmhForecastRootV1 .fc-regular-intro h2,
+html body.mmh-workspace-active #forecast#forecast.page.active #mmhForecastRootV1 .fc-monthhead h2,
+html body.mmh-workspace-active #forecast#forecast.page.active #mmhForecastRootV1 .fc-panel>h2{font-family:inherit!important;color:var(--uv-text)!important;font-size:17px!important;font-weight:650!important;line-height:1.4!important;letter-spacing:normal!important;margin:0!important}
+html body.mmh-workspace-active #forecast#forecast.page.active #mmhForecastRootV1 .fc-regular-intro .fc-muted,
+html body.mmh-workspace-active #forecast#forecast.page.active #mmhForecastRootV1 .fc-monthhead p,
+html body.mmh-workspace-active #forecast#forecast.page.active #mmhForecastRootV1 .fc-panel>.fc-muted{font-size:12px!important;line-height:1.5!important;margin:3px 0 0!important}
+html body.mmh-workspace-active #forecast#forecast.page.active #mmhForecastRootV1 .fc-regular-tag{display:none!important}
+html body.mmh-workspace-active #forecast#forecast.page.active #mmhForecastRootV1 .fc-regular-grid{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:8px!important;margin:0!important;align-items:start!important}
+html body.mmh-workspace-active #forecast#forecast.page.active #mmhForecastRootV1 .fc-regular-group{min-width:0!important;overflow:visible!important}
+html body.mmh-workspace-active #forecast#forecast.page.active #mmhForecastRootV1 .fc-regular-heading{min-height:0!important;padding:8px 10px!important;gap:7px!important}
+html body.mmh-workspace-active #forecast#forecast.page.active #mmhForecastRootV1 .fc-regular-list{padding:0 8px!important}
+html body.mmh-workspace-active #forecast#forecast.page.active #mmhForecastRootV1 .fc-regular-item{display:grid!important;grid-template-columns:minmax(0,1fr) minmax(0,1.05fr) 32px!important;align-items:center!important;gap:6px!important;padding:5px 0!important;min-height:0!important}
+html body.mmh-workspace-active #forecast#forecast.page.active #mmhForecastRootV1 .fc-regular-item :is(.fc-regular-label,.fc-regular-entry,.fc-field){min-width:0!important;margin:0!important}
+html body.mmh-workspace-active #forecast#forecast.page.active #mmhForecastRootV1 .fc-regular-title{font-size:12px!important;line-height:1.5!important;overflow-wrap:anywhere}
+html body.mmh-workspace-active #forecast#forecast.page.active #mmhForecastRootV1 .fc-regular-name{width:100%!important;box-sizing:border-box!important;min-height:36px!important;padding:6px 7px!important;font-size:12px!important}
+html body.mmh-workspace-active #forecast#forecast.page.active #mmhForecastRootV1 .fc-regular-entry .fc-money-pair{min-height:36px!important;height:auto!important}
+html body.mmh-workspace-active #forecast#forecast.page.active #mmhForecastRootV1 .fc-regular-entry .fc-money-pair input{min-height:36px!important;min-width:0!important;padding:5px 7px!important;font-size:14px!important}
+html body.mmh-workspace-active #forecast#forecast.page.active #mmhForecastRootV1 .fc-regular-entry .fc-currency-trigger{min-height:36px!important}
+html body.mmh-workspace-active #forecast#forecast.page.active #mmhForecastRootV1 .fc-remove-item{display:inline-flex!important;align-items:center!important;justify-content:center!important;min-height:36px!important;width:32px!important;padding:0!important;color:var(--uv-muted)!important;background:transparent!important;border-radius:6px!important}
+html body.mmh-workspace-active #forecast#forecast.page.active #mmhForecastRootV1 .fc-add-item{min-height:36px!important;padding:6px 10px!important;font-size:12px!important}
+html body.mmh-workspace-active #forecast#forecast.page.active #mmhForecastRootV1 .fc-breakdown{grid-template-columns:repeat(3,minmax(0,1fr))!important;gap:6px!important;margin:8px 0!important}
+html body.mmh-workspace-active #forecast#forecast.page.active #mmhForecastRootV1 .fc-breakdown>div{min-width:0!important;grid-column:auto!important;text-align:center!important;padding:8px 5px!important;border-radius:7px!important}
+html body.mmh-workspace-active #forecast#forecast.page.active #mmhForecastRootV1 .fc-breakdown>div em{font-size:10px!important;line-height:1.4!important;overflow-wrap:anywhere;color:var(--uv-muted)!important}
+html body.mmh-workspace-active #forecast#forecast.page.active #mmhForecastRootV1 .fc-breakdown>div:first-child strong{color:var(--uv-positive)!important}
+html body.mmh-workspace-active #forecast#forecast.page.active #mmhForecastRootV1 .fc-savings-goal{display:grid!important;grid-template-columns:minmax(0,1fr) minmax(100px,135px)!important;gap:6px 10px!important;align-items:center!important;padding:9px 10px!important;margin:8px 0!important}
+html body.mmh-workspace-active #forecast#forecast.page.active #mmhForecastRootV1 .fc-rate-heading strong{font-size:20px!important;line-height:1.3!important}
+html body.mmh-workspace-active #forecast#forecast.page.active #mmhForecastRootV1 .fc-rate-target input{height:auto!important;min-height:36px!important;width:100%!important;box-sizing:border-box!important;text-align:center!important}
+html body.mmh-workspace-active #forecast#forecast.page.active #mmhForecastRootV1 .fc-rate-track{grid-column:1/-1!important;margin:0!important;height:6px!important}
+html body.mmh-workspace-active #forecast#forecast.page.active #mmhForecastRootV1 .fc-chart{min-width:0!important;min-height:0!important;height:auto!important;padding:0!important;overflow:hidden!important;background:transparent!important;background-image:none!important;border:0!important;box-shadow:none!important}
+html body.mmh-workspace-active #forecast#forecast.page.active #mmhForecastRootV1 .fc-chart svg{display:block!important;width:100%!important;height:auto!important;max-height:220px!important;overflow:visible!important}
+html body.mmh-workspace-active #forecast#forecast.page.active #mmhForecastRootV1 .fc-month>summary{min-height:0!important;padding:9px!important;gap:6px!important}
+@media(max-width:760px){
+html body.mmh-workspace-active #forecast#forecast.page.active #mmhForecastRootV1 .fc-regular-grid{grid-template-columns:minmax(0,1fr)!important}
+html body.mmh-workspace-active #forecast#forecast.page.active #mmhForecastRootV1 .fc-regular-item{grid-template-columns:minmax(0,1fr) minmax(0,1.1fr) 44px!important}
+html body.mmh-workspace-active #forecast#forecast.page.active #mmhForecastRootV1 .fc-regular-entry .fc-money-pair,
+html body.mmh-workspace-active #forecast#forecast.page.active #mmhForecastRootV1 .fc-regular-entry .fc-money-pair input,
+html body.mmh-workspace-active #forecast#forecast.page.active #mmhForecastRootV1 .fc-regular-entry .fc-currency-trigger,
+html body.mmh-workspace-active #forecast#forecast.page.active #mmhForecastRootV1 .fc-remove-item,
+html body.mmh-workspace-active #forecast#forecast.page.active #mmhForecastRootV1 .fc-add-item,
+html body.mmh-workspace-active #forecast#forecast.page.active #mmhForecastRootV1 .fc-rate-target input{min-height:44px!important}
+html body.mmh-workspace-active #forecast#forecast.page.active #mmhForecastRootV1 .fc-remove-item{width:44px!important}
+html body.mmh-workspace-active #forecast#forecast.page.active #mmhForecastRootV1 .fc-breakdown>div strong{font-size:clamp(12px,3.6vw,17px)!important}
+html body.mmh-workspace-active #forecast#forecast.page.active #mmhForecastRootV1 .fc-breakdown>div small{font-size:10px!important;line-height:1.4!important;overflow-wrap:anywhere}
+html body.mmh-workspace-active #forecast#forecast.page.active #mmhForecastRootV1 .fc-regular-intro h2,
+html body.mmh-workspace-active #forecast#forecast.page.active #mmhForecastRootV1 .fc-monthhead h2,
+html body.mmh-workspace-active #forecast#forecast.page.active #mmhForecastRootV1 .fc-panel>h2{font-size:16px!important}
+}
