@@ -23,7 +23,11 @@ const fixtureEl={closest:s=>s==='#budget'?{}:null},categoryEl={closest:s=>s==='#
 for(const lang of ['en','zh','my']){
  for(const base of ['No category limit','QUICK REVIEW','Category limits: ฿ 23,000.00','145.92% used · ฿ 10,331.11 over budget','Budget exceeded by ฿ 10,331.11. Review this month’s individual spending or adjust the plan.','2 expense records could not be converted because an exchange rate is unavailable.']){
  const t=translator(base,fixtureEl,lang);if(lang==='en')assert.equal(t,base);else assert.notEqual(t,base);
- if(base.includes('฿'))assert.ok(t.includes(base.match(/฿ [\d,.]+/)[0]));
+ if(base.includes('฿')){
+  const amounts=s=>s.match(/฿ \d[\d,]*\.\d{2}(?!\d)/g)||[];
+  assert.ok(amounts(base).length>0,'fixture contains a formatted amount');
+  assert.deepEqual(amounts(t),amounts(base),`${lang}: ${base}`);
+ }
  }
  assert.equal(translator('Spent',categoryEl,lang),'Spent','member category name preserved');
  assert.equal(translator('Spent',{closest:()=>null},lang),'Spent','other pages untouched');
