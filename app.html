@@ -14357,7 +14357,7 @@ function applyUserProfile(user){
   const priorOwner=currentSessionUser?.id||'';
   currentSessionUser=user||null;
   const nextOwner=user?.id||'';
-  if(priorOwner!==nextOwner)window.__mmhSessionEpochV1239=(Number(window.__mmhSessionEpochV1239)||0)+1;
+  if(priorOwner!==nextOwner){window.__mmhSessionEpochV1239=(Number(window.__mmhSessionEpochV1239)||0)+1;window.mmHVaultInvestmentReceiptIdsV3304=new Set();window.mmHVaultReceiptIdsV3302=new Set();}
   if(MMHVAULT_CONFIG_OWNER!==nextOwner){
     MMHVAULT_CONFIG_OWNER=nextOwner;MMHVAULT_CONFIG=mmhVaultReadConfig(nextOwner);
     MMHVAULT_CONFIG.archivedCategories=MMHVAULT_CONFIG.archivedCategories||{};
@@ -18670,11 +18670,19 @@ window.mmHVaultOpenManagedReceiptV3309 = async function(id,kind){
     return paths[0]||null;
   };
 
+  const receiptFlagRevisionV3314={investment:0,transaction:0};
+  function beginReceiptFlagsV3314(kind){
+    const owner=currentSessionUser?.id,epoch=Number(window.__mmhSessionEpochV1239)||0,ticket=++receiptFlagRevisionV3314[kind];
+    return {owner,current:()=>!!owner&&currentSessionUser?.id===owner&&(Number(window.__mmhSessionEpochV1239)||0)===epoch&&receiptFlagRevisionV3314[kind]===ticket};
+  }
   refreshInvestmentReceiptFlagsV3304=async function(){
+    const request=beginReceiptFlagsV3314('investment');if(!request.current())return;
     try{
-      const u=(await db.auth.getUser()).data.user;if(!u)return;
+      const u=(await db.auth.getUser()).data.user;if(!request.current()||u?.id!==request.owner)return;
       const root=await listFolderFiles(u.id);
+      if(!request.current())return;
       const nested=await listFolderFiles(`${u.id}/investments`);
+      if(!request.current())return;
       const ids=new Set();
       for(const name of [...root,...nested]){
         const m=String(name).match(/^inv-(\d+)\./i);
@@ -18688,11 +18696,14 @@ window.mmHVaultOpenManagedReceiptV3309 = async function(id,kind){
 
   /* Transaction history visibility: detect both legacy and new structured paths. */
   window.mmHVaultRefreshReceiptFlagsV3302=async function(){
+    const request=beginReceiptFlagsV3314('transaction');if(!request.current())return;
     try{
       const u=(await db.auth.getUser()).data.user;
-      if(!u||!db?.storage)return;
+      if(!request.current()||u?.id!==request.owner||!db?.storage)return;
       const root=await listFolderFiles(u.id);
+      if(!request.current())return;
       const nested=await listFolderFiles(`${u.id}/transactions`);
+      if(!request.current())return;
       const ids=new Set();
       for(const name of [...root,...nested]){
         const m=String(name).match(/^tx-(\d+)(?:\.[^.]*)?$/i);
