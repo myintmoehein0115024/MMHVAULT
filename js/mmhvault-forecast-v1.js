@@ -7,7 +7,7 @@
  const CURRENCIES=['USD','MMK','THB','CNY','JPY','KRW','SGD','MYR','IDR','PHP','VND','KHR','LAK','BND','HKD','MOP','TWD','MNT','KPW','INR','BDT','PKR','LKR','NPR','BTN','MVR','AFN','KZT','KGS','TJS','TMT','UZS','AMD','AZN','GEL','AED','BHD','IQD','IRR','ILS','JOD','KWD','LBP','OMR','QAR','SAR','SYP','YER','TRY','RUB','EUR'];
  const CORE_RATES=['THB','CNY','MMK'],SCENARIO_CURRENCIES=CURRENCIES.filter(c=>c!=='USD');
  const CURRENCY_MARKS=Object.fromEntries(CURRENCIES.map(c=>[c,({USD:'$',CNY:'¥',THB:'฿',MMK:'K'})[c]||c]));
- let selectedMonth='',extraRate='JPY',modal='',modalReturn='',modalOrigin='',monthScroll=0;
+ let selectedMonth='',extraRate='JPY',modal='',modalReturn=[],modalOrigin='',monthScroll=0;
  const currencyName=c=>{try{const lang=localStorage.getItem('mmhvault_language_v3363');return new Intl.DisplayNames([lang==='zh'?'zh-CN':lang==='my'?'my':'en'],{type:'currency'}).of(c)||c}catch(_){return c}};
  const FIELDS=[
   {key:'salary',en:'Salary income',zh:'工资收入',def:2500,ccy:'USD',type:'income',base:true},
@@ -259,7 +259,7 @@
     try{localStorage.setItem(localKey(activeOwner),JSON.stringify({...state,version:3}));dirty=false;updateSaveStatus();return true}
     catch(e){console.warn('[MMHVAULT Forecast] Storage unavailable',e);showWarning(tr('Could not save settings on this device. Check browser storage.','保存失败，请检查浏览器存储是否可用。'));return false}
   }
- function syncOwner(){const id=owner();if(id!==activeOwner){activeOwner=id;state=getState(id);dirty=false;lastFirst='';selectedMonth='';extraRate='JPY';modal='';modalReturn='';modalOrigin='';monthScroll=0;if(!id)el('mmhDailyDashboardV13')?.remove()}}
+ function syncOwner(){const id=owner();if(id!==activeOwner){activeOwner=id;state=getState(id);dirty=false;lastFirst='';selectedMonth='';extraRate='JPY';modal='';modalReturn=[];modalOrigin='';monthScroll=0;if(!id)el('mmhDailyDashboardV13')?.remove()}}
  function active(){return !!el(PAGE)?.classList.contains('active')}
  function ratesNow(){
   const obj=window.rates||(typeof rates!=='undefined'?rates:null);
@@ -485,15 +485,15 @@
 
  function monthTable(dates){return `<div class="fc-month-overview" tabindex="0"><table><thead><tr><th scope="col">${tr('Month','月份')}</th><th scope="col">${tr('Net change','净变化')}</th><th scope="col">${tr('End assets','期末资产')}</th><th scope="col">${tr('Actions','操作')}</th></tr></thead><tbody>${dates.map(date=>`<tr data-fc-overview="${date}"><th scope="row">${esc(monthLabel(date))}</th><td data-fc-overview-net>—</td><td data-fc-overview-total>—</td><td><div class="fc-row-actions">${iconButton('eye',tr('View month','查看月份'),'data-fc-month-view="'+date+'"')}${iconButton('edit',tr('Edit month','调整月份'),'data-fc-month-edit="'+date+'"')}</div></td></tr>`).join('')}</tbody></table></div>`}
  function validDraft(){const bad=el(ROOT)?.querySelector('.fc-dialog input:invalid');if(bad){bad.reportValidity?.();bad.focus?.({preventScroll:true});return false}return true}
- function showModal(kind,date='',from=''){if(!validDraft())return;closeForecastPickers();if(date&&range(startKey(),effectiveEnd(startKey())).includes(date))selectedMonth=date;if(!modal){modalOrigin=from;modalReturn=''}else if(modal==='months')modalReturn='months';modal=kind;layout();el(ROOT)?.querySelector('.fc-dialog [data-fc-close-modal]')?.focus({preventScroll:true})}
- function closeModal(back=false){if(!validDraft())return;const next=back?modalReturn:'',origin=modalOrigin;modal=next;modalReturn='';if(!modal)modalOrigin='';layout();if(next)el(ROOT)?.querySelector('.fc-dialog [data-fc-close-modal]')?.focus({preventScroll:true});else el(ROOT)?.querySelector(origin||'.fc-head-actions summary')?.focus({preventScroll:true})}
+ function showModal(kind,date='',from=''){if(!validDraft())return;closeForecastPickers();if(date&&range(startKey(),effectiveEnd(startKey())).includes(date))selectedMonth=date;if(!modal){modalOrigin=from;modalReturn=[]}else if(modal!==kind)modalReturn.push(modal);modal=kind;layout();el(ROOT)?.querySelector('.fc-dialog [data-fc-close-modal]')?.focus({preventScroll:true})}
+ function closeModal(back=false){if(!validDraft())return;const next=back?(modalReturn.pop()||''):'',origin=modalOrigin;modal=next;if(!next){modalReturn=[];modalOrigin='';}layout();if(next)el(ROOT)?.querySelector('.fc-dialog [data-fc-close-modal]')?.focus({preventScroll:true});else el(ROOT)?.querySelector(origin||'.fc-head-actions summary')?.focus({preventScroll:true})}
  function dailyEditHTML(){const d=dailyInfo(state.dailyMonth);return `<div class="fc-day-edit"><div class="fc-day-edit-copy"><strong>${tr('Salary for the selected month','所选月份工资')}</strong><small>${tr('Edit just this month, or leave it matching your regular salary. Future forecast months are unchanged.','可单独修改本月工资；未设置时沿用常规工资，不改其他月份。')}</small></div>
    <div class="fc-day-edit-control">${pairField(tr('Monthly salary','本月工资'),'salary',d.amount,d.currency,'month',d.selected,d.amount)}<button class="fc-btn alt fc-day-reset" type="button" data-fc-action="reset-day-salary">${tr('Use regular salary','恢复常规工资')}</button></div></div>`}
  function modalHTML(dates,regular,fx,target){
   if(!modal)return '';
   const title=modal==='daily'?tr('Salary for the selected month','所选月份工资')+' · '+monthLabel(dailyInfo(state.dailyMonth).selected):modal==='plan'?tr('Edit monthly plan','编辑月度计划'):modal==='fx'?tr('Forecast exchange rates','预测换算汇率'):modal==='target'?tr('Savings rate target (%)','目标储蓄率 (%)'):modal==='months'?tr('Month-by-month forecast','逐月资产预测'):monthLabel(selectedMonth);
   const content=modal==='daily'?dailyEditHTML():modal==='plan'?regular:modal==='fx'?fx:modal==='target'?target:modal==='months'?monthTable(dates):`<div id="fc-month-list" class="fc-months">${selectedMonth?monthHtml(selectedMonth,dates.indexOf(selectedMonth),modal==='edit'):''}</div>`;
-  return `<div class="fc-dialog-overlay"><section class="fc-dialog" role="dialog" aria-modal="true" aria-labelledby="fc-dialog-title"><header class="fc-dialog-header"><div class="fc-row-actions">${modalReturn?iconButton('back',tr('Back','返回'),'data-fc-back-modal="1"'):''}<h2 id="fc-dialog-title">${esc(title)}</h2></div>${iconButton('close',tr('Close','关闭'),'data-fc-close-modal="1"')}</header><div class="fc-dialog-body">${content}</div><footer class="fc-dialog-footer">${['plan','fx','target','edit','daily'].includes(modal)?`<small>${tr('Forecast changes are saved using Save settings.','预测调整通过保存设置生效。')}</small><button type="button" class="fc-btn fc-save-primary" data-fc-action="save">${tr('Save settings','保存设置')}</button>`:''}<button type="button" class="fc-btn" data-fc-close-modal="1">${tr('Done','完成')}</button></footer></section></div>`
+  return `<div class="fc-dialog-overlay"><section class="fc-dialog" role="dialog" aria-modal="true" aria-labelledby="fc-dialog-title"><header class="fc-dialog-header"><div class="fc-row-actions">${modalReturn.length?iconButton('back',tr('Back','返回'),'data-fc-back-modal="1"'):''}<h2 id="fc-dialog-title">${esc(title)}</h2></div>${iconButton('close',tr('Close','关闭'),'data-fc-close-modal="1"')}</header><div class="fc-dialog-body"><p class="fc-warning" id="fc-dialog-warning" role="status" hidden></p>${content}</div><footer class="fc-dialog-footer">${['plan','fx','target','edit','daily'].includes(modal)?`<small>${tr('Forecast changes are saved using Save settings.','预测调整通过保存设置生效。')}</small><button type="button" class="fc-btn fc-save-primary" data-fc-action="save">${tr('Save settings','保存设置')}</button>`:''}<button type="button" class="fc-btn" data-fc-close-modal="1">${tr('Done','完成')}</button></footer></section></div>`
  }
  function layout(){
   const root=el(ROOT);if(!root)return;
@@ -528,7 +528,7 @@
   const body=root.querySelector('.fc-dialog-body');if(body)body.scrollTop=dialogScroll;
   lastFirst=first;updateOutputs();updateSaveStatus();
  }
- function showWarning(message){const node=el('fc-warning');if(node){node.hidden=!message;node.textContent=message||''}}
+ function showWarning(message){for(const id of ['fc-warning','fc-dialog-warning']){const node=el(id);if(node){node.hidden=!message;node.textContent=message||''}}}
  function updateOutputs(){
   if(!active()||!state)return;
   const out=calculate();
@@ -729,7 +729,7 @@
   if(action==='save'){
    const bad=el(ROOT)?.querySelector('input:invalid');if(bad){bad.reportValidity?.();bad.focus?.({preventScroll:true});return}
    for(const item of state.customItems)if(!item.label.trim()){const input=el(ROOT)?.querySelector('[data-fc-label="'+item.key+'"]');input?.focus();window.mmhVaultMessageV740?.(tr('Enter a name for every custom item.','请为每个自定义项目填写名称。'),tr('Name required','请填写名称'));return}
-   if(persist()){if(modal)closeModal();window.mmhVaultMessageV740?.(tr('Forecast settings saved on this device.','预测设置已保存到当前设备。'),tr('Saved','保存成功'));}
+   if(persist()){if(modal)closeModal(modal==='fx'&&modalReturn.length>0);window.mmhVaultMessageV740?.(tr('Forecast settings saved on this device.','预测设置已保存到当前设备。'),tr('Saved','保存成功'));}
    return;
   }
   if(action==='discard'){
@@ -746,7 +746,7 @@
  function dateChanged(){syncOwner();resetDailyMonthOnCalendarChange();if(active()){if(lastFirst!==startKey()){layout();return}updateOutputs()}else if(el('dashboard')?.classList.contains('active'))mountDashboardDaily()}
  function stopMidnight(){if(midnightTimer){clearTimeout(midnightTimer);midnightTimer=0}}
  function scheduleMidnight(){stopMidnight();if(!(active()||el('dashboard')?.classList.contains('active'))||document.hidden)return;const now=new Date(),tomorrow=new Date(now.getFullYear(),now.getMonth(),now.getDate()+1,0,0,2);midnightTimer=setTimeout(()=>{midnightTimer=0;dateChanged();scheduleMidnight()},Math.max(1000,tomorrow-now))}
- function onVisible(){syncOwner();resetDailyMonthOnCalendarChange();if(active()){layout();scheduleMidnight()}else{modal='';modalReturn='';modalOrigin='';stopMidnight();if(el('dashboard')?.classList.contains('active'))mountDashboardDaily()}}
+ function onVisible(){syncOwner();resetDailyMonthOnCalendarChange();if(active()){layout();scheduleMidnight()}else{modal='';modalReturn=[];modalOrigin='';stopMidnight();if(el('dashboard')?.classList.contains('active'))mountDashboardDaily()}}
  function init(){
   const root=el(ROOT);if(!root)return;
   watchDashboard();
@@ -756,7 +756,7 @@
   document.addEventListener('pointerdown',e=>{const p=e.target.closest?.('#'+ROOT+' .fc-shared-picker,#'+ROOT+' .fc-choice-picker');closeForecastPickers(p||null)},{passive:true});
   document.addEventListener('keydown',e=>{if(!active()||el('mmhVaultDialogV449')?.classList.contains('show'))return;if(e.key==='Tab'&&modal){const dialog=root.querySelector('.fc-dialog');const controls=[...dialog?.querySelectorAll('button:not(:disabled),input:not(:disabled),summary,[tabindex="0"]')||[]].filter(x=>x.getClientRects().length&&getComputedStyle(x).visibility!=='hidden');if(controls.length){const first=controls[0],last=controls.at(-1);if(e.shiftKey&&(document.activeElement===first||!dialog.contains(document.activeElement))){e.preventDefault();last.focus()}else if(!e.shiftKey&&(document.activeElement===last||!dialog.contains(document.activeElement))){e.preventDefault();first.focus()}}}if(e.key==='Escape'){const picker=root.querySelector('.fc-shared-picker[open],.fc-choice-picker[open]');if(picker){e.preventDefault();closeForecastPickers();picker.querySelector('summary')?.focus({preventScroll:true})}else if(modal&&active()&&!el('mmhVaultDialogV449')?.classList.contains('show')){e.preventDefault();closeModal()}}});
   for(const name of ['mmhvault:page-visible','mmhvault:config-owner-changed','mmhvault:data-loaded','mmhvault:data-change','mmhvault:cache-restored','mmhvault:market-updated','mmhvault-language-change','languagechange']){
-   window.addEventListener(name,()=>{if(active()){if(['mmhvault-language-change','languagechange','mmhvault:config-owner-changed'].includes(name))onVisible();else dateChanged()}else{if(name==='mmhvault:config-owner-changed')syncOwner();if(name==='mmhvault:page-visible'){modal='';modalReturn='';modalOrigin=''}if(el('dashboard')?.classList.contains('active')){if(['mmhvault-language-change','languagechange'].includes(name)){el('mmhDailyDashboardV13')?.remove()}watchDashboard();scheduleMidnight()}}},{passive:true});
+   window.addEventListener(name,()=>{if(active()){if(['mmhvault-language-change','languagechange','mmhvault:config-owner-changed'].includes(name))onVisible();else dateChanged()}else{if(name==='mmhvault:config-owner-changed')syncOwner();if(name==='mmhvault:page-visible'){modal='';modalReturn=[];modalOrigin=''}if(el('dashboard')?.classList.contains('active')){if(['mmhvault-language-change','languagechange'].includes(name)){el('mmhDailyDashboardV13')?.remove()}watchDashboard();scheduleMidnight()}}},{passive:true});
   }
   document.addEventListener('visibilitychange',()=>{if(document.hidden)stopMidnight();else onVisible()},{passive:true});
   window.addEventListener('beforeunload',e=>{if(dirty){e.preventDefault();e.returnValue=''}});
