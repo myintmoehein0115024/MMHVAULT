@@ -16,6 +16,8 @@ const browser=await chromium.launch({headless:true});
 try {
  for(const width of [393,1440]) for(const lang of ['en','zh','my']) for(const dark of [false,true]) {
   const page=await browser.newPage({viewport:{width,height:844},colorScheme:dark?'dark':'light'});
+  page.setDefaultTimeout(8000);
+  console.log('START synthetic browser',width,lang,dark?'dark':'light');
   const errors=[];
   page.on('pageerror',e=>errors.push(e.message));
   await page.route('**/*',route=>route.request().url()==='https://forecast.test/'?route.fulfill({contentType:'text/html',body:'<!doctype html><html><body class="mmh-workspace-active"><header id="fixture-header">Workspace</header><div id="fixture-scroll"><main id="forecast" class="page active"><div id="mmhForecastRootV1"></div></main><div style="height:500px"></div></div><div id="mmhVaultDialogV449"></div></body></html>'}):route.abort());
@@ -26,8 +28,9 @@ try {
   await page.addScriptTag({content:js});
   const dialog=page.locator('.fc-dialog');
   const within=async locator=>{const b=await locator.boundingBox();assert.ok(b&&b.x>=-1&&b.y>=-1&&b.x+b.width<=width+1&&b.y+b.height<=844+1,'element within viewport');return b;};
-  const anchored=async (trigger,menu)=>{await menu.waitFor();await menu.evaluate(el=>new Promise(resolve=>{const poll=()=>el.matches(':popover-open')?resolve():requestAnimationFrame(poll);poll()}));const a=await trigger.boundingBox(),m=await within(menu);assert.ok(Math.min(Math.abs(m.y-(a.y+a.height)),Math.abs(m.y+m.height-a.y))<=8,'menu vertically adjacent to trigger');assert.ok(m.x<=a.x+a.width+1&&m.x+m.width>=a.x-1,'menu horizontally overlaps trigger');};
+  const anchored=async (trigger,menu)=>{await menu.and(page.locator(':popover-open')).waitFor({state:'visible',timeout:8000});const a=await trigger.boundingBox(),m=await within(menu);assert.ok(Math.min(Math.abs(m.y-(a.y+a.height)),Math.abs(m.y+m.height-a.y))<=8,'menu vertically adjacent to trigger');assert.ok(m.x<=a.x+a.width+1&&m.x+m.width>=a.x-1,'menu horizontally overlaps trigger');};
   for(const selector of ['[data-fc-picker-kind="view"]','[data-fc-date-picker="end"]','[data-fc-date-picker="selected"]']){
+   console.log('CHECK anchored picker',selector);
    const p=page.locator(selector),trigger=p.locator('summary');await trigger.click();await anchored(trigger,p.locator('.fc-shared-menu,.fc-choice-menu'));await page.keyboard.press('Escape');assert.equal(await p.getAttribute('open'),null);
   }
   await page.locator('[data-fc-open-modal="months"]').click();
