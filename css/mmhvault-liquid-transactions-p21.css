@@ -209,3 +209,16 @@ html body.mmh-workspace-active #transactions #txForm .receipt-drop-icon-v3300{fl
  html body.mmh-workspace-active #editModal .modal,html body.mmh-workspace-active #transactions #txManagePanel #category-manage,html body.mmh-workspace-active #header{background:#0b253d!important}
 }
 @media(prefers-reduced-motion:reduce){html body.mmh-workspace-active #transactions #txHistoryPanel .hc-day{transition:none!important}}
+
+/* Personal V2.0.59 — restrained summary edges; no financial or layout changes.
+ * Paint the existing card background layer instead of competing for legacy pseudo-elements.
+ * Keep the V2 background color and use the existing semantic amount IDs. */
+html body.mmh-workspace-active #transactions#transactions#transactions#transactions#transactions.page.active #txHistoryPanel .hc-totals > div:has(> #hcIncome){--hc-edge-rgb:91,207,171}
+html body.mmh-workspace-active #transactions#transactions#transactions#transactions#transactions.page.active #txHistoryPanel .hc-totals > div:has(> #hcExpense){--hc-edge-rgb:232,140,153}
+html body.mmh-workspace-active #transactions#transactions#transactions#transactions#transactions.page.active #txHistoryPanel .hc-totals > div:has(> #hcRemaining){--hc-edge-rgb:133,205,240}
+html body.mmh-workspace-active #transactions#transactions#transactions#transactions#transactions.page.active #txHistoryPanel .hc-totals > div:is(:has(> #hcIncome),:has(> #hcExpense),:has(> #hcRemaining)){
+  background-image:linear-gradient(90deg,transparent,rgba(var(--hc-edge-rgb),.58),transparent)!important;
+  background-size:calc(100% - 16px) 2px!important;
+  background-position:center bottom!important;
+  background-repeat:no-repeat!important;
+}
