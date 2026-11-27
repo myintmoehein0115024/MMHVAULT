@@ -12198,18 +12198,27 @@ html.mmh-desktop-compact-v11110 body.mmh-workspace-active #moreNavMenu.more-nav-
   }
   window.mmhPortfolioRefreshReceipts=refreshCustomReceipts;
   async function openPortfolioReceipt(id,kind){
-    const user=(await db.auth.getUser()).data.user;if(!user)throw Error('Please sign in again.');
-    const gold=kind==='standard'&&Array.isArray(window.investments)&&window.investments.some(x=>x?.asset==='Gold'&&String(x.id)===String(id));
-    const path=kind==='custom'?await customReceiptPath(user,id):gold?await window.mmhGoldReceiptPathV1(user.id,id):await findInvestmentReceiptPathV3304(user.id,id);
-    if(!path)throw Error('No receipt was found for this investment.');
-    const r=await storage().createSignedUrl(path,300);if(r.error||!r.data?.signedUrl)throw r.error||Error('Receipt is unavailable.');
-    const modal=el('receiptViewerModalV3297'),body=el('receiptViewerBodyV3297');if(!modal||!body)throw Error('Receipt viewer is unavailable.');
-    const url=r.data.signedUrl;body.replaceChildren();
-    const pdf=path.toLowerCase().endsWith('.pdf'),media=document.createElement(pdf?'iframe':'img');
-    const zoom=el('receiptZoomFloatV3299');if(zoom)zoom.classList.toggle('show',!pdf);
-    media.src=url;media.title='Investment receipt';media.alt='Investment receipt';
-    media.onerror=()=>{modal.classList.remove('show');body.replaceChildren();zoom?.classList.remove('show');window.mmhEditDeleteUI.message('Receipt unavailable','The linked receipt could not be opened.');};
-    body.append(media);modal.classList.add('show');
+    const request=beginReceiptViewerV3297();if(!request.owner)return;
+    try{
+      const user=(await db.auth.getUser()).data.user;
+      if(!request.current())return;
+      if(user?.id!==request.owner)throw Error('Please sign in again.');
+      const gold=kind==='standard'&&Array.isArray(window.investments)&&window.investments.some(x=>x?.asset==='Gold'&&String(x.id)===String(id));
+      const path=kind==='custom'?await customReceiptPath(user,id):gold?await window.mmhGoldReceiptPathV1(user.id,id):await findInvestmentReceiptPathV3304(user.id,id);
+      if(!request.current())return;
+      if(!path||!path.startsWith(request.owner+'/'))throw Error('No receipt was found for this investment.');
+      const r=await storage().createSignedUrl(path,300);
+      if(!request.current())return;
+      if(r.error||!r.data?.signedUrl)throw r.error||Error('Receipt is unavailable.');
+      const modal=el('receiptViewerModalV3297'),body=el('receiptViewerBodyV3297');if(!modal||!body)throw Error('Receipt viewer is unavailable.');
+      const pdf=path.toLowerCase().endsWith('.pdf'),media=document.createElement(pdf?'iframe':'img');
+      const zoom=el('receiptZoomFloatV3299');if(zoom)zoom.classList.toggle('show',!pdf);
+      media.title='Investment receipt';media.alt='Investment receipt';
+      media.onerror=()=>{if(!request.current()||media.parentNode!==body)return;closeTransactionReceiptV3297();window.mmhEditDeleteUI.message('Receipt unavailable','The linked receipt could not be opened.');};
+      if(!pdf){media.id='receiptViewerImageV3297';media.onclick=()=>{if(!request.current()||media.parentNode!==body)return;receiptZoomV3297=receiptZoomV3297>1.01?1:1.5;updateReceiptZoomV3297();};}
+      body.replaceChildren(media);modal.classList.add('show');media.src=r.data.signedUrl;
+      if(!pdf)updateReceiptZoomV3297();
+    }catch(err){if(request.current())throw err;}
   }
   window.mmhPortfolioOpenReceipt=openPortfolioReceipt;
   window.mmhPortfolioSaveCustomReceipt=async function(user,id,file){
@@ -12494,7 +12503,7 @@ html.mmh-desktop-compact-v11110 body.mmh-workspace-active #moreNavMenu.more-nav-
   window.addEventListener('mmhvault:data-loaded',render);
   window.addEventListener('mmhvault:sync-complete',render);
   window.addEventListener('mmhvault:data-state',render);
-  window.addEventListener('mmhvault:config-owner-changed',()=>{++receiptRevision;receiptOwner='';customReceipts.clear();});
+  window.addEventListener('mmhvault:config-owner-changed',()=>{++receiptRevision;receiptOwner='';customReceipts.clear();closeTransactionReceiptV3297();});
   window.addEventListener('mmhvault:data-loaded',refreshCustomReceipts);
   window.addEventListener('mmhvault:data-loaded',()=>window.refreshInvestmentReceiptFlagsV3304?.());
   window.addEventListener('mmhvault:cache-restored',render);
@@ -15224,7 +15233,13 @@ function updateReceiptZoomV3297(){
 }
 function changeReceiptZoomV3297(delta){receiptZoomV3297+=delta;updateReceiptZoomV3297();}
 function resetReceiptZoomV3297(){receiptZoomV3297=1;updateReceiptZoomV3297();}
+function beginReceiptViewerV3297(){
+  closeTransactionReceiptV3297();
+  const owner=String(currentSessionUser?.id||''),epoch=Number(window.__mmhSessionEpochV1239)||0,ticket=Number(window.__mmhReceiptViewerTicketV3297)||0;
+  return {owner,current:()=>!!owner&&String(currentSessionUser?.id||'')===owner&&(Number(window.__mmhSessionEpochV1239)||0)===epoch&&(Number(window.__mmhReceiptViewerTicketV3297)||0)===ticket};
+}
 function closeTransactionReceiptV3297(){
+  window.__mmhReceiptViewerTicketV3297=(Number(window.__mmhReceiptViewerTicketV3297)||0)+1;
   const modal=$("receiptViewerModalV3297"),body=$("receiptViewerBodyV3297"),controls=$("receiptZoomControlsV3297");
   receiptZoomV3297=1;
   if(body)body.innerHTML='';
@@ -15233,15 +15248,21 @@ function closeTransactionReceiptV3297(){
   if(modal)modal.classList.remove('show');
 }
 async function openTransactionReceiptV396(id){
+  const request=beginReceiptViewerV3297();if(!request.owner)return;
+  try{
   const u=(await db.auth.getUser()).data.user;
-  if(!u){mmhVaultNoticeV930('Please sign in first.');return;}
+  if(!request.current())return;
+  if(u?.id!==request.owner){mmhVaultNoticeV930('Please sign in first.');return;}
   const modal=$("receiptViewerModalV3297"),body=$("receiptViewerBodyV3297");
   if(!modal||!body){mmhVaultNoticeV930('Receipt viewer is unavailable.');return;}
   body.innerHTML='<div class="receipt-viewer-loading-v3297">Loading receipt…</div>';
   modal.classList.add('show');
   const path=receiptPathV396(u.id,id);
+  if(!request.current())return;
+  if(path&&!path.startsWith(request.owner+'/')){closeTransactionReceiptV3297();return;}
   const {data,error}=await db.storage.from(RECEIPTS_BUCKET_V396).createSignedUrl(path,300);
-  if(error){closeTransactionReceiptV3297();mmhVaultNoticeV930('No receipt was found for this transaction.');return;}
+  if(!request.current())return;
+  if(error||!data?.signedUrl){closeTransactionReceiptV3297();mmhVaultNoticeV930('No receipt was found for this transaction.');return;}
   const url=data.signedUrl;
   const clean=url.split('?')[0].toLowerCase();
   if(clean.endsWith('.pdf')){
@@ -15254,10 +15275,11 @@ async function openTransactionReceiptV396(id){
     if(receiptImg){
       receiptZoomV3297=1;
       updateReceiptZoomV3297();
-      receiptImg.onclick=()=>{receiptZoomV3297=receiptZoomV3297>1.01?1:1.5;updateReceiptZoomV3297();};
-      receiptImg.onerror=()=>{body.innerHTML='';const controls=$("receiptZoomControlsV3297");const float=$("receiptZoomFloatV3299");if(controls)controls.style.display='none';if(float)float.classList.remove('show');};
+      receiptImg.onclick=()=>{if(!request.current())return;receiptZoomV3297=receiptZoomV3297>1.01?1:1.5;updateReceiptZoomV3297();};
+      receiptImg.onerror=()=>{if(!request.current())return;body.innerHTML='';const controls=$("receiptZoomControlsV3297");const float=$("receiptZoomFloatV3299");if(controls)controls.style.display='none';if(float)float.classList.remove('show');};
     }
   }
+  }catch(err){if(request.current()){closeTransactionReceiptV3297();mmhVaultNoticeV930('Receipt unavailable.');}}
 }
 document.addEventListener('click',e=>{const m=$("receiptViewerModalV3297");if(m&&e.target===m)closeTransactionReceiptV3297();});
 document.addEventListener('keydown',e=>{if(e.key==='Escape')closeTransactionReceiptV3297();});
@@ -18386,17 +18408,23 @@ async function refreshInvestmentReceiptFlagsV3304(){
 window.mmHVaultHasInvestmentReceiptV3304=id=>window.mmHVaultInvestmentReceiptIdsV3304.has(Number(id));
 
 async function openInvestmentReceiptV3304(id){
+  const request=beginReceiptViewerV3297();if(!request.owner)return;
+  try{
   const u=(await db.auth.getUser()).data.user;
-  if(!u){mmhVaultNoticeV930('Please sign in first.');return;}
+  if(!request.current())return;
+  if(u?.id!==request.owner){mmhVaultNoticeV930('Please sign in first.');return;}
   const modal=$("receiptViewerModalV3297"),body=$("receiptViewerBodyV3297");
   if(!modal||!body){mmhVaultNoticeV930('Receipt viewer is unavailable.');return;}
   body.innerHTML='<div class="receipt-viewer-loading-v3297">Loading receipt…</div>';
   modal.classList.add('show');
   const path=await findInvestmentReceiptPathV3304(u.id,id);
+  if(!request.current())return;
+  if(path&&!path.startsWith(request.owner+'/')){closeTransactionReceiptV3297();return;}
   if(!path){closeTransactionReceiptV3297();mmhVaultNoticeV930('No receipt was found for this investment.');return;}
   const bucket=typeof RECEIPTS_BUCKET_V396!=='undefined'?RECEIPTS_BUCKET_V396:'receipts';
   const {data,error}=await db.storage.from(bucket).createSignedUrl(path,300);
-  if(error){closeTransactionReceiptV3297();mmhVaultNoticeV930('Unable to open this investment receipt.');return;}
+  if(!request.current())return;
+  if(error||!data?.signedUrl){closeTransactionReceiptV3297();mmhVaultNoticeV930('Unable to open this investment receipt.');return;}
   const url=data.signedUrl;
   const name=path.toLowerCase();
   if(name.endsWith('.pdf')){
@@ -18408,10 +18436,11 @@ async function openInvestmentReceiptV3304(id){
     const img=body.querySelector('img');
     if(img){
       receiptZoomV3297=1;updateReceiptZoomV3297();
-      img.onclick=()=>{receiptZoomV3297=receiptZoomV3297>1.01?1:1.5;updateReceiptZoomV3297();};
-      img.onerror=()=>{body.innerHTML='';if(float)float.classList.remove('show');};
+      img.onclick=()=>{if(!request.current())return;receiptZoomV3297=receiptZoomV3297>1.01?1:1.5;updateReceiptZoomV3297();};
+      img.onerror=()=>{if(!request.current())return;body.innerHTML='';if(float)float.classList.remove('show');};
     }
   }
+  }catch(err){if(request.current()){closeTransactionReceiptV3297();mmhVaultNoticeV930('Receipt unavailable.');}}
 }
 </script>
 <script id="mmhvault-v3304-investment-receipt-bind">
@@ -18569,17 +18598,23 @@ window.mmHVaultOpenManagedReceiptV3309 = async function(id,kind){
   };
 
   openTransactionReceiptV396=async function(id){
+    const request=beginReceiptViewerV3297();if(!request.owner)return;
+    try{
     const u=(await db.auth.getUser()).data.user;
-    if(!u){mmhVaultNoticeV930('Please sign in first.');return;}
+    if(!request.current())return;
+    if(u?.id!==request.owner){mmhVaultNoticeV930('Please sign in first.');return;}
     const modal=$("receiptViewerModalV3297"),body=$("receiptViewerBodyV3297");
     if(!modal||!body){mmhVaultNoticeV930('Receipt viewer is unavailable.');return;}
     body.innerHTML='<div class="receipt-viewer-loading-v3297">Loading receipt…</div>';
     modal.classList.add('show');
     const paths=await listReceiptPathsV3314(u.id,'transaction',id);
     const path=paths[0];
+    if(!request.current())return;
+    if(path&&!path.startsWith(request.owner+'/')){closeTransactionReceiptV3297();return;}
     if(!path){closeTransactionReceiptV3297();mmhVaultNoticeV930('No receipt was found for this transaction.');return;}
     const {data,error}=await db.storage.from(BUCKET()).createSignedUrl(path,300);
-    if(error){closeTransactionReceiptV3297();mmhVaultNoticeV930('No receipt was found for this transaction.');return;}
+    if(!request.current())return;
+    if(error||!data?.signedUrl){closeTransactionReceiptV3297();mmhVaultNoticeV930('No receipt was found for this transaction.');return;}
     const url=data.signedUrl;
     const clean=path.toLowerCase();
     if(clean.endsWith('.pdf')){
@@ -18591,10 +18626,11 @@ window.mmHVaultOpenManagedReceiptV3309 = async function(id,kind){
       const img=body.querySelector('img');
       if(img){
         receiptZoomV3297=1;updateReceiptZoomV3297();
-        img.onclick=()=>{receiptZoomV3297=receiptZoomV3297>1.01?1:1.5;updateReceiptZoomV3297();};
-        img.onerror=()=>{body.innerHTML='';if(float)float.classList.remove('show');};
+        img.onclick=()=>{if(!request.current())return;receiptZoomV3297=receiptZoomV3297>1.01?1:1.5;updateReceiptZoomV3297();};
+        img.onerror=()=>{if(!request.current())return;body.innerHTML='';if(float)float.classList.remove('show');};
       }
     }
+    }catch(err){if(request.current()){closeTransactionReceiptV3297();mmhVaultNoticeV930('Receipt unavailable.');}}
   };
 
   deleteTransactionReceiptV396=async function(userId,id){
