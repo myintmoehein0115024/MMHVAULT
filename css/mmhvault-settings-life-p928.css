@@ -15,3 +15,25 @@ html body :is(.lh-dialog,.ls-dialog,.lf-dialog,.lg-dialog) button:focus-visible{
  html body #settings #stPage_feedback .fb-photo-thumb-v15{max-width:min(100%,140px)}
 }
 @media(prefers-reduced-motion:reduce){html body #settings #stPage_feedback .mmh-fb65-remove{transition:none!important}}
+
+
+/* Personal Settings V2.0.65 — overview only; preserve all actions and detail pages. */
+html body.mmh-workspace-active #settings.page.active #stSettingsHomeV3{--st265-panel:#1c2531;--st265-inset:#222e3b;--st265-line:#354353;--st265-ink:#e8edf4;--st265-dim:#aab8c8;--st265-accent:#8ab5e9;color:var(--st265-ink)!important}
+html body.mmh-workspace-active.light #settings.page.active #stSettingsHomeV3{--st265-panel:#fff;--st265-inset:#f6f8fb;--st265-line:#dbe3ec;--st265-ink:#243347;--st265-dim:#59697c;--st265-accent:#356eb1}
+html body.mmh-workspace-active #settings.page.active #stSettingsHomeV3:not([hidden]){gap:12px!important;min-width:0!important;box-sizing:border-box!important}
+html body.mmh-workspace-active #settings.page.active #stSettingsHomeV3>#settingsPanelAccountV371>.panel,
+html body.mmh-workspace-active #settings.page.active #stSettingsHomeV3 .st-home-menu>.st-template-group{background:var(--st265-panel)!important;border:1px solid var(--st265-line)!important;border-radius:14px!important;box-shadow:none!important;backdrop-filter:none!important;-webkit-backdrop-filter:none!important;color:var(--st265-ink)!important;min-width:0!important;box-sizing:border-box!important}
+html body.mmh-workspace-active #settings.page.active #stSettingsHomeV3>#settingsPanelAccountV371>.panel>.toolbar{border-color:var(--st265-line)!important;background:none!important}
+html body.mmh-workspace-active #settings.page.active #stSettingsHomeV3 .st-home-menu{gap:12px!important;min-width:0!important}
+html body.mmh-workspace-active #settings.page.active #stSettingsHomeV3 .st-home-menu>.st-template-group{padding:12px!important;gap:8px!important}
+html body.mmh-workspace-active #settings.page.active #stSettingsHomeV3 .st-home-menu>.st-template-group>h3{color:var(--st265-dim)!important;font:650 13px/1.4 system-ui,sans-serif!important;margin:0 0 2px!important;text-align:center!important;overflow-wrap:anywhere}
+html body.mmh-workspace-active #settings.page.active #stSettingsHomeV3 .st-home-menu>.st-template-group>:is(.st-nav,.fb-nav,.cs-entry-v1518){min-width:0!important;min-height:48px!important;height:auto!important;padding:9px 10px!important;gap:9px!important;background:var(--st265-inset)!important;border:1px solid var(--st265-line)!important;border-radius:11px!important;box-shadow:none!important;backdrop-filter:none!important;-webkit-backdrop-filter:none!important;color:var(--st265-ink)!important;box-sizing:border-box!important}
+html body.mmh-workspace-active #settings.page.active #stSettingsHomeV3 .st-home-menu .st-template-nav-copy{min-width:0!important;white-space:normal!important;overflow-wrap:anywhere!important}
+html body.mmh-workspace-active #settings.page.active #stSettingsHomeV3 .st-home-menu .st-nav-name{color:var(--st265-ink)!important;font:650 13px/1.4 system-ui,sans-serif!important;white-space:normal!important}
+html body.mmh-workspace-active #settings.page.active #stSettingsHomeV3 .st-home-menu .st-template-nav-copy small{color:var(--st265-dim)!important;font:400 11px/1.45 system-ui,sans-serif!important;white-space:normal!important}
+html body.mmh-workspace-active #settings.page.active #stSettingsHomeV3 .st-home-menu :is(.st-icon,.st-chevron){color:var(--st265-accent)!important;flex-shrink:0!important}
+html body.mmh-workspace-active #settings.page.active #stSettingsHomeV3 .st-home-menu :is(.st-nav,.fb-nav,.cs-entry-v1518):focus-visible{outline:2px solid var(--st265-accent)!important;outline-offset:2px!important}
+@media(max-width:600px){
+ html body.mmh-workspace-active #settings.page.active #stSettingsHomeV3>#settingsPanelAccountV371>.panel{padding:12px!important}
+ html body.mmh-workspace-active #settings.page.active #stSettingsHomeV3 .st-home-menu>.st-template-group{padding:10px!important}
+}
