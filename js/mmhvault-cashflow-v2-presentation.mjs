@@ -15,7 +15,7 @@ export function enhanceCurrencies(root,api,{labelFor,canChange=()=>true}={}){
   const details=doc.createElement('details'),summary=doc.createElement('summary'),group=doc.createElement('div'),label=doc.createElement('label'),search=doc.createElement('input'),list=doc.createElement('div');
   details.className='cfv2-currency';group.className='ap-currency-choices-v2';list.className='ap-currency-list-v2';search.type='search';search.autocomplete='off';label.append(search);group.append(label,list);details.append(summary,group);
   const title=labelFor?.(select)||host.textContent.trim();
-  const update=()=>{const code=select.value;summary.textContent=code?api.flag(code)+code:(select.selectedOptions[0]?.textContent||title);summary.setAttribute('aria-label',title+': '+summary.textContent)};
+  const update=()=>{const code=select.value;summary.textContent=code==='GLOBAL'?(select.selectedOptions[0]?.textContent||title):code?api.flag(code)+code:(select.selectedOptions[0]?.textContent||title);summary.setAttribute('aria-label',title+': '+summary.textContent)};
   try{
    // Shared renderer rewrites its label's textContent, so the input is a sibling.
    group.insertBefore(search,list);
