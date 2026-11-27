@@ -30786,7 +30786,15 @@ const $=id=>document.getElementById(id),N=v=>Number.isFinite(Number(v))?Number(v
 let trendRange='6M',marketTab='Popular',lastFullSignatureV720='';
 let marketTimerV720=0;
 const esc=s=>String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
-const money=v=>'$'+N(v).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2});
+const marketMoney=v=>'$'+N(v).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2});
+// Overview presentation only; underlying financial data and market references remain USD.
+function overviewCurrencyV265(){
+ const id=typeof currentSessionUser!=='undefined'?currentSessionUser?.id:null;if(!id)return 'USD';
+ try{const c=JSON.parse(localStorage.getItem('mmhvault_settings_display_v2_'+id)||'{}')?.currency;return ['USD','THB','MMK','CNY'].includes(c)?c:'USD'}catch(_){return 'USD'}
+}
+function money(v){const code=overviewCurrencyV265();if(!Number.isFinite(v))return '—';if(code==='USD')return marketMoney(v);return window.mmhAccountDisplayTotalV203?.(v,code)||'—'}
+function signedMoneyV265(v,positive){const value=money(v);return value==='—'?value:(positive?'+':'')+value}
+window.mmhOverviewDisplayMoneyV265=money;
 const pct=v=>(v>=0?'+':'')+N(v).toFixed(2)+'%';
 function lang(){return (localStorage.getItem('mmhvault_language_v3363')||'en')==='zh'}
 function pageActive(){return $('dashboard')?.classList.contains('active')}
@@ -30932,7 +30940,7 @@ function recentTransactionRows(limit=24){
 function txRows(limit=24,sourceRows=null){
  const rows=Array.isArray(sourceRows)?sourceRows:recentTransactionRows(limit);
  if(!rows.length)return '<div style="padding:24px 2px;color:#71899d;font-size:10px">No transactions yet.</div>';
- return rows.map(t=>{const type=String(t.type||'Other'),amt=type==='Income'?N(t.to_amount):N(t.from_amount),acct=type==='Income'?(t.to_account||''):(t.from_account||''),usd=typeof window.mmhvaultAmountUSD==='function'?window.mmhvaultAmountUSD(acct,amt):amt;const cls=type==='Income'?'income':type==='Expense'?'expense':'transfer',sign=type==='Income'?'+':type==='Expense'?'-':'';return `<div class="pf-tx-row-v500" data-mmh-dashboard-tx-v143="${esc(t.id)}" role="button" tabindex="0" aria-label="Open ${esc(t.category||type)} transaction detail" title="Open transaction detail"><span>${esc(t.tx_date||'—')}</span><div class="pf-tx-name-v500"><i class="pf-tx-icon-v500">${type==='Income'?'↙':type==='Expense'?'↗':'⇄'}</i><div class="pf-tx-copy-v500"><b>${esc(t.category||type)}</b><small>${esc(acct||t.note||type)}</small></div></div><span class="pf-tag-v500 ${cls}">${esc(type)}</span><span class="pf-amount-v500 ${type==='Income'?'pos':type==='Expense'?'neg':''}">${sign}${money(usd)}</span><span class="pf-status-v500">Completed</span></div>`}).join('');
+ return rows.map(t=>{const type=String(t.type||'Other'),amt=type==='Income'?N(t.to_amount):N(t.from_amount),acct=type==='Income'?(t.to_account||''):(t.from_account||''),usd=typeof window.mmhvaultAmountUSD==='function'?window.mmhvaultAmountUSD(acct,amt):amt;const cls=type==='Income'?'income':type==='Expense'?'expense':'transfer',sign=type==='Income'?'+':type==='Expense'?'-':'';return `<div class="pf-tx-row-v500" data-mmh-dashboard-tx-v143="${esc(t.id)}" role="button" tabindex="0" aria-label="Open ${esc(t.category||type)} transaction detail" title="Open transaction detail"><span>${esc(t.tx_date||'—')}</span><div class="pf-tx-name-v500"><i class="pf-tx-icon-v500">${type==='Income'?'↙':type==='Expense'?'↗':'⇄'}</i><div class="pf-tx-copy-v500"><b>${esc(t.category||type)}</b><small>${esc(acct||t.note||type)}</small></div></div><span class="pf-tag-v500 ${cls}">${esc(type)}</span><span class="pf-amount-v500 ${type==='Income'?'pos':type==='Expense'?'neg':''}">${money(usd)==='—'?'—':sign+money(usd)}</span><span class="pf-status-v500">Completed</span></div>`}).join('');
 }
 function marketRows(filter=marketTab){
  const live=(typeof livePrices!=='undefined'?livePrices:(window.livePrices||{}));
@@ -30945,7 +30953,7 @@ function marketRows(filter=marketTab){
  else if(filter==='Live')items=items.filter(x=>x.p>0).sort((a,b)=>Math.abs(b.c)-Math.abs(a.c));
  const label={BTC:'Bitcoin',ETH:'Ethereum',SOL:'Solana',BNB:'BNB',GOLD:'Gold'};
  if(!items.length)return '<div class="pf-market-empty-v630">No live market data yet.</div>';
- return items.map((x,i)=>{const c=x.c||0,neg=c<0;const seed=(i+1)*2;const y=[14,9,12,6,10,4,7,3].map((v,j)=>`${j?'L':'M'}${j*11},${neg?22-v+seed*.15:v+2+seed*.12}`).join(' ');return `<div class="pf-market-row-v500" data-market-kind="${x.kind}"><div class="pf-asset-v500"><i class="pf-coin-v500">${esc(x.sym==='GOLD'?'Au':x.sym[0])}</i><span><b>${esc(x.sym)}</b><small>${esc(label[x.sym]||'')}</small></span></div><span>${x.p?money(x.p):'—'}</span><span class="pf-change-v500 ${neg?'neg':'pos'}">${x.c?pct(x.c):'Live'}</span><span class="pf-spark-v500 ${neg?'neg':''}"><svg viewBox="0 0 78 26" preserveAspectRatio="none"><path d="${y}"/></svg></span></div>`}).join('');
+ return items.map((x,i)=>{const c=x.c||0,neg=c<0;const seed=(i+1)*2;const y=[14,9,12,6,10,4,7,3].map((v,j)=>`${j?'L':'M'}${j*11},${neg?22-v+seed*.15:v+2+seed*.12}`).join(' ');return `<div class="pf-market-row-v500" data-market-kind="${x.kind}"><div class="pf-asset-v500"><i class="pf-coin-v500">${esc(x.sym==='GOLD'?'Au':x.sym[0])}</i><span><b>${esc(x.sym)}</b><small>${esc(label[x.sym]||'')}</small></span></div><span>${x.p?marketMoney(x.p):'—'}</span><span class="pf-change-v500 ${neg?'neg':'pos'}">${x.c?pct(x.c):'Live'}</span><span class="pf-spark-v500 ${neg?'neg':''}"><svg viewBox="0 0 78 26" preserveAspectRatio="none"><path d="${y}"/></svg></span></div>`}).join('');
 }
 function name(){const raw=($('headerDisplayName')?.textContent||'').trim();if(!raw||/MMHVAULT User/i.test(raw))return lang()?'用户':'there';return raw}
 function personalTimeData(){
@@ -30960,7 +30968,7 @@ function fullSignatureV720(){
  const tx=(Array.isArray(window.transactions)?window.transactions:[]).map(t=>[t.id,t.tx_date,t.type,t.category,t.from_account,t.from_amount,t.to_account,t.to_amount].join(':')).join('|');
  const inv=(Array.isArray(window.investments)?window.investments:[]).map(x=>[x.id,x.asset,x.symbol,x.amount,x.buy_price,x.quantity,x.source_account].join(':')).join('|');
  const r=(typeof rates!=='undefined'?rates:window.rates)||{};
- return [trendRange,tx,inv,N(r.usd_mmk),N(r.usd_thb),N(r.usd_cny)].join('§');
+ return [trendRange,overviewCurrencyV265(),tx,inv,N(r.usd_mmk),N(r.usd_thb),N(r.usd_cny)].join('§');
 }
 function updateMarketOnlyV720(){
  if(!pageActive())return;const host=ensureDashboardHost();if(!host)return;
@@ -30971,7 +30979,7 @@ function updateMarketOnlyV720(){
  const kpis=host.querySelectorAll('.pf-kpi-v500');
  if(kpis[0]?.querySelector('.pf-kpi-value-v500'))kpis[0].querySelector('.pf-kpi-value-v500').textContent=money(d.total);
  if(kpis[2]?.querySelector('.pf-kpi-value-v500'))kpis[2].querySelector('.pf-kpi-value-v500').textContent=money(d.invest);
- if(kpis[3]?.querySelector('.pf-kpi-value-v500'))kpis[3].querySelector('.pf-kpi-value-v500').textContent=(d.pl>=0?'+':'')+money(d.pl);
+ if(kpis[3]?.querySelector('.pf-kpi-value-v500'))kpis[3].querySelector('.pf-kpi-value-v500').textContent=signedMoneyV265(d.pl,d.pl>=0);
  const trendValue=host.querySelector('.pf-trend-summary-v500 strong');if(trendValue)trendValue.textContent=money(d.total);
  const total=d.total||1,cashPct=d.cash/total*100,investPct=d.invest/total*100,recvPct=Math.max(0,100-cashPct-investPct);
  const donut=host.querySelector('.pf-donut-v630');if(donut){donut.style.setProperty('--cash',cashPct.toFixed(2)+'%');donut.style.setProperty('--invest',investPct.toFixed(2)+'%');const totalEl=donut.querySelector('strong');if(totalEl)totalEl.textContent=money(d.total);}
@@ -31024,7 +31032,7 @@ function render(force=false){
    <article class="pf-kpi-v500 gold"><span class="pf-kpi-label-v500">Total Balance</span><div class="pf-kpi-value-v500">${money(d.total)}</div><div class="pf-kpi-meta-v500"><span class="pos">LIVE</span><span>Cash + investments + receivable</span></div><i class="pf-kpi-icon-v500">◉</i></article>
    <article class="pf-kpi-v500"><span class="pf-kpi-label-v500">Cash Flow · This Month</span><div class="pf-kpi-value-v500">${money(d.cashFlow)}</div><div class="pf-kpi-meta-v500"><span class="${d.flowChange==null||d.flowChange>=0?'pos':'neg'}">${d.flowChange==null?'—':pct(d.flowChange)}</span><span>vs. last month</span></div><i class="pf-kpi-icon-v500">↗</i></article>
    <article class="pf-kpi-v500"><span class="pf-kpi-label-v500">Portfolio Value</span><div class="pf-kpi-value-v500">${money(d.invest)}</div><div class="pf-kpi-meta-v500"><span class="${d.investChange>=0?'pos':'neg'}">${pct(d.investChange)}</span><span>vs. investment cost</span></div><i class="pf-kpi-icon-v500">▥</i></article>
-   <article class="pf-kpi-v500 gold"><span class="pf-kpi-label-v500">Investment Profit / Loss</span><div class="pf-kpi-value-v500 ${pnlCls}">${d.pl>=0?'+':''}${money(d.pl)}</div><div class="pf-kpi-meta-v500"><span class="${pnlCls}">${pct(d.investChange)}</span><span>unrealized</span></div><i class="pf-kpi-icon-v500">⌁</i></article>
+   <article class="pf-kpi-v500 gold"><span class="pf-kpi-label-v500">Investment Profit / Loss</span><div class="pf-kpi-value-v500 ${pnlCls}">${signedMoneyV265(d.pl,d.pl>=0)}</div><div class="pf-kpi-meta-v500"><span class="${pnlCls}">${pct(d.investChange)}</span><span>unrealized</span></div><i class="pf-kpi-icon-v500">⌁</i></article>
  </section>
  <section class="pf-main-grid-v500">
    <article class="pf-card-v500 pf-trend-card-v620"><div class="pf-card-head-v500"><div><h2 class="mmh-hint-anchor-v195 mmh-context-title-v199" data-mmh-hint-source="next" tabindex="0">Portfolio Trend</h2><p class="mmh-context-desc-v199">${trendDescription(trendRange)}</p></div><div class="pf-range-v500" role="group" aria-label="Portfolio trend period"><button type="button" data-pf-range="1W" class="${trendRange==='1W'?'active':''}">1W</button><button type="button" data-pf-range="6M" class="${trendRange==='6M'?'active':''}">6M</button><button type="button" data-pf-range="1Y" class="${trendRange==='1Y'?'active':''}">1Y</button><button type="button" data-pf-range="ALL" class="${trendRange==='ALL'?'active':''}">ALL</button></div></div><div class="pf-trend-summary-v500"><strong>${money(d.total)}</strong><span>${pct(trend)} momentum</span></div><div class="pf-chart-v500 pf-chart-swap-v620">${chartSvg(series)}</div></article>
@@ -31116,7 +31124,9 @@ window.addEventListener('mmhvault-language-change',()=>{
  // Keep chart, transaction tape and financial DOM mounted during language-only changes.
 });
 window.addEventListener('mmhvault:page-visible',()=>{if(pageActive()&&dashboardDirtyV159)scheduleDashboardRenderV790(0,dashboardRenderForceV790)});
-window.addEventListener('mmhvault:market-updated',()=>{if(pageActive())scheduleMarketOnlyV720();else dashboardDirtyV159=true});
+window.addEventListener('mmhvault:personal-display-currency-changed',()=>scheduleDashboardRenderV790(0,false));
+window.addEventListener('mmhvault:config-owner-changed',()=>scheduleDashboardRenderV790(0,false));
+window.addEventListener('mmhvault:market-updated',()=>{if(pageActive()){if(fullSignatureV720()!==lastFullSignatureV720)scheduleDashboardRenderV790(0,false);else scheduleMarketOnlyV720()}else dashboardDirtyV159=true});
 /* v1.5.5: CSS handles responsive layout; do not rebuild Dashboard DOM on resize. */
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});else init();
 })();
