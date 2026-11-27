@@ -12412,6 +12412,7 @@ html.mmh-desktop-compact-v11110 body.mmh-workspace-active #moreNavMenu.more-nav-
       }catch(err){if(!isCurrentOwner()){modal.close();return;}window.mmhEditDeleteUI.inline(recordText("Edit failed: ","编辑失败：","ပြင်ဆင်၍ မရပါ: ")+(err?.message||err),form);submit.disabled=false;}
     });
     modal.showModal();
+    window.MMHTransactionDialogLayoutV2?.();
   }
   document.addEventListener('click',e=>{
     const typeButton=e.target.closest('#mmhHistoryFiltersV1 button[data-history-type]');
@@ -37842,7 +37843,10 @@ if(!detail||!edit)return;
 const px=n=>Math.max(0,Math.round(n))+'px';
 function update(){
  const b=window.MMHWorkspaceDialogBoundsV2?.(null);
- for(const [host,active] of [[detail,detail.classList.contains('show')&&!!detail.querySelector('.mmh-tx-detail-v800[data-mmh-tx-direction],.iw224-trade-dialog .mmh-wallet-detail-v177')],[edit,edit.classList.contains('open')&&!!edit.querySelector('#editTxForm,#editInvForm')]]){
+ const custom=document.querySelector('dialog.mmh-history-edit.iw226-custom-edit[open]');
+ const hosts=[[detail,detail.classList.contains('show')&&!!detail.querySelector('.mmh-tx-detail-v800[data-mmh-tx-direction],.iw224-trade-dialog .mmh-wallet-detail-v177')],[edit,edit.classList.contains('open')&&!!edit.querySelector('#editTxForm,#editInvForm')]];
+ if(custom)hosts.push([custom,true]);
+ for(const [host,active] of hosts){
    host.classList.toggle('mmh-tx-bounded-v2',active&&!!b);
    if(!active||!b)continue;
    const vv=window.visualViewport;
@@ -39111,6 +39115,14 @@ html body dialog.mmh-history-edit.iw226-custom-edit[open]::backdrop{background:v
 html body.light dialog.mmh-history-edit.iw226-custom-edit[open] :is(input,select){color-scheme:light!important}
 html body:not(.light) dialog.mmh-history-edit.iw226-custom-edit[open] :is(input,select){color-scheme:dark!important}
 html body dialog.mmh-history-edit.iw226-custom-edit[open] .mmh-history-dialog-actions button[type=submit]{background:var(--mmh-notice-active)!important;color:var(--uv-accent)!important;border-color:var(--uv-accent)!important}
+/* Keep native modal focus trapping; share Transaction workspace geometry. */
+html body dialog.mmh-history-edit.iw226-custom-edit[open].mmh-tx-bounded-v2{
+ position:fixed!important;inset:var(--tx-bound-top) var(--tx-bound-right) var(--tx-bound-bottom) var(--tx-bound-left)!important;margin:auto!important;
+ width:min(760px,max(1px,calc(100% - var(--tx-bound-left) - var(--tx-bound-right))))!important;
+ height:min(740px,max(1px,calc(100% - var(--tx-bound-top) - var(--tx-bound-bottom))))!important;max-width:none!important;max-height:none!important;
+}
+@media(max-width:600px){html body dialog.mmh-history-edit.iw226-custom-edit[open].mmh-tx-bounded-v2{height:max(1px,calc(100% - var(--tx-bound-top) - var(--tx-bound-bottom)))!important}}
+@media(max-height:540px){html body dialog.mmh-history-edit.iw226-custom-edit[open].mmh-tx-bounded-v2 :is(h2,.mmh-history-dialog-actions){padding:6px 10px!important}}
 </style>
 <script id="mmh-invest-v225-records-js">
 (function(){
