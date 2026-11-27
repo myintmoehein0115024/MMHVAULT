@@ -1,0 +1,25 @@
+name: Personal Accounts isolated visual QA (NO DEPLOY)
+on:
+  push:
+    branches: ['personal/v2.0.58-accounts-accents']
+    paths: ['css/mmhvault-accounts-directory-v1.css','tests/personal-accounts-accents.mjs','.github/workflows/personal-accounts-accents.yml']
+  pull_request:
+    branches: [main]
+    paths: ['css/mmhvault-accounts-directory-v1.css','tests/personal-accounts-accents.mjs','.github/workflows/personal-accounts-accents.yml']
+permissions:
+  contents: read
+jobs:
+  synthetic-browser:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: node --check tests/personal-accounts-accents.mjs
+      - run: npm install --no-save --package-lock=false --ignore-scripts playwright@1.51.1
+      - run: npx playwright install --with-deps chromium
+      - run: node tests/personal-accounts-accents.mjs

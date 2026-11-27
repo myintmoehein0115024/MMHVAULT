@@ -779,3 +779,15 @@ html body.mmh-workspace-active:not(.light) #accounts-page .am-directory-ready-v1
     }
   }
 }
+
+/* Personal V2.0.58 — restrained Future Assets-style edge on the existing balance summary. */
+html body.mmh-workspace-active #accounts-page#accounts-page.page.active .am-directory-ready-v1 #amHome:not([hidden]) > .am-summary{
+  position:relative!important;
+}
+html body.mmh-workspace-active #accounts-page#accounts-page.page.active .am-directory-ready-v1 #amHome:not([hidden]) > .am-summary::after{
+  content:""!important;position:absolute!important;
+  inset:auto 12px 0!important;width:auto!important;height:2px!important;
+  background:linear-gradient(90deg,transparent,rgba(247,201,109,.58),transparent)!important;
+  border:0!important;border-radius:0!important;box-shadow:none!important;filter:none!important;
+  opacity:1!important;transform:none!important;pointer-events:none!important;z-index:0!important;
+}
