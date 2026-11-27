@@ -177,6 +177,36 @@
  const planLabels={budget:['Budget','预算','ဘတ်ဂျက်'],goals:['Goals','目标','ရည်မှန်းချက်များ'],recurring:['Recurring','固定收支','ပုံမှန်ငွေဝင်ငွေထွက်']};
  const planIcons={budget:'<path d="M3 6h16a2 2 0 0 1 2 2v10H3z M3 6V4h14 M21 11h-5v4h5"/>',goals:'<circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1"/>',recurring:'<path d="M4 9V6h14l-3-3m3 12v3H4l3 3M18 6l-3 3M4 18l3-3"/>'};
  const planningLinks=()=>Object.keys(planLabels).map(key=>{const code=localStorage.getItem('mmhvault_language_v3363'),label=planLabels[key][code==='zh'?1:code==='my'?2:0];return '<button type="button" class="fc-plan-entry" data-fc-plan-page="'+key+'" title="'+label+'" aria-label="'+label+'"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'+planIcons[key]+'</svg></button>'}).join('');
+ // Shared sibling navigation for the three Personal planning pages.
+ function syncPlanningNavV263(){
+  const index=language()==='zh'?1:language()==='my'?2:0;
+  const backLabel=['Future Assets','未来资产','အနာဂတ်ပိုင်ဆိုင်မှု'][index];
+  const groupLabel=['Planning navigation','规划导航','အစီအစဉ် လမ်းညွှန်'][index];
+  const svg=body=>'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'+body+'</svg>';
+  for(const page of Object.keys(planLabels)){
+   const shell=document.querySelector('#'+page+' > [class$="-shell-v'+({budget:110,goals:113,recurring:114}[page])+'"]');
+   if(!shell)continue;
+   let nav=shell.querySelector(':scope > .fc-planning-nav-v263');
+   if(!nav){
+    nav=document.createElement('nav');nav.className='fc-planning-nav-v263';
+    nav.innerHTML='<button type="button" class="fc-planning-back-v263" data-fc-sibling="forecast">'+svg('<path d="m14 6-6 6 6 6M8 12h13"/>')+'<span></span></button><div class="fc-planning-links-v263">'+Object.keys(planLabels).map(key=>'<button type="button" data-fc-sibling="'+key+'"'+(key===page?' aria-current="page"':'')+'>'+svg(planIcons[key])+'</button>').join('')+'</div>';
+    nav.addEventListener('click',event=>{
+     const button=event.target.closest('[data-fc-sibling]');
+     if(!button||!nav.contains(button))return;
+     const target=button.dataset.fcSibling;
+     if(target!==page&&(target==='forecast'||Object.hasOwn(planLabels,target)))window.setPage?.(target);
+    });
+    shell.prepend(nav);
+   }
+   nav.setAttribute('aria-label',groupLabel);
+   const back=nav.querySelector('.fc-planning-back-v263');
+   if(back.querySelector('span').textContent!==backLabel)back.querySelector('span').textContent=backLabel;
+   back.setAttribute('aria-label',backLabel);back.title=backLabel;
+   for(const button of nav.querySelectorAll('.fc-planning-links-v263 button')){
+    const label=planLabels[button.dataset.fcSibling][index];button.title=label;button.setAttribute('aria-label',label);
+   }
+  }
+ }
  const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
  const pad=v=>String(v).padStart(2,'0');
  const monthKey=(d=new Date())=>`${d.getFullYear()}-${pad(d.getMonth()+1)}`;
@@ -761,6 +791,8 @@
  function scheduleMidnight(){stopMidnight();if(!(active()||el('dashboard')?.classList.contains('active'))||document.hidden)return;const now=new Date(),tomorrow=new Date(now.getFullYear(),now.getMonth(),now.getDate()+1,0,0,2);midnightTimer=setTimeout(()=>{midnightTimer=0;dateChanged();scheduleMidnight()},Math.max(1000,tomorrow-now))}
  function onVisible(){syncOwner();resetDailyMonthOnCalendarChange();if(active()){layout();scheduleMidnight()}else{const overlay=el(ROOT)?.querySelector('.fc-dialog-overlay');if(overlay?.hasAttribute('popover')&&overlay.matches(':popover-open'))overlay.hidePopover();closeForecastPickers();modal='';modalReturn=[];modalOrigin='';stopMidnight();if(el('dashboard')?.classList.contains('active'))mountDashboardDaily()}}
  function init(){
+  syncPlanningNavV263();
+  for(const event of ['mmhvault-language-change','languagechange','mmhvault:page-visible'])window.addEventListener(event,syncPlanningNavV263,{passive:true});
   const root=el(ROOT);if(!root)return;
   watchDashboard();
   // Keep an open picker attached during delayed/native scroll-to-trigger events.
