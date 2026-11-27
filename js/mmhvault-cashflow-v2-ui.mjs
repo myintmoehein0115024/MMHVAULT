@@ -32,6 +32,21 @@ const safeNum=v=>typeof v==='number'&&Number.isFinite(v);
 const symbols={report:'M7 3h7l4 4v14H7z M14 3v5h5 M10 12h5 M10 16h5',history:'M3 12a9 9 0 1 0 3-7 M3 3v6h6 M12 7v5l3 2',manage:'M4 7h16M4 17h16M8 4v6M16 14v6',details:'M5 5h14v14H5z M9 9h6M9 13h6',close:'M6 6l12 12M18 6L6 18'};
 const icon=k=>'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="'+symbols[k]+'"/></svg>';
 const presets=['today','week','month','lastMonth','quarter','year','lastYear','all','custom'];
+// Display preferences only: owner and view scoped, never ledger/filter currencies.
+export function resolvePersonalCashflowCurrencyV265(storage,uid,view,codes,fallback='USD'){
+ const valid=c=>codes.includes(c),key='mmhvault_personal_display_currency_v265_'+encodeURIComponent(uid)+'_'+view;
+ if(!uid||!['summary','analysis','planning','report'].includes(view))return valid(fallback)?fallback:'USD';
+ try{const saved=storage.getItem(key);if(valid(saved))return saved;
+ if(view==='analysis'){const legacy=storage.getItem('mmhvault_analyze_currency_v918_'+uid);if(valid(legacy))return legacy}
+ const defaults=JSON.parse(storage.getItem('mmhvault_settings_display_v2_'+uid)||'{}');
+ if(valid(defaults?.currency))return defaults.currency;
+ }catch{}
+ return valid(fallback)?fallback:'USD';
+}
+export function savePersonalCashflowCurrencyV265(storage,uid,view,code,codes){
+ if(!uid||!['summary','analysis','planning','report'].includes(view)||!codes.includes(code))return false;
+ try{storage.setItem('mmhvault_personal_display_currency_v265_'+encodeURIComponent(uid)+'_'+view,code);return true}catch{return false}
+}
 export function mountCashflowV2(root,adapter){
  if(!root||typeof adapter?.owner!=='function'||typeof adapter?.read!=='function'||typeof adapter?.today!=='function')throw new TypeError('Explicit workspace adapter required');
  const doc=root.ownerDocument,win=doc.defaultView;let owner=null,tab='summary',preset='month',currency='USD',grain='week',custom={},account='',category='',original='',horizon=12,selected='',dialog='',largeThreshold='',reportType='monthly',reportSelection={},reportSections={},reportCurrency='',exportError='',last=null,disposed=false;
@@ -85,7 +100,11 @@ export function mountCashflowV2(root,adapter){
   if(!uid)return null;
   const source=adapter.read();if(adapter.owner()!==uid||source?.owner!==uid||source.ready!==true||!Array.isArray(source.rows)||source.rows.some(r=>r?.user_id!==uid))return null;
   const codes=[...new Set(['USD',...(source.currencies||[])])].filter(c=>/^[A-Z]{3}$/.test(c));
-  if(!codes.includes(currency))currency='USD';
+  if(adapter.releaseReadOnly){
+   try{currency=resolvePersonalCashflowCurrencyV265(win.localStorage,uid,tab,codes);
+    if(dialog==='report')reportCurrency=resolvePersonalCashflowCurrencyV265(win.localStorage,uid,'report',codes);
+   }catch{if(!codes.includes(currency))currency='USD'}
+  }else if(!codes.includes(currency))currency='USD';
   const today=adapter.today(),range=(calendarKey&&['month','year'].includes(preset)?calendarBounds(preset,calendarKey,today):null)||dateRange(preset,today,source.earliest,custom),scope={...range,currency,accounts:account?[account]:[],categories:category?[category]:[],originalCurrencies:original?[original]:[]};
   const args={rows:source.rows,scope,accountRate:source.accountRate,displayRate:source.displayRate,groupOf:source.groupOf,isLinkedInvestment:source.isLinkedInvestment};
   const movements=summarizeMovements(args),investmentSource=source.investmentSource?.(),investment=investmentReport({owner:uid,source:investmentSource,scope,today});
@@ -318,8 +337,8 @@ export function mountCashflowV2(root,adapter){
    exportError='';refreshReportSelection(d);return
   }
   const source=ev.target,previousOwner=owner,restoreSharedFocus=adapter.releaseReadOnly&&source.id===(f==='currency'?'mmhCfV238Currency':sharedFilterIds[f])&&doc.activeElement===source.nextElementSibling&&source.nextElementSibling?.classList.contains('mmh-shared-trigger-v217');
-  if(f==='currency')currency=v;else if(f==='calendarKey'){if(calendarBounds(preset,v,adapter.today()))calendarKey=v}else if(f==='preset'){calendarKey='';preset=v;grain=['today','week'].includes(v)?'day':['month','lastMonth'].includes(v)?'week':'month';if(v==='custom')custom=last?.range||dateRange('month',adapter.today())}
-  else if(f==='planHorizon'||f==='planPreset'){const n=Number(v);if(Number.isInteger(n)&&n>=1&&n<=240)horizon=n}else if(f==='planGrain')planGrain=v;else if(f==='budgetPeriod'){budgetPeriod=v;budgetKey=''}else if(f==='budgetKey'){if(planKit.bounds(budgetPeriod,v))budgetKey=v}else if(f==='analysisDimension'){if(['accounts','currencies'].includes(v))analysisDimension=v}else if(f==='grain'){if(grains.includes(v))grain=v}else if(f==='account')account=v;else if(f==='category')category=v;else if(f==='original')original=v;else if(f==='horizon')horizon=Number(v);else if(f==='largeThreshold')largeThreshold=v;else if(f==='reportCurrency'){if(last?.codes.includes(v))reportCurrency=v;exportError=''}else if(f==='reportType'){reportType=v;reportSections={};exportError=''}else if(f==='report-month-year'||f==='report-month-part'){const [y,m]=(reportSelection.month||adapter.today().slice(0,7)).split('-');const next=f==='report-month-year'?v+'-'+m:y+'-'+v;if(/^\d{4}-(0[1-9]|1[0-2])$/.test(next)&&Number(next.slice(0,4))>=1900&&Number(next.slice(0,4))<=2099)reportSelection={...reportSelection,month:next};exportError=''}else if(f.startsWith('report-')){reportSelection={...reportSelection,[f.slice(7)]:v};exportError=''}selected='';paint();
+  if(f==='currency'){if(!last?.codes.includes(v))return;currency=v;if(adapter.releaseReadOnly)try{savePersonalCashflowCurrencyV265(win.localStorage,owner,tab,v,last.codes)}catch{}}else if(f==='calendarKey'){if(calendarBounds(preset,v,adapter.today()))calendarKey=v}else if(f==='preset'){calendarKey='';preset=v;grain=['today','week'].includes(v)?'day':['month','lastMonth'].includes(v)?'week':'month';if(v==='custom')custom=last?.range||dateRange('month',adapter.today())}
+  else if(f==='planHorizon'||f==='planPreset'){const n=Number(v);if(Number.isInteger(n)&&n>=1&&n<=240)horizon=n}else if(f==='planGrain')planGrain=v;else if(f==='budgetPeriod'){budgetPeriod=v;budgetKey=''}else if(f==='budgetKey'){if(planKit.bounds(budgetPeriod,v))budgetKey=v}else if(f==='analysisDimension'){if(['accounts','currencies'].includes(v))analysisDimension=v}else if(f==='grain'){if(grains.includes(v))grain=v}else if(f==='account')account=v;else if(f==='category')category=v;else if(f==='original')original=v;else if(f==='horizon')horizon=Number(v);else if(f==='largeThreshold')largeThreshold=v;else if(f==='reportCurrency'){if(last?.codes.includes(v)){reportCurrency=v;if(adapter.releaseReadOnly)try{savePersonalCashflowCurrencyV265(win.localStorage,owner,'report',v,last.codes)}catch{}}exportError=''}else if(f==='reportType'){reportType=v;reportSections={};exportError=''}else if(f==='report-month-year'||f==='report-month-part'){const [y,m]=(reportSelection.month||adapter.today().slice(0,7)).split('-');const next=f==='report-month-year'?v+'-'+m:y+'-'+v;if(/^\d{4}-(0[1-9]|1[0-2])$/.test(next)&&Number(next.slice(0,4))>=1900&&Number(next.slice(0,4))<=2099)reportSelection={...reportSelection,month:next};exportError=''}else if(f.startsWith('report-')){reportSelection={...reportSelection,[f.slice(7)]:v};exportError=''}selected='';paint();
   if(f==='reportCurrency'&&previousOwner===owner){const d=root.querySelector('[data-cfv2-kind=report]');(d?.querySelector('.cfv2-currency summary')||d?.querySelector('[data-field=reportCurrency]'))?.focus({preventScroll:true})}
   if(adapter.releaseReadOnly&&f==='currency'&&previousOwner===owner){(root.querySelector('.cfv2-currency-anchor summary')||root.querySelector('.cfv2-currency-anchor select'))?.focus({preventScroll:true})}
   if(restoreSharedFocus&&win.requestAnimationFrame){
