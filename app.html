@@ -11177,7 +11177,7 @@ html.mmh-desktop-compact-v11110 body.mmh-workspace-active #moreNavMenu.more-nav-
       </div>
       <div class="recurring-form-grid-v114">
         <label><span>Name</span><input id="recurringNameV114" maxlength="80" placeholder="e.g. Monthly rent"></label>
-        <label><span>Transaction type</span><select id="recurringTypeV114"><option>Expense</option><option>Income</option><option>Transfer</option></select></label>
+        <label><span>Transaction type</span><select id="recurringTypeV114"><option value="Expense">Expense</option><option value="Income">Income</option><option value="Transfer">Transfer</option></select></label>
         <label><span>Transaction group</span><select id="recurringGroupV114"></select></label>
         <label><span>Category</span><select id="recurringCategoryV114"></select></label>
         <label id="recurringFromAccountWrapV114"><span>From account</span><select id="recurringFromAccountV114"></select></label>
@@ -20116,7 +20116,7 @@ function translateAttributes(root){
       if(txUiSurfaceV2(el)&&(txUiOwnedV2(el)||txUiDataV2(el)))return;
       const key='i18n'+a.replace(/-([a-z])/g,(_,c)=>c.toUpperCase());
       if(!el.dataset[key]) el.dataset[key]=v;
-      const base=el.dataset[key]; const desired=goalCopySurfaceV263(el)?goalCopyTextV263(base,el):el.closest('#budget')?budgetCopyTextV262(base,el):txUiSurfaceV2(el)?txUiTextV2(base):lang==='zh'?(myWorkspaceUiV2(el)&&zhWorkspaceV2[base]||zh[base]||base):lang==='my'?myWorkspaceTextV2(base,el):base;if(v!==desired)el.setAttribute(a,desired);
+      const base=el.dataset[key]; const desired=recurringCopySurfaceV264(el)?(recurringCopyProtectedV264(el)?base:recurringCopyTextV264(base,lang)):goalCopySurfaceV263(el)?goalCopyTextV263(base,el):el.closest('#budget')?budgetCopyTextV262(base,el):txUiSurfaceV2(el)?txUiTextV2(base):lang==='zh'?(myWorkspaceUiV2(el)&&zhWorkspaceV2[base]||zh[base]||base):lang==='my'?myWorkspaceTextV2(base,el):base;if(v!==desired)el.setAttribute(a,desired);
     });
   };
   if(root?.nodeType===Node.ELEMENT_NODE&&(root.matches?.('[placeholder],[title],[aria-label]')||(investCopySurfaceV236(root)&&root.hasAttribute('data-mmh-hint'))))applyAttrs(root);
@@ -20224,6 +20224,352 @@ function budgetCopyTextV262(base,el,locale=lang){
 
 const goalCopyV263=Object.freeze({"Financial Goals":["财务目标","ငွေကြေးရည်မှန်းချက်များ"],"WEALTH PLANNING":["财富规划","ငွေကြေးစီမံကိန်း"],"Set targets, track progress and see the monthly pace needed to reach them.":["设定目标、追踪进度并查看每月所需储蓄。","ရည်မှန်းချက် သတ်မှတ်ပြီး တိုးတက်မှုနှင့် လစဉ် စုဆောင်းရမည့်ငွေကို ကြည့်ပါ။"],"+ New Goal":["+ 新建目标","+ ရည်မှန်းချက်အသစ်"],"ACTIVE GOALS":["进行中目标","ဆောင်ရွက်ဆဲ ရည်မှန်းချက်များ"],"Currently in progress":["正在进行","ဆောင်ရွက်နေဆဲ"],"AVERAGE PROGRESS":["平均进度","ပျမ်းမျှတိုးတက်မှု"],"Across active goals":["所有进行中的目标","ဆောင်ရွက်ဆဲ ရည်မှန်းချက်များ"],"COMPLETED":["已完成","ပြီးစီး"],"Targets reached":["已达成目标","ရည်မှန်းချက် ပြည့်မီပြီး"],"NEXT DEADLINE":["最近截止日期","အနီးဆုံး သတ်မှတ်ရက်"],"No dated goals":["暂无截止日期","သတ်မှတ်ရက်ပါ ရည်မှန်းချက် မရှိသေးပါ"],"New Goal":["新建目标","ရည်မှန်းချက်အသစ်"],"Edit Goal":["编辑目标","ရည်မှန်းချက် ပြင်ရန်"],"Amounts stay in the goal's own currency.":["金额保留目标原币种。","ငွေပမာဏကို ရည်မှန်းချက်၏ မူရင်းငွေကြေးဖြင့် ထားရှိသည်။"],"Cancel":["取消","မလုပ်တော့ပါ"],"Goal type":["目标类型","ရည်မှန်းချက် အမျိုးအစား"],"Emergency Fund":["应急基金","အရေးပေါ်ရန်ပုံငွေ"],"Savings":["储蓄","စုဆောင်းငွေ"],"Travel":["旅行","ခရီးသွား"],"House":["住房","အိမ်"],"Car":["汽车","ကား"],"Investment":["投资","ရင်းနှီးမြှုပ်နှံမှု"],"Custom":["自定义","စိတ်ကြိုက်"],"Goal name":["目标名称","ရည်မှန်းချက် အမည်"],"e.g. Emergency Fund":["例如：应急基金","ဥပမာ - အရေးပေါ်ရန်ပုံငွေ"],"Currency":["货币","ငွေကြေး"],"Target amount":["目标金额","ရည်မှန်းငွေပမာဏ"],"Current saved":["已储蓄","စုဆောင်းပြီးငွေ"],"Target date":["目标日期","ရည်မှန်းရက်"],"Note":["备注","မှတ်စု"],"Optional note":["可选备注","မှတ်စု (မဖြည့်လည်းရသည်)"],"Clear":["清空","ရှင်းလင်းရန်"],"Save Goal":["保存目标","ရည်မှန်းချက် သိမ်းရန်"],"Your Goals":["我的目标","သင့်ရည်မှန်းချက်များ"],"Open a goal for a clean progress detail.":["打开目标查看详细进度。","ရည်မှန်းချက်ကို ဖွင့်၍ အသေးစိတ် တိုးတက်မှုကို ကြည့်ပါ။"],"Goal status filter":["目标状态筛选","ရည်မှန်းချက် အခြေအနေ စစ်ထုတ်ရန်"],"Active":["进行中","ဆောင်ရွက်ဆဲ"],"Completed":["已完成","ပြီးစီး"],"Archived":["已归档","သိမ်းဆည်းထား"],"active":["进行中","ဆောင်ရွက်ဆဲ"],"completed":["已完成","ပြီးစီး"],"archived":["已归档","သိမ်းဆည်းထား"],"All":["全部","အားလုံး"],"Goals are private to your signed-in MMHVAULT account. Progress is manual in this first version; it does not move money or alter account balances.":["目标仅属于当前登录的 MMHVAULT 账户。进度为手动记录，不会转移资金或修改账户余额。","ရည်မှန်းချက်များသည် သင်ဝင်ရောက်ထားသော MMHVAULT အကောင့်အတွက်သာ ဖြစ်သည်။ တိုးတက်မှုကို ကိုယ်တိုင်မှတ်တမ်းတင်ပြီး ငွေလွှဲခြင်း၊ အကောင့်လက်ကျန် ပြောင်းလဲခြင်း မပြုလုပ်ပါ။"],"No deadline":["无截止日期","သတ်မှတ်ရက် မရှိ"],"Past due":["已逾期","ရက်ကျော်လွန်"],"Progress":["进度","တိုးတက်မှု"],"Remaining":["剩余金额","ကျန်ငွေ"],"Monthly pace":["每月所需金额","လစဉ်လိုအပ်ငွေ"],"Details":["详情","အသေးစိတ်"],"Edit":["编辑","ပြင်ရန်"],"Restore":["恢复","ပြန်ယူရန်"],"Archive":["归档","သိမ်းဆည်းရန်"],"Delete":["删除","ဖျက်ရန်"],"Loading goals…":["正在加载目标…","ရည်မှန်းချက်များ ဖွင့်နေသည်…"],"No goals in this view yet. Create a goal to start planning.":["此处暂无目标，创建目标以开始规划。","ရည်မှန်းချက် မရှိသေးပါ။ စီမံရန် ရည်မှန်းချက်တစ်ခု ဖန်တီးပါ။"],"Status":["状态","အခြေအနေ"],"No note":["暂无备注","မှတ်စု မရှိ"],"Close":["关闭","ပိတ်ရန်"],"Update progress":["更新进度","တိုးတက်မှု ပြင်ရန်"]});
 function goalCopySurfaceV263(el){return !!el?.closest?.('#goals,.mmh-goal-dialog-v149');}
+const recurringCopyV264={
+ "Recurring Transactions": [
+  "周期交易",
+  "ထပ်တလဲလဲ ငွေလွှဲမှတ်တမ်းများ"
+ ],
+ "AUTOMATED PLANNING": [
+  "周期规划",
+  "အချိန်ဇယား စီမံခြင်း"
+ ],
+ "Save repeat transaction templates, see what is due next and record them without retyping the details.": [
+  "保存周期交易模板，查看到期事项，无需重复输入即可记录。",
+  "ထပ်သုံးမည့် ငွေလွှဲပုံစံများကို သိမ်းပြီး သတ်မှတ်ရက်များကို ကြည့်ပါ။"
+ ],
+ "+ New Recurring": [
+  "+ 新建周期计划",
+  "+ အစီအစဉ်အသစ်"
+ ],
+ "ACTIVE": [
+  "进行中",
+  "အသက်ဝင်"
+ ],
+ "UPCOMING": [
+  "即将到期",
+  "မကြာမီ ရက်ရောက်မည်"
+ ],
+ "OVERDUE": [
+  "已逾期",
+  "ရက်ကျော်"
+ ],
+ "NEXT DUE": [
+  "下次到期",
+  "နောက်သတ်မှတ်ရက်"
+ ],
+ "Running schedules": [
+  "进行中的计划",
+  "အသက်ဝင်သော အစီအစဉ်များ"
+ ],
+ "Due within 7 days": [
+  "7 天内到期",
+  "၇ ရက်အတွင်း ရက်ရောက်မည်"
+ ],
+ "Needs attention": [
+  "需要关注",
+  "ဂရုပြုရန်"
+ ],
+ "No active schedules": [
+  "暂无进行中的计划",
+  "အသက်ဝင်သော အစီအစဉ်မရှိပါ"
+ ],
+ "New Recurring": [
+  "新建周期计划",
+  "အစီအစဉ်အသစ်"
+ ],
+ "Edit Recurring": [
+  "编辑周期计划",
+  "အစီအစဉ် ပြင်ဆင်ရန်"
+ ],
+ "Create a reusable transaction template. Amounts stay in the selected account's original currency.": [
+  "创建可重复使用的交易模板，金额保留账户原币种。",
+  "ပြန်သုံးနိုင်သော ပုံစံဖန်တီးပါ။ ငွေပမာဏသည် အကောင့်၏ မူလငွေကြေးအတိုင်း ဖြစ်သည်။"
+ ],
+ "Cancel": [
+  "取消",
+  "မလုပ်တော့ပါ"
+ ],
+ "Name": [
+  "名称",
+  "အမည်"
+ ],
+ "e.g. Monthly rent": [
+  "例如：每月房租",
+  "ဥပမာ လစဉ်အိမ်ငှားခ"
+ ],
+ "Transaction type": [
+  "交易类型",
+  "ငွေလွှဲအမျိုးအစား"
+ ],
+ "Transaction group": [
+  "交易分组",
+  "ငွေလွှဲအုပ်စု"
+ ],
+ "Category": [
+  "分类",
+  "အမျိုးအစား"
+ ],
+ "From account": [
+  "转出账户",
+  "ပေးသည့်အကောင့်"
+ ],
+ "From amount": [
+  "转出金额",
+  "ပေးသည့်ငွေပမာဏ"
+ ],
+ "To account": [
+  "转入账户",
+  "လက်ခံအကောင့်"
+ ],
+ "To amount": [
+  "转入金额",
+  "လက်ခံငွေပမာဏ"
+ ],
+ "Frequency": [
+  "频率",
+  "အကြိမ်ရေ"
+ ],
+ "Weekly": [
+  "每周",
+  "အပတ်စဉ်"
+ ],
+ "Monthly": [
+  "每月",
+  "လစဉ်"
+ ],
+ "Yearly": [
+  "每年",
+  "နှစ်စဉ်"
+ ],
+ "Next due date": [
+  "下次到期日",
+  "နောက်သတ်မှတ်ရက်"
+ ],
+ "Next due": [
+  "下次到期",
+  "နောက်သတ်မှတ်ရက်"
+ ],
+ "Reminder": [
+  "提醒",
+  "သတိပေးချက်"
+ ],
+ "On due date": [
+  "到期当天",
+  "သတ်မှတ်ရက်တွင်"
+ ],
+ "Note": [
+  "备注",
+  "မှတ်ချက်"
+ ],
+ "Optional note": [
+  "选填备注",
+  "မှတ်ချက် (မဖြည့်လည်းရ)"
+ ],
+ "Clear": [
+  "清空",
+  "ရှင်းလင်းရန်"
+ ],
+ "Save Recurring": [
+  "保存周期计划",
+  "အစီအစဉ် သိမ်းရန်"
+ ],
+ "Schedules": [
+  "周期计划",
+  "အစီအစဉ်များ"
+ ],
+ "Record a due item to prefill Add Transaction with the saved template.": [
+  "记录到期事项，将已保存的模板填入新增交易。",
+  "သတ်မှတ်ရက်ရောက်သော အစီအစဉ်ကို မှတ်တမ်းတင်ရန် သိမ်းထားသော ပုံစံကို အသုံးပြုပါ။"
+ ],
+ "Recurring status filter": [
+  "周期计划状态筛选",
+  "အစီအစဉ် အခြေအနေ စစ်ထုတ်ရန်"
+ ],
+ "Active": [
+  "进行中",
+  "အသက်ဝင်"
+ ],
+ "Paused": [
+  "已暂停",
+  "ခေတ္တရပ်ထား"
+ ],
+ "All": [
+  "全部",
+  "အားလုံး"
+ ],
+ "Recurring schedules are reminders and reusable templates. They never create transactions or move money automatically. You review and submit each transaction yourself.": [
+  "周期计划仅用于提醒及重复使用模板，不会自动创建交易或转移资金。每笔交易均由您确认并提交。",
+  "အစီအစဉ်များသည် သတိပေးချက်နှင့် ပြန်သုံးနိုင်သော ပုံစံများသာ ဖြစ်သည်။ အလိုအလျောက် ငွေလွှဲခြင်း မရှိပါ။ မှတ်တမ်းတိုင်းကို ကိုယ်တိုင်စစ်ဆေးပြီး တင်သွင်းရမည်။"
+ ],
+ "Loading recurring schedules…": [
+  "正在加载周期计划…",
+  "အစီအစဉ်များ ရယူနေသည်…"
+ ],
+ "No paused schedules.": [
+  "暂无暂停的计划。",
+  "ခေတ္တရပ်ထားသော အစီအစဉ်မရှိပါ။"
+ ],
+ "No recurring schedules yet.": [
+  "暂无周期计划。",
+  "အစီအစဉ် မရှိသေးပါ။"
+ ],
+ "No due date": [
+  "无到期日",
+  "သတ်မှတ်ရက် မရှိပါ"
+ ],
+ "Due today": [
+  "今日到期",
+  "ယနေ့ ရက်ရောက်သည်"
+ ],
+ "Record": [
+  "记录",
+  "မှတ်တမ်းတင်ရန်"
+ ],
+ "Details": [
+  "详情",
+  "အသေးစိတ်"
+ ],
+ "Edit": [
+  "编辑",
+  "ပြင်ဆင်ရန်"
+ ],
+ "Resume": [
+  "恢复",
+  "ပြန်စရန်"
+ ],
+ "Pause": [
+  "暂停",
+  "ခေတ္တရပ်ရန်"
+ ],
+ "Delete": [
+  "删除",
+  "ဖျက်ရန်"
+ ],
+ "Status": [
+  "状态",
+  "အခြေအနေ"
+ ],
+ "From": [
+  "转出",
+  "ပေးသည့်"
+ ],
+ "To": [
+  "转入",
+  "လက်ခံသည့်"
+ ],
+ "No note": [
+  "暂无备注",
+  "မှတ်ချက် မရှိပါ"
+ ],
+ "Close": [
+  "关闭",
+  "ပိတ်ရန်"
+ ],
+ "Record now": [
+  "立即记录",
+  "ယခု မှတ်တမ်းတင်ရန်"
+ ],
+ "Edit Schedule": [
+  "编辑计划",
+  "အစီအစဉ် ပြင်ဆင်ရန်"
+ ],
+ "Expense": [
+  "支出",
+  "အသုံးစရိတ်"
+ ],
+ "Income": [
+  "收入",
+  "ဝင်ငွေ"
+ ],
+ "Transfer": [
+  "转账",
+  "ငွေလွှဲ"
+ ],
+ "Personal": [
+  "个人",
+  "ကိုယ်ရေးကိုယ်တာ"
+ ],
+ "Loans": [
+  "借贷",
+  "ချေးငွေ"
+ ],
+ "Recurring": [
+  "周期计划",
+  "အစီအစဉ်"
+ ],
+ "Please sign in again.": [
+  "请重新登录。",
+  "ပြန်လည်ဝင်ရောက်ပါ။"
+ ],
+ "Enter a recurring name.": [
+  "请输入周期计划名称。",
+  "အစီအစဉ်အမည် ထည့်ပါ။"
+ ],
+ "Choose the next due date.": [
+  "请选择下次到期日。",
+  "နောက်သတ်မှတ်ရက် ရွေးပါ။"
+ ],
+ "Choose a From account and enter a From amount.": [
+  "请选择转出账户并输入转出金额。",
+  "ပေးသည့်အကောင့်နှင့် ငွေပမာဏ ထည့်ပါ။"
+ ],
+ "Choose a To account and enter a To amount.": [
+  "请选择转入账户并输入转入金额。",
+  "လက်ခံအကောင့်နှင့် ငွေပမာဏ ထည့်ပါ။"
+ ],
+ "Choose a category.": [
+  "请选择分类。",
+  "အမျိုးအစား ရွေးပါ။"
+ ],
+ "Saving…": [
+  "正在保存…",
+  "သိမ်းဆည်းနေသည်…"
+ ],
+ "Recurring schedule saved.": [
+  "周期计划已保存。",
+  "အစီအစဉ် သိမ်းပြီးပါပြီ။"
+ ],
+ "Unable to save the recurring schedule.": [
+  "无法保存周期计划。",
+  "အစီအစဉ် မသိမ်းနိုင်ပါ။"
+ ],
+ "Schedule paused.": [
+  "计划已暂停。",
+  "အစီအစဉ် ရပ်ထားပြီးပါပြီ။"
+ ],
+ "Schedule resumed.": [
+  "计划已恢复。",
+  "အစီအစဉ် ပြန်စပြီးပါပြီ။"
+ ],
+ "Unable to update the schedule.": [
+  "无法更新计划。",
+  "အစီအစဉ် မပြင်နိုင်ပါ။"
+ ],
+ "Delete Recurring": [
+  "删除周期计划",
+  "အစီအစဉ် ဖျက်ရန်"
+ ],
+ "This removes the schedule only. Existing Transaction records stay unchanged.": [
+  "仅删除周期计划，已有交易记录保持不变。",
+  "အစီအစဉ်ကိုသာ ဖျက်မည်။ ရှိပြီးသား ငွေလွှဲမှတ်တမ်းများ မပြောင်းလဲပါ။"
+ ],
+ "Recurring schedule deleted.": [
+  "周期计划已删除。",
+  "အစီအစဉ် ဖျက်ပြီးပါပြီ။"
+ ],
+ "Unable to delete the schedule.": [
+  "无法删除计划。",
+  "အစီအစဉ် မဖျက်နိုင်ပါ။"
+ ],
+ "Unable to load recurring schedules.": [
+  "无法加载周期计划。",
+  "အစီအစဉ်များ မရယူနိုင်ပါ။"
+ ]
+};
+function recurringCopySurfaceV264(el){return !!el?.closest?.('#recurring,.mmh-recurring-dialog-v149');}
+function recurringCopyProtectedV264(el){return !!el?.closest?.('[data-rec-user-v264],#recurringFromAccountV114 option,#recurringToAccountV114 option,#recurringCategoryV114 option,.mmh-shared-trigger-v217,.mmh-recurring-dialog-v149 #mmhVaultDialogTitleV449');}
+function recurringCopyTextV264(base,locale){if(!['zh','my'].includes(locale))return base;const i=locale==='zh'?0:1;if(Object.prototype.hasOwnProperty.call(recurringCopyV264,base))return recurringCopyV264[base][i];let m;if(m=base.match(/^([0-9]+)d overdue$/))return i?m[1]+' ရက်ကျော်':'逾期 '+m[1]+' 天';if(m=base.match(/^Due in ([0-9]+)d$/))return i?m[1]+' ရက်အတွင်း ရက်ရောက်မည်':m[1]+' 天后到期';if(m=base.match(/^([0-9]+) (?:day\(s\)|days?) before$/))return i?m[1]+' ရက်ကြိုတင်':'提前 '+m[1]+' 天';if(m=base.match(/^reminder ([0-9]+)d before$/))return i?m[1]+' ရက်ကြို သတိပေး':'提前 '+m[1]+' 天提醒';if(m=base.match(/^Delete “(.*)”\?$/))return i?'“'+m[1]+'” ကို ဖျက်မလား။':'删除“'+m[1]+'”？';return base;}
+window.mmhRecurringCopyV264=(base,locale)=>recurringCopyTextV264(base,locale||lang);
 function goalCopyTextV263(base,el,locale=lang){
  if(!goalCopySurfaceV263(el)||!['zh','my'].includes(locale))return base;
  if(el.closest('[data-goal-user-copy-v263],.goal-card-title-v113 h3,.mmh-goal-dialog-v149 #mmhVaultDialogTitleV449,.mmh-shared-trigger-v217'))return base;
@@ -20243,6 +20589,7 @@ function translateTextNode(n){
   const current=n.nodeValue.trim();if(!current||!n.parentElement||n.parentElement.closest('script,style,textarea,[contenteditable="true"]'))return;
 
   const parent=n.parentElement;
+  if(recurringCopySurfaceV264(parent)&&recurringCopyProtectedV264(parent)){mmhI18nTextStateV135.delete(n);return;}
   if(goalCopySurfaceV263(parent)&&parent.closest('[data-goal-user-copy-v263],.goal-card-title-v113 h3,.mmh-goal-dialog-v149 #mmhVaultDialogTitleV449,.mmh-shared-trigger-v217')){mmhI18nTextStateV135.delete(n);return;}
   if(investCopySurfaceV236(parent)){if(investCopyProtectedV236(parent)||investCopyOwnedV236(parent))return;const translated=investCopyStableV236(investCopyNodeStateV236,n,current);if(translated!=null){if(current!==translated){const raw=n.nodeValue;n.nodeValue=(raw.match(/^\s*/)?.[0]||'')+translated+(raw.match(/\s*$/)?.[0]||'');}return;}}
   if(txUiSurfaceV2(parent)&&(txUiOwnedV2(parent)||txUiDataV2(parent)))return;
@@ -20260,7 +20607,7 @@ function translateTextNode(n){
     rec={base:current,last:current};
   }
 
-  const desired=goalCopySurfaceV263(parent)?goalCopyTextV263(rec.base,parent):parent.closest('#budget')?budgetCopyTextV262(rec.base,parent):txUiSurfaceV2(parent)?txUiTextV2(rec.base):lang==='zh'?(myWorkspaceUiV2(parent)&&Object.prototype.hasOwnProperty.call(zhWorkspaceV2,rec.base)?zhWorkspaceV2[rec.base]:translateDynamicText(rec.base)):lang==='my'?myWorkspaceTextV2(rec.base,parent):rec.base;
+  const desired=recurringCopySurfaceV264(parent)?recurringCopyTextV264(rec.base,lang):goalCopySurfaceV263(parent)?goalCopyTextV263(rec.base,parent):parent.closest('#budget')?budgetCopyTextV262(rec.base,parent):txUiSurfaceV2(parent)?txUiTextV2(rec.base):lang==='zh'?(myWorkspaceUiV2(parent)&&Object.prototype.hasOwnProperty.call(zhWorkspaceV2,rec.base)?zhWorkspaceV2[rec.base]:translateDynamicText(rec.base)):lang==='my'?myWorkspaceTextV2(rec.base,parent):rec.base;
   if(current!==desired){
     const raw=n.nodeValue;
     const lead=raw.match(/^\s*/)?.[0]||'',tail=raw.match(/\s*$/)?.[0]||'';
@@ -25371,6 +25718,7 @@ html body #invest .invest-entry .receipt-dropzone-v3300{width:100%!important;max
 (()=>{'use strict';
   if(window.__mmhRecurringV114)return;window.__mmhRecurringV114=true;
   const $=id=>document.getElementById(id),num=v=>Number(v||0),E=v=>String(v??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+  const notice=x=>window.mmhRecurringCopyV264?.(x)??x;
   const state={rows:[],mode:'active',editingId:null,editingStatus:'active',loading:false,pending:null,lastAlertScan:0,alertOwner:'',request:0,owner:''};
   const page=()=>$('recurring');
   const todayKey=()=>{const d=new Date(),y=d.getFullYear(),m=String(d.getMonth()+1).padStart(2,'0'),day=String(d.getDate()).padStart(2,'0');return `${y}-${m}-${day}`};
@@ -25392,38 +25740,38 @@ html body #invest .invest-entry .receipt-dropzone-v3300{width:100%!important;max
   function closeForm(){resetForm();$('recurringFormPanelV114').hidden=true}
   function dueInfo(r){if(r.status==='paused')return{cls:'paused',label:'Paused',kind:'paused',delta:null};const d=dayDelta(r.next_due_date);if(!Number.isFinite(d))return{cls:'',label:'No due date',kind:'none',delta:null};if(d<0)return{cls:'overdue',label:`${Math.abs(d)}d overdue`,kind:'overdue',delta:d};if(d===0)return{cls:'upcoming',label:'Due today',kind:'due',delta:0};if(d<=7)return{cls:'upcoming',label:`Due in ${d}d`,kind:'upcoming',delta:d};return{cls:'',label:r.next_due_date,kind:'future',delta:d}}
   function amountSummary(r){if(r.tx_type==='Income')return{main:money(r.to_amount,accountCurrency(r.to_account)),meta:`To ${r.to_account||'—'}`};if(r.tx_type==='Expense')return{main:money(r.from_amount,accountCurrency(r.from_account)),meta:`From ${r.from_account||'—'}`};return{main:`${money(r.from_amount,accountCurrency(r.from_account))} → ${money(r.to_amount,accountCurrency(r.to_account))}`,meta:`${r.from_account||'—'} → ${r.to_account||'—'}`}}
-  function render(){const rows=state.rows||[],active=rows.filter(r=>r.status==='active'),paused=rows.filter(r=>r.status==='paused'),overdue=active.filter(r=>dayDelta(r.next_due_date)<0),upcoming=active.filter(r=>{const d=dayDelta(r.next_due_date);return d>=0&&d<=7}),next=[...active].filter(r=>Number.isFinite(dayDelta(r.next_due_date))).sort((a,b)=>String(a.next_due_date).localeCompare(String(b.next_due_date)))[0];$('recurringActiveCountV114').textContent=active.length;$('recurringUpcomingCountV114').textContent=upcoming.length;$('recurringOverdueCountV114').textContent=overdue.length;$('recurringNextDueV114').textContent=next?next.next_due_date:'—';$('recurringNextDueMetaV114').textContent=next?`${next.name} · ${frequencyLabel(next.frequency)}`:'No active schedules';page()?.querySelectorAll('[data-recurring-filter]').forEach(b=>b.classList.toggle('active',b.dataset.recurringFilter===state.mode));let visible=state.mode==='all'?rows:rows.filter(r=>r.status===state.mode);visible=[...visible].sort((a,b)=>String(a.next_due_date).localeCompare(String(b.next_due_date)));const list=$('recurringListV114');if(state.loading&&!rows.length){list.innerHTML='<div class="recurring-empty-v114">Loading recurring schedules…</div>';return}if(!visible.length){list.innerHTML=`<div class="recurring-empty-v114">${state.mode==='paused'?'No paused schedules.':'No recurring schedules yet.'}</div>`;return}list.innerHTML=visible.map(r=>{const due=dueInfo(r),sum=amountSummary(r),pillClass=due.kind==='overdue'?'bad':due.kind==='upcoming'||due.kind==='due'?'warn':due.kind==='paused'?'muted':'';return `<article class="recurring-card-v114 ${due.cls}"><div class="recurring-card-main-v114"><div class="recurring-card-top-v114"><strong>${E(r.name)}</strong><span class="recurring-pill-v114 ${pillClass}">${E(due.label)}</span><span class="recurring-pill-v114">${E(frequencyLabel(r.frequency))}</span></div><div class="recurring-card-sub-v114">${E(r.tx_type)} · ${E(r.tx_group)} · ${E(r.category)} · reminder ${Number(r.reminder_days)||0}d before</div></div><div class="recurring-card-value-v114"><strong>${E(sum.main)}</strong><span>${E(sum.meta)}</span></div><div class="recurring-card-actions-v114"><button class="btn primary" type="button" data-rec-record="${r.id}" ${r.status==='paused'?'disabled':''}>Record</button><button class="btn" type="button" data-rec-detail="${r.id}">Details</button><button class="btn" type="button" data-rec-edit="${r.id}">Edit</button><button class="btn" type="button" data-rec-pause="${r.id}">${r.status==='paused'?'Resume':'Pause'}</button><button class="btn danger" type="button" data-rec-delete="${r.id}">Delete</button></div></article>`}).join('');list.querySelectorAll('[data-rec-record]').forEach(b=>b.onclick=()=>recordNow(b.dataset.recRecord));list.querySelectorAll('[data-rec-detail]').forEach(b=>b.onclick=()=>openDetail(b.dataset.recDetail));list.querySelectorAll('[data-rec-edit]').forEach(b=>b.onclick=()=>edit(b.dataset.recEdit));list.querySelectorAll('[data-rec-pause]').forEach(b=>b.onclick=()=>togglePause(b.dataset.recPause));list.querySelectorAll('[data-rec-delete]').forEach(b=>b.onclick=()=>remove(b.dataset.recDelete))}
+  function render(){const rows=state.rows||[],active=rows.filter(r=>r.status==='active'),paused=rows.filter(r=>r.status==='paused'),overdue=active.filter(r=>dayDelta(r.next_due_date)<0),upcoming=active.filter(r=>{const d=dayDelta(r.next_due_date);return d>=0&&d<=7}),next=[...active].filter(r=>Number.isFinite(dayDelta(r.next_due_date))).sort((a,b)=>String(a.next_due_date).localeCompare(String(b.next_due_date)))[0];$('recurringActiveCountV114').textContent=active.length;$('recurringUpcomingCountV114').textContent=upcoming.length;$('recurringOverdueCountV114').textContent=overdue.length;$('recurringNextDueV114').textContent=next?next.next_due_date:'—';$('recurringNextDueMetaV114').innerHTML=next?`<span data-rec-user-v264>${E(next.name)}</span> · <span>${E(frequencyLabel(next.frequency))}</span>`:'No active schedules';page()?.querySelectorAll('[data-recurring-filter]').forEach(b=>b.classList.toggle('active',b.dataset.recurringFilter===state.mode));let visible=state.mode==='all'?rows:rows.filter(r=>r.status===state.mode);visible=[...visible].sort((a,b)=>String(a.next_due_date).localeCompare(String(b.next_due_date)));const list=$('recurringListV114');if(state.loading&&!rows.length){list.innerHTML='<div class="recurring-empty-v114">Loading recurring schedules…</div>';return}if(!visible.length){list.innerHTML=`<div class="recurring-empty-v114">${state.mode==='paused'?'No paused schedules.':'No recurring schedules yet.'}</div>`;return}list.innerHTML=visible.map(r=>{const due=dueInfo(r),sum=amountSummary(r),pillClass=due.kind==='overdue'?'bad':due.kind==='upcoming'||due.kind==='due'?'warn':due.kind==='paused'?'muted':'';return `<article class="recurring-card-v114 ${due.cls}"><div class="recurring-card-main-v114"><div class="recurring-card-top-v114"><strong data-rec-user-v264>${E(r.name)}</strong><span class="recurring-pill-v114 ${pillClass}">${E(due.label)}</span><span class="recurring-pill-v114">${E(frequencyLabel(r.frequency))}</span></div><div class="recurring-card-sub-v114"><span>${E(r.tx_type)}</span> · <span>${E(r.tx_group)}</span> · <span data-rec-user-v264>${E(r.category)}</span> · <span>reminder ${Number(r.reminder_days)||0}d before</span></div></div><div class="recurring-card-value-v114"><strong data-rec-user-v264>${E(sum.main)}</strong><span data-rec-user-v264>${E(sum.meta)}</span></div><div class="recurring-card-actions-v114"><button class="btn primary" type="button" data-rec-record="${r.id}" ${r.status==='paused'?'disabled':''}>Record</button><button class="btn" type="button" data-rec-detail="${r.id}">Details</button><button class="btn" type="button" data-rec-edit="${r.id}">Edit</button><button class="btn" type="button" data-rec-pause="${r.id}">${r.status==='paused'?'Resume':'Pause'}</button><button class="btn danger" type="button" data-rec-delete="${r.id}">Delete</button></div></article>`}).join('');list.querySelectorAll('[data-rec-record]').forEach(b=>b.onclick=()=>recordNow(b.dataset.recRecord));list.querySelectorAll('[data-rec-detail]').forEach(b=>b.onclick=()=>openDetail(b.dataset.recDetail));list.querySelectorAll('[data-rec-edit]').forEach(b=>b.onclick=()=>edit(b.dataset.recEdit));list.querySelectorAll('[data-rec-pause]').forEach(b=>b.onclick=()=>togglePause(b.dataset.recPause));list.querySelectorAll('[data-rec-delete]').forEach(b=>b.onclick=()=>remove(b.dataset.recDelete))}
   function edit(id){const r=state.rows.find(x=>x.id===id);if(!r)return;state.editingId=id;state.editingStatus=r.status||'active';$('recurringFormTitleV114').textContent='Edit Recurring';$('recurringNameV114').value=r.name||'';$('recurringTypeV114').value=r.tx_type||'Expense';syncForm();$('recurringGroupV114').value=[...$('recurringGroupV114').options].some(o=>o.value===r.tx_group)?r.tx_group:$('recurringGroupV114').value;fillSelect($('recurringCategoryV114'),categories(r.tx_type,$('recurringGroupV114').value),r.category);syncAccounts();if(r.from_account&&[...$('recurringFromAccountV114').options].some(o=>o.value===r.from_account))$('recurringFromAccountV114').value=r.from_account;if(r.to_account&&[...$('recurringToAccountV114').options].some(o=>o.value===r.to_account))$('recurringToAccountV114').value=r.to_account;$('recurringFromAmountV114').value=r.from_amount?String(r.from_amount):'';$('recurringToAmountV114').value=r.to_amount?String(r.to_amount):'';$('recurringFrequencyV114').value=r.frequency||'monthly';$('recurringDueDateV114').value=r.next_due_date||todayKey();$('recurringReminderV114').value=String(r.reminder_days??3);$('recurringNoteV114').value=r.note||'';syncCurrencyLabels();openForm()}
   function collect(){const name=$('recurringNameV114').value.trim(),tx_type=$('recurringTypeV114').value,tx_group=$('recurringGroupV114').value,category=$('recurringCategoryV114').value,from_account=tx_type==='Income'?null:$('recurringFromAccountV114').value||null,to_account=tx_type==='Expense'?null:$('recurringToAccountV114').value||null,from_amount=tx_type==='Income'?0:Number($('recurringFromAmountV114').value||0),to_amount=tx_type==='Expense'?0:Number($('recurringToAmountV114').value||0),frequency=$('recurringFrequencyV114').value,next_due_date=$('recurringDueDateV114').value,reminder_days=Number($('recurringReminderV114').value||0),note=$('recurringNoteV114').value.trim();if(!name)throw new Error('Enter a recurring name.');if(!next_due_date)throw new Error('Choose the next due date.');if(tx_type!=='Income'&&(!from_account||!Number.isFinite(from_amount)||from_amount<=0))throw new Error('Choose a From account and enter a From amount.');if(tx_type!=='Expense'&&(!to_account||!Number.isFinite(to_amount)||to_amount<=0))throw new Error('Choose a To account and enter a To amount.');if(!category)throw new Error('Choose a category.');return{name,tx_type,tx_group,category,from_account,from_amount,to_account,to_amount,frequency,next_due_date,reminder_days,note,status:state.editingStatus==='paused'?'paused':'active'}}
   async function save(){
-    const u=signedUser();if(!u?.id)return window.MMHUI?.message?.('Please sign in again.','Recurring',{type:'error'});const owner=u.id,editingId=state.editingId;
-    let payload;try{payload=collect()}catch(err){return window.MMHUI?.message?.(err.message,'Recurring',{type:'warn'})}
-    const btn=$('recurringSaveV114');window.MMHUI?.setBusy?.(btn,true,'Saving…');
-    try{let q;if(editingId)q=db.from('recurring_transactions').update(payload).eq('user_id',owner).eq('id',editingId);else q=db.from('recurring_transactions').insert({...payload,user_id:owner});const {error}=await q;if(error)throw error;if(signedUser()?.id!==owner)return;closeForm();await load();if(signedUser()?.id!==owner)return;window.dispatchEvent(new CustomEvent('mmhvault:recurring-changed',{detail:{action:'save'}}));await scanAlerts(true);if(signedUser()?.id===owner)window.MMHUI?.toast?.('Recurring schedule saved.',{title:'Recurring',type:'success'})}
-    catch(err){if(signedUser()?.id===owner){console.warn('[MMHVAULT] recurring save failed',err);window.MMHUI?.message?.(err?.message||'Unable to save the recurring schedule.','Recurring',{type:'error'})}}
+    const u=signedUser();if(!u?.id)return window.MMHUI?.message?.(notice('Please sign in again.'),notice('Recurring'),{type:'error'});const owner=u.id,editingId=state.editingId;
+    let payload;try{payload=collect()}catch(err){return window.MMHUI?.message?.(notice(err.message),notice('Recurring'),{type:'warn'})}
+    const btn=$('recurringSaveV114');window.MMHUI?.setBusy?.(btn,true,notice('Saving…'));
+    try{let q;if(editingId)q=db.from('recurring_transactions').update(payload).eq('user_id',owner).eq('id',editingId);else q=db.from('recurring_transactions').insert({...payload,user_id:owner});const {error}=await q;if(error)throw error;if(signedUser()?.id!==owner)return;closeForm();await load();if(signedUser()?.id!==owner)return;window.dispatchEvent(new CustomEvent('mmhvault:recurring-changed',{detail:{action:'save'}}));await scanAlerts(true);if(signedUser()?.id===owner)window.MMHUI?.toast?.(notice('Recurring schedule saved.'),{title:notice('Recurring'),type:'success'})}
+    catch(err){if(signedUser()?.id===owner){console.warn('[MMHVAULT] recurring save failed',err);window.MMHUI?.message?.(err?.message||notice('Unable to save the recurring schedule.'),notice('Recurring'),{type:'error'})}}
     finally{window.MMHUI?.setBusy?.(btn,false)}
   }
   async function togglePause(id){
     const u=signedUser(),row=state.rows.find(x=>x.id===id);if(!u?.id||!row)return;const owner=u.id,next=row.status==='paused'?'active':'paused';
-    try{const {error}=await db.from('recurring_transactions').update({status:next}).eq('user_id',owner).eq('id',id);if(error)throw error;if(signedUser()?.id!==owner)return;await load();if(signedUser()?.id!==owner)return;window.dispatchEvent(new CustomEvent('mmhvault:recurring-changed',{detail:{action:next}}));window.MMHUI?.toast?.(next==='paused'?'Schedule paused.':'Schedule resumed.',{title:'Recurring',type:'success'})}
-    catch(err){if(signedUser()?.id===owner)window.MMHUI?.message?.(err?.message||'Unable to update the schedule.','Recurring',{type:'error'})}
+    try{const {error}=await db.from('recurring_transactions').update({status:next}).eq('user_id',owner).eq('id',id);if(error)throw error;if(signedUser()?.id!==owner)return;await load();if(signedUser()?.id!==owner)return;window.dispatchEvent(new CustomEvent('mmhvault:recurring-changed',{detail:{action:next}}));window.MMHUI?.toast?.(notice(next==='paused'?'Schedule paused.':'Schedule resumed.'),{title:notice('Recurring'),type:'success'})}
+    catch(err){if(signedUser()?.id===owner)window.MMHUI?.message?.(err?.message||notice('Unable to update the schedule.'),notice('Recurring'),{type:'error'})}
   }
   async function remove(id){
     const u=signedUser(),row=state.rows.find(x=>x.id===id);if(!u?.id||!row)return;const owner=u.id;
-    const ok=await window.MMHUI?.confirm?.(`Delete “${row.name}”?`,'Delete Recurring',{details:'This removes the schedule only. Existing Transaction records stay unchanged.',danger:true,confirmLabel:'Delete'});if(!ok||signedUser()?.id!==owner)return;
-    try{const {error}=await db.from('recurring_transactions').delete().eq('user_id',owner).eq('id',id);if(error)throw error;if(signedUser()?.id!==owner)return;if(state.pending?.id===id)clearPending();await load();if(signedUser()?.id!==owner)return;window.dispatchEvent(new CustomEvent('mmhvault:recurring-changed',{detail:{action:'delete'}}));window.MMHUI?.toast?.('Recurring schedule deleted.',{title:'Recurring',type:'success'})}
-    catch(err){if(signedUser()?.id===owner)window.MMHUI?.message?.(err?.message||'Unable to delete the schedule.','Recurring',{type:'error'})}
+    const ok=await window.MMHUI?.confirm?.(notice(`Delete “${row.name}”?`),notice('Delete Recurring'),{details:notice('This removes the schedule only. Existing Transaction records stay unchanged.'),danger:true,confirmLabel:notice('Delete')});if(!ok||signedUser()?.id!==owner)return;
+    try{const {error}=await db.from('recurring_transactions').delete().eq('user_id',owner).eq('id',id);if(error)throw error;if(signedUser()?.id!==owner)return;if(state.pending?.id===id)clearPending();await load();if(signedUser()?.id!==owner)return;window.dispatchEvent(new CustomEvent('mmhvault:recurring-changed',{detail:{action:'delete'}}));window.MMHUI?.toast?.(notice('Recurring schedule deleted.'),{title:notice('Recurring'),type:'success'})}
+    catch(err){if(signedUser()?.id===owner)window.MMHUI?.message?.(err?.message||notice('Unable to delete the schedule.'),notice('Recurring'),{type:'error'})}
   }
-  async function openDetail(id){const r=state.rows.find(x=>x.id===id);if(!r)return;const due=dueInfo(r),sum=amountSummary(r),body=`<div class="recurring-detail-v114"><div class="recurring-detail-hero-v114"><span>${E(r.tx_type)} · ${E(r.tx_group)} · ${E(r.category)}</span><strong>${E(sum.main)}</strong></div><div class="recurring-detail-grid-v114"><div><span>Frequency</span><b>${E(frequencyLabel(r.frequency))}</b></div><div><span>Next due</span><b>${E(r.next_due_date)}</b></div><div><span>Status</span><b>${E(due.label)}</b></div><div><span>Reminder</span><b>${Number(r.reminder_days)||0} day(s) before</b></div><div><span>From</span><b>${E(r.from_account||'—')} · ${r.from_account?money(r.from_amount,accountCurrency(r.from_account)):'—'}</b></div><div><span>To</span><b>${E(r.to_account||'—')} · ${r.to_account?money(r.to_amount,accountCurrency(r.to_account)):'—'}</b></div></div><div class="recurring-detail-note-v114">${r.note?E(r.note):'No note'}</div></div>`;if(typeof window.mmhVaultOpenDialogV449==='function'){const actions=[{label:'Close'}];if(r.status!=='paused')actions.push({label:'Record now',className:'primary',onClick:()=>{setTimeout(()=>recordNow(id),0);return true;}});actions.push({label:'Edit Schedule',onClick:()=>{setTimeout(()=>edit(id),0);return true;}});await window.mmhVaultOpenDialogV449({title:r.name,message:'',body,actions,dialogClass:'mmh-planning-dialog-v149 mmh-recurring-dialog-v149',bodyClass:'mmh-planning-dialog-body-v149',actionsClass:'mmh-planning-actions-v149'})}else await window.MMHUI?.message?.(`${frequencyLabel(r.frequency)} · ${r.next_due_date}`,r.name)}
+  async function openDetail(id){const r=state.rows.find(x=>x.id===id);if(!r)return;const due=dueInfo(r),sum=amountSummary(r),body=`<div class="recurring-detail-v114"><div class="recurring-detail-hero-v114"><span><span>${E(r.tx_type)}</span> · <span>${E(r.tx_group)}</span> · <span data-rec-user-v264>${E(r.category)}</span></span><strong data-rec-user-v264>${E(sum.main)}</strong></div><div class="recurring-detail-grid-v114"><div><span>Frequency</span><b>${E(frequencyLabel(r.frequency))}</b></div><div><span>Next due</span><b>${E(r.next_due_date)}</b></div><div><span>Status</span><b>${E(due.label)}</b></div><div><span>Reminder</span><b>${Number(r.reminder_days)||0} day(s) before</b></div><div><span>From</span><b data-rec-user-v264>${E(r.from_account||'—')} · ${r.from_account?money(r.from_amount,accountCurrency(r.from_account)):'—'}</b></div><div><span>To</span><b data-rec-user-v264>${E(r.to_account||'—')} · ${r.to_account?money(r.to_amount,accountCurrency(r.to_account)):'—'}</b></div></div><div class="recurring-detail-note-v114">${r.note?`<span data-rec-user-v264>${E(r.note)}</span>`:'No note'}</div></div>`;if(typeof window.mmhVaultOpenDialogV449==='function'){const actions=[{label:'Close'}];if(r.status!=='paused')actions.push({label:'Record now',className:'primary',onClick:()=>{setTimeout(()=>recordNow(id),0);return true;}});actions.push({label:'Edit Schedule',onClick:()=>{setTimeout(()=>edit(id),0);return true;}});await window.mmhVaultOpenDialogV449({title:r.name,message:'',body,actions,dialogClass:'mmh-planning-dialog-v149 mmh-recurring-dialog-v149',bodyClass:'mmh-planning-dialog-body-v149',actionsClass:'mmh-planning-actions-v149'})}else await window.MMHUI?.message?.(`${frequencyLabel(r.frequency)} · ${r.next_due_date}`,r.name)}
   function ensurePrefillBanner(){const form=$('txForm');if(!form)return null;let banner=$('recurringPrefillBannerV114');if(!banner){banner=document.createElement('div');banner.id='recurringPrefillBannerV114';banner.className='recurring-prefill-banner-v114';banner.innerHTML='<div><b id="recurringPrefillNameV114">Recurring template loaded</b><br><small>Review the transaction before submitting it.</small></div><button type="button" id="recurringPrefillCancelV114">Cancel template</button>';form.prepend(banner);$('recurringPrefillCancelV114').onclick=()=>clearPending()}return banner}
   function clearPending(){state.pending=null;const b=ensurePrefillBanner();b?.classList.remove('show')}
   function showPending(r){state.pending={id:r.id,due:r.next_due_date};const b=ensurePrefillBanner();$('recurringPrefillNameV114').textContent=`Recurring · ${r.name}`;b.classList.add('show')}
-  function recordNow(id){const r=state.rows.find(x=>x.id===id);if(!r||r.status==='paused')return;const activeAccounts=new Set(window.ACC||[]);if((r.from_account&&!activeAccounts.has(r.from_account))||(r.to_account&&!activeAccounts.has(r.to_account)))return window.MMHUI?.message?.('One of the saved accounts is archived or unavailable. Edit the recurring schedule first.','Recurring',{type:'warn'});const activeCategories=categories(r.tx_type,r.tx_group);if(r.category&&!activeCategories.includes(r.category))return window.MMHUI?.message?.('The saved category is archived, renamed or unavailable. Edit the recurring schedule before recording this transaction.','Recurring',{type:'warn'});if(typeof window.setPage==='function')window.setPage('transactions');setTimeout(()=>{try{window.showTxTab?.('add');$('txDate').value=r.next_due_date||todayKey();$('txType').value=r.tx_type;syncTransactionGroup();const group=$('txGroup');if([...group.options].some(o=>o.value===r.tx_group))group.value=r.tx_group;updateCategories();if([...$('txCategory').options].some(o=>o.value===r.category))$('txCategory').value=r.category;updateAccountLocks();if(r.from_account&&!$('fromAccount').disabled)$('fromAccount').value=r.from_account;if(r.to_account&&!$('toAccount').disabled)$('toAccount').value=r.to_account;if(!$('fromAmount').disabled)$('fromAmount').value=r.from_amount||'';if(!$('toAmount').disabled)$('toAmount').value=r.to_amount||'';$('txNote').value=r.note||'';showPending(r);$('txForm')?.scrollIntoView({behavior:'smooth',block:'start'});window.MMHUI?.toast?.('Recurring template loaded. Review and submit the transaction.',{title:r.name,type:'info',duration:3600})}catch(err){console.warn('[MMHVAULT] recurring prefill failed',err);window.MMHUI?.message?.('Unable to prefill Add Transaction.','Recurring',{type:'error'})}},120)}
+  function recordNow(id){const r=state.rows.find(x=>x.id===id);if(!r||r.status==='paused')return;const activeAccounts=new Set(window.ACC||[]);if((r.from_account&&!activeAccounts.has(r.from_account))||(r.to_account&&!activeAccounts.has(r.to_account)))return window.MMHUI?.message?.('One of the saved accounts is archived or unavailable. Edit the recurring schedule first.',notice('Recurring'),{type:'warn'});const activeCategories=categories(r.tx_type,r.tx_group);if(r.category&&!activeCategories.includes(r.category))return window.MMHUI?.message?.('The saved category is archived, renamed or unavailable. Edit the recurring schedule before recording this transaction.',notice('Recurring'),{type:'warn'});if(typeof window.setPage==='function')window.setPage('transactions');setTimeout(()=>{try{window.showTxTab?.('add');$('txDate').value=r.next_due_date||todayKey();$('txType').value=r.tx_type;syncTransactionGroup();const group=$('txGroup');if([...group.options].some(o=>o.value===r.tx_group))group.value=r.tx_group;updateCategories();if([...$('txCategory').options].some(o=>o.value===r.category))$('txCategory').value=r.category;updateAccountLocks();if(r.from_account&&!$('fromAccount').disabled)$('fromAccount').value=r.from_account;if(r.to_account&&!$('toAccount').disabled)$('toAccount').value=r.to_account;if(!$('fromAmount').disabled)$('fromAmount').value=r.from_amount||'';if(!$('toAmount').disabled)$('toAmount').value=r.to_amount||'';$('txNote').value=r.note||'';showPending(r);$('txForm')?.scrollIntoView({behavior:'smooth',block:'start'});window.MMHUI?.toast?.('Recurring template loaded. Review and submit the transaction.',{title:r.name,type:'info',duration:3600})}catch(err){console.warn('[MMHVAULT] recurring prefill failed',err);window.MMHUI?.message?.('Unable to prefill Add Transaction.',notice('Recurring'),{type:'error'})}},120)}
   function nextDate(date,frequency){const m=String(date||'').match(/^(\d{4})-(\d{2})-(\d{2})$/);if(!m)return date;let y=+m[1],mo=+m[2]-1,d=+m[3];if(frequency==='weekly'){const x=new Date(Date.UTC(y,mo,d+7));return x.toISOString().slice(0,10)}if(frequency==='yearly'){const last=new Date(Date.UTC(y+1,mo+1,0)).getUTCDate();return `${y+1}-${String(mo+1).padStart(2,'0')}-${String(Math.min(d,last)).padStart(2,'0')}`}const nextMo=mo+1,ny=y+Math.floor(nextMo/12),nm=((nextMo%12)+12)%12,last=new Date(Date.UTC(ny,nm+1,0)).getUTCDate();return `${ny}-${String(nm+1).padStart(2,'0')}-${String(Math.min(d,last)).padStart(2,'0')}`}
   async function advance(id,due){
     const u=signedUser(),row=state.rows.find(x=>x.id===id);if(!u?.id||!row||row.next_due_date!==due)return;const owner=u.id,next=nextDate(due,row.frequency);
     try{const {error}=await db.from('recurring_transactions').update({next_due_date:next,last_completed_at:new Date().toISOString()}).eq('user_id',owner).eq('id',id).eq('next_due_date',due);if(error)throw error;if(signedUser()?.id!==owner)return;await load();if(signedUser()?.id!==owner)return;window.dispatchEvent(new CustomEvent('mmhvault:recurring-changed',{detail:{action:'advance',next_due_date:next}}));window.MMHUI?.toast?.(`Next due date: ${next}`,{title:'Recurring schedule advanced',type:'success'})}
-    catch(err){if(signedUser()?.id===owner){console.warn('[MMHVAULT] recurring advance failed',err);window.MMHUI?.message?.('The transaction was saved, but the recurring due date could not be advanced. Open Recurring and update it manually.','Recurring',{type:'warn'})}}
+    catch(err){if(signedUser()?.id===owner){console.warn('[MMHVAULT] recurring advance failed',err);window.MMHUI?.message?.('The transaction was saved, but the recurring due date could not be advanced. Open Recurring and update it manually.',notice('Recurring'),{type:'warn'})}}
   }
   function installTxBridge(){const form=$('txForm');if(!form||form.dataset.recurringBridgeV114==='1'||typeof form.onsubmit!=='function')return false;const original=form.onsubmit;form.dataset.recurringBridgeV114='1';form.onsubmit=async function(e){const pending=state.pending?{...state.pending}:null;const before=new Set((window.transactions||[]).map(x=>String(x.id)));await original.call(this,e);if(!pending)return;const added=(window.transactions||[]).some(x=>!before.has(String(x.id)));if(added){clearPending();await advance(pending.id,pending.due)}};const clearBtn=form.querySelector('button[onclick*="clearTxForm"]');if(clearBtn)clearBtn.addEventListener('click',()=>setTimeout(clearPending,0));return true}
   async function load(){
@@ -25432,7 +25780,7 @@ html body #invest .invest-entry .receipt-dropzone-v3300{width:100%!important;max
     if(state.owner!==owner){state.owner=owner;state.rows=[];state.pending=null;state.editingId=null;state.editingStatus='active'}
     state.loading=true;render();
     try{const {data,error}=await db.from('recurring_transactions').select('id,user_id,name,tx_type,tx_group,category,from_account,from_amount,to_account,to_amount,frequency,next_due_date,reminder_days,status,note,last_completed_at,created_at,updated_at').eq('user_id',owner).order('next_due_date',{ascending:true});if(error)throw error;if(request!==state.request||signedUser()?.id!==owner)return;state.rows=Array.isArray(data)?data:[]}
-    catch(err){if(request!==state.request||signedUser()?.id!==owner)return;console.warn('[MMHVAULT] recurring load failed',err);window.MMHUI?.message?.(err?.message||'Unable to load recurring schedules.','Recurring',{type:'error'})}
+    catch(err){if(request!==state.request||signedUser()?.id!==owner)return;console.warn('[MMHVAULT] recurring load failed',err);window.MMHUI?.message?.(err?.message||notice('Unable to load recurring schedules.'),notice('Recurring'),{type:'error'})}
     finally{if(request===state.request&&signedUser()?.id===owner){state.loading=false;render()}}
   }
   async function scanAlerts(force=false){
