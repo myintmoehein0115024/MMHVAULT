@@ -437,8 +437,20 @@
   const render=()=>{const q=search.value.trim().toLocaleLowerCase();list.replaceChildren();for(const o of select.options){if(![o.value,currencyName(o.value)].join(' ').toLocaleLowerCase().includes(q))continue;const b=document.createElement('button');b.type='button';b.dataset.apCurrency=o.value;b.setAttribute('aria-pressed',String(o.value===select.value));const a=document.createElement('span'),n=document.createElement('span');a.textContent=o.value;n.textContent=currencyName(o.value);b.append(a,n);list.append(b)}};
   search.oninput=render;render();
  }
- function positionForecastPicker(picker){const group=picker.querySelector('.fc-shared-menu,.fc-choice-menu');if(!group)return;const box=picker.querySelector('summary').getBoundingClientRect(),vw=document.documentElement.clientWidth,vh=window.innerHeight,w=Math.min(picker.matches('.fc-shared-picker')?310:220,vw-24),below=vh-box.bottom-14,above=box.top-14,up=below<200&&above>below,h=Math.max(80,Math.min(360,up?above:below));group.classList.add('fc-floating-menu');group.style.setProperty('--fc-menu-w',w+'px');group.style.setProperty('--fc-menu-x',Math.max(12,Math.min(vw-w-12,box.right-w))+'px');group.style.setProperty('--fc-menu-h',h+'px');group.style.setProperty('--fc-menu-y',(up?Math.max(12,box.top-h-5):box.bottom+5)+'px');}
- function closeForecastPickers(except=null){el(ROOT)?.querySelectorAll('.fc-shared-picker[open],.fc-choice-picker[open]').forEach(p=>{if(p!==except)p.open=false})}
+ function syncForecastOverlay(){const overlay=el(ROOT)?.querySelector('.fc-dialog-overlay');if(!overlay||typeof overlay.showPopover!=='function')return;const notice=el('mmhVaultDialogV449'),blocked=!!notice?.classList.contains('show');if(!overlay.hasAttribute('popover'))overlay.setAttribute('popover','manual');if(blocked){if(overlay.matches(':popover-open'))overlay.hidePopover();}else if(active()&&!overlay.matches(':popover-open'))overlay.showPopover();if(notice&&notice!==forecastNoticeNode){forecastNoticeObserver?.disconnect();forecastNoticeNode=notice;forecastNoticeObserver=new MutationObserver(syncForecastOverlay);forecastNoticeObserver.observe(notice,{attributes:true,attributeFilter:['class']});}}
+ let forecastNoticeNode=null,forecastNoticeObserver=null;
+ function forecastMessage(...args){const result=window.mmhVaultMessageV740?.(...args);syncForecastOverlay();return result}
+ async function forecastConfirm(...args){const promise=window.mmhVaultConfirmV740(...args);syncForecastOverlay();try{return await promise}finally{syncForecastOverlay()}}
+ function positionForecastPicker(picker){
+  const group=picker.querySelector('.fc-shared-menu,.fc-choice-menu'),trigger=picker.querySelector('summary');if(!group||!trigger)return;
+  const box=trigger.getBoundingClientRect(),vv=window.visualViewport,x0=vv?.offsetLeft||0,y0=vv?.offsetTop||0,vw=vv?.width||document.documentElement.clientWidth,vh=vv?.height||window.innerHeight,edge=12,gap=5,w=Math.max(0,Math.min(picker.matches('.fc-shared-picker')?310:220,vw-2*edge)),below=y0+vh-box.bottom-edge-gap,above=box.top-y0-edge-gap,up=below<200&&above>below,h=Math.max(0,Math.min(360,up?above:below));
+  if(typeof group.showPopover!=='function'){group.classList.remove('fc-floating-menu');picker.classList.toggle('fc-picker-up',up);return}
+  group.classList.add('fc-floating-menu');group.setAttribute('popover','manual');group.style.setProperty('--fc-menu-w',w+'px');group.style.setProperty('--fc-menu-x',Math.max(x0+edge,Math.min(x0+vw-w-edge,box.right-w))+'px');group.style.setProperty('--fc-menu-h',h+'px');group.style.setProperty('--fc-menu-y',Math.max(y0+edge,box.bottom+gap)+'px');
+  if(!group.matches(':popover-open'))group.showPopover();
+  const actual=group.getBoundingClientRect().height;group.style.setProperty('--fc-menu-y',Math.max(y0+edge,Math.min(y0+vh-edge-actual,up?box.top-gap-actual:box.bottom+gap))+'px');
+ }
+ function hideForecastPicker(p){const group=p.querySelector('.fc-shared-menu,.fc-choice-menu');if(group?.hasAttribute('popover')){if(group.matches(':popover-open'))group.hidePopover();group.removeAttribute('popover');}group?.classList.remove('fc-floating-menu');p.classList.remove('fc-picker-up');}
+ function closeForecastPickers(except=null){el(ROOT)?.querySelectorAll('.fc-shared-picker[open],.fc-choice-picker[open]').forEach(p=>{if(p!==except){hideForecastPicker(p);p.open=false}})}
  function pairField(label,fieldKey,value,currency,where,date='',placeholder=''){
   const isBase=where==='base',inputId=`fc-${isBase?'base':'month'}-${fieldKey}${date?'-'+date:''}`;
   const data=isBase?`data-fc-base="${fieldKey}"`:`data-fc-month="${date}" data-fc-field="${fieldKey}"`;
@@ -524,6 +536,7 @@
     <section class="fc-panel fc-month-panel"><div class="fc-monthhead"><div><h2>${tr('Month-by-month forecast','逐月资产预测')}</h2><p>${tr('Choose a month to adjust its individual plan.','选择月份，单独调整该月计划。')}</p></div><div class="fc-row-actions">${dates.length?monthChoice(dates):''}${iconButton('list',tr('All months','全部月份'),'data-fc-open-modal="months"')}</div></div>${selectedMonth?monthTable([selectedMonth]):''}</section>
     <p class="fc-footer">${tr('Forecast settings are stored locally for each user, not in Supabase or cloud backup. Changing a currency automatically converts the current number to preserve its estimated USD value; you can then edit it. Real income/expenses and exchange rates are never changed. Current Dashboard assets, saved exchange rates, and the current month are re-read whenever this forecast refreshes. Future crypto/gold prices are assumed unchanged.','所有预测设置仅存于当前浏览器，按用户分别保存，不写入 Supabase 或云端备份。切换币种时会自动换算原金额以维持其美元估值，随后可修改数字；不影响任何真实收支或正式汇率。刷新时重新读取 Dashboard 资产、已保存汇率和当前月份。未来加密货币及黄金价格暂视为不变。')}</p>
   </div>${modalHTML(dates,regular,fx,target)}`;
+  syncForecastOverlay();
   const overview=root.querySelector('.fc-dialog .fc-month-overview');if(overview)overview.scrollTop=monthScroll;
   const body=root.querySelector('.fc-dialog-body');if(body)body.scrollTop=dialogScroll;
   lastFirst=first;updateOutputs();updateSaveStatus();
@@ -665,7 +678,7 @@
    const from=baseCurrency(f),old=baseAmount(f);
    if(from===to){closeCurrencyMenus();return}
    const next=convert(old,from,to,before);
-   if(!Number.isFinite(next)){closeCurrencyMenus();openScenarioRate(before[from]>0?to:from);window.mmhVaultMessageV740?.(tr('Set valid currency rates before switching.','切换币种之前，请先填写有效汇率。'),tr('Currency rates','汇率提示'));return}
+   if(!Number.isFinite(next)){closeCurrencyMenus();openScenarioRate(before[from]>0?to:from);forecastMessage(tr('Set valid currency rates before switching.','切换币种之前，请先填写有效汇率。'),tr('Currency rates','汇率提示'));return}
    if(FIELD[key]){state.base[key]=Number(next.toFixed(2));state.baseCurrencies[key]=to}else{const item=state.customItems.find(x=>x.key===key);item.amount=Number(next.toFixed(2));item.currency=to}
   }else{
    if(!validMonth(monthDate))return;
@@ -675,7 +688,7 @@
    const own=state.months[monthDate]||{};
    const old=Object.prototype.hasOwnProperty.call(own,key)?own[key]:(f.base?baseAmount(f):0);
    const next=convert(old,oldCcy,to,before);
-   if(!Number.isFinite(next)){closeCurrencyMenus();openScenarioRate(before[oldCcy]>0?to:oldCcy);window.mmhVaultMessageV740?.(tr('Set valid currency rates before switching.','切换币种之前，请先填写有效汇率。'),tr('Currency rates','汇率提示'));return}
+   if(!Number.isFinite(next)){closeCurrencyMenus();openScenarioRate(before[oldCcy]>0?to:oldCcy);forecastMessage(tr('Set valid currency rates before switching.','切换币种之前，请先填写有效汇率。'),tr('Currency rates','汇率提示'));return}
    const m=state.months[monthDate]||(state.months[monthDate]={});m[key]=Number(next.toFixed(2));
    ccys[key]=to;state.monthCurrencies[monthDate]=ccys;
   }
@@ -718,7 +731,7 @@
    if(key==='salary')state.salaryConfigured=false;
    save();layout();return;
   }
-  if(btn.dataset.fcClearMonth){const date=btn.dataset.fcClearMonth;if(!range(startKey(),effectiveEnd(startKey())).includes(date))return;if(!state.months[date]&&!state.monthCurrencies[date])return;const id=activeOwner,prior=state;if(typeof window.mmhVaultConfirmV740!=='function'||!(await window.mmhVaultConfirmV740(tr('Clear forecast changes for this month only? Real transactions remain unchanged.','仅清除本月预测调整？真实交易不会改变。'),tr('Clear month changes','清除本月调整'))))return;if(activeOwner!==id||state!==prior)return;delete state.months[date];delete state.monthCurrencies[date];save();layout();el(ROOT)?.querySelector('[data-fc-clear-month="'+date+'"]')?.focus({preventScroll:true});return}
+  if(btn.dataset.fcClearMonth){const date=btn.dataset.fcClearMonth;if(!range(startKey(),effectiveEnd(startKey())).includes(date))return;if(!state.months[date]&&!state.monthCurrencies[date])return;const id=activeOwner,prior=state;if(typeof window.mmhVaultConfirmV740!=='function'||!(await forecastConfirm(tr('Clear forecast changes for this month only? Real transactions remain unchanged.','仅清除本月预测调整？真实交易不会改变。'),tr('Clear month changes','清除本月调整'))))return;if(activeOwner!==id||state!==prior)return;delete state.months[date];delete state.monthCurrencies[date];save();layout();el(ROOT)?.querySelector('[data-fc-clear-month="'+date+'"]')?.focus({preventScroll:true});return}
   const action=btn.dataset.fcAction;
   if(action==='reset-day-salary'){
    const d=dailyInfo(state.dailyMonth).selected;const m=state.months[d],cc=state.monthCurrencies[d];
@@ -728,8 +741,8 @@
   }
   if(action==='save'){
    const bad=el(ROOT)?.querySelector('input:invalid');if(bad){bad.reportValidity?.();bad.focus?.({preventScroll:true});return}
-   for(const item of state.customItems)if(!item.label.trim()){const input=el(ROOT)?.querySelector('[data-fc-label="'+item.key+'"]');input?.focus();window.mmhVaultMessageV740?.(tr('Enter a name for every custom item.','请为每个自定义项目填写名称。'),tr('Name required','请填写名称'));return}
-   if(persist()){if(modal)closeModal(modal==='fx'&&modalReturn.length>0);window.mmhVaultMessageV740?.(tr('Forecast settings saved on this device.','预测设置已保存到当前设备。'),tr('Saved','保存成功'));}
+   for(const item of state.customItems)if(!item.label.trim()){const input=el(ROOT)?.querySelector('[data-fc-label="'+item.key+'"]');input?.focus();forecastMessage(tr('Enter a name for every custom item.','请为每个自定义项目填写名称。'),tr('Name required','请填写名称'));return}
+   if(persist()){if(modal)closeModal(modal==='fx'&&modalReturn.length>0);forecastMessage(tr('Forecast settings saved on this device.','预测设置已保存到当前设备。'),tr('Saved','保存成功'));}
    return;
   }
   if(action==='discard'){
@@ -738,7 +751,7 @@
   if(action==='refresh'){updateOutputs();return}
   if(action==='export'){exportCSV();return}
   if(action==='reset'){
-   if(typeof window.mmhVaultConfirmV740!=='function'||!(await window.mmhVaultConfirmV740(tr('Reset local forecast settings for this account? Real transactions remain unchanged.','确定重置当前账户在本浏览器的预测设置吗？不会改变真实交易。'),tr('Reset forecast','重置资产预测'))))return;
+   if(typeof window.mmhVaultConfirmV740!=='function'||!(await forecastConfirm(tr('Reset local forecast settings for this account? Real transactions remain unchanged.','确定重置当前账户在本浏览器的预测设置吗？不会改变真实交易。'),tr('Reset forecast','重置资产预测'))))return;
    const previousCurrency=state.viewCurrency;state=defaultState();state.viewCurrency=previousCurrency;persist();layout();
   }
  }
@@ -746,17 +759,37 @@
  function dateChanged(){syncOwner();resetDailyMonthOnCalendarChange();if(active()){if(lastFirst!==startKey()){layout();return}updateOutputs()}else if(el('dashboard')?.classList.contains('active'))mountDashboardDaily()}
  function stopMidnight(){if(midnightTimer){clearTimeout(midnightTimer);midnightTimer=0}}
  function scheduleMidnight(){stopMidnight();if(!(active()||el('dashboard')?.classList.contains('active'))||document.hidden)return;const now=new Date(),tomorrow=new Date(now.getFullYear(),now.getMonth(),now.getDate()+1,0,0,2);midnightTimer=setTimeout(()=>{midnightTimer=0;dateChanged();scheduleMidnight()},Math.max(1000,tomorrow-now))}
- function onVisible(){syncOwner();resetDailyMonthOnCalendarChange();if(active()){layout();scheduleMidnight()}else{modal='';modalReturn=[];modalOrigin='';stopMidnight();if(el('dashboard')?.classList.contains('active'))mountDashboardDaily()}}
+ function onVisible(){syncOwner();resetDailyMonthOnCalendarChange();if(active()){layout();scheduleMidnight()}else{const overlay=el(ROOT)?.querySelector('.fc-dialog-overlay');if(overlay?.hasAttribute('popover')&&overlay.matches(':popover-open'))overlay.hidePopover();closeForecastPickers();modal='';modalReturn=[];modalOrigin='';stopMidnight();if(el('dashboard')?.classList.contains('active'))mountDashboardDaily()}}
  function init(){
   const root=el(ROOT);if(!root)return;
   watchDashboard();
-  root.addEventListener('scroll',e=>{if(!e.target.closest?.('.fc-shared-menu,.fc-choice-menu'))closeForecastPickers()},true);
+  // Keep an open picker attached during delayed/native scroll-to-trigger events.
+  let pickerScrollFrame=0;
+  document.addEventListener('scroll',e=>{
+   if(!active()||e.target.closest?.('.fc-shared-menu,.fc-choice-menu'))return;
+   cancelAnimationFrame(pickerScrollFrame);
+   pickerScrollFrame=requestAnimationFrame(()=>{
+    const p=root.querySelector('.fc-shared-picker[open],.fc-choice-picker[open]'),trigger=p?.querySelector('summary');if(!trigger)return;
+    const b=trigger.getBoundingClientRect(),vv=window.visualViewport,x=vv?.offsetLeft||0,y=vv?.offsetTop||0;
+    let l=x,t=y,r=x+(vv?.width||document.documentElement.clientWidth),bottom=y+(vv?.height||window.innerHeight);
+    for(let a=trigger.parentElement;a&&a!==document.body;a=a.parentElement){
+     if(a.matches('.fc-dialog-overlay[popover]'))break;
+     const s=getComputedStyle(a),q=a.getBoundingClientRect();
+     if(/auto|scroll|hidden|clip/.test(s.overflowX)){l=Math.max(l,q.left);r=Math.min(r,q.right)}
+     if(/auto|scroll|hidden|clip/.test(s.overflowY)){t=Math.max(t,q.top);bottom=Math.min(bottom,q.bottom)}
+    }
+    if(b.right<=l||b.left>=r||b.bottom<=t||b.top>=bottom){hideForecastPicker(p);p.open=false;return}
+    positionForecastPicker(p);
+   });
+  },true);
+  window.visualViewport?.addEventListener('resize',()=>{const p=root.querySelector('.fc-shared-picker[open],.fc-choice-picker[open]');if(p)positionForecastPicker(p)});
+  root.addEventListener('wheel',e=>{if(modal&&e.target.closest('.fc-dialog-overlay')&&!e.target.closest('.fc-dialog-body,.fc-shared-menu,.fc-choice-menu'))e.preventDefault()},{passive:false});
   root.addEventListener('input',onInput);root.addEventListener('click',onClick);
-  root.addEventListener('toggle',e=>{const picker=e.target;if(!picker.matches?.('.fc-shared-picker,.fc-choice-picker'))return;if(picker.open){closeForecastPickers(picker);if(picker.matches('.fc-shared-picker'))setupCurrencyPicker(picker);positionForecastPicker(picker)}},true);
+  root.addEventListener('toggle',e=>{const picker=e.target;if(!picker.matches?.('.fc-shared-picker,.fc-choice-picker'))return;if(picker.open){closeForecastPickers(picker);if(picker.matches('.fc-shared-picker'))setupCurrencyPicker(picker);positionForecastPicker(picker)}else hideForecastPicker(picker)},true);
   document.addEventListener('pointerdown',e=>{const p=e.target.closest?.('#'+ROOT+' .fc-shared-picker,#'+ROOT+' .fc-choice-picker');closeForecastPickers(p||null)},{passive:true});
   document.addEventListener('keydown',e=>{if(!active()||el('mmhVaultDialogV449')?.classList.contains('show'))return;if(e.key==='Tab'&&modal){const dialog=root.querySelector('.fc-dialog');const controls=[...dialog?.querySelectorAll('button:not(:disabled),input:not(:disabled),summary,[tabindex="0"]')||[]].filter(x=>x.getClientRects().length&&getComputedStyle(x).visibility!=='hidden');if(controls.length){const first=controls[0],last=controls.at(-1);if(e.shiftKey&&(document.activeElement===first||!dialog.contains(document.activeElement))){e.preventDefault();last.focus()}else if(!e.shiftKey&&(document.activeElement===last||!dialog.contains(document.activeElement))){e.preventDefault();first.focus()}}}if(e.key==='Escape'){const picker=root.querySelector('.fc-shared-picker[open],.fc-choice-picker[open]');if(picker){e.preventDefault();closeForecastPickers();picker.querySelector('summary')?.focus({preventScroll:true})}else if(modal&&active()&&!el('mmhVaultDialogV449')?.classList.contains('show')){e.preventDefault();closeModal()}}});
   for(const name of ['mmhvault:page-visible','mmhvault:config-owner-changed','mmhvault:data-loaded','mmhvault:data-change','mmhvault:cache-restored','mmhvault:market-updated','mmhvault-language-change','languagechange']){
-   window.addEventListener(name,()=>{if(active()){if(['mmhvault-language-change','languagechange','mmhvault:config-owner-changed'].includes(name))onVisible();else dateChanged()}else{if(name==='mmhvault:config-owner-changed')syncOwner();if(name==='mmhvault:page-visible'){modal='';modalReturn=[];modalOrigin=''}if(el('dashboard')?.classList.contains('active')){if(['mmhvault-language-change','languagechange'].includes(name)){el('mmhDailyDashboardV13')?.remove()}watchDashboard();scheduleMidnight()}}},{passive:true});
+   window.addEventListener(name,()=>{if(active()){if(['mmhvault-language-change','languagechange','mmhvault:config-owner-changed'].includes(name))onVisible();else dateChanged()}else{if(name==='mmhvault:config-owner-changed')syncOwner();if(name==='mmhvault:page-visible'){onVisible()}if(el('dashboard')?.classList.contains('active')){if(['mmhvault-language-change','languagechange'].includes(name)){el('mmhDailyDashboardV13')?.remove()}watchDashboard();scheduleMidnight()}}},{passive:true});
   }
   document.addEventListener('visibilitychange',()=>{if(document.hidden)stopMidnight();else onVisible()},{passive:true});
   window.addEventListener('beforeunload',e=>{if(dirty){e.preventDefault();e.returnValue=''}});

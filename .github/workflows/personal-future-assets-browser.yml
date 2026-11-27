@@ -1,7 +1,7 @@
 name: Personal Future Assets isolated browser QA (NO DEPLOY)
 on:
   push:
-    branches: ['personal/v2.0.55-future-assets-dialogs']
+    branches: ['personal/v2.0.55-future-assets-dialogs', 'personal/v2.0.56-forecast-viewport']
     paths:
       - 'js/mmhvault-forecast-v1.js'
       - 'css/mmhvault-liquid-forecast-p916.css'

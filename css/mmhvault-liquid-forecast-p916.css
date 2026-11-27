@@ -575,3 +575,23 @@ html body.mmh-workspace-active #forecast#forecast.page.active #mmhForecastRootV1
 html body.mmh-workspace-active #forecast#forecast.page.active #mmhForecastRootV1 .fc-money-pair .fc-shared-menu.fc-floating-menu,html body.mmh-workspace-active #forecast#forecast.page.active #mmhForecastRootV1 [data-fc-picker-kind="rate"] .fc-shared-menu.fc-floating-menu{left:var(--fc-menu-x)!important;right:auto!important;width:var(--fc-menu-w)!important}
 html body.mmh-workspace-active #forecast#forecast.page.active #mmhForecastRootV1 .fc-shared-menu.fc-floating-menu .ap-currency-list-v2{max-height:min(280px,calc(var(--fc-menu-h) - 75px))!important}
 html body.mmh-workspace-active #forecast#forecast.page.active #mmhForecastRootV1 .fc-dialog-body .fc-month-overview{overscroll-behavior:contain}
+
+/* Personal V2.0.56: viewport top-layer; no shared workspace layout overrides. */
+html body.mmh-workspace-active #forecast#forecast.page.active #mmhForecastRootV1 .fc-dialog-overlay[popover]{inset:0!important;margin:0!important;width:auto!important;height:auto!important;max-width:none!important;max-height:none!important;border:0!important;overflow:hidden!important}
+html body.mmh-workspace-active #forecast#forecast.page.active #mmhForecastRootV1 .fc-dialog-overlay[popover]:not(:popover-open){display:none!important}
+html body.mmh-workspace-active #forecast#forecast.page.active #mmhForecastRootV1 .fc-dialog-overlay::backdrop,html body.mmh-workspace-active #forecast#forecast.page.active #mmhForecastRootV1 .fc-floating-menu::backdrop{background:transparent}
+html body.mmh-workspace-active #forecast#forecast.page.active #mmhForecastRootV1 .fc-dialog{max-height:min(calc(100dvh - 32px),740px)!important;min-height:0}
+html body.mmh-workspace-active #forecast#forecast.page.active #mmhForecastRootV1 .fc-dialog-header{flex-wrap:nowrap;min-width:0}
+html body.mmh-workspace-active #forecast#forecast.page.active #mmhForecastRootV1 .fc-dialog-header>.fc-row-actions{flex:1;justify-content:flex-start;min-width:0}
+html body.mmh-workspace-active #forecast#forecast.page.active #mmhForecastRootV1 .fc-dialog-header h2{overflow-wrap:anywhere;min-width:0}
+html body.mmh-workspace-active #forecast#forecast.page.active #mmhForecastRootV1 .fc-dialog-body{flex:1 1 auto;overscroll-behavior:contain}
+html body.mmh-workspace-active #forecast#forecast.page.active #mmhForecastRootV1 :is(.fc-choice-menu,.fc-shared-menu).fc-floating-menu[popover]{bottom:auto!important;margin:0!important;height:auto!important;min-height:0!important;max-height:var(--fc-menu-h)!important;box-sizing:border-box!important;overflow:auto!important}
+html body.mmh-workspace-active #forecast#forecast.page.active #mmhForecastRootV1 :is(.fc-choice-menu,.fc-shared-menu).fc-floating-menu[popover]:not(:popover-open){display:none!important}
+html body.mmh-workspace-active #forecast#forecast.page.active #mmhForecastRootV1 .fc-picker-up:not(:has(.fc-floating-menu))>:is(.fc-shared-menu,.fc-choice-menu){top:auto!important;bottom:calc(100% + 5px)!important}
+html body.mmh-workspace-active #forecast#forecast.page.active #mmhForecastRootV1 .fc-end-control{min-width:0}
+html body.mmh-workspace-active #forecast#forecast.page.active #mmhForecastRootV1 .fc-end-control .fc-choice-picker>summary{width:100%!important}
+html body.mmh-workspace-active #forecast#forecast.page.active #mmhForecastRootV1 .fc-month-overview th[scope=row]{color:var(--uv-text)!important}
+@media(max-width:760px){
+html body.mmh-workspace-active #forecast#forecast.page.active #mmhForecastRootV1 .fc-dialog{max-height:calc(100dvh - 20px)!important}
+html body.mmh-workspace-active #forecast#forecast.page.active #mmhForecastRootV1 .fc-dialog-footer{gap:6px}
+}
