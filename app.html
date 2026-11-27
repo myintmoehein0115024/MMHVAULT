@@ -12382,6 +12382,7 @@ html.mmh-desktop-compact-v11110 body.mmh-workspace-active #moreNavMenu.more-nav-
       '<div class="mmh-history-dialog-actions"><button type="button" data-cancel>'+recordText("Cancel","取消","မလုပ်တော့ပါ")+'</button><button type="submit">'+recordText("Save Changes","保存修改","ပြောင်းလဲမှုများ သိမ်းဆည်းရန်")+'</button></div></form>';
     document.getElementById('invest').append(modal);
     modal.querySelector('[data-cancel]').onclick=()=>modal.close();
+    modal.addEventListener('cancel',e=>{if(modal.querySelector('button[type="submit"]:disabled'))e.preventDefault();});
     modal.addEventListener('close',()=>modal.remove(),{once:true});
     const funds=()=>{const f=modal.querySelector('form'),fd=new FormData(f),a=window.mmhCustomInvestAccount?.(fd.get('account'));
       if(!a){f.querySelector('[data-funds]').textContent=recordText("Select an active account with a supported currency.","请选择币种受支持的有效账户。","ပံ့ပိုးထားသော ငွေကြေးအမျိုးအစားရှိသည့် အသုံးပြုနေသောအကောင့်ကို ရွေးပါ။");return;}
@@ -16132,6 +16133,15 @@ async function editInvestment(id){
       try{window.mmhvaultForceRenderAllV34421?.('investment-edit-sync');}catch(_e){}
       try{window.refreshInvestmentReceiptFlagsV3304?.();}catch(_e){}
     }).catch(err=>console.warn('[MMHVAULT] background investment edit sync failed',err));
+  };
+  // Keep the existing async save intact; Esc must not dismiss an in-flight edit.
+  const escForm=$('editInvForm'),originalSubmit=escForm.onsubmit;
+  escForm.onsubmit=async function(e){
+    escForm.dataset.mmhEscPending=String(Number(escForm.dataset.mmhEscPending||0)+1);
+    try{return await originalSubmit.call(this,e);}finally{
+      const remaining=Number(escForm.dataset.mmhEscPending||1)-1;
+      if(remaining>0)escForm.dataset.mmhEscPending=String(remaining);else delete escForm.dataset.mmhEscPending;
+    }
   };
 }
 
@@ -39289,6 +39299,22 @@ html body #editModal#editModal#editModal#editModal #editInvForm#editInvForm .iw2
   e.preventDefault();drag.port.scrollTop+=drag.lastY-t.clientY;drag.lastY=t.clientY;
  },{capture:true,passive:false});
  for(const type of ['touchend','touchcancel'])window.addEventListener(type,()=>{drag=null;},{capture:true,passive:true});
+})();
+</script>
+<script id="mmhEditEscapeV229">
+(()=>{
+"use strict";
+function handleEditEscape(e,doc,close){
+ if(e.key!=='Escape'||e.defaultPrevented||e.isComposing)return;
+ const edit=doc.getElementById('editModal');
+ if(!edit?.classList.contains('open')||edit.inert)return;
+ const form=edit.querySelector('#editInvForm,#editTxForm');
+ if(!form||doc.querySelector('dialog[open],#mmhVaultDialogV449.show,#mmhCategoryPickerV2:not([hidden])'))return;
+ e.preventDefault();e.stopImmediatePropagation();
+ if(e.repeat||Number(form.dataset.mmhEscPending||0)>0||form.querySelector('button[type="submit"]:disabled,button:not([type]):disabled,input[type="submit"]:disabled'))return;
+ close();
+}
+document.addEventListener("keydown",e=>handleEditEscape(e,document,closeEditModal),true);
 })();
 </script>
 </body>
