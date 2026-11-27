@@ -8,7 +8,7 @@ import * as planView from './mmhvault-cashflow-v2-planning-view.mjs';
 import {reportContext} from './mmhvault-cashflow-v2-report-context.mjs';
 import {exportLocal} from './mmhvault-cashflow-v2-report-browser.mjs?v=2.0.44';
 import {reportLogo,reportCell,reportTone,reportChoices,selectedReport} from './mmhvault-cashflow-v2-report-format.mjs?v=2.0.44';
-import {enhanceCurrencies,actionIdentity,restoreAction} from './mmhvault-cashflow-v2-presentation.mjs?v=2.0.41';
+import {enhanceCurrencies,actionIdentity,restoreAction} from './mmhvault-cashflow-v2-presentation.mjs?v=2.0.65.1';
 import {summarizeMovements,movementKinds} from './mmhvault-cashflow-v2-movements.mjs';
 import {investmentReport} from './mmhvault-cashflow-v2-investment.mjs';
 const D={
@@ -33,26 +33,37 @@ const symbols={report:'M7 3h7l4 4v14H7z M14 3v5h5 M10 12h5 M10 16h5',history:'M3
 const icon=k=>'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="'+symbols[k]+'"/></svg>';
 const presets=['today','week','month','lastMonth','quarter','year','lastYear','all','custom'];
 // Display preferences only: owner and view scoped, never ledger/filter currencies.
-export function resolvePersonalCashflowCurrencyV265(storage,uid,view,codes,fallback='USD'){
- const valid=c=>codes.includes(c),key='mmhvault_personal_display_currency_v265_'+encodeURIComponent(uid)+'_'+view;
- if(!uid||!['summary','analysis','planning','report'].includes(view))return valid(fallback)?fallback:'USD';
- try{const saved=storage.getItem(key);if(valid(saved))return saved;
- if(view==='analysis'){const legacy=storage.getItem('mmhvault_analyze_currency_v918_'+uid);if(valid(legacy))return legacy}
- const defaults=JSON.parse(storage.getItem('mmhvault_settings_display_v2_'+uid)||'{}');
- if(valid(defaults?.currency))return defaults.currency;
+const cashflowPreferenceViewsV265=['summary','analysis','planning','report'];
+const cashflowPreferenceKeyV265=(uid,view)=>'mmhvault_personal_display_currency_v265_'+encodeURIComponent(uid)+'_'+view;
+export function readPersonalCashflowCurrencyChoiceV265(storage,uid,view,codes){
+ if(!uid||!cashflowPreferenceViewsV265.includes(view))return 'GLOBAL';
+ try{const saved=storage.getItem(cashflowPreferenceKeyV265(uid,view));if(saved==='GLOBAL'||codes.includes(saved))return saved;
+ if(view==='analysis'){const legacy=storage.getItem('mmhvault_analyze_currency_v918_'+uid);if(codes.includes(legacy))return legacy}
  }catch{}
+ return 'GLOBAL';
+}
+export function resolvePersonalCashflowCurrencyV265(storage,uid,view,codes,fallback='USD',choice=readPersonalCashflowCurrencyChoiceV265(storage,uid,view,codes)){
+ const valid=c=>codes.includes(c);
+ if(!uid||!cashflowPreferenceViewsV265.includes(view))return valid(fallback)?fallback:'USD';
+ if(valid(choice))return choice;
+ try{const defaults=JSON.parse(storage.getItem('mmhvault_settings_display_v2_'+uid)||'{}');if(valid(defaults?.currency))return defaults.currency}catch{}
  return valid(fallback)?fallback:'USD';
 }
 export function savePersonalCashflowCurrencyV265(storage,uid,view,code,codes){
- if(!uid||!['summary','analysis','planning','report'].includes(view)||!codes.includes(code))return false;
- try{storage.setItem('mmhvault_personal_display_currency_v265_'+encodeURIComponent(uid)+'_'+view,code);return true}catch{return false}
+ if(!uid||!cashflowPreferenceViewsV265.includes(view)||(code!=='GLOBAL'&&!codes.includes(code)))return false;
+ try{storage.setItem(cashflowPreferenceKeyV265(uid,view),code);return true}catch{return false}
 }
 export function mountCashflowV2(root,adapter){
  if(!root||typeof adapter?.owner!=='function'||typeof adapter?.read!=='function'||typeof adapter?.today!=='function')throw new TypeError('Explicit workspace adapter required');
  const doc=root.ownerDocument,win=doc.defaultView;let owner=null,tab='summary',preset='month',currency='USD',grain='week',custom={},account='',category='',original='',horizon=12,selected='',dialog='',largeThreshold='',reportType='monthly',reportSelection={},reportSections={},reportCurrency='',exportError='',last=null,disposed=false;
+ let currencyChoice='GLOBAL',reportCurrencyChoice='GLOBAL',temporaryChoices=Object.create(null);
  let analysisDimension='accounts';let reportMenu='',reportScroll=0;let filtersOpen=false,calendarKey='',planGrain='month',budgetPeriod='month',budgetKey='',planEdit=null,planConfirm='',planError=false,opener=null,paintedDialog='';
  const lang=()=>adapter.language?.()==='zh'?1:adapter.language?.()==='my'?2:0;
  const tr=k=>D[k]?.[lang()]||k;
+ const displayChoices=(codes,effective)=>[...(adapter.releaseReadOnly?[['GLOBAL',effective+' · '+['Default','默认','မူလ'][lang()]]]:[]),...codes.map(c=>[c,c])];
+ function choiceFor(uid,view,codes){if(Object.hasOwn(temporaryChoices,view))return temporaryChoices[view];try{return readPersonalCashflowCurrencyChoiceV265(win.localStorage,uid,view,codes)}catch{return 'GLOBAL'}}
+ function effectiveFor(uid,view,codes,choice){try{return resolvePersonalCashflowCurrencyV265(win.localStorage,uid,view,codes,'USD',choice)}catch{return codes.includes(choice)?choice:'USD'}}
+ function rememberChoice(uid,view,value,codes){let saved=false;try{saved=savePersonalCashflowCurrencyV265(win.localStorage,uid,view,value,codes)}catch{}if(saved)delete temporaryChoices[view];else temporaryChoices[view]=value}
  const locale=()=>['en','zh-CN','my-MM'][lang()];
  const fmt=(v,c=currency)=>safeNum(v)?new Intl.NumberFormat(locale(),{maximumFractionDigits:2,minimumFractionDigits:2}).format(v)+' '+c:'—';
  const pct=v=>safeNum(v)?new Intl.NumberFormat(locale(),{style:'percent',maximumFractionDigits:1}).format(v):'—';
@@ -71,7 +82,7 @@ export function mountCashflowV2(root,adapter){
  const grainControls=()=>'<div class="cfv2-grain-segments" role="group" aria-label="'+e(tr('period'))+'">'+grains.map(k=>'<button type="button" data-action="grain" data-key="'+k+'" aria-pressed="'+(k===grain)+'">'+e(tr(k==='week'?'weekly':k==='day'?k:k+'Group'))+'</button>').join('')+'</div>';
  const tone=(v)=>!safeNum(v)||v===0?'':v>0?'positive':'negative';
  const items=(arr,kind='')=>arr?.length?'<div class="cfv2-list">'+arr.map(x=>'<div><span>'+e(x.name)+'</span><strong class="cfv2-tone '+e(kind)+'">'+e(fmt(x.amount))+'</strong></div>').join('')+'</div>':empty('noData');
- function reset(next){analysisDimension='accounts';owner=next;tab='summary';preset='month';currency='USD';grain='week';filtersOpen=false;calendarKey='';custom={};account=category=original=selected=dialog='';horizon=12;largeThreshold='';reportType='monthly';reportSelection={};reportSections={};reportCurrency='';reportMenu='';reportScroll=0;exportError='';last=null;planGrain='month';budgetPeriod='month';budgetKey='';planEdit=null;planConfirm='';planError=false;opener=null;paintedDialog=''}
+ function reset(next){temporaryChoices=Object.create(null);currencyChoice=reportCurrencyChoice='GLOBAL';analysisDimension='accounts';owner=next;tab='summary';preset='month';currency='USD';grain='week';filtersOpen=false;calendarKey='';custom={};account=category=original=selected=dialog='';horizon=12;largeThreshold='';reportType='monthly';reportSelection={};reportSections={};reportCurrency='';reportMenu='';reportScroll=0;exportError='';last=null;planGrain='month';budgetPeriod='month';budgetKey='';planEdit=null;planConfirm='';planError=false;opener=null;paintedDialog=''}
  function currentKey(mode,today){return mode==='month'?today.slice(0,7):today.slice(0,4)}
  function calendarBounds(mode,key,today){
   if(!['month','year'].includes(mode)||!key||key>currentKey(mode,today))return null;
@@ -101,9 +112,8 @@ export function mountCashflowV2(root,adapter){
   const source=adapter.read();if(adapter.owner()!==uid||source?.owner!==uid||source.ready!==true||!Array.isArray(source.rows)||source.rows.some(r=>r?.user_id!==uid))return null;
   const codes=[...new Set(['USD',...(source.currencies||[])])].filter(c=>/^[A-Z]{3}$/.test(c));
   if(adapter.releaseReadOnly){
-   try{currency=resolvePersonalCashflowCurrencyV265(win.localStorage,uid,tab,codes);
-    if(dialog==='report')reportCurrency=resolvePersonalCashflowCurrencyV265(win.localStorage,uid,'report',codes);
-   }catch{if(!codes.includes(currency))currency='USD'}
+   currencyChoice=choiceFor(uid,tab,codes);currency=effectiveFor(uid,tab,codes,currencyChoice);
+   if(dialog==='report'){reportCurrencyChoice=choiceFor(uid,'report',codes);reportCurrency=effectiveFor(uid,'report',codes,reportCurrencyChoice)}
   }else if(!codes.includes(currency))currency='USD';
   const today=adapter.today(),range=(calendarKey&&['month','year'].includes(preset)?calendarBounds(preset,calendarKey,today):null)||dateRange(preset,today,source.earliest,custom),scope={...range,currency,accounts:account?[account]:[],categories:category?[category]:[],originalCurrencies:original?[original]:[]};
   const args={rows:source.rows,scope,accountRate:source.accountRate,displayRate:source.displayRate,groupOf:source.groupOf,isLinkedInvestment:source.isLinkedInvestment};
@@ -224,7 +234,7 @@ export function mountCashflowV2(root,adapter){
    const choices=reportChoices(s.reportModel,locale()),m=selectedReport(s.reportModel,reportSections,locale()),sel={month:adapter.today().slice(0,7),year:adapter.today().slice(0,4),start:s.range.start,end:s.range.end,...reportSelection};
    const field=(k,type)=>'<label class="cfv2-rp-date"><span>'+e(tr(k==='month'?'calendarMonthly':k==='year'?'calendarYearly':k))+'</span><input type="'+type+'" data-field="report-'+k+'" lang="'+e(locale())+'"'+(k==='year'?' min="1900" max="2099" step="1"':'')+' value="'+e(sel[k])+'"></label>';
    const monthly=()=>{const parts=/^\d{4}-\d{2}$/.test(sel.month)?sel.month.split('-'):adapter.today().slice(0,7).split('-');const months=Array.from({length:12},(_,i)=>[String(i+1).padStart(2,'0'),(['en','zh-CN','my-MM'][lang()]==='my-MM'?['ဇန်နဝါရီ','ဖေဖော်ဝါရီ','မတ်','ဧပြီ','မေ','ဇွန်','ဇူလိုင်','ဩဂုတ်','စက်တင်ဘာ','အောက်တိုဘာ','နိုဝင်ဘာ','ဒီဇင်ဘာ'][i]:new Intl.DateTimeFormat(locale(),{month:'long',timeZone:'UTC'}).format(new Date(Date.UTC(2020,i,1))))]);return '<div class="cfv2-rp-date"><span>'+e(tr('calendarMonthly'))+'</span><div class="cfv2-rp-month-parts"><input type="number" min="1900" max="2099" step="1" data-field="report-month-year" aria-label="'+e(tr('calendarYearly'))+'" value="'+e(parts[0])+'">'+filterSelect('report-month-part',months,parts[1],'calendarMonthly')+'</div></div>'};
-    const controls=filterSelect('reportType',reportTypes.map(k=>[k,tr(k==='category'?'categoryReport':k==='custom'?'customReport':k)]),reportType,'reportType')+(reportType==='monthly'?monthly():reportType==='annual'?field('year','number'):reportType==='custom'?field('start','date')+field('end','date'):'')+ '<div class="cfv2-rp-currency"><span>'+e(tr('currency'))+'</span>'+select('reportCurrency',s.codes.map(c=>[c,c]),s.codes.includes(reportCurrency)?reportCurrency:currency,'currency')+'</div>';
+    const controls=filterSelect('reportType',reportTypes.map(k=>[k,tr(k==='category'?'categoryReport':k==='custom'?'customReport':k)]),reportType,'reportType')+(reportType==='monthly'?monthly():reportType==='annual'?field('year','number'):reportType==='custom'?field('start','date')+field('end','date'):'')+ '<div class="cfv2-rp-currency"><span>'+e(tr('currency'))+'</span>'+select('reportCurrency',displayChoices(s.codes,s.codes.includes(reportCurrency)?reportCurrency:currency),adapter.releaseReadOnly?reportCurrencyChoice:(s.codes.includes(reportCurrency)?reportCurrency:currency),'currency')+'</div>';
    const selector=choices.length?'<details class="cfv2-inline-picker cfv2-rp-content" data-report-picker="content"><summary aria-label="'+e(tr('reportContent'))+'"><span>'+e(tr('reportContent'))+'</span><small data-report-count>'+String(m.sections.length-1)+' / '+choices.length+'</small></summary><div class="cfv2-inline-options cfv2-rp-menu"><p>'+e(tr('reportContentHint'))+'</p><div class="cfv2-rp-checks"><label class="cfv2-rp-select-all"><input type="checkbox" data-field="report-select-all"'+(choices.every(x=>Object.hasOwn(reportSections,x.key)?reportSections[x.key]===true:x.defaultSelected)?' checked':'')+'><span>'+e(tr('reportSelectAll'))+'</span></label>'+choices.map(x=>'<label><input type="checkbox" data-field="report-section" value="'+e(x.key)+'"'+((Object.hasOwn(reportSections,x.key)?reportSections[x.key]:x.defaultSelected)?' checked':'')+'><span>'+e(x.name)+'</span></label>').join('')+'</div></div></details>':'';
    const buttons='<details class="cfv2-inline-picker cfv2-rp-export" data-report-picker="export"><summary>'+e(tr('reportExport'))+'</summary><div class="cfv2-inline-options cfv2-rp-menu" role="group" aria-label="'+e(tr('reportExport'))+'"><p data-report-export-note'+(m?.exportable?' hidden':'')+'>'+e(tr(!m?'invalid':!s.reportModel.exportable?(m.warning||'missing'):'reportChoose'))+'</p>'+['PDF','XLSX','CSV','PNG','Print'].map((v,i)=>'<button type="button" data-action="export-report" data-key="'+['pdf','xlsx','csv','image','print'][i]+'"'+(m?.exportable?'':' disabled')+'><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="'+(v==='Print'?'M7 8V3h10v5M7 17H4V9h16v8h-3M7 14h10v7H7z':'M12 3v12m-4-4 4 4 4-4M4 16v4h16v-4')+'"/></svg><span>'+e(v==='Print'?tr('print'):v)+'</span></button>').join('')+'</div></details>';
    const preview=section=>{
@@ -283,8 +293,8 @@ export function mountCashflowV2(root,adapter){
   const isFlow=tab!=='planning';
   const filters=filterSelect('preset',presets.map(k=>[k,tr(k==='all'?'allTime':k)]),preset,'period')+filterSelect('account',opts(s.source.accounts),account,'account')+filterSelect('category',opts(s.source.categories),category,'category')+filterSelect('original',opts(s.codes),original,'original')+(adapter.releaseReadOnly?'<button type="button" data-action="reset-filters">'+e(tr('resetFilters'))+'</button>':'');
   const filterButton='<button type="button" data-action="filters" aria-expanded="'+filtersOpen+'" aria-controls="cfv2-advanced-filters">'+e(tr('filters'))+([account,category,original].filter(Boolean).length?' ('+[account,category,original].filter(Boolean).length+')':'')+'</button>';
-  const controls='<div class="cfv2-filters">'+select('currency',s.codes.map(c=>[c,c]),currency,'currency')+(isFlow?calendarControls()+filterButton:'')+'</div>';
-  const toolbarCurrency='<div class="cfv2-currency-anchor"><label><select class="cfv2-toolbar-currency" data-field="currency" aria-label="'+e(tr('currency'))+'" title="'+e(tr('currency'))+'">'+s.codes.map(c=>'<option value="'+e(c)+'"'+(c===currency?' selected':'')+'>'+e(c)+'</option>').join('')+'</select></label></div>';
+  const controls='<div class="cfv2-filters">'+select('currency',displayChoices(s.codes,currency),adapter.releaseReadOnly?currencyChoice:currency,'currency')+(isFlow?calendarControls()+filterButton:'')+'</div>';
+  const toolbarCurrency='<div class="cfv2-currency-anchor"><label><select class="cfv2-toolbar-currency" data-field="currency" aria-label="'+e(tr('currency'))+'" title="'+e(tr('currency'))+'">'+displayChoices(s.codes,currency).map(([c,label])=>'<option value="'+e(c)+'"'+(c===(adapter.releaseReadOnly?currencyChoice:currency)?' selected':'')+'>'+e(label)+'</option>').join('')+'</select></label></div>';
   const toolbar='<div class="cfv2-toolbar-controls">'+(isFlow?calendarControls()+'<div class="cfv2-filter-anchor">'+filterButton+'<div id="cfv2-advanced-filters" class="cfv2-filters" '+(filtersOpen?'':'hidden')+'>'+filters+'</div></div>':'')+toolbarCurrency+(isFlow?btn('report','report'):'')+'</div>';
   const heading='<div class="cfv2-title"><div><h1>'+e(tr('cashflow'))+'</h1><p class="cfv2-muted">'+e(tr('overviewNote'))+'</p></div>'+controls+'</div>';
   const nav='<header class="cfv2-top'+(adapter.releaseReadOnly?' cfv2-toolbar':'')+'"><div role="group" class="cfv2-tabs">'+(adapter.releaseReadOnly?['summary','analysis']:['summary','analysis','planning']).map(k=>'<button type="button" data-action="tab" data-key="'+k+'" aria-pressed="'+(tab===k)+'">'+e(tr(k==='summary'?'cashflow':k))+'</button>').join('')+'</div>'+(adapter.releaseReadOnly?toolbar:(isFlow?btn('report','report'):''))+'</header>';
@@ -337,8 +347,8 @@ export function mountCashflowV2(root,adapter){
    exportError='';refreshReportSelection(d);return
   }
   const source=ev.target,previousOwner=owner,restoreSharedFocus=adapter.releaseReadOnly&&source.id===(f==='currency'?'mmhCfV238Currency':sharedFilterIds[f])&&doc.activeElement===source.nextElementSibling&&source.nextElementSibling?.classList.contains('mmh-shared-trigger-v217');
-  if(f==='currency'){if(!last?.codes.includes(v))return;currency=v;if(adapter.releaseReadOnly)try{savePersonalCashflowCurrencyV265(win.localStorage,owner,tab,v,last.codes)}catch{}}else if(f==='calendarKey'){if(calendarBounds(preset,v,adapter.today()))calendarKey=v}else if(f==='preset'){calendarKey='';preset=v;grain=['today','week'].includes(v)?'day':['month','lastMonth'].includes(v)?'week':'month';if(v==='custom')custom=last?.range||dateRange('month',adapter.today())}
-  else if(f==='planHorizon'||f==='planPreset'){const n=Number(v);if(Number.isInteger(n)&&n>=1&&n<=240)horizon=n}else if(f==='planGrain')planGrain=v;else if(f==='budgetPeriod'){budgetPeriod=v;budgetKey=''}else if(f==='budgetKey'){if(planKit.bounds(budgetPeriod,v))budgetKey=v}else if(f==='analysisDimension'){if(['accounts','currencies'].includes(v))analysisDimension=v}else if(f==='grain'){if(grains.includes(v))grain=v}else if(f==='account')account=v;else if(f==='category')category=v;else if(f==='original')original=v;else if(f==='horizon')horizon=Number(v);else if(f==='largeThreshold')largeThreshold=v;else if(f==='reportCurrency'){if(last?.codes.includes(v)){reportCurrency=v;if(adapter.releaseReadOnly)try{savePersonalCashflowCurrencyV265(win.localStorage,owner,'report',v,last.codes)}catch{}}exportError=''}else if(f==='reportType'){reportType=v;reportSections={};exportError=''}else if(f==='report-month-year'||f==='report-month-part'){const [y,m]=(reportSelection.month||adapter.today().slice(0,7)).split('-');const next=f==='report-month-year'?v+'-'+m:y+'-'+v;if(/^\d{4}-(0[1-9]|1[0-2])$/.test(next)&&Number(next.slice(0,4))>=1900&&Number(next.slice(0,4))<=2099)reportSelection={...reportSelection,month:next};exportError=''}else if(f.startsWith('report-')){reportSelection={...reportSelection,[f.slice(7)]:v};exportError=''}selected='';paint();
+  if(f==='currency'){if(!last?.codes.includes(v)&&!(adapter.releaseReadOnly&&v==='GLOBAL'))return;if(adapter.releaseReadOnly)rememberChoice(owner,tab,v,last.codes);else currency=v}else if(f==='calendarKey'){if(calendarBounds(preset,v,adapter.today()))calendarKey=v}else if(f==='preset'){calendarKey='';preset=v;grain=['today','week'].includes(v)?'day':['month','lastMonth'].includes(v)?'week':'month';if(v==='custom')custom=last?.range||dateRange('month',adapter.today())}
+  else if(f==='planHorizon'||f==='planPreset'){const n=Number(v);if(Number.isInteger(n)&&n>=1&&n<=240)horizon=n}else if(f==='planGrain')planGrain=v;else if(f==='budgetPeriod'){budgetPeriod=v;budgetKey=''}else if(f==='budgetKey'){if(planKit.bounds(budgetPeriod,v))budgetKey=v}else if(f==='analysisDimension'){if(['accounts','currencies'].includes(v))analysisDimension=v}else if(f==='grain'){if(grains.includes(v))grain=v}else if(f==='account')account=v;else if(f==='category')category=v;else if(f==='original')original=v;else if(f==='horizon')horizon=Number(v);else if(f==='largeThreshold')largeThreshold=v;else if(f==='reportCurrency'){if(last?.codes.includes(v)||(adapter.releaseReadOnly&&v==='GLOBAL')){if(adapter.releaseReadOnly)rememberChoice(owner,'report',v,last.codes);else reportCurrency=v}exportError=''}else if(f==='reportType'){reportType=v;reportSections={};exportError=''}else if(f==='report-month-year'||f==='report-month-part'){const [y,m]=(reportSelection.month||adapter.today().slice(0,7)).split('-');const next=f==='report-month-year'?v+'-'+m:y+'-'+v;if(/^\d{4}-(0[1-9]|1[0-2])$/.test(next)&&Number(next.slice(0,4))>=1900&&Number(next.slice(0,4))<=2099)reportSelection={...reportSelection,month:next};exportError=''}else if(f.startsWith('report-')){reportSelection={...reportSelection,[f.slice(7)]:v};exportError=''}selected='';paint();
   if(f==='reportCurrency'&&previousOwner===owner){const d=root.querySelector('[data-cfv2-kind=report]');(d?.querySelector('.cfv2-currency summary')||d?.querySelector('[data-field=reportCurrency]'))?.focus({preventScroll:true})}
   if(adapter.releaseReadOnly&&f==='currency'&&previousOwner===owner){(root.querySelector('.cfv2-currency-anchor summary')||root.querySelector('.cfv2-currency-anchor select'))?.focus({preventScroll:true})}
   if(restoreSharedFocus&&win.requestAnimationFrame){
