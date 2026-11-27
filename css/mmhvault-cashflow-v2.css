@@ -14,8 +14,6 @@ body.light .cfv2{--cf-bg:#fff;--cf-raised:#eef2f8;--cf-text:#202a3a;--cf-muted:#
 @media(max-width:900px){.cfv2-metrics{grid-template-columns:repeat(2,minmax(0,1fr))}.cfv2-metric:nth-child(even){border-inline-end:0}}
 @media(max-width:767px){.cfv2{gap:8px}.cfv2-pair{grid-template-columns:minmax(0,1fr);gap:8px}.cfv2-card{padding:10px}.cfv2-filters>label{flex:1 1 120px;max-width:none}.cfv2 .cfv2-icon{width:44px;height:44px}.cfv2-metric strong{font-size:15px}.cfv2-dialog{width:calc(100% - 20px)}.cfv2-plan-form{grid-template-columns:minmax(0,1fr)}.cfv2-plan-controls>label{max-width:none;flex:1 1 90px}.cfv2-plan-actions button,.cfv2-currency button,.cfv2-currency summary{min-height:44px}.cfv2-dialog-body{padding:10px}}
 
-#cashflow-analyze > .cfa-shell[hidden],#mmhCashflowV2ReleaseRoot[hidden]{display:none!important}
-#mmhCashflowV2Release{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin:0 0 12px;min-width:0}
-#mmhCashflowV2Release button{font:inherit;font-weight:600;min-height:36px;border:1px solid var(--mmh-v2-border,#8894aa);border-radius:8px;padding:7px 12px;background:transparent;color:inherit;cursor:pointer}
-#mmhCashflowV2Release p{margin:0;font-size:12px;opacity:.8;min-width:0}
-#mmhCashflowV2ReleaseRoot{min-width:0;max-width:100%}
+/* V2.0.35 — legacy rendering targets remain inert and never appear. */
+#cashflow-analyze > .cfa-shell{display:none!important}
+#cashflow-analyze > #mmhCashflowV2ReleaseRoot{min-width:0;max-width:100%}
