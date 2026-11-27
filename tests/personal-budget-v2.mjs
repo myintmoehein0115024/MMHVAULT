@@ -16,7 +16,19 @@ const css=[...app.matchAll(/<style\b[^>]*>([\s\S]*?)<\/style>|<link\b[^>]*href=[
 });
 assert.ok(css.some(s=>s.includes('Personal V2.0.62')));
 const browser=await chromium.launch();
-const labels={en:['Monthly budget','Spent','Remaining','Utilization','Analyze spending','Transaction history'],zh:['月度预算','已支出','剩余','使用率','分析支出','交易记录'],my:['လစဉ်အသုံးစရိတ်အစီအစဉ်','သုံးစွဲပြီး','ကျန်ရှိငွေ','အသုံးပြုမှု','အသုံးစရိတ်သုံးသပ်ရန်','ငွေလွှဲမှတ်တမ်း']};
+const copy=app.match(/const budgetCopyV262=Object\.freeze\(\{[\s\S]*?\n\}\);\nfunction budgetCopyTextV262[\s\S]*?\n\}\n/);
+assert.ok(copy,'actual Budget translation source');
+const translator=new Function(copy[0]+';return budgetCopyTextV262;')();
+const fixtureEl={closest:s=>s==='#budget'?{}:null},categoryEl={closest:s=>s==='#budget'||s.includes('.budget-category-name-v110>span')?{}:null};
+for(const lang of ['en','zh','my']){
+ for(const base of ['No category limit','QUICK REVIEW','Category limits: ฿ 23,000.00','145.92% used · ฿ 10,331.11 over budget','Budget exceeded by ฿ 10,331.11. Review this month’s individual spending or adjust the plan.','2 expense records could not be converted because an exchange rate is unavailable.']){
+ const t=translator(base,fixtureEl,lang);if(lang==='en')assert.equal(t,base);else assert.notEqual(t,base);
+ if(base.includes('฿'))assert.ok(t.includes(base.match(/฿ [\d,.]+/)[0]));
+ }
+ assert.equal(translator('Spent',categoryEl,lang),'Spent','member category name preserved');
+ assert.equal(translator('Spent',{closest:()=>null},lang),'Spent','other pages untouched');
+}
+const labels=Object.fromEntries(['en','zh','my'].map(lang=>[lang,['MONTHLY BUDGET','SPENT','REMAINING','UTILIZATION','Analyze spending','Transaction history'].map(base=>translator(base,fixtureEl,lang))]));
 try{
  for(const width of [320,393,768,1440])for(const lang of ['en','zh','my'])for(const light of [false,true]){
  const page=await browser.newPage({viewport:{width,height:844}});await page.route('**/*',r=>r.abort());
