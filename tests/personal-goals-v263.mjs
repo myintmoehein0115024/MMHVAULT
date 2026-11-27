@@ -101,6 +101,50 @@ try{
    assert.notEqual(states[0].placeholder,states[1].placeholder);
    assert.notEqual(states[0].placeholder,states[2].placeholder);
    console.log('PASS Goals actual translation engine, 4 language states and protected names/currencies',width,light?'light':'dark');
+   // Exercise the actual existing shared picker implementation, not a stand-in.
+   await page.locator('#mmhVaultDialogV449').evaluate(el=>el.remove());
+   const inline=(tag,id)=>{
+     const start=app.indexOf('<'+tag+' id="'+id+'">'),end=app.indexOf('</'+tag+'>',start);
+     assert.ok(start>=0&&end>start,id);
+     return app.slice(app.indexOf('>',start)+1,end);
+   };
+   await page.addStyleTag({content:inline('style','mmhCategoriesEditPickersV2')});
+   await page.addScriptTag({content:inline('script','mmhCategoriesEditPickersLogicV2')});
+   const currency=page.locator('#goalCurrencyV113');
+   const trigger=page.locator('#goalCurrencyV113 + button.mmh-shared-trigger-v217');
+   const type=page.locator('#goalTypeV113 + button.mmh-shared-trigger-v217');
+   await trigger.waitFor({state:'visible'});
+   await type.waitFor({state:'visible'});
+   await page.evaluate(()=>{window.__goalPickerChanges=[];document.getElementById('goalCurrencyV113').addEventListener('change',e=>window.__goalPickerChanges.push(e.target.value))});
+   const menu=page.locator('#mmhCategoryPickerV2');
+   await trigger.scrollIntoViewIfNeeded();
+   await trigger.click();
+   await menu.waitFor({state:'visible'});
+   assert.equal(await menu.getByRole('option').count(),4);
+   const bounds=await menu.boundingBox();
+   assert.ok(bounds&&bounds.x>=0&&bounds.x+bounds.width<=width+1);
+   await menu.getByRole('option',{name:/MMK/}).click();
+   await menu.waitFor({state:'hidden'});
+   assert.equal(await currency.inputValue(),'MMK');
+   assert.deepEqual(await page.evaluate(()=>window.__goalPickerChanges),['MMK']);
+   await trigger.getByText(/MMK/).waitFor();
+   await type.scrollIntoViewIfNeeded();
+   await type.click();
+   await menu.waitFor({state:'visible'});
+   await page.keyboard.press('Escape');
+   await menu.waitFor({state:'hidden'});
+   assert.equal(await type.getAttribute('aria-expanded'),'false');
+   // Mutation observer and language-change event must refresh the selected label.
+   for(const label of ['应急基金','အရေးပေါ်ရန်ပုံငွေ','Emergency Fund']){
+     await page.locator('#goalTypeV113').evaluate((el,label)=>{
+       el.selectedOptions[0].textContent=label;
+       window.dispatchEvent(new Event('mmhvault-language-change'));
+     },label);
+     await type.getByText(label,{exact:true}).waitFor();
+   }
+   assert.deepEqual(await currency.locator('option').evaluateAll(options=>options.map(o=>o.value)),['THB','MMK','USD','CNY']);
+   const geometry=await page.evaluate(()=>({picker:document.querySelector('#goalCurrencyV113 + button').getBoundingClientRect().height,input:document.querySelector('#goalNameV113').getBoundingClientRect().height}));
+   console.log('PASS Goals actual shared picker selection, Escape and locale refresh',width,light?'light':'dark',JSON.stringify(geometry));
    await page.locator('#goalFormPanelV113').evaluate(el=>el.hidden=true);
    assert.equal(await page.locator('#goalFormPanelV113').isVisible(),false);
   }finally{await page.close();}
