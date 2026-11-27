@@ -26,6 +26,8 @@
  const language=()=>{try{return localStorage.getItem('mmhvault_language_v3363')||'en'}catch(_){return 'en'}};
  const isZh=()=>language()==='zh';
  const myLabels=Object.freeze({
+  "Search currencies":"ငွေကြေး ရှာရန်",
+  "Currency code or name":"ငွေကြေးကုဒ် သို့မဟုတ် အမည်",
   "Unsaved changes · click Save settings to keep them after refresh": "မသိမ်းရသေးသော ပြောင်းလဲမှုများ · ပြန်ဖွင့်ပြီးနောက် ဆက်ထားရန် ဆက်တင်များသိမ်းပါ",
   "Settings saved on this device": "ဤစက်တွင် ဆက်တင်များ သိမ်းပြီးပါပြီ",
   "Could not save settings on this device. Check browser storage.": "ဤစက်တွင် ဆက်တင်များ မသိမ်းနိုင်ပါ။ ဘရောက်ဇာ၏ သိုလှောင်မှုကို စစ်ဆေးပါ။",
@@ -418,12 +420,23 @@
   mountDashboardDaily();
  }
  // A single compact money input: only the symbol is visible until activated.
+ function currencyPickerHTML(kind,code,codes,label){
+  const flag=window.MMHCurrencyPickerV3?.flag?.(code)||'';
+  return `<details class="fc-shared-picker ${kind==='view'?'fc-view-picker':''}" data-fc-picker-kind="${kind}" ${kind==='view'?'id="fc-view-picker"':''}><summary class="${kind==='field'?'fc-currency-trigger':''}" aria-label="${esc(label+' · '+code)}" title="${esc(label)}"><span>${esc(flag+code)}</span><span aria-hidden="true">⌄</span></summary><div class="fc-shared-menu mmh-shared-currency-v3"><label>${esc(tr('Search currencies','搜索币种'))}</label><input type="search" autocomplete="off" aria-label="${esc(tr('Search currencies','搜索币种'))}" placeholder="${esc(tr('Currency code or name','币种代码或名称'))}"><div class="ap-currency-list-v2"></div><select hidden aria-hidden="true" tabindex="-1">${codes.map(c=>`<option value="${c}"${c===code?' selected':''}>${c}</option>`).join('')}</select></div></details>`;
+ }
+ function setupCurrencyPicker(picker){
+  const group=picker.querySelector('.fc-shared-menu'),select=group.querySelector('select'),search=group.querySelector('input'),list=group.querySelector('.ap-currency-list-v2'),label=picker.querySelector('summary').getAttribute('aria-label');
+  search.value='';
+  if(window.MMHCurrencyPickerV3?.render){window.MMHCurrencyPickerV3.render({select,search,list,group,label});return}
+  const render=()=>{const q=search.value.trim().toLocaleLowerCase();list.replaceChildren();for(const o of select.options){if(![o.value,currencyName(o.value)].join(' ').toLocaleLowerCase().includes(q))continue;const b=document.createElement('button');b.type='button';b.dataset.apCurrency=o.value;b.setAttribute('aria-pressed',String(o.value===select.value));const a=document.createElement('span'),n=document.createElement('span');a.textContent=o.value;n.textContent=currencyName(o.value);b.append(a,n);list.append(b)}};
+  search.oninput=render;render();
+ }
+ function closeForecastPickers(except=null){el(ROOT)?.querySelectorAll('.fc-shared-picker[open],.fc-choice-picker[open]').forEach(p=>{if(p!==except)p.open=false})}
  function pairField(label,fieldKey,value,currency,where,date='',placeholder=''){
   const isBase=where==='base',inputId=`fc-${isBase?'base':'month'}-${fieldKey}${date?'-'+date:''}`;
   const data=isBase?`data-fc-base="${fieldKey}"`:`data-fc-month="${date}" data-fc-field="${fieldKey}"`;
   const groupData=isBase?`data-fc-base-ccy="${fieldKey}"`:`data-fc-month-ccy="${date}" data-fc-ccy-field="${fieldKey}"`;
-  const options=CURRENCIES.map(c=>`<button type="button" role="option" aria-selected="${currency===c}" data-fc-pick-currency="${c}" class="fc-currency-option${currency===c?' selected':''}"><span class="fc-option-symbol">${CURRENCY_MARKS[c]}</span><span>${esc(c)}<small>${esc(currencyName(c))}</small></span>${currency===c?'<span aria-hidden="true" class="fc-option-check">✓</span>':''}</button>`).join('');
-  return `<div class="fc-field"><label for="${inputId}">${esc(label)}</label><div class="fc-money-pair" ${groupData} data-fc-currency="${currency}"><button type="button" class="fc-currency-trigger" data-fc-toggle-currency="1" aria-label="${esc(label+' · '+tr('Change currency, currently ','切换币种，当前：')+unitName(currency))}" aria-expanded="false" aria-haspopup="listbox" title="${esc(currency)}"><span class="fc-currency-mark" aria-hidden="true">${CURRENCY_MARKS[currency]}</span></button><input id="${inputId}" type="number" min="0" max="1000000000000" step="any" inputmode="decimal" ${data} value="${esc(value)}" placeholder="${esc(placeholder)}" aria-label="${esc(label+' · '+unitName(currency))}"><div class="fc-currency-menu" role="listbox" aria-label="${esc(label+' · '+tr('Currency','币种'))}" hidden>${options}</div></div></div>`;
+  return `<div class="fc-field"><label for="${inputId}">${esc(label)}</label><div class="fc-money-pair" ${groupData} data-fc-currency="${currency}">${currencyPickerHTML('field',currency,CURRENCIES,tr('Currency','币种'))}<input id="${inputId}" type="number" min="0" max="1000000000000" step="any" inputmode="decimal" ${data} value="${esc(value)}" placeholder="${esc(placeholder)}" aria-label="${esc(label+' · '+unitName(currency))}"></div></div>`;
  }
  function rowField(date,f,over,ccyOver){
   const own=Object.prototype.hasOwnProperty.call(over,f.key);
@@ -469,7 +482,7 @@
   if(!previousFX&&!validDisplayRate(exchangeRates())){fxOpen=true;if(!CORE_RATES.includes(state.viewCurrency)&&state.viewCurrency!=='USD')extraRate=state.viewCurrency}
 
   root.innerHTML=`<div class="fc-wrap">
-    <header class="fc-head"><div><div class="fc-eyebrow">MMHVAULT · ${tr('FUTURE WEALTH PLANNER','未来资产预测')}</div><h1>${tr('Future Asset Forecast','未来资产预测')}</h1><p class="fc-muted">${tr('Forecast from next month, based on your current Dashboard assets.','从下个月起，使用 Dashboard 实时总资产逐月预测。')}</p></div><div class="fc-head-actions"><details class="fc-view-picker" id="fc-view-picker"><summary aria-label="${esc(tr('Forecast display currency','预测显示币种'))}">${esc(state.viewCurrency)} <span aria-hidden="true">⌄</span></summary><div class="fc-view-options">${CURRENCIES.map(c=>`<button type="button" data-fc-view-currency="${c}" aria-pressed="${state.viewCurrency===c}"><b>${c}</b><span>${esc(currencyName(c))}</span>${state.viewCurrency===c?'✓':''}</button>`).join('')}</div></details>${planningLinks()}<button type="button" class="fc-btn alt" data-fc-action="refresh">↻ ${tr('Refresh assets','刷新资产')}</button></div></header>
+    <header class="fc-head"><div><div class="fc-eyebrow">MMHVAULT · ${tr('FUTURE WEALTH PLANNER','未来资产预测')}</div><h1>${tr('Future Asset Forecast','未来资产预测')}</h1><p class="fc-muted">${tr('Forecast from next month, based on your current Dashboard assets.','从下个月起，使用 Dashboard 实时总资产逐月预测。')}</p></div><div class="fc-head-actions">${currencyPickerHTML('view',state.viewCurrency,CURRENCIES,tr('Forecast display currency','预测显示币种'))}${planningLinks()}<button type="button" class="fc-btn alt" data-fc-action="refresh">↻ ${tr('Refresh assets','刷新资产')}</button></div></header>
 
     <p id="fc-display-warning" class="fc-warning" role="status" hidden></p>
     <div class="fc-stats"><div class="fc-stat"><span>${tr('Current total assets','当前总资产')}</span><strong id="fc-start">—</strong><small>${tr('Dashboard value, including receivables','Dashboard 实时资产，含应收款')}</small></div><div class="fc-stat good"><span>${tr('Regular monthly savings','每月常规净储蓄')}</span><strong id="fc-saving">—</strong><small>${tr('Before bonus and extra spending','未计奖金与额外消费')}</small></div><div class="fc-stat"><span>${tr('Forecast end assets','预测期末总资产')}</span><strong id="fc-result">—</strong><small id="fc-result-date">—</small></div><div class="fc-stat"><span>${tr('Projected gain','预计增长')}</span><strong id="fc-gain">—</strong><small id="fc-count">—</small></div></div>
@@ -483,7 +496,7 @@
       </div>
       <div class="fc-savings-goal"><div class="fc-rate-heading"><span>${tr('Regular savings rate','常规储蓄率')}</span><strong id="fc-savings-rate">—</strong><small id="fc-rate-difference">—</small></div><div class="fc-rate-target"><label for="fc-savings-target">${tr('Savings rate target (%)','目标储蓄率 (%)')}</label><input id="fc-savings-target" type="number" min="0" max="100" step="0.1" inputmode="decimal" value="${state.targetSavingsRate}"></div><div class="fc-rate-track" role="progressbar" aria-label="${esc(tr('Progress toward target','储蓄率目标进度'))}" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" id="fc-savings-progress"><i id="fc-savings-progress-fill"></i></div></div>
       <details class="fc-fx-settings" id="fc-fx-settings"${fxOpen?' open':''}><summary><b>${tr('Forecast exchange rates','预测换算汇率')}</b><span>${tr('Local simulation only','仅用于本地预测')} · ⌄</span></summary><p class="fc-muted">${tr('1 USD/U equals the currency shown. Empty uses the saved Exchange rate if available; otherwise enter a local scenario rate.','每个汇率表示 1 U 兑换多少该币种；留空时使用可用的 Exchange 已保存汇率，否则请填写本地预测汇率。')}</p>
-      <div class="fc-fx-grid">${CORE_RATES.map(rateField).join('')}</div><div class="fc-extra-rate"><label class="fc-field"><span>${tr('Other currency','其他币种')}</span><select id="fc-extra-rate-currency">${SCENARIO_CURRENCIES.filter(c=>!CORE_RATES.includes(c)).map(c=>`<option value="${c}"${extraRate===c?' selected':''}>${c} · ${esc(currencyName(c))}</option>`).join('')}</select></label>${rateField(extraRate)}</div></details>
+      <div class="fc-fx-grid">${CORE_RATES.map(rateField).join('')}</div><div class="fc-extra-rate"><div class="fc-field"><span>${tr('Other currency','其他币种')}</span>${currencyPickerHTML('rate',extraRate,SCENARIO_CURRENCIES.filter(c=>!CORE_RATES.includes(c)),tr('Other currency','其他币种'))}</div>${rateField(extraRate)}</div></details>
       <div class="fc-end-row"><label class="fc-field fc-end-control"><span>${tr('Forecast through (year / month)','预测结束年月（自定义）')}</span><input id="fc-end" type="month" min="${first}" max="${max}" value="${end}"></label><div class="fc-bar"><span class="fc-range-note" id="fc-range-label">—</span><div class="fc-btns"><button class="fc-btn" type="button" data-fc-action="export">↓ ${tr('Export CSV','导出 CSV')}</button><button class="fc-btn alt" type="button" data-fc-action="reset">${tr('Reset scenario','恢复默认方案')}</button></div></div></div>
       <p class="fc-warning" id="fc-warning" hidden></p>
       <div class="fc-save-bar"><span id="fc-save-status" role="status"></span><div class="fc-save-actions"><button type="button" class="fc-btn alt" data-fc-action="discard">${tr('Discard changes','撤销未保存修改')}</button><button id="fc-save-btn" type="button" class="fc-btn fc-save-primary" data-fc-action="save">✓ ${tr('Save settings','保存设置')}</button></div></div>
@@ -640,14 +653,7 @@
    node.setCustomValidity('');state.end=node.value;save();layout();return;
   }
  }
- function closeCurrencyMenus(except=null){
-  el(ROOT)?.querySelectorAll('.fc-money-pair.fc-picker-open').forEach(group=>{
-   if(group===except)return;
-   group.classList.remove('fc-picker-open');
-   const menu=group.querySelector('.fc-currency-menu');if(menu)menu.hidden=true;
-   group.querySelector('.fc-currency-trigger')?.setAttribute('aria-expanded','false');
-  });
- }
+ function closeCurrencyMenus(except=null){closeForecastPickers(except)}
  function openScenarioRate(c){if(!SCENARIO_CURRENCIES.includes(c))return;const old=el('fc-fx-settings');if(!CORE_RATES.includes(c))extraRate=c;if(old)old.open=true;fxOpen=true;layout();const panel=el('fc-fx-settings');if(panel)panel.open=true;}
  function chooseCurrency(group,to){
   const baseKey=group.dataset.fcBaseCcy,monthDate=group.dataset.fcMonthCcy,monthKeyField=group.dataset.fcCcyField;
@@ -681,16 +687,13 @@
  async function onClick(e){
   const root=el(ROOT),btn=e.target.closest('button');
   if(!btn||!root?.contains(btn))return;
-  if(btn.dataset.fcViewCurrency){const c=btn.dataset.fcViewCurrency;if(!validCcy(c))return;state.viewCurrency=c;save();if(!validDisplayRate(exchangeRates())){if(!CORE_RATES.includes(c)&&c!=='USD')extraRate=c;const panel=el('fc-fx-settings');if(panel)panel.open=true;fxOpen=true}layout();el('fc-view-picker')?.querySelector('summary')?.focus({preventScroll:true});return}
+  if(btn.dataset.apCurrency){const picker=btn.closest('.fc-shared-picker');if(!picker)return;const code=btn.dataset.apCurrency,kind=picker.dataset.fcPickerKind;if(!validCcy(code)||!Array.from(picker.querySelector('select').options).some(o=>o.value===code))return;
+  if(kind==='view'){const c=code;if(!validCcy(c))return;state.viewCurrency=c;save();if(!validDisplayRate(exchangeRates())){if(!CORE_RATES.includes(c)&&c!=='USD')extraRate=c;const panel=el('fc-fx-settings');if(panel)panel.open=true;fxOpen=true}layout();el('fc-view-picker')?.querySelector('summary')?.focus({preventScroll:true});return}
+   if(kind==='rate'){extraRate=code;layout();el(ROOT)?.querySelector('[data-fc-picker-kind="rate"] summary')?.focus({preventScroll:true});return}
+   if(kind==='field'){const group=picker.closest('.fc-money-pair');if(group)chooseCurrency(group,code);return}
+  }
   if(btn.dataset.fcSelectMonth){const date=btn.dataset.fcSelectMonth;selectForecastMonth(date);root.querySelector('[data-fc-select-month="'+date+'"]')?.focus({preventScroll:true});return}
   if(Object.hasOwn(planLabels,btn.dataset.fcPlanPage)){window.setPage?.(btn.dataset.fcPlanPage);return}
-  if(btn.hasAttribute('data-fc-toggle-currency')){
-   const group=btn.closest('.fc-money-pair'),wasOpen=group?.classList.contains('fc-picker-open');
-   closeCurrencyMenus();
-   if(!wasOpen&&group){group.classList.add('fc-picker-open');group.querySelector('.fc-currency-menu').hidden=false;btn.setAttribute('aria-expanded','true')}
-   return;
-  }
-  if(btn.dataset.fcPickCurrency){const group=btn.closest('.fc-money-pair');if(group)chooseCurrency(group,btn.dataset.fcPickCurrency);return}
   if(btn.dataset.fcAdd){
    const type=btn.dataset.fcAdd;if(!['income','expense'].includes(type)||state.customItems.length>=40)return;
    let key;do{key='custom_'+Date.now().toString(36)+'_'+(++customSequence).toString(36)}while(state.customItems.some(x=>x.key===key));
@@ -743,8 +746,9 @@
   const root=el(ROOT);if(!root)return;
   watchDashboard();
   root.addEventListener('input',onInput);root.addEventListener('change',onChange);root.addEventListener('click',onClick);
-  document.addEventListener('click',e=>{if(!e.target.closest('#'+ROOT+' .fc-money-pair'))closeCurrencyMenus();if(!e.target.closest('#'+ROOT+' .fc-view-picker')){const picker=el('fc-view-picker');if(picker)picker.open=false}});
-  document.addEventListener('keydown',e=>{if(e.key==='Escape'){const trigger=root.querySelector('.fc-picker-open .fc-currency-trigger');closeCurrencyMenus();trigger?.focus({preventScroll:true});const picker=el('fc-view-picker');if(picker?.open){picker.open=false;picker.querySelector('summary')?.focus({preventScroll:true})}}});
+  root.addEventListener('toggle',e=>{const picker=e.target;if(!picker.matches?.('.fc-shared-picker,.fc-choice-picker'))return;if(picker.open){closeForecastPickers(picker);if(picker.matches('.fc-shared-picker'))setupCurrencyPicker(picker)}},true);
+  document.addEventListener('pointerdown',e=>{const p=e.target.closest?.('#'+ROOT+' .fc-shared-picker,#'+ROOT+' .fc-choice-picker');closeForecastPickers(p||null)},{passive:true});
+  document.addEventListener('keydown',e=>{if(e.key==='Escape'){const picker=root.querySelector('.fc-shared-picker[open],.fc-choice-picker[open]');if(picker){e.preventDefault();closeForecastPickers();picker.querySelector('summary')?.focus({preventScroll:true})}}});
   for(const name of ['mmhvault:page-visible','mmhvault:config-owner-changed','mmhvault:data-loaded','mmhvault:data-change','mmhvault:cache-restored','mmhvault:market-updated','mmhvault-language-change','languagechange']){
    window.addEventListener(name,()=>{if(active()){if(['mmhvault-language-change','languagechange','mmhvault:config-owner-changed'].includes(name))onVisible();else dateChanged()}else{if(name==='mmhvault:config-owner-changed')syncOwner();if(el('dashboard')?.classList.contains('active')){if(['mmhvault-language-change','languagechange'].includes(name)){el('mmhDailyDashboardV13')?.remove()}watchDashboard();scheduleMidnight()}}},{passive:true});
   }
