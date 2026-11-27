@@ -124,3 +124,28 @@ for(const [lang,defaultLabel,followLabel] of [['en','Default','Follow default'],
  const field=picker('field','THB',['THB'],'Currency');assert(!field.includes('THB · '+defaultLabel));
 }
 console.log('PASS: Future Assets effective default label in three languages and field isolation');
+
+const ovStart=app.indexOf('<script id="mmhvault-premium-finance-v500-script">'),ovEnd=app.indexOf('</script>',ovStart);
+assert(ovStart>=0&&ovEnd>ovStart);
+const ovScript=app.slice(ovStart,ovEnd);
+new Function(ovScript.slice(ovScript.indexOf('>')+1));
+const ovA=ovScript.indexOf('const marketMoney='),ovB=ovScript.indexOf('const pct=',ovA);
+assert(ovA>=0&&ovB>ovA);
+let ovOwner='overview-a';
+global(ovOwner,'THB');global('overview-b','MMK');
+const ovWin={mmhAccountDisplayTotalV203:(v,c)=>c==='THB'?'THB '+v*35:c==='CNY'?'CNY '+v*7:'—'};
+const ovAPI=new Function('window','localStorage','currentSessionUser','N',ovScript.slice(ovA,ovB)+';return {money,overviewCurrencyV265,signedMoneyV265,marketMoney};')(ovWin,storage,{get id(){return ovOwner}},Number);
+assert.equal(ovAPI.money(10),'THB 350');
+assert.equal(ovAPI.signedMoneyV265(10,true),'+THB 350');
+assert.equal(ovAPI.money(NaN),'—');
+assert.equal(ovAPI.marketMoney(10),'$10.00');
+ovOwner='overview-b';assert.equal(ovAPI.money(10),'—');
+assert.equal(ovAPI.signedMoneyV265(10,true),'—');
+ovOwner='';assert.equal(ovAPI.money(10),'$10.00');
+ovOwner='overview-a';global(ovOwner,'CNY');assert.equal(ovAPI.money(10),'CNY 70');
+global(ovOwner,'ZZZ');assert.equal(ovAPI.overviewCurrencyV265(),'USD');
+data.set(globalKey(ovOwner),'bad');assert.equal(ovAPI.money(10),'$10.00');
+assert(ovScript.includes('trendRange,overviewCurrencyV265(),tx,inv'));
+assert(ovScript.includes("x.p?marketMoney(x.p):'—'"));
+assert(ovScript.includes("window.addEventListener('mmhvault:personal-display-currency-changed'"));
+console.log('PASS: active Overview default currency, missing FX, owner isolation and USD market-reference preservation (synthetic formatter)');
