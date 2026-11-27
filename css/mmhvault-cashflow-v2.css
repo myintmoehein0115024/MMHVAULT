@@ -495,3 +495,17 @@ html body #cashflow-analyze#cashflow-analyze#cashflow-analyze#cashflow-analyze#c
   html body #cashflow-analyze#cashflow-analyze#cashflow-analyze#cashflow-analyze#cashflow-analyze#cashflow-analyze #mmhCashflowV2ReleaseRoot .cfv2 .cfv2-top.cfv2-toolbar>.cfv2-toolbar-controls:has(.cfv2-calendar-nav){grid-template-columns:minmax(0,1.05fr) minmax(0,1.35fr)!important}
   html body #cashflow-analyze#cashflow-analyze#cashflow-analyze#cashflow-analyze#cashflow-analyze#cashflow-analyze #mmhCashflowV2ReleaseRoot .cfv2 .cfv2-toolbar-controls:has(.cfv2-calendar-nav)>.cfv2-calendar-nav{grid-column:2!important;grid-row:1!important}
 }
+
+/* Personal V2.0.61 — four existing Cash Flow summary cards only.
+ * Decorative accents follow metric identity, not the dynamic sign of the value.
+ * Leave Analyze, reports, actual amount tones and financial logic unchanged. */
+html body.mmh-workspace-active #cashflow-analyze#cashflow-analyze#cashflow-analyze#cashflow-analyze#cashflow-analyze#cashflow-analyze.page.active #mmhCashflowV2ReleaseRoot > .cfv2 > .cfv2-kpis > .cfv2-metric:nth-child(1){--cfv2-edge-rgb:91,207,171}
+html body.mmh-workspace-active #cashflow-analyze#cashflow-analyze#cashflow-analyze#cashflow-analyze#cashflow-analyze#cashflow-analyze.page.active #mmhCashflowV2ReleaseRoot > .cfv2 > .cfv2-kpis > .cfv2-metric:nth-child(2){--cfv2-edge-rgb:232,140,153}
+html body.mmh-workspace-active #cashflow-analyze#cashflow-analyze#cashflow-analyze#cashflow-analyze#cashflow-analyze#cashflow-analyze.page.active #mmhCashflowV2ReleaseRoot > .cfv2 > .cfv2-kpis > .cfv2-metric:nth-child(3){--cfv2-edge-rgb:133,205,240}
+html body.mmh-workspace-active #cashflow-analyze#cashflow-analyze#cashflow-analyze#cashflow-analyze#cashflow-analyze#cashflow-analyze.page.active #mmhCashflowV2ReleaseRoot > .cfv2 > .cfv2-kpis > .cfv2-metric:nth-child(4){--cfv2-edge-rgb:168,156,234}
+html body.mmh-workspace-active #cashflow-analyze#cashflow-analyze#cashflow-analyze#cashflow-analyze#cashflow-analyze#cashflow-analyze.page.active #mmhCashflowV2ReleaseRoot > .cfv2 > .cfv2-kpis > .cfv2-metric:nth-child(-n+4){
+  background-image:linear-gradient(90deg,transparent,rgba(var(--cfv2-edge-rgb),.58),transparent)!important;
+  background-size:calc(100% - 16px) 2px!important;
+  background-position:center bottom!important;
+  background-repeat:no-repeat!important;
+}
