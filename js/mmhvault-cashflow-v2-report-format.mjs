@@ -9,6 +9,28 @@ export function reportTone(section,row,i){
  if(typeof row[i]!=='number'||!Number.isFinite(row[i]))return '';
  if(section.key==='reportSummary'&&i===1){return ['income','expense','net','savings'][section.rows.indexOf(row)]||''}
  if(section.key==='sources'&&section.keys[i]==='amount')return 'income';
- if(section.key==='categories'&&section.keys[i]==='amount')return 'expense';
+ const key=section.keys[i],v=row[i];
+ if(v===0)return '';
+ if(['categories','expenseSplit','expenseDetails'].includes(section.key)&&key==='amount'||['expense','outflow'].includes(key))return 'expense';
+ if(['income','inflow'].includes(key))return 'income';
+ if(['net','realized','unrealized','periodRealized','lifetimePL'].includes(key))return v<0?'expense':'net';
  return '';
+}
+
+export function reportChoices(model,locale='en'){
+ if(!model)return [];
+ const rank=['reportSummary','sources','expenseDetails','accounts','balance','movements','investmentReport','priorNote','history','records','liveContext','budget','goalsCurrent','recurringCurrent'];
+ const titles=locale.startsWith('zh')?'支出分类明细':locale.startsWith('my')?'အသုံးစရိတ် အမျိုးအစား အသေးစိတ်':'Expense category details';
+ return model.sections.flatMap(section=>{
+  let key=section.key;
+  if(key==='expenseSplit'&&section.keys.includes('category'))key='expenseDetails';
+  if(!rank.includes(key)||!section.rows.length||(key==='balance'&&model.type!=='accountBalance'))return [];
+  if(key==='expenseDetails')section={...section,key,name:titles};
+  return [{...section,defaultSelected:['reportSummary','sources','expenseDetails','accounts','balance'].includes(key)}];
+ }).sort((a,b)=>rank.indexOf(a.key)-rank.indexOf(b.key));
+}
+export function selectedReport(model,overrides={},locale='en'){
+ if(!model)return null;
+ const selected=reportChoices(model,locale).filter(s=>Object.hasOwn(overrides,s.key)?overrides[s.key]===true:s.defaultSelected);
+ return {...model,locale,exportable:model.exportable&&selected.length>0,sections:[...model.sections.filter(s=>s.key==='reportScope'),...selected]};
 }
