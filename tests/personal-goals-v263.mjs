@@ -144,6 +144,8 @@ try{
    }
    assert.deepEqual(await currency.locator('option').evaluateAll(options=>options.map(o=>o.value)),['THB','MMK','USD','CNY']);
    const geometry=await page.evaluate(()=>({picker:document.querySelector('#goalCurrencyV113 + button').getBoundingClientRect().height,input:document.querySelector('#goalNameV113').getBoundingClientRect().height}));
+   assert.ok(Math.abs(geometry.picker-geometry.input)<=3,JSON.stringify({width,geometry}));
+   assert.equal(await currency.evaluate(el=>getComputedStyle(el).minHeight),'0px');
    console.log('PASS Goals actual shared picker selection, Escape and locale refresh',width,light?'light':'dark',JSON.stringify(geometry));
    await page.locator('#goalFormPanelV113').evaluate(el=>el.hidden=true);
    assert.equal(await page.locator('#goalFormPanelV113').isVisible(),false);
