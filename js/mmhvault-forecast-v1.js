@@ -7,7 +7,7 @@
  const CURRENCIES=['USD','MMK','THB','CNY','JPY','KRW','SGD','MYR','IDR','PHP','VND','KHR','LAK','BND','HKD','MOP','TWD','MNT','KPW','INR','BDT','PKR','LKR','NPR','BTN','MVR','AFN','KZT','KGS','TJS','TMT','UZS','AMD','AZN','GEL','AED','BHD','IQD','IRR','ILS','JOD','KWD','LBP','OMR','QAR','SAR','SYP','YER','TRY','RUB','EUR'];
  const CORE_RATES=['THB','CNY','MMK'],SCENARIO_CURRENCIES=CURRENCIES.filter(c=>c!=='USD');
  const CURRENCY_MARKS=Object.fromEntries(CURRENCIES.map(c=>[c,({USD:'$',CNY:'¥',THB:'฿',MMK:'K'})[c]||c]));
- let selectedMonth='',editOpen=false,fxOpen=false,extraRate='JPY',modal='',modalReturn='',modalOrigin='',monthScroll=0;
+ let selectedMonth='',extraRate='JPY',modal='',modalReturn='',modalOrigin='',monthScroll=0;
  const currencyName=c=>{try{const lang=localStorage.getItem('mmhvault_language_v3363');return new Intl.DisplayNames([lang==='zh'?'zh-CN':lang==='my'?'my':'en'],{type:'currency'}).of(c)||c}catch(_){return c}};
  const FIELDS=[
   {key:'salary',en:'Salary income',zh:'工资收入',def:2500,ccy:'USD',type:'income',base:true},
@@ -259,7 +259,7 @@
     try{localStorage.setItem(localKey(activeOwner),JSON.stringify({...state,version:3}));dirty=false;updateSaveStatus();return true}
     catch(e){console.warn('[MMHVAULT Forecast] Storage unavailable',e);showWarning(tr('Could not save settings on this device. Check browser storage.','保存失败，请检查浏览器存储是否可用。'));return false}
   }
- function syncOwner(){const id=owner();if(id!==activeOwner){activeOwner=id;state=getState(id);dirty=false;lastFirst='';selectedMonth='';editOpen=false;fxOpen=false;extraRate='JPY';modal='';modalReturn='';modalOrigin='';monthScroll=0;if(!id)el('mmhDailyDashboardV13')?.remove()}}
+ function syncOwner(){const id=owner();if(id!==activeOwner){activeOwner=id;state=getState(id);dirty=false;lastFirst='';selectedMonth='';extraRate='JPY';modal='';modalReturn='';modalOrigin='';monthScroll=0;if(!id)el('mmhDailyDashboardV13')?.remove()}}
  function active(){return !!el(PAGE)?.classList.contains('active')}
  function ratesNow(){
   const obj=window.rates||(typeof rates!=='undefined'?rates:null);
@@ -355,14 +355,12 @@
   const d=dailyInfo(state.dailyMonth),min='2020-01';
   return `<section class="fc-panel fc-day-panel" id="fc-day-panel">
    <div class="fc-day-head"><div><div class="fc-day-title"><span class="fc-day-trophy" aria-hidden="true">🏆</span><h2>${tr('Daily salary progress','每日工资成就进度')}</h2></div><p class="fc-muted">${tr('Each completed day adds one day of estimated salary. This is not money actually received.','每完整度过一天，就累计一天的预计工资；不是实际已到账金额。')}</p></div>
-   <div class="fc-field fc-day-picker"><span>${tr('View month','查看月份')}</span>${monthChoice(range(min,d.current).reverse(),'daily',d.selected,tr('View month','查看月份'))}</div></div>
+   <div class="fc-field fc-day-picker"><span>${tr('View month','查看月份')}</span>${monthChoice(range(min,d.current).reverse(),'daily',d.selected,tr('View month','查看月份'))}${iconButton('edit',tr('Salary for the selected month','所选月份工资'),'data-fc-open-modal="daily"')}</div></div>
    <div class="fc-day-content"><div class="fc-day-gauge" id="fc-day-gauge" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" aria-label="${esc(tr('Completed month progress','月度完成进度'))}"><div class="fc-day-gauge-core"><strong id="fc-day-pct">0%</strong><small>${tr('completed','已完成')}</small></div></div>
    <div class="fc-day-main"><small>${tr('Estimated salary earned for completed days','已完成天数的预计累计工资')}</small><strong id="fc-day-earned">—</strong><p id="fc-day-earned-u" class="fc-muted">—</p><div class="fc-day-motivation" id="fc-day-motivation">—</div></div>
    <div class="fc-day-info"><div><small>${tr('Monthly salary','本月工资')}</small><strong id="fc-day-monthly">—</strong></div><div><small>${tr('Days in month','本月天数')}</small><strong id="fc-day-length">—</strong></div><div><small>${tr('Completed days','已度过天数')}</small><strong id="fc-day-days">—</strong></div><div><small>${tr('Earned per day','每日累计')}</small><strong id="fc-day-daily">—</strong></div></div></div>
    <div class="fc-day-bar-row"><div class="fc-day-bar" role="presentation"><i id="fc-day-bar-fill"></i></div><strong id="fc-day-fraction">—</strong></div>
    <div class="fc-day-milestones" id="fc-day-milestones"></div>
-   <div class="fc-day-edit"><div class="fc-day-edit-copy"><strong>${tr('Salary for the selected month','所选月份工资')}</strong><small>${tr('Edit just this month, or leave it matching your regular salary. Future forecast months are unchanged.','可单独修改本月工资；未设置时沿用常规工资，不改其他月份。')}</small></div>
-   <div class="fc-day-edit-control">${pairField(tr('Monthly salary','本月工资'),'salary',d.amount,d.currency,'month',d.selected,d.amount)}<button class="fc-btn alt fc-day-reset" type="button" data-fc-action="reset-day-salary">${tr('Use regular salary','恢复常规工资')}</button></div></div>
    <p class="fc-day-disclaimer">${tr('Progress uses the device’s local calendar and counts completed days only. Historic months without saved salary overrides use your current regular salary. Display equivalents use current scenario FX; this estimate never modifies Dashboard assets, transactions or Supabase.','进度按设备当地日历计算，只计已经完整结束的日期。未单独保存工资的历史月份按当前常规工资估算；显示币种的换算使用当前模拟汇率。本卡片不会修改 Dashboard 总资产、Transactions 或 Supabase。')}</p>
   </section>`;
  }
@@ -435,7 +433,7 @@
  function setupCurrencyPicker(picker){
   const group=picker.querySelector('.fc-shared-menu'),select=group.querySelector('select'),search=group.querySelector('input'),list=group.querySelector('.ap-currency-list-v2'),label=picker.querySelector('summary').getAttribute('aria-label');
   search.value='';
-  if(window.MMHCurrencyPickerV3?.render){window.MMHCurrencyPickerV3.render({select,search,list,group,label});return}
+  if(window.MMHCurrencyPickerV3?.render){try{window.MMHCurrencyPickerV3.render({select,search,list,group,label});return}catch(error){console.warn('[MMHVAULT Forecast] shared picker unavailable',error)}}
   const render=()=>{const q=search.value.trim().toLocaleLowerCase();list.replaceChildren();for(const o of select.options){if(![o.value,currencyName(o.value)].join(' ').toLocaleLowerCase().includes(q))continue;const b=document.createElement('button');b.type='button';b.dataset.apCurrency=o.value;b.setAttribute('aria-pressed',String(o.value===select.value));const a=document.createElement('span'),n=document.createElement('span');a.textContent=o.value;n.textContent=currencyName(o.value);b.append(a,n);list.append(b)}};
   search.oninput=render;render();
  }
@@ -489,11 +487,13 @@
  function validDraft(){const bad=el(ROOT)?.querySelector('.fc-dialog input:invalid');if(bad){bad.reportValidity?.();bad.focus?.({preventScroll:true});return false}return true}
  function showModal(kind,date='',from=''){if(!validDraft())return;closeForecastPickers();if(date&&range(startKey(),effectiveEnd(startKey())).includes(date))selectedMonth=date;if(!modal){modalOrigin=from;modalReturn=''}else if(modal==='months')modalReturn='months';modal=kind;layout();el(ROOT)?.querySelector('.fc-dialog [data-fc-close-modal]')?.focus({preventScroll:true})}
  function closeModal(back=false){if(!validDraft())return;const next=back?modalReturn:'',origin=modalOrigin;modal=next;modalReturn='';if(!modal)modalOrigin='';layout();if(next)el(ROOT)?.querySelector('.fc-dialog [data-fc-close-modal]')?.focus({preventScroll:true});else el(ROOT)?.querySelector(origin||'.fc-head-actions summary')?.focus({preventScroll:true})}
+ function dailyEditHTML(){const d=dailyInfo(state.dailyMonth);return `<div class="fc-day-edit"><div class="fc-day-edit-copy"><strong>${tr('Salary for the selected month','所选月份工资')}</strong><small>${tr('Edit just this month, or leave it matching your regular salary. Future forecast months are unchanged.','可单独修改本月工资；未设置时沿用常规工资，不改其他月份。')}</small></div>
+   <div class="fc-day-edit-control">${pairField(tr('Monthly salary','本月工资'),'salary',d.amount,d.currency,'month',d.selected,d.amount)}<button class="fc-btn alt fc-day-reset" type="button" data-fc-action="reset-day-salary">${tr('Use regular salary','恢复常规工资')}</button></div></div>`}
  function modalHTML(dates,regular,fx,target){
   if(!modal)return '';
-  const title=modal==='plan'?tr('Edit monthly plan','编辑月度计划'):modal==='fx'?tr('Forecast exchange rates','预测换算汇率'):modal==='target'?tr('Savings rate target (%)','目标储蓄率 (%)'):modal==='months'?tr('Month-by-month forecast','逐月资产预测'):monthLabel(selectedMonth);
-  const content=modal==='plan'?regular:modal==='fx'?fx:modal==='target'?target:modal==='months'?monthTable(dates):`<div id="fc-month-list" class="fc-months">${selectedMonth?monthHtml(selectedMonth,dates.indexOf(selectedMonth),modal==='edit'):''}</div>`;
-  return `<div class="fc-dialog-overlay"><section class="fc-dialog" role="dialog" aria-modal="true" aria-labelledby="fc-dialog-title"><header class="fc-dialog-header"><div class="fc-row-actions">${modalReturn?iconButton('back',tr('Back','返回'),'data-fc-back-modal="1"'):''}<h2 id="fc-dialog-title">${esc(title)}</h2></div>${iconButton('close',tr('Close','关闭'),'data-fc-close-modal="1"')}</header><div class="fc-dialog-body">${content}</div><footer class="fc-dialog-footer">${['plan','fx','target','edit'].includes(modal)?`<small>${tr('Forecast changes are saved using Save settings.','预测调整通过保存设置生效。')}</small><button type="button" class="fc-btn fc-save-primary" data-fc-action="save">${tr('Save settings','保存设置')}</button>`:''}<button type="button" class="fc-btn" data-fc-close-modal="1">${tr('Done','完成')}</button></footer></section></div>`
+  const title=modal==='daily'?tr('Salary for the selected month','所选月份工资')+' · '+monthLabel(dailyInfo(state.dailyMonth).selected):modal==='plan'?tr('Edit monthly plan','编辑月度计划'):modal==='fx'?tr('Forecast exchange rates','预测换算汇率'):modal==='target'?tr('Savings rate target (%)','目标储蓄率 (%)'):modal==='months'?tr('Month-by-month forecast','逐月资产预测'):monthLabel(selectedMonth);
+  const content=modal==='daily'?dailyEditHTML():modal==='plan'?regular:modal==='fx'?fx:modal==='target'?target:modal==='months'?monthTable(dates):`<div id="fc-month-list" class="fc-months">${selectedMonth?monthHtml(selectedMonth,dates.indexOf(selectedMonth),modal==='edit'):''}</div>`;
+  return `<div class="fc-dialog-overlay"><section class="fc-dialog" role="dialog" aria-modal="true" aria-labelledby="fc-dialog-title"><header class="fc-dialog-header"><div class="fc-row-actions">${modalReturn?iconButton('back',tr('Back','返回'),'data-fc-back-modal="1"'):''}<h2 id="fc-dialog-title">${esc(title)}</h2></div>${iconButton('close',tr('Close','关闭'),'data-fc-close-modal="1"')}</header><div class="fc-dialog-body">${content}</div><footer class="fc-dialog-footer">${['plan','fx','target','edit','daily'].includes(modal)?`<small>${tr('Forecast changes are saved using Save settings.','预测调整通过保存设置生效。')}</small><button type="button" class="fc-btn fc-save-primary" data-fc-action="save">${tr('Save settings','保存设置')}</button>`:''}<button type="button" class="fc-btn" data-fc-close-modal="1">${tr('Done','完成')}</button></footer></section></div>`
  }
  function layout(){
   const root=el(ROOT);if(!root)return;
@@ -654,24 +654,6 @@
    save();updateOutputs();
   }
  }
- function onChange(e){
-  const node=e.target;
-  if(node instanceof HTMLSelectElement&&node.id==='fc-extra-rate-currency'){
-   if(!SCENARIO_CURRENCIES.includes(node.value)||CORE_RATES.includes(node.value))return;extraRate=node.value;layout();el('fc-extra-rate-currency')?.focus({preventScroll:true});return;
-  }
-  if(node instanceof HTMLSelectElement&&node.id==='fc-edit-month'){
-   if(!range(startKey(),effectiveEnd(startKey())).includes(node.value)){node.value=selectedMonth;return}selectForecastMonth(node.value);el('fc-edit-month')?.focus({preventScroll:true});return;
-  }
-  if(node instanceof HTMLInputElement&&node.id==='fc-day-month'){
-   if(!validMonth(node.value)||node.value>monthKey()||node.value<'2020-01'){node.value=state.dailyMonth||monthKey();return}
-   state.dailyMonth=node.value;save();layout();return;
-  }
-  if(node instanceof HTMLInputElement&&node.id==='fc-end'){
-   if(!validMonth(node.value))return;const first=startKey(),max=shift(first,239);
-   if(node.value<first||node.value>max){node.setCustomValidity(tr('Choose a month within the next 240 months.','请选择未来240个月内的年月。'));node.focus({preventScroll:true});window.mmhVaultMessageV740?.(tr('Choose a month within the next 240 months.','请选择未来240个月内的年月。'),tr('Invalid month','月份有误'));return}
-   node.setCustomValidity('');state.end=node.value;save();layout();return;
-  }
- }
  function closeCurrencyMenus(except=null){closeForecastPickers(except)}
  function openScenarioRate(c){if(!SCENARIO_CURRENCIES.includes(c))return;if(!CORE_RATES.includes(c))extraRate=c;showModal('fx','','[data-fc-open-modal="fx"]');}
  function chooseCurrency(group,to){
@@ -702,7 +684,6 @@
   const selector=baseKey?`[data-fc-base-ccy="${key}"] .fc-currency-trigger`:`[data-fc-month-ccy="${monthDate}"][data-fc-ccy-field="${key}"] .fc-currency-trigger`;
   el(ROOT)?.querySelector(selector)?.focus({preventScroll:true});
  }
- function selectForecastMonth(date){if(!range(startKey(),effectiveEnd(startKey())).includes(date))return;selectedMonth=date;editOpen=true;layout();const editor=el(ROOT)?.querySelector('details.fc-month');if(editor)editor.open=true;editOpen=true;}
  async function onClick(e){
   const root=el(ROOT),btn=e.target.closest('button');
   if(!btn||!root?.contains(btn))return;
@@ -711,9 +692,9 @@
    if(kind==='rate'){extraRate=code;layout();el(ROOT)?.querySelector('[data-fc-picker-kind="rate"] summary')?.focus({preventScroll:true});return}
    if(kind==='field'){const group=picker.closest('.fc-money-pair');if(group)chooseCurrency(group,code);return}
   }
-  if(btn.dataset.fcSelectMonth){const date=btn.dataset.fcSelectMonth;selectForecastMonth(date);root.querySelector('[data-fc-select-month="'+date+'"]')?.focus({preventScroll:true});return}
+
   if(Object.hasOwn(planLabels,btn.dataset.fcPlanPage)){window.setPage?.(btn.dataset.fcPlanPage);return}
-  if(btn.dataset.fcOpenModal){const kind=btn.dataset.fcOpenModal;if(['plan','fx','target','months'].includes(kind))showModal(kind,'','[data-fc-open-modal="'+kind+'"]');return}
+  if(btn.dataset.fcOpenModal){const kind=btn.dataset.fcOpenModal;if(['plan','fx','target','months','daily'].includes(kind))showModal(kind,'','[data-fc-open-modal="'+kind+'"]');return}
   if(btn.dataset.fcChooseMonth){const date=btn.dataset.fcChooseMonth,kind=btn.closest('.fc-choice-picker')?.dataset.fcDatePicker;if(kind==='end'&&range(startKey(),shift(startKey(),239)).includes(date)){state.end=date;save()}else if(kind==='daily'&&validMonth(date)&&date>='2020-01'&&date<=monthKey()){state.dailyMonth=date;save()}else if(kind==='selected'&&range(startKey(),effectiveEnd(startKey())).includes(date)){selectedMonth=date}else return;layout();el(ROOT)?.querySelector('[data-fc-date-picker="'+kind+'"] summary')?.focus({preventScroll:true});return}
   if(btn.dataset.fcMonthView||btn.dataset.fcMonthEdit){const date=btn.dataset.fcMonthView||btn.dataset.fcMonthEdit;if(range(startKey(),effectiveEnd(startKey())).includes(date))showModal(btn.dataset.fcMonthView?'view':'edit',date,btn.dataset.fcMonthView?'[data-fc-month-view="'+date+'"]':'[data-fc-month-edit="'+date+'"]');return}
   if(btn.dataset.fcBackModal){closeModal(true);return}
@@ -770,7 +751,7 @@
   const root=el(ROOT);if(!root)return;
   watchDashboard();
   root.addEventListener('scroll',e=>{if(!e.target.closest?.('.fc-shared-menu,.fc-choice-menu'))closeForecastPickers()},true);
-  root.addEventListener('input',onInput);root.addEventListener('change',onChange);root.addEventListener('click',onClick);
+  root.addEventListener('input',onInput);root.addEventListener('click',onClick);
   root.addEventListener('toggle',e=>{const picker=e.target;if(!picker.matches?.('.fc-shared-picker,.fc-choice-picker'))return;if(picker.open){closeForecastPickers(picker);if(picker.matches('.fc-shared-picker'))setupCurrencyPicker(picker);positionForecastPicker(picker)}},true);
   document.addEventListener('pointerdown',e=>{const p=e.target.closest?.('#'+ROOT+' .fc-shared-picker,#'+ROOT+' .fc-choice-picker');closeForecastPickers(p||null)},{passive:true});
   document.addEventListener('keydown',e=>{if(!active()||el('mmhVaultDialogV449')?.classList.contains('show'))return;if(e.key==='Tab'&&modal){const dialog=root.querySelector('.fc-dialog');const controls=[...dialog?.querySelectorAll('button:not(:disabled),input:not(:disabled),summary,[tabindex="0"]')||[]].filter(x=>x.getClientRects().length&&getComputedStyle(x).visibility!=='hidden');if(controls.length){const first=controls[0],last=controls.at(-1);if(e.shiftKey&&(document.activeElement===first||!dialog.contains(document.activeElement))){e.preventDefault();last.focus()}else if(!e.shiftKey&&(document.activeElement===last||!dialog.contains(document.activeElement))){e.preventDefault();first.focus()}}}if(e.key==='Escape'){const picker=root.querySelector('.fc-shared-picker[open],.fc-choice-picker[open]');if(picker){e.preventDefault();closeForecastPickers();picker.querySelector('summary')?.focus({preventScroll:true})}else if(modal&&active()&&!el('mmhVaultDialogV449')?.classList.contains('show')){e.preventDefault();closeModal()}}});
