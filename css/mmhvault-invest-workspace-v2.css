@@ -114,3 +114,13 @@ html body.mmh-workspace-active #invest #mmhInvestWorkspaceV2 #iw2-pane-strategy 
 html body.mmh-workspace-active #invest #mmhInvestWorkspaceV2 #iw2-pane-strategy :is([data-watch-delete],[data-ip15-delete])[aria-label]{--iw214-action-mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath%20d%3D%27M4%207h16M9%207V4h6v3M6%207l1%2013h10l1-13M10%2011v5m4-5v5%27%2F%3E%3C/svg%3E")}
 html body.mmh-workspace-active #invest #mmhInvestWorkspaceV2 #iw2-pane-strategy [data-ip15-reload][aria-label]{--iw214-action-mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath%20d%3D%27M20%2011a8%208%200%201%200-2.4%205.7L20%2014M20%2014v6M20%2014h-6%27%2F%3E%3C/svg%3E")}
 @media(max-width:760px){html body.mmh-workspace-active #invest #mmhInvestWorkspaceV2 #iw2-pane-strategy :is(#mmhInvestWatchV13,#mmhInvestPlansV15) :is([data-watch-edit],[data-watch-delete],[data-ip15-delete],[data-ip15-reload])[aria-label]{width:44px!important;min-width:44px!important;min-height:44px!important}}
+
+/* Personal V2.0.60 — single consolidated portfolio overview accent.
+ * Keep native-currency table, return row, note, and existing P/L colors untouched.
+ * Use a background layer; V2 explicitly disables the old panel pseudo-elements. */
+html body.mmh-workspace-active #invest#invest#invest#invest#invest#invest#invest#invest.page.active #mmhFiveoverview:not([hidden]) #iw2-pane-overview:not([hidden]) #iw2-slot-overview > .mmh-ui-panel:has(> #mmhUnifiedKpisV1){
+  background-image:linear-gradient(90deg,transparent,rgba(168,156,234,.58),transparent)!important;
+  background-size:calc(100% - 24px) 2px!important;
+  background-position:center bottom!important;
+  background-repeat:no-repeat!important;
+}
