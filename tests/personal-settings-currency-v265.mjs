@@ -112,3 +112,15 @@ assert(fcAPI.setViewChoice('GLOBAL'));fcAPI.activate(fcOwner);assert.equal(fcAPI
 assert(forecast.includes('viewCurrency:validCcy(viewChoice)?viewChoice:undefined'));
 assert(forecast.includes("currencyPickerHTML('view',state.viewCurrency,['GLOBAL',...CURRENCIES]"));
 console.log('PASS: Future Assets owner-scoped immediate display preference, legacy fallback and scenario isolation (synthetic storage)');
+
+
+const pickerStart=forecast.indexOf(' function currencyPickerHTML('),pickerEnd=forecast.indexOf(' function setupCurrencyPicker(',pickerStart);
+assert(pickerStart>=0&&pickerEnd>pickerStart);
+for(const [lang,defaultLabel,followLabel] of [['en','Default','Follow default'],['zh','默认','跟随默认币种'],['my','မူလ','မူလငွေကြေးအတိုင်း']]){
+ const labels={Default:defaultLabel,'Follow default':followLabel};
+ const picker=new Function('window','tr','esc','viewChoice',forecast.slice(pickerStart,pickerEnd)+';return currencyPickerHTML;')({MMHCurrencyPickerV3:{flag:()=>''}},(en,zh)=>labels[en]||(lang==='zh'?zh:en),String,'GLOBAL');
+ const html=picker('view','THB',['GLOBAL','USD','THB'],'Currency');
+ assert(html.includes('THB · '+defaultLabel));assert(html.includes('value="GLOBAL" selected>'+followLabel));
+ const field=picker('field','THB',['THB'],'Currency');assert(!field.includes('THB · '+defaultLabel));
+}
+console.log('PASS: Future Assets effective default label in three languages and field isolation');
