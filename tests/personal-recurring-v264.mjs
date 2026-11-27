@@ -71,6 +71,28 @@ try{
    const expected=[['Recurring Transactions','Active','Expense','Frequency','7d overdue','Close'],['周期交易','进行中','支出','频率','逾期 7 天','关闭'],['ထပ်တလဲလဲ ငွေလွှဲမှတ်တမ်းများ','အသက်ဝင်','အသုံးစရိတ်','အကြိမ်ရေ','7 ရက်ကျော်','ပိတ်ရန်'],['Recurring Transactions','Active','Expense','Frequency','7d overdue','Close']];
    for(const [i,v] of states.roundtrip.entries()){assert.deepEqual([v.title,v.filter,v.typeLabel,v.detail,v.status,v.action],expected[i]);assert.deepEqual(v.typeValues,['Expense','Income','Transfer']);assert.equal(v.name,'Delete');assert.equal(v.category,'Transfer');assert.equal(v.account,'Income');assert.equal(v.note,'No note');assert.equal(v.dialogTitle,'Delete');assert.equal(v.amount,'MMK 123,456,789.12');}
    assert.equal(states.roundtrip[0].placeholder,states.roundtrip[3].placeholder);assert.notEqual(states.roundtrip[0].placeholder,states.roundtrip[1].placeholder);assert.notEqual(states.roundtrip[0].placeholder,states.roundtrip[2].placeholder);
+   // Actual prefill banner creation, name protection and cancellation, with synthetic pending state.
+   const bannerSource=slice('function ensurePrefillBanner(){','  function recordNow(id)');
+   const bannerStates=await page.evaluate(({engine,bannerSource})=>{
+    const form=document.createElement('form');form.id='txForm';document.body.append(form);
+    const state={pending:null},$=id=>document.getElementById(id);
+    new Function('state','$',bannerSource+';showPending({id:"fixture",next_due_date:"2030-01-01",name:"Delete < & Income"});')(state,$);
+    const banner=$('recurringPrefillBannerV114');
+    const run=new Function('banner',engine+`
+      let lang='en';const investCopySurfaceV236=()=>false,txUiSurfaceV2=()=>false;
+      return ['en','zh','my','en'].map(next=>{lang=next;translateRoot(banner);return [...banner.querySelectorAll('b span,small,button')].map(n=>n.textContent);});
+    `);
+    const labels=run(banner),pending={...state.pending};$('recurringPrefillCancelV114').click();
+    const result={labels,pending,cleared:state.pending===null&&!banner.classList.contains('show')};form.remove();return result;
+   },{engine,bannerSource});
+   assert.deepEqual(bannerStates.labels,[
+    ['Recurring','Delete < & Income','Review the transaction before submitting it.','Cancel template'],
+    ['周期计划','Delete < & Income','提交前请核对交易信息。','取消模板'],
+    ['အစီအစဉ်','Delete < & Income','မတင်သွင်းမီ ငွေလွှဲမှတ်တမ်းကို စစ်ဆေးပါ။','ပုံစံ ပယ်ဖျက်ရန်'],
+    ['Recurring','Delete < & Income','Review the transaction before submitting it.','Cancel template']
+   ]);
+   assert.deepEqual(bannerStates.pending,{id:'fixture',due:'2030-01-01'});assert.ok(bannerStates.cleared);
+   console.log('PASS Recurring actual prefill banner locale roundtrip, user name and cancel',width,light?'light':'dark');
    await page.locator('.mmh-recurring-dialog-v149').evaluate(el=>el.remove());
    console.log('PASS Recurring actual translation engine, detail template and protected data roundtrip',width,light?'light':'dark');
    await page.addStyleTag({content:inline('style','mmhCategoriesEditPickersV2')});
@@ -83,11 +105,15 @@ try{
    await menu.getByRole('option',{name:'Income',exact:true}).click();await menu.waitFor({state:'hidden'});
    assert.equal(await native.inputValue(),'Income');assert.deepEqual(await page.evaluate(()=>window.__changes),['Income']);
    await type.click();await menu.waitFor({state:'visible'});await page.keyboard.press('Escape');await menu.waitFor({state:'hidden'});
+   for(const label of ['收入','ဝင်ငွေ','Income']){
+    await native.evaluate((el,label)=>{el.selectedOptions[0].textContent=label;window.dispatchEvent(new Event('mmhvault-language-change'));},label);
+    await type.getByText(label,{exact:true}).waitFor();assert.equal(await native.inputValue(),'Income');
+   }
    const geo=await page.evaluate(()=>({picker:document.querySelector('#recurringTypeV114 + button').getBoundingClientRect().height,input:document.querySelector('#recurringNameV114').getBoundingClientRect().height}));
    assert.ok(Math.abs(geo.picker-geo.input)<=3,JSON.stringify(geo));
    assert.equal(await native.evaluate(el=>getComputedStyle(el).minHeight),'0px');
    assert.equal(await page.locator('#recurringNameV114').inputValue(),'Synthetic schedule');
-   console.log('PASS Recurring actual shared picker, selection, change, Escape and control geometry',width,light?'light':'dark',JSON.stringify(geo));
+   console.log('PASS Recurring actual shared picker, selection, change, Escape, locale refresh and control geometry',width,light?'light':'dark',JSON.stringify(geo));
    await page.locator('#recurringFormPanelV114').evaluate(el=>el.hidden=true);
    assert.equal(await page.locator('#recurringFormPanelV114').isVisible(),false);
   }finally{await page.close()}
