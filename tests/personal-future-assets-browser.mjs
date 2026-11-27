@@ -4,6 +4,13 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 const js=readFileSync('js/mmhvault-forecast-v1.js','utf8');
 const css=readFileSync('css/mmhvault-liquid-forecast-p916.css','utf8');
+const app=readFileSync('app.html','utf8');
+const marker='// Shared V2 currency menu: Accounts and History use the same renderer, labels, ordering and rows.';
+const finish='window.MMHCurrencyPickerV3=Object.freeze({render:renderSharedCurrencyV3,flag:sharedCurrencyFlagV3});';
+const from=app.indexOf(marker),to=app.indexOf(finish,from);
+assert.ok(from>=0&&to>from,'real shared renderer found');
+const shared=app.slice(from,to+finish.length);
+new Function(shared);
 new Function(js);
 const browser=await chromium.launch({headless:true});
 try {
@@ -14,7 +21,8 @@ try {
   await page.route('**/*',route=>route.request().url()==='https://forecast.test/'?route.fulfill({contentType:'text/html',body:'<!doctype html><html><body class="mmh-workspace-active"><header id="fixture-header">Workspace</header><div id="fixture-scroll"><main id="forecast" class="page active"><div id="mmhForecastRootV1"></div></main><div style="height:500px"></div></div><div id="mmhVaultDialogV449"></div></body></html>'}):route.abort());
   await page.goto('https://forecast.test/');
   await page.addStyleTag({content:':root{--uv-card:'+(dark?'#161b22':'#fff')+';--uv-raised:'+(dark?'#222934':'#f5f6f8')+';--uv-line:'+(dark?'#414956':'#ddd')+';--uv-text:'+(dark?'#eee':'#222')+';--uv-muted:#777;--uv-accent:#4388bb;--uv-positive:#16844f;--uv-negative:#b93b3b}body{margin:0;font-family:system-ui}#fixture-header{position:fixed;inset:0 0 auto;height:70px;z-index:10000;background:#223;color:white}#fixture-scroll{position:fixed;inset:70px 0 0 '+(width>760?'200':'0')+'px;overflow:auto;transform:translateZ(0);contain:paint}#forecast{transform:translateZ(0)}#mmhVaultDialogV449.show{position:fixed;inset:20%;background:#777;z-index:10001}'+css});
-  await page.evaluate(language=>{localStorage.setItem('mmhvault_language_v3363',language);window.currentSessionUser={id:'synthetic-browser-only'};window.rates={usd_thb:35,usd_cny:7,usd_mmk:4000};window.mmhvaultCashUSD=()=>10000;window.mmhvaultInvestmentValueUSD=()=>2000;window.mmhDashboardReceivableUSD=()=>500;},lang);
+  await page.evaluate(language=>{document.documentElement.lang=language;window.MMHVAULT_CONFIG={accounts:[]};localStorage.setItem('mmhvault_language_v3363',language);window.currentSessionUser={id:'synthetic-browser-only'};window.rates={usd_thb:35,usd_cny:7,usd_mmk:4000};window.mmhvaultCashUSD=()=>10000;window.mmhvaultInvestmentValueUSD=()=>2000;window.mmhDashboardReceivableUSD=()=>500;},lang);
+  await page.addScriptTag({content:shared});
   await page.addScriptTag({content:js});
   const dialog=page.locator('.fc-dialog');
   const within=async locator=>{const b=await locator.boundingBox();assert.ok(b&&b.x>=-1&&b.y>=-1&&b.x+b.width<=width+1&&b.y+b.height<=844+1,'element within viewport');return b;};
@@ -41,6 +49,7 @@ try {
   await dialog.locator('.fc-shared-picker summary').first().click();
   const menu=dialog.locator('.fc-shared-picker[open] .fc-shared-menu');
   await menu.waitFor();await anchored(dialog.locator('.fc-shared-picker[open] summary'),menu);
+  assert.ok(await menu.locator('.ap-currency-section-v2').count()>0,'real shared grouped renderer');
   const search=menu.locator('input[type=search]');
   await search.fill('JPY');
   await menu.locator('[data-ap-currency="JPY"]').click();
