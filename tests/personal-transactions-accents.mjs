@@ -24,12 +24,12 @@ try{
   const labels={en:['MONTHLY INCOME','MONTHLY EXPENSE','MONTHLY NET'],zh:['月收入','月支出','月结余'],my:['လစဉ် ဝင်ငွေ','လစဉ် အသုံးစရိတ်','လစဉ် အသားတင်လက်ကျန်']}[lang];
   await page.evaluate(labels=>{['hcIncomeLabelV4','hcExpenseLabelV4','hcRemainingLabelV3'].forEach((id,i)=>document.getElementById(id).textContent=labels[i]);['hcIncome','hcExpense','hcRemaining'].forEach((id,i)=>document.getElementById(id).textContent=['123,456.78','23,456.78','100,000.00'][i])},labels);
   for(const block of blocks)await page.addStyleTag({content:block.css});
-  const state=()=>page.evaluate(()=>[...document.querySelectorAll('#transactions .hc-totals > div,#fixtureFilter,#txList,#unrelated .hc-totals > div')].map(e=>{const p=getComputedStyle(e,'::after'),r=e.getBoundingClientRect();return {rect:[r.x,r.y,r.width,r.height],bg:p.backgroundImage,height:p.height,bottom:p.bottom,left:p.left,right:p.right,pointer:p.pointerEvents}}));
+  const state=()=>page.evaluate(()=>[...document.querySelectorAll('#transactions .hc-totals > div,#fixtureFilter,#txList,#unrelated .hc-totals > div')].map(e=>{const p=getComputedStyle(e),r=e.getBoundingClientRect();return {rect:[r.x,r.y,r.width,r.height],bg:p.backgroundImage,size:p.backgroundSize,pos:p.backgroundPosition,repeat:p.backgroundRepeat,color:p.backgroundColor,pointer:p.pointerEvents}}));
   const before=await state();
-  await page.evaluate(({idx,addition})=>document.querySelectorAll('style')[idx].textContent+=addition,{idx,addition});
+  await page.evaluate(({idx,addition})=>{const style=document.querySelectorAll('style')[idx];style.textContent+=addition;if(!style.sheet||![...style.sheet.cssRules].some(r=>r.cssText.includes('--hc-edge-rgb')))throw Error('Accent rules were not parsed');},{idx,addition});
   const after=await state();
   assert.deepEqual(after.map(x=>x.rect),before.map(x=>x.rect),'existing geometry unchanged');
-  for(const c of after.slice(0,3)){assert.equal(c.height,'2px');assert.equal(c.bottom,'0px');assert.equal(c.left,'8px');assert.equal(c.right,'8px');assert.equal(c.pointer,'none');assert.match(c.bg,/linear-gradient/);}
+  for(const [i,c] of after.slice(0,3).entries()){assert.match(c.size,/2px$/,JSON.stringify(c));assert.equal(c.pos,'50% 100%');assert.equal(c.repeat,'no-repeat');assert.equal(c.color,before[i].color);assert.equal(c.pointer,before[i].pointer);assert.match(c.bg,/linear-gradient/);}
   assert.equal(new Set(after.slice(0,3).map(c=>c.bg)).size,3);
   assert.deepEqual(after.slice(3),before.slice(3),'filter, list and unrelated panel unchanged');
   await page.locator('#fixtureFilter').evaluate(e=>e.onclick=()=>e.dataset.clicked='yes');
