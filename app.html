@@ -38058,7 +38058,7 @@ html body #transactions#transactions#transactions#transactions #category-manage 
 (()=>{
 'use strict';
 const ids=['eType','eGroup','eCat','eFrom','eTo','cmGroup','mmhNewCategoryGroupV445'];
-const sharedIds=["budgetCurrencyV110","goalTypeV113","goalCurrencyV113","recurringTypeV114","recurringGroupV114","recurringCategoryV114","recurringFromAccountV114","recurringToAccountV114","recurringFrequencyV114","recurringReminderV114","txFilterType","txFilterGroup","txFilterCategory","txFilterAccount","analyzeYear","analyzeMonth","reportCurrencyV115","mmhAssetTypeV1","invSideV336","invAsset","invSource","mmhNewAccountCurrencyV445","mmhNewAccountTypeV445","cfaCurrency","cfaMode","cfaYear","mmhEditAccountCurrencyV449","mmhEditAccountTypeV449","eiSource","hcCurrency","amNewCurrency","amNewType","amFilter","amSort","fbTypeV14","mmhWalletTypeV172","mmhInvestCalcHoldingV217"];
+const sharedIds=["budgetCurrencyV110","goalTypeV113","goalCurrencyV113","recurringTypeV114","recurringGroupV114","recurringCategoryV114","recurringFromAccountV114","recurringToAccountV114","recurringFrequencyV114","recurringReminderV114","txFilterType","txFilterGroup","txFilterCategory","txFilterAccount","analyzeYear","analyzeMonth","reportCurrencyV115","mmhAssetTypeV1","invSideV336","invAsset","invSource","mmhNewAccountCurrencyV445","mmhNewAccountTypeV445","cfaCurrency","cfaMode","cfaYear","mmhEditAccountCurrencyV449","mmhEditAccountTypeV449","eiSource","hcCurrency","amNewCurrency","amNewType","amFilter","amSort","fbTypeV14","mmhWalletTypeV172","mmhInvestCalcHoldingV217","mmhCfV238Currency","mmhCfV238Preset","mmhCfV238Account","mmhCfV238Category","mmhCfV238Original"];
 const sharedCompatible=s=>s?.tagName==='SELECT'&&!s.multiple&&s.size<=1&&!s.closest('dialog,.mmh-hier-form')&&!s.classList.contains('mmh-p24-native')&&!s.classList.contains('mmh-p25-picker-source');
 const eligible=s=>sharedCompatible(s)&&!s.hidden&&s.getAttribute('aria-hidden')!=='true';
 const originalTabIndex=new WeakMap();
@@ -39361,8 +39361,8 @@ html body #invest#invest #mmhUnifiedHistoryV1 #mmhHistoryRowsV1 .iw226-ledger-fo
 }
 </style>
 <script src="js/mmhvault-market-workspace-v2.js?v=2.0.6-release1" defer></script>
-<link rel="stylesheet" href="css/mmhvault-cashflow-v2.css?v=2.0.37">
-<script type="module" src="js/mmhvault-cashflow-v2-release.mjs?v=2.0.37"></script>
+<link rel="stylesheet" href="css/mmhvault-cashflow-v2.css?v=2.0.38">
+<script type="module" src="js/mmhvault-cashflow-v2-release.mjs?v=2.0.38"></script>
 <style id="mmhInvestUiPolishV227">
 /* Scoped UI-only: use the shared Transaction palette, preserve form actions. */
 html body #editModal#editModal#editModal#editModal #editInvForm#editInvForm :is(#eiSource,label:has(#eiSource) button,.mmh-shared-trigger-v217,.mmh-receipt-cta-p22){
