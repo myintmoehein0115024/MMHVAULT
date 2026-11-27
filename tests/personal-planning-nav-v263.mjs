@@ -30,21 +30,26 @@ try{
      return [...document.querySelectorAll('.fc-planning-nav-v263')].map(nav=>{
       const back=nav.querySelector('button'),links=[...nav.querySelectorAll('.fc-planning-links-v263 button')];
       const b=back.getBoundingClientRect(),r=nav.getBoundingClientRect(),last=links.at(-1).getBoundingClientRect();
-      return {id:nav.closest('section').id,label:back.textContent,labels:links.map(x=>x.getAttribute('aria-label')),current:links.filter(x=>x.getAttribute('aria-current')==='page').map(x=>x.dataset.fcSibling),heights:[back,...links].map(x=>x.getBoundingClientRect().height),overflow:last.right>r.right+1||b.right>links[0].getBoundingClientRect().left,first:nav.parentElement.firstElementChild===nav};
+      return {id:nav.closest('section').id,label:back.textContent,labels:links.map(x=>x.getAttribute('aria-label')),targets:links.map(x=>x.dataset.fcSibling),current:links.filter(x=>x.hasAttribute('aria-current')).map(x=>x.dataset.fcSibling),heights:[back,...links].map(x=>x.getBoundingClientRect().height),overflow:last.right>r.right+1||b.right>links[0].getBoundingClientRect().left,first:nav.parentElement.firstElementChild===nav};
      });
     });
     assert.equal(facts.length,3);
     for(const f of facts){
      assert.equal(f.label,{en:'Future Assets',zh:'未来资产',my:'အနာဂတ်ပိုင်ဆိုင်မှု'}[code]);
-     assert.deepEqual(f.current,[f.id]);assert.ok(f.labels.every(Boolean));assert.ok(f.first&&!f.overflow,JSON.stringify({width,code,f}));assert.ok(f.heights.every(h=>h===44));
+     assert.deepEqual(f.targets,['budget','goals','recurring'].filter(id=>id!==f.id));assert.deepEqual(f.current,[]);assert.ok(f.labels.every(Boolean));assert.ok(f.first&&!f.overflow,JSON.stringify({width,code,f}));assert.ok(f.heights.every(h=>h===44));
     }
    }
    await page.locator('#budget [data-fc-sibling="forecast"]').click();
    await page.locator('#budget [data-fc-sibling="goals"]').click();
    await page.locator('#goals [data-fc-sibling="recurring"]').click();
    await page.locator('#recurring [data-fc-sibling="budget"]').click();
-   await page.locator('#budget [data-fc-sibling="budget"]').click();
-   assert.deepEqual(await page.evaluate(()=>window.navTargets),['forecast','goals','recurring','budget']);
+   for(const id of ['budget','goals','recurring'])assert.equal(await page.locator('#'+id+' [data-fc-sibling="'+id+'"]').count(),0);
+   await page.locator('#budget [data-fc-sibling="recurring"]').click();
+   await page.locator('#goals [data-fc-sibling="budget"]').click();
+   await page.locator('#recurring [data-fc-sibling="goals"]').click();
+   await page.locator('#goals [data-fc-sibling="forecast"]').click();
+   await page.locator('#recurring [data-fc-sibling="forecast"]').click();
+   assert.deepEqual(await page.evaluate(()=>window.navTargets),['forecast','goals','recurring','budget','recurring','budget','goals','forecast','forecast']);
    console.log('PASS planning nav',width,light?'light':'dark','EN/ZH/MY roundtrip, 3 pages and click targets');
   }finally{await page.close();}
  }
