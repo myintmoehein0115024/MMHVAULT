@@ -24,7 +24,7 @@ save('GLOBAL');data.set(globalKey('a'),'invalid json');restore();assert(state.cu
 global('a','ZZZ');restore();assert(state.currency==='USD','unsupported global fails safely');
 for(const id of ['mmhvault-cashflow-analyze-v1-js','mmhvault-settings-v2-js']){const p=app.indexOf('<script id="'+id+'">'),q=app.indexOf('</script>',p);assert(p>=0&&q>p,'script exists '+id);new Function(app.slice(app.indexOf('>',p)+1,q));}
 assert(!app.includes('mmhSettingsSyncCashflowCurrencyV71?.(state.currency)'),'no reverse sync');
-assert(app.includes('if(name===\'currency\')window.mmhRestoreAnalyzeCurrencyV918?.()'),'settings restore not change event');
+assert(app.includes('if(name===\'currency\'){window.mmhRestoreAnalyzeCurrencyV918?.()'),'settings restore not change event');
 
 console.log('PASS: owner-scoped Analyze/default currency isolation; source scripts parse');
 
@@ -51,3 +51,22 @@ data.set(overrideKey('cash-b'),'JPY');
 assert.equal(getV265('cash-b','analysis'),'JPY');
 assert.equal(getV265('cash-b','report'),'USD');
 console.log('PASS: 17 active Cash Flow V2 display preference assertions (synthetic storage)');
+
+const acStart=app.indexOf('const mmhAccountDisplayCodesV926='),acEnd=app.indexOf('\nfunction visuals(){',acStart);
+assert(acStart>=0&&acEnd>acStart);
+let acOwner='acct-a';const accountSelects={apCurrency:{},apRowCurrency:{}};
+const accountAPI=new Function('localStorage','currentSessionUser','$',"let displayCurrency='USD',rowDisplayCurrency='NATIVE';"+app.slice(acStart,acEnd)+';return {restore:mmhAccountDisplayRestoreV926,save:mmhAccountDisplaySaveV926,get:()=>[displayCurrency,rowDisplayCurrency]}')(storage,{get id(){return acOwner}},id=>accountSelects[id]);
+global('acct-a','THB');accountAPI.restore();assert.deepEqual(accountAPI.get(),['THB','THB']);
+assert.equal(accountSelects.apCurrency.value,'GLOBAL');
+accountAPI.save('JPY');assert.deepEqual(accountAPI.get(),['JPY','THB']);
+accountAPI.save('NATIVE',true);assert.deepEqual(accountAPI.get(),['JPY','NATIVE']);
+global('acct-a','MMK');accountAPI.restore();assert.deepEqual(accountAPI.get(),['JPY','NATIVE']);
+accountAPI.save('GLOBAL');assert.deepEqual(accountAPI.get(),['MMK','NATIVE']);
+accountAPI.save('GLOBAL',true);assert.deepEqual(accountAPI.get(),['MMK','MMK']);
+accountAPI.save('USD');global('acct-a','CNY');accountAPI.restore();assert.deepEqual(accountAPI.get(),['USD','CNY']);
+acOwner='acct-b';global('acct-b','THB');accountAPI.restore();assert.deepEqual(accountAPI.get(),['THB','THB']);
+acOwner='';accountAPI.restore();assert.deepEqual(accountAPI.get(),['USD','USD']);
+acOwner='acct-a';accountAPI.restore();assert.deepEqual(accountAPI.get(),['USD','CNY']);
+accountAPI.save('ZZZ');assert.deepEqual(accountAPI.get(),['USD','CNY']);
+assert.equal(JSON.parse(data.get(globalKey('acct-a'))).currency,'CNY');
+console.log('PASS: 13 Accounts display preference assertions (synthetic storage)');
