@@ -1,5 +1,5 @@
 /* V2.0.35 — V2 is the sole visible Cash Flow; preserve hidden classic DOM for existing integrations. */
-import {mountAppCashflowV2} from './mmhvault-cashflow-v2-app-entry.mjs?v=2.0.49';
+import {mountAppCashflowV2} from './mmhvault-cashflow-v2-app-entry.mjs?v=2.0.51';
 import {createBudgetBridge,createConfiguredBridge,readInvestmentSource} from './mmhvault-cashflow-v2-readonly-sources.mjs?v=2.0.49';
 export function installCashflowRelease(doc,win,bindings,mount=mountAppCashflowV2){
  const page=doc.getElementById('cashflow-analyze'),legacy=page?.querySelector(':scope > .cfa-shell');
