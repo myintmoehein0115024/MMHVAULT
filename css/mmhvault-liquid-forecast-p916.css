@@ -570,3 +570,8 @@ html body.mmh-workspace-active #forecast#forecast.page.active #mmhForecastRootV1
 html body.mmh-workspace-active #forecast#forecast.page.active #mmhForecastRootV1 .fc-month-overview tr>:first-child{width:23%!important}
 html body.mmh-workspace-active #forecast#forecast.page.active #mmhForecastRootV1 .fc-month-overview :is(th,td){font-size:11px!important;padding:5px 3px!important}
 }
+
+html body.mmh-workspace-active #forecast#forecast.page.active #mmhForecastRootV1 .fc-choice-menu.fc-floating-menu{position:fixed!important;left:var(--fc-menu-x)!important;top:var(--fc-menu-y)!important;right:auto!important;width:var(--fc-menu-w)!important;max-height:var(--fc-menu-h)!important;z-index:9800!important}
+html body.mmh-workspace-active #forecast#forecast.page.active #mmhForecastRootV1 .fc-money-pair .fc-shared-menu.fc-floating-menu,html body.mmh-workspace-active #forecast#forecast.page.active #mmhForecastRootV1 [data-fc-picker-kind="rate"] .fc-shared-menu.fc-floating-menu{left:var(--fc-menu-x)!important;right:auto!important;width:var(--fc-menu-w)!important}
+html body.mmh-workspace-active #forecast#forecast.page.active #mmhForecastRootV1 .fc-shared-menu.fc-floating-menu .ap-currency-list-v2{max-height:min(280px,calc(var(--fc-menu-h) - 75px))!important}
+html body.mmh-workspace-active #forecast#forecast.page.active #mmhForecastRootV1 .fc-dialog-body .fc-month-overview{overscroll-behavior:contain}
