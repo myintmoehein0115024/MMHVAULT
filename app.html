@@ -12375,11 +12375,11 @@ html.mmh-desktop-compact-v11110 body.mmh-workspace-active #moreNavMenu.more-nav-
   }
   async function customAction(action,id){
     const owner=currentSessionUser?.id;if(!owner)return;
-    const row=window.mmhCustomInvestRecords?.find(x=>x.user_id===owner&&String(x.id)===String(id));if(!row)return;
+    const row=window.mmhCustomInvestLoaded===true&&window.mmhCustomInvestRecords?.find(x=>x?.user_id===owner&&String(x.id)===String(id));if(!row)return;
     const user=(await db.auth.getUser()).data.user;if(!user||user.id!==owner||currentSessionUser?.id!==owner){await window.mmhEditDeleteUI.message(recordText("Edit unavailable","暂时无法编辑","ပြင်ဆင်၍ မရပါ"),recordText("Please sign in again.","请重新登录。","ကျေးဇူးပြု၍ ပြန်လည်ဝင်ရောက်ပါ။"));return;}
     if(action==='delete'){confirmDelete({kind:'custom',id:row.id,name:row.asset_name,user_id:row.user_id},user);return;}
     const isCurrentOwner=()=>currentSessionUser?.id===owner&&user.id===owner&&row.user_id===owner;
-    const hasCurrentRow=()=>isCurrentOwner()&&Array.isArray(window.mmhCustomInvestRecords)&&window.mmhCustomInvestRecords.some(x=>x.user_id===owner&&String(x.id)===String(row.id));
+    const hasCurrentRow=()=>isCurrentOwner()&&window.mmhCustomInvestLoaded===true&&Array.isArray(window.mmhCustomInvestRecords)&&window.mmhCustomInvestRecords.some(x=>x?.user_id===owner&&String(x.id)===String(row.id));
     if(!hasCurrentRow())return;
     const modal=document.createElement('dialog');modal.className='mmh-history-edit iw226-custom-edit';
     modal.innerHTML='<form method="dialog" class="mmh-history-edit-form"><h2>'+recordText("Edit ","编辑 ","ပြင်ဆင်ရန် ")+esc(row.asset_name||recordText("Investment","投资","ရင်းနှီးမြှုပ်နှံမှု"))+'</h2><div class="iw226-custom-edit-scroll"><div class="iw226-custom-edit-grid">'+
@@ -12405,24 +12405,27 @@ html.mmh-desktop-compact-v11110 body.mmh-workspace-active #moreNavMenu.more-nav-
     for(const name of ['account','amount','fee','other'])modal.querySelector('[name="'+name+'"]').addEventListener('input',funds);
     funds();
     modal.querySelector('form').addEventListener('submit',async e=>{
-      e.preventDefault();const form=e.currentTarget;if(!hasCurrentRow()){modal.close();return;}const fd=new FormData(form),amount=Number(fd.get('amount')),price=Number(fd.get('price'));
+      e.preventDefault();const form=e.currentTarget;if(!hasCurrentRow()){modal.close();return;}const submit=form.querySelector('button[type="submit"]');if(submit.disabled)return;const fd=new FormData(form),amount=Number(fd.get('amount')),price=Number(fd.get('price'));
       if(!(amount>0&&price>0)){window.mmhEditDeleteUI.inline(recordText("Amount and purchase price must be greater than zero.","金额和买入价格必须大于零。","ငွေပမာဏနှင့် ဝယ်ယူဈေးနှုန်းသည် သုညထက် ကြီးရမည်။"),form);return;}
       const update={inv_date:fd.get('date'),source_account:fd.get('account')||null,amount,buy_price:price,
         quantity:amount/price,fee:Number(fd.get('fee'))||0,other_cost:Number(fd.get('other'))||0,
         market_price:fd.get('market')===''?null:Number(fd.get('market')),note:fd.get('note')||null};
-      const submit=form.querySelector('button[type="submit"]');submit.disabled=true;
+      submit.disabled=true;
       try{
+        const auth=(await db.auth.getUser()).data.user;
+        if(auth?.id!==owner||!hasCurrentRow()){modal.close();return;}
         await window.mmhCustomInvestCheckFunds(user,update,row);
         if(!hasCurrentRow()){modal.close();return;}
         const result=await db.from('custom_investments').update(update).eq('id',row.id).eq('user_id',user.id).select('*').single();
         if(!isCurrentOwner()){modal.close();return;}
         if(result.error)throw result.error;
         if(result.data?.user_id!==owner||String(result.data.id)!==String(row.id))throw new Error(recordText("Record changed; reload before editing.","记录已变化，请重新加载后编辑。","မှတ်တမ်း ပြောင်းလဲသွားပါသည်။ ပြန်လည်ဖွင့်ပြီး ပြင်ဆင်ပါ။"));
-        window.mmhCustomInvestRecords=(window.mmhCustomInvestRecords||[]).map(x=>x.user_id===owner&&String(x.id)===String(row.id)?result.data:x);
+        if(!hasCurrentRow()){modal.close();return;}
+        window.mmhCustomInvestRecords=(window.mmhCustomInvestRecords||[]).map(x=>x?.user_id===owner&&String(x.id)===String(row.id)?result.data:x);
         let receiptError=null;const receipt=form.querySelector('[name="receipt"]')?.files?.[0];
-        if(receipt&&isCurrentOwner())try{await window.mmhPortfolioSaveCustomReceipt(user,row.id,receipt);}catch(err){receiptError=err;}
+        if(receipt&&hasCurrentRow())try{await window.mmhPortfolioSaveCustomReceipt(user,row.id,receipt);}catch(err){receiptError=err;}
         modal.close();if(!isCurrentOwner())return;
-        window.mmhCustomInvestChanged?.('custom-investment-edited');render();await window.mmhCustomInvestReload?.();if(!isCurrentOwner())return;render();
+        window.mmhCustomInvestChanged?.('custom-investment-edited');if(!isCurrentOwner())return;render();if(!isCurrentOwner())return;await window.mmhCustomInvestReload?.();if(!isCurrentOwner())return;render();if(!isCurrentOwner())return;
         if(receiptError)await window.mmhEditDeleteUI.message(recordText("Investment saved; receipt failed","投资已保存，收据上传失败","ရင်းနှီးမြှုပ်နှံမှု သိမ်းပြီးပါပြီ၊ ပြေစာတင်၍ မရပါ"),receiptError.message||String(receiptError));
         else window.mmhEditDeleteUI.toast(recordText("Investment changes saved.","投资修改已保存。","ရင်းနှီးမြှုပ်နှံမှု ပြောင်းလဲချက်များ သိမ်းပြီးပါပြီ။"));
       }catch(err){if(!isCurrentOwner()){modal.close();return;}window.mmhEditDeleteUI.inline(recordText("Edit failed: ","编辑失败：","ပြင်ဆင်၍ မရပါ: ")+(err?.message||err),form);submit.disabled=false;}
