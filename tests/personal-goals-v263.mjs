@@ -30,6 +30,48 @@ try{
     assert.equal(await page.locator('#goalNameV113').inputValue(),'Synthetic goal');
     console.log('PASS Goals fixture',width,light?'light':'dark',lang);
    }
+
+   const cardStart=app.indexOf('function card(r){const [icon,label]=typeInfo(r.goal_type)');
+   const cardEnd=app.indexOf('  function render(){',cardStart);
+   const detailStart=app.indexOf('async function openDetail(id){const r=state.rows.find(x=>x.id===id)');
+   const detailEnd=app.indexOf('  async function load(){',detailStart);
+   assert.ok(cardStart>=0&&cardEnd>cardStart&&detailStart>=0&&detailEnd>detailStart);
+   const base=app.indexOf('.goal-detail-v113{display:grid');
+   const baseStart=app.lastIndexOf('<style',base),baseEnd=app.indexOf('</style>',base);
+   assert.ok(baseStart>=0&&baseEnd>base);
+   await page.addStyleTag({content:app.slice(app.indexOf('>',baseStart)+1,baseEnd)});
+   await page.addStyleTag({content:css});
+   await page.evaluate(async ({cardSource,detailSource})=>{
+     const rows=[{id:'active',name:'Synthetic goal',goal_type:'custom',currency:'MMK',current_amount:123456789.12,target_amount:987654321.98,target_date:'2030-01-01',status:'active',note:'Synthetic note '.repeat(10)},{id:'archived',name:'Archived fixture',goal_type:'custom',currency:'MMK',current_amount:0,target_amount:100,status:'archived'}];
+     const state={rows},typeInfo=()=>['O','Custom'],progress=()=>12.5,normalizeStatus=r=>r.status,monthlyNeed=()=>12345678.91,monthsLeft=()=>12,remaining=r=>r.target_amount-r.current_amount,money=(n,c)=>c+' '+Number(n).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2}),esc=s=>String(s??''),editGoal=()=>{},$=id=>document.getElementById(id);
+     const build=new Function('state','typeInfo','progress','normalizeStatus','monthlyNeed','monthsLeft','remaining','money','esc','editGoal','$',[cardSource,detailSource,'return {card,openDetail}'].join(String.fromCharCode(10)));
+     const {card,openDetail}=build(state,typeInfo,progress,normalizeStatus,monthlyNeed,monthsLeft,remaining,money,esc,editGoal,$);
+     $('goalListV113').innerHTML=rows.map(card).join('');
+     window.mmhVaultOpenDialogV449=async options=>{
+       window.__fixtureActions=options.actions.map(a=>a.label);
+       $('mmhVaultDialogV449')?.remove();
+       const overlay=document.createElement('div');overlay.id='mmhVaultDialogV449';
+       const dialog=document.createElement('div');dialog.className=options.dialogClass;dialog.style.margin='auto';dialog.style.overflow='auto';dialog.innerHTML=options.body;
+       overlay.append(dialog);document.body.append(overlay);
+     };
+     window.__fixtureOpenDetail=openDetail;
+     await openDetail('active');
+   },{cardSource:app.slice(cardStart,cardEnd),detailSource:app.slice(detailStart,detailEnd)});
+   assert.equal(await page.locator('.goal-card-v113').count(),2);
+   assert.equal(await page.locator('[data-goal-delete]').count(),1);
+   assert.equal(await page.locator('.goal-detail-grid-v113>div').count(),6);
+   assert.deepEqual(await page.evaluate(()=>window.__fixtureActions),['Close','Update progress','Edit Goal']);
+   const details=await page.evaluate(()=>{
+     const d=document.querySelector('.mmh-goal-dialog-v149');
+     return {width:d.getBoundingClientRect().width,background:getComputedStyle(d).backgroundColor,heroFont:getComputedStyle(d.querySelector('.goal-detail-hero-v113 strong')).fontFamily,overflow:document.documentElement.scrollWidth>innerWidth+2,clipped:[...document.querySelectorAll('.goal-meta-grid-v113 b')].some(e=>e.scrollWidth>e.clientWidth+2)};
+   });
+   assert.ok(details.width<=width-20&&!details.overflow&&!details.clipped,JSON.stringify({width,details}));
+   assert.equal(details.background,light?'rgb(255, 255, 255)':'rgb(28, 37, 49)');
+   assert.ok(!details.heroFont.includes('Georgia'));
+   await page.evaluate(()=>window.__fixtureOpenDetail('archived'));
+   assert.deepEqual(await page.evaluate(()=>window.__fixtureActions),['Close','Edit Goal']);
+   console.log('PASS Goals actual card/detail templates with stubbed data and dialog host',width,light?'light':'dark');
+
    await page.locator('#goalFormPanelV113').evaluate(el=>el.hidden=true);
    assert.equal(await page.locator('#goalFormPanelV113').isVisible(),false);
   }finally{await page.close();}
