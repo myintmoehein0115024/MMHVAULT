@@ -10922,7 +10922,7 @@ html.mmh-desktop-compact-v11110 body.mmh-workspace-active #moreNavMenu.more-nav-
 }
 </style>
 
-<link rel="stylesheet" href="css/mmhvault-forecast-v1.css?v=9.6.0"/>
+<link rel="stylesheet" href="css/mmhvault-forecast-v1.css?v=2.0.63"/>
 <link rel="stylesheet" href="css/mmhvault-life-planner-v1.css?v=1.8.0"/>
 <link rel="stylesheet" href="css/mmhvault-life-planner-modal-v18.css?v=1.8.0"/>
 <link rel="stylesheet" href="css/mmhvault-life-habits-v21.css?v=2.5.0"/>
@@ -20109,7 +20109,7 @@ function investCopyProtectedV236(el){
 function investCopyOwnedV236(el){return !!el?.closest?.('#mmhInvestCoachV234,#mmhInvestEntryTopV231,#mmhInvestGuideV231,#mmhHistoryRowsV1,#mmhHistoryFiltersV1');}
 function translateAttributes(root){
   const applyAttrs=el=>{
-    if(!el?.getAttribute||el.closest?.('#apCurrencyPickerV2,#apRowCurrencyPickerV2,#mmhNotifyPopoverV560,.wv-choice-menu-v2,.mmh-notification-dialog-v149,#wvThemeToggle,.wv-flag-wrap,#dataLoadOverlayV384,#mmhP947AccountGuard'))return;
+    if(!el?.getAttribute||el.closest?.('.fc-planning-nav-v263,#apCurrencyPickerV2,#apRowCurrencyPickerV2,#mmhNotifyPopoverV560,.wv-choice-menu-v2,.mmh-notification-dialog-v149,#wvThemeToggle,.wv-flag-wrap,#dataLoadOverlayV384,#mmhP947AccountGuard'))return;
     (investCopySurfaceV236(el)?['placeholder','title','aria-label','data-mmh-hint']:['placeholder','title','aria-label']).forEach(a=>{
       const v=el.getAttribute(a); if(!v)return;
       if(investCopySurfaceV236(el)){if(investCopyProtectedV236(el)||investCopyOwnedV236(el))return;let map=investCopyAttrStateV236.get(el);if(!map){map=new Map();investCopyAttrStateV236.set(el,map);}const translated=investCopyStableV236(map,a,v);if(translated!=null){if(v!==translated)el.setAttribute(a,translated);return;}if(a==='data-mmh-hint')return;}
@@ -20231,7 +20231,7 @@ function translateTextNode(n){
   if(investCopySurfaceV236(parent)){if(investCopyProtectedV236(parent)||investCopyOwnedV236(parent))return;const translated=investCopyStableV236(investCopyNodeStateV236,n,current);if(translated!=null){if(current!==translated){const raw=n.nodeValue;n.nodeValue=(raw.match(/^\s*/)?.[0]||'')+translated+(raw.match(/\s*$/)?.[0]||'');}return;}}
   if(txUiSurfaceV2(parent)&&(txUiOwnedV2(parent)||txUiDataV2(parent)))return;
   if(parent.id==='txReceiptHint'&&document.getElementById('txReceipt')?.files?.length)return;
-  if(parent.closest('#apCurrencyPickerV2,#apRowCurrencyPickerV2,#accounts-page .am-row[data-account-id] .am-row-copy b,#mmhNotifyPopoverV560,.wv-choice-menu-v2,.mmh-notification-dialog-v149,#dataLoadOverlayV384,#mmhBootWorkspaceTextV2,#welcomeScreen .welcome-title,#welcomeScreen .welcome-sub,#welcomeScreen .welcome-ready,#mmhP947AccountGuard'))return; // These surfaces own their translations and user content.
+  if(parent.closest('.fc-planning-nav-v263,#apCurrencyPickerV2,#apRowCurrencyPickerV2,#accounts-page .am-row[data-account-id] .am-row-copy b,#mmhNotifyPopoverV560,.wv-choice-menu-v2,.mmh-notification-dialog-v149,#dataLoadOverlayV384,#mmhBootWorkspaceTextV2,#welcomeScreen .welcome-title,#welcomeScreen .welcome-sub,#welcomeScreen .welcome-ready,#mmhP947AccountGuard'))return; // These surfaces own their translations and user content.
   // Never translate member-entered account/category names or machine-readable finance types in the new dashboard.
   if(parent.closest('#mmhPremiumDashboardV500 .pf-tx-copy-v500,#mmhPremiumDashboardV500 .pf-tag-v500,#mmhPremiumDashboardV500 .pf-name-v500,#mmhPremiumDashboardV500 .pf-asset-v500,#mmhPremiumDashboardV500 .pf-signal-card-v150[data-signal-action-v150="category"] b,#header .wvLiveClockV2'))return;
   let rec=mmhI18nTextStateV135.get(n);
@@ -35062,7 +35062,7 @@ body.light .mmh-notify-metric-v125>strong{color:#18384f}
 #forecast #mmhForecastRootV1 .fc-plan-entry:focus-visible{outline:2px solid var(--wv-accent,#91adf2);outline-offset:2px}
 @media(max-width:560px){#forecast #mmhForecastRootV1 .fc-head-actions{width:100%;justify-content:flex-end}}
 </style>
-<script src="js/mmhvault-forecast-v1.js?v=2.0.56"></script>
+<script src="js/mmhvault-forecast-v1.js?v=2.0.63"></script>
 <script defer src="js/mmhvault-life-planner-v1.js?v=9.49.0"></script>
 <script defer src="js/mmhvault-life-habits-v21.js?v=2.6.0"></script>
 <script defer src="js/mmhvault-life-spending-v31.js?v=9.49.0"></script>
