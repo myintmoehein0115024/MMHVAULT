@@ -22,10 +22,10 @@ function createPeriods(){
  function previousRange(range){const a=parse(range.start),b=parse(range.end);if(b<a)throw new RangeError('Reversed dates');const n=Math.round((b-a)/86400000)+1;return keys(shift(a,-n),shift(a,-1))}
  function trend(rows,range,grain){
   const start=parse(range.start),end=parse(range.end);
-  if(end<start||!['day','month','quarter','year'].includes(grain))throw new RangeError('Invalid trend');
-  const bucket=d=>grain==='day'?key(d):grain==='month'?key(d).slice(0,7):grain==='year'?key(d).slice(0,4):`${d.getUTCFullYear()} Q${Math.floor(d.getUTCMonth()/3)+1}`;
+  if(end<start||!['day','week','month','quarter','year'].includes(grain))throw new RangeError('Invalid trend');
+  const bucket=d=>grain==='week'?key(shift(start,Math.floor((d-start)/604800000)*7)):grain==='day'?key(d):grain==='month'?key(d).slice(0,7):grain==='year'?key(d).slice(0,4):`${d.getUTCFullYear()} Q${Math.floor(d.getUTCMonth()/3)+1}`;
   const map=new Map(); let d=start;
-  while(d<=end){if(map.size>=4000)throw new RangeError('Too many points; choose a wider interval');const k=bucket(d);map.set(k,{key:k,income:0,expense:0});d=grain==='day'?shift(d,1):grain==='month'?month(d,1):grain==='quarter'?month(d,3-d.getUTCMonth()%3):year(d,1)}
+  while(d<=end){if(map.size>=4000)throw new RangeError('Too many points; choose a wider interval');const k=bucket(d);map.set(k,{key:k,income:0,expense:0});d=grain==='week'?shift(d,7):grain==='day'?shift(d,1):grain==='month'?month(d,1):grain==='quarter'?month(d,3-d.getUTCMonth()%3):year(d,1)}
   for(const r of rows){const day=parse(r.date);if(day<start||day>end)continue;const b=map.get(bucket(day));if(b&&['income','expense'].includes(r.kind)&&Number.isFinite(r.amount))b[r.kind]+=r.amount}
   return [...map.values()].map(b=>({...b,net:b.income-b.expense,savingsRate:b.income>0?(b.income-b.expense)/b.income:null}));
  }

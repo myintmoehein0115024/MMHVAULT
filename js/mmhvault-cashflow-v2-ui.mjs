@@ -1,6 +1,6 @@
 /* Cashflow V2.0.10: opt-in workspace. No auto-mount, fetch, storage, or database writes. */
 import {summarize,project,reconcile} from './mmhvault-cashflow-v2-core.mjs';
-import {dateRange,previousRange,trend,actualRange} from './mmhvault-cashflow-v2-periods.mjs';
+import {dateRange,previousRange,trend,actualRange} from './mmhvault-cashflow-v2-periods.mjs?v=2.0.37';
 import {analyze,compare,health,history} from './mmhvault-cashflow-v2-analytics.mjs';
 import {types as reportTypes,range as reportRange,report as makeReport} from './mmhvault-cashflow-v2-report.mjs';
 import * as planKit from './mmhvault-cashflow-v2-planning.mjs';
@@ -11,6 +11,8 @@ import {enhanceCurrencies,actionIdentity,restoreAction} from './mmhvault-cashflo
 import {summarizeMovements,movementKinds} from './mmhvault-cashflow-v2-movements.mjs';
 import {investmentReport} from './mmhvault-cashflow-v2-investment.mjs';
 const D={
+ calendarMonthly:['Monthly','按月','လစဉ်'],calendarYearly:['Yearly','按年','နှစ်စဉ်'],calendarPrev:['Previous period','上一期','ယခင်ကာလ'],calendarNext:['Next period','下一期','နောက်ကာလ'],calendarPick:['Select period','选择周期','ကာလရွေးရန်'],
+ cashflow:['Cash Flow','现金流','ငွေစီးဆင်းမှု'],analysis:['Analysis','分析','ခွဲခြမ်းစိတ်ဖြာမှု'],overviewNote:['Understand where your money comes from and goes.','了解资金的来源与去向。','ငွေဝင်ငွေထွက်ကို နားလည်ရန်'],filters:['Filters','筛选','စစ်ထုတ်ရန်'],comparison:['Period comparison','周期对比','ကာလနှိုင်းယှဉ်မှု'],weekly:['Week','周','ပတ်'],selectedPeriod:['Selected period','所选周期','ရွေးထားသောကာလ'],periodDetail:['Period details','周期明细','ကာလအသေးစိတ်'],noPrior:['No records in the prior period','上一周期暂无记录','ယခင်ကာလ မှတ်တမ်းမရှိပါ'],percentagePoints:['pp','个百分点','ရာခိုင်နှုန်းအမှတ်'],incomeLegend:['Income','收入','ဝင်ငွေ'],expenseLegend:['Spending','支出','အသုံးစရိတ်'],
  investmentReport:['Investment P/L','投资盈亏','ရင်းနှီးမြှုပ်နှံမှု အမြတ်/အရှုံး'],investmentNote:['Crypto and gold only · native currencies · current valuation, not historical assets','仅加密资产及黄金 · 原币 · 当前估值，非历史资产','Crypto နှင့် ရွှေသာ · မူရင်းငွေကြေး · လက်ရှိတန်ဖိုး'],holdingCost:['Current holding cost','当前持仓成本','လက်ရှိ ကုန်ကျစရိတ်'],holdingValue:['Current holding value (estimate)','当前持仓估值','လက်ရှိ ခန့်မှန်းတန်ဖိုး'],realized:['Lifetime realized P/L','累计已实现盈亏','စုစုပေါင်း ရရှိပြီး အမြတ်/အရှုံး'],periodRealized:['Period realized P/L','期间已实现盈亏','ကာလအတွင်း ရရှိပြီး အမြတ်/အရှုံး'],unrealized:['Current unrealized P/L','当前未实现盈亏','လက်ရှိ မရရှိသေး အမြတ်/အရှုံး'],lifetimePL:['Lifetime total P/L','累计综合盈亏','စုစုပေါင်း အမြတ်/အရှုံး'],cryptoAsset:['Crypto','加密资产','Crypto'],goldAsset:['Gold','黄金','ရွှေ'],
  movements:['Other account movements','其他账户资金变动','အခြားအကောင့်ငွေရွှေ့ပြောင်းမှု'],transfers:['Internal transfers','内部转账','အတွင်းငွေလွှဲ'],loans:['Loan movements','贷款资金变动','ချေးငွေရွှေ့ပြောင်းမှု'],adjustments:['Data Adjustment','数据调整','ဒေတာညှိနှိုင်းမှု'],inflow:['Account inflow','账户流入','အကောင့်ဝင်ငွေ'],outflow:['Account outflow','账户流出','အကောင့်ထွက်ငွေ'],movementNote:['Separate from income, expenses and investment return','独立于普通收支及投资收益','ပုံမှန်ဝင်ငွေထွက်ငွေနှင့် ရင်းနှီးမြှုပ်နှံမှုအမြတ်မှ သီးခြား'],
  monthGroup:['Month','月','လ'],quarterGroup:['Quarter','季度','သုံးလပတ်'],yearGroup:['Year','年','နှစ်'],
@@ -26,8 +28,8 @@ const icon=k=>'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke
 const presets=['today','week','month','lastMonth','quarter','year','lastYear','all','custom'];
 export function mountCashflowV2(root,adapter){
  if(!root||typeof adapter?.owner!=='function'||typeof adapter?.read!=='function'||typeof adapter?.today!=='function')throw new TypeError('Explicit workspace adapter required');
- const doc=root.ownerDocument,win=doc.defaultView;let owner=null,tab='summary',preset='month',currency='USD',grain='month',custom={},account='',category='',original='',horizon=12,selected='',dialog='',largeThreshold='',reportType='monthly',reportSelection={},exportError='',last=null,disposed=false;
- let planGrain='month',budgetPeriod='month',budgetKey='',planEdit=null,planConfirm='',planError=false,opener=null,paintedDialog='';
+ const doc=root.ownerDocument,win=doc.defaultView;let owner=null,tab='summary',preset='month',currency='USD',grain='week',custom={},account='',category='',original='',horizon=12,selected='',dialog='',largeThreshold='',reportType='monthly',reportSelection={},exportError='',last=null,disposed=false;
+ let filtersOpen=false,calendarKey='',planGrain='month',budgetPeriod='month',budgetKey='',planEdit=null,planConfirm='',planError=false,opener=null,paintedDialog='';
  const lang=()=>adapter.language?.()==='zh'?1:adapter.language?.()==='my'?2:0;
  const tr=k=>D[k]?.[lang()]||k;
  const locale=()=>['en','zh-CN','my-MM'][lang()];
@@ -39,14 +41,37 @@ export function mountCashflowV2(root,adapter){
  const metric=(k,v,kind='')=>'<div class="cfv2-metric '+kind+'"><span>'+e(tr(k))+'</span><strong>'+e(v)+'</strong></div>';
  const empty=k=>'<p class="cfv2-muted">'+e(tr(k))+'</p>';
  const items=(arr)=>arr?.length?'<div class="cfv2-list">'+arr.map(x=>'<div><span>'+e(x.name)+'</span><strong>'+e(fmt(x.amount))+'</strong></div>').join('')+'</div>':empty('noData');
- function reset(next){owner=next;tab='summary';preset='month';currency='USD';grain='month';custom={};account=category=original=selected=dialog='';horizon=12;largeThreshold='';reportType='monthly';reportSelection={};exportError='';last=null;planGrain='month';budgetPeriod='month';budgetKey='';planEdit=null;planConfirm='';planError=false;opener=null;paintedDialog=''}
+ function reset(next){owner=next;tab='summary';preset='month';currency='USD';grain='week';filtersOpen=false;calendarKey='';custom={};account=category=original=selected=dialog='';horizon=12;largeThreshold='';reportType='monthly';reportSelection={};exportError='';last=null;planGrain='month';budgetPeriod='month';budgetKey='';planEdit=null;planConfirm='';planError=false;opener=null;paintedDialog=''}
+ function currentKey(mode,today){return mode==='month'?today.slice(0,7):today.slice(0,4)}
+ function calendarBounds(mode,key,today){
+  if(!['month','year'].includes(mode)||!key||key>currentKey(mode,today))return null;
+  if(!(mode==='month'?/^\d{4}-(0[1-9]|1[0-2])$/:/^\d{4}$/).test(key)||Number(key.slice(0,4))<1900)return null;
+  const y=Number(key.slice(0,4)),m=mode==='month'?Number(key.slice(5,7)):12;
+  const start=mode==='month'?key+'-01':key+'-01-01',end=new Date(Date.UTC(y,m,0)).toISOString().slice(0,10);
+  return dateRange('custom',today,null,{start,end});
+ }
+ function stepCalendar(mode,key,n,today){
+  const y=Number(key.slice(0,4)),m=mode==='month'?Number(key.slice(5,7))-1:0;
+  const d=new Date(Date.UTC(y+(mode==='year'?n:0),m+(mode==='month'?n:0),1));
+  const next=mode==='month'?d.toISOString().slice(0,7):d.toISOString().slice(0,4);
+  return calendarBounds(mode,next,today)?next:null;
+ }
+ function calendarControls(){
+  const today=adapter.today(),mode=['month','year'].includes(preset)?preset:'',key=calendarKey||currentKey(mode,today);
+  const toggle='<div class="cfv2-calendar-toggle" role="group" aria-label="'+e(tr('period'))+'">'+['month','year'].map(k=>'<button type="button" data-action="calendar-mode" data-key="'+k+'" aria-pressed="'+(mode===k)+'">'+e(tr(k==='month'?'calendarMonthly':'calendarYearly'))+'</button>').join('')+'</div>';
+  if(!mode)return toggle;
+  const prev=stepCalendar(mode,key,-1,today),next=stepCalendar(mode,key,1,today);
+  const arrow=(n,label,enabled,glyph)=>'<button type="button" data-action="calendar-step" data-key="'+n+'" aria-label="'+e(tr(label))+'" title="'+e(tr(label))+'"'+(enabled?'':' disabled')+'>'+glyph+'</button>';
+  const input='<input type="'+(mode==='month'?'month':'number')+'" data-field="calendarKey" aria-label="'+e(tr('calendarPick'))+'" value="'+e(key)+'" min="'+(mode==='month'?'1900-01':'1900')+'" max="'+e(currentKey(mode,today))+'"'+(mode==='year'?' step="1"':'')+'>';
+  return toggle+'<div class="cfv2-calendar-nav">'+arrow(-1,'calendarPrev',prev,'‹')+input+arrow(1,'calendarNext',next,'›')+'</div>';
+ }
  function snapshot(){
   const uid=adapter.owner();if(uid!==owner)reset(uid);
   if(!uid)return null;
   const source=adapter.read();if(adapter.owner()!==uid||source?.owner!==uid||source.ready!==true||!Array.isArray(source.rows)||source.rows.some(r=>r?.user_id!==uid))return null;
   const codes=[...new Set(['USD',...(source.currencies||[])])].filter(c=>/^[A-Z]{3}$/.test(c));
   if(!codes.includes(currency))currency='USD';
-  const today=adapter.today(),range=dateRange(preset,today,source.earliest,custom),scope={...range,currency,accounts:account?[account]:[],categories:category?[category]:[],originalCurrencies:original?[original]:[]};
+  const today=adapter.today(),range=(calendarKey&&['month','year'].includes(preset)?calendarBounds(preset,calendarKey,today):null)||dateRange(preset,today,source.earliest,custom),scope={...range,currency,accounts:account?[account]:[],categories:category?[category]:[],originalCurrencies:original?[original]:[]};
   const args={rows:source.rows,scope,accountRate:source.accountRate,displayRate:source.displayRate,groupOf:source.groupOf,isLinkedInvestment:source.isLinkedInvestment};
   const movements=summarizeMovements(args),investmentSource=source.investmentSource?.(),investment=investmentReport({owner:uid,source:investmentSource,scope,today});
   const data=summarize(args),prev=summarize({...args,scope:{...scope,...previousRange(range)}}),series=data.complete?trend(data.included,range,grain):[];
@@ -88,13 +113,26 @@ export function mountCashflowV2(root,adapter){
  function analysisPanel(s){const a=s.analytics;if(!a)return empty('missing');return '<div class="cfv2-pair">'+card('accounts',dimension(a.accounts.slice(0,5)),'accounts')+card('currencies',dimension(a.currencies.slice(0,5)),'currencies')+'</div>'+ '<div class="cfv2-pair">'+card('spending','<div class="cfv2-metrics">'+metric('fixed',fmt(a.fixed.fixed))+metric('variable',fmt(a.fixed.variable))+metric('unknown',fmt(a.fixed.unknown))+metric('avgExpense',fmt(a.averageExpense))+metric('individual',fmt(s.data.totals.individual))+metric('personal',fmt(s.data.totals.personal))+'</div>')+card('ranking',rank(a.ranked.slice(0,5)),'ranking')+'</div>'+card('health',healthPanel(s.healthData),'health')}
  function movementPanel(m,detail=false){return '<p class="cfv2-muted">'+e(tr('movementNote'))+'</p><div class="cfv2-list">'+movementKinds.map(k=>{const v=m.groups[k];return '<div><span>'+e(tr(k)+' · '+v.count)+'</span><strong>'+e(detail?tr('inflow')+' '+fmt(v.inflow)+' / '+tr('outflow')+' '+fmt(v.outflow)+' / '+tr('net')+' '+fmt(v.net):fmt(v.net))+'</strong></div>'}).join('')+'</div>'}
  function investmentPanel(m,detail=false){if(!m)return empty('unavailable');return '<p class="cfv2-muted">'+e(tr('investmentNote')+' · '+m.asOf)+'</p>'+m.rows.map(r=>'<section><h2>'+e(tr(r.asset==='Gold'?'goldAsset':'cryptoAsset')+' · '+r.currency)+'</h2><div class="cfv2-metrics">'+metric('periodRealized',fmt(r.periodRealized,r.currency))+(detail?metric('holdingCost',fmt(r.cost,r.currency))+metric('holdingValue',fmt(r.value,r.currency))+metric('realized',fmt(r.realized,r.currency))+metric('unrealized',fmt(r.unreal,r.currency))+metric('lifetimePL',fmt(r.total,r.currency)):'')+'</div></section>').join('')}
+ function kpis(s){
+  const t=s.data.totals;
+  return '<div class="cfv2-metrics cfv2-kpis">'+metric('income',fmt(t.income),'positive')+metric('expense',fmt(t.expense),'negative')+metric('net',fmt(t.net),safeNum(t.net)&&t.net>=0?'positive':'negative')+metric('savings',pct(t.savingsRate),safeNum(t.savingsRate)&&t.savingsRate>=0?'positive':'')+'</div>';
+ }
+ function comparePanel(s){
+  if(!s.data.complete||!s.prev.complete)return empty('missing');
+  const rows=[['income','income'],['expense','expense'],['net','net'],['savings','savingsRate']];
+  return '<p class="cfv2-muted">'+e(tr('priorNote')+' · '+previousRange(s.range).start+' – '+previousRange(s.range).end+(!s.prev.included.length?' · '+tr('noPrior'):''))+'</p><div class="cfv2-report-table"><table><thead><tr>'+['metric','selectedPeriod','previous','delta'].map(k=>'<th>'+e(tr(k))+'</th>').join('')+'</tr></thead><tbody>'+rows.map(([label,key])=>{const f=key==='savingsRate'?pct:fmt,hasPrior=s.prev.included.length>0,delta=s.comparison[key].delta;return '<tr><td>'+e(tr(label))+'</td><td>'+e(f(s.data.totals[key]))+'</td><td>'+e(hasPrior?f(s.prev.totals[key]):'—')+'</td><td>'+e(!hasPrior||!safeNum(delta)?'—':key==='savingsRate'?(delta*100).toFixed(1)+' '+tr('percentagePoints'):fmt(delta))+'</td></tr>'}).join('')+'</tbody></table></div>';
+ }
  function summary(s){
-  const {data,prev,series,bal}=s,t=data.totals,p=prev.totals,point=series.find(x=>x.key===selected);
-  const compare=s.data.complete&&s.prev.complete?'<div class="cfv2-muted">'+e(tr('priorNote'))+' · '+['income','expense','net','savingsRate'].map(k=>e(tr(k==='savingsRate'?'savings':k)+' '+(k==='savingsRate'?pct(s.comparison[k].delta):fmt(s.comparison[k].delta)))).join(' · ')+'</div>':'';
+  const {data,series}=s,point=series.find(x=>x.key===selected);
   const notice=data.complete?'':'<p role="status" class="cfv2-warning">'+e(tr('missing'))+' ('+data.issues.length+')</p>'+card('original','<div class="cfv2-list">'+data.original.map(x=>'<div><span>'+e(x.currency)+'</span><strong>'+e(fmt(x.income,x.currency)+' / '+fmt(x.expense,x.currency))+'</strong></div>').join('')+'</div>');
-  return notice+'<div class="cfv2-metrics">'+metric('income',fmt(t.income),'positive')+metric('expense',fmt(t.expense),'negative')+metric('net',fmt(t.net),t.net>=0?'positive':'negative')+metric('savings',pct(t.savingsRate))+'</div>'+compare+
-   card('trend',select('grain',['day','month','quarter','year'].map(k=>[k,tr(k==='day'?k:k+'Group')]),grain,'period')+chart(series)+(point?'<p>'+e(point.key+' · '+tr('income')+' '+fmt(point.income)+' · '+tr('expense')+' '+fmt(point.expense)+' · '+tr('net')+' '+fmt(point.net)+' · '+pct(point.savingsRate))+'</p>':''),'trend','details')+
-   '<div class="cfv2-pair">'+card('sources',items(data.incomeSources),'sources')+card('categories',categoryBars(s.analytics?.categories),'categories')+'</div>'+analysisPanel(s) +card('movements',movementPanel(s.movements),'movements')+card('investmentReport',investmentPanel(s.investment),'investmentReport')+
+  const legend='<div class="cfv2-legend"><span>'+e(tr('incomeLegend'))+'</span><span>'+e(tr('expenseLegend'))+'</span></div>';
+  const trendBody='<div class="cfv2-chart-head">'+select('grain',['day','week','month','quarter','year'].map(k=>[k,tr(k==='week'?'weekly':k==='day'?k:k+'Group')]),grain,'period')+legend+'</div>'+chart(series)+(point?'<p class="cfv2-muted">'+e(point.key+' · '+tr('income')+' '+fmt(point.income)+' · '+tr('expense')+' '+fmt(point.expense)+' · '+tr('net')+' '+fmt(point.net))+'</p>':'');
+  return notice+'<div class="cfv2-overview-grid">'+card('trend',trendBody,'trend','details')+card('categories',categoryBars(s.analytics?.categories),'categories')+'</div>'+card('periodDetail',series.length?'<div class="cfv2-report-table"><table><thead><tr>'+['period','incomeLegend','expenseLegend','net'].map(k=>'<th>'+e(tr(k))+'</th>').join('')+'</tr></thead><tbody>'+series.map(r=>'<tr><td>'+e(r.key)+'</td><td>'+e(fmt(r.income))+'</td><td>'+e(fmt(r.expense))+'</td><td>'+e(fmt(r.net))+'</td></tr>').join('')+'</tbody></table></div>':empty(data.complete?'noData':'missing'));
+ }
+ function analysisPage(s){
+  const bal=s.bal;
+  return (s.data.complete?'':'<p role="status" class="cfv2-warning">'+e(tr('missing'))+'</p>')+'<div class="cfv2-overview-grid">'+card('comparison',comparePanel(s))+card('sources',items(s.data.incomeSources),'sources')+'</div>'+analysisPanel(s)+
+   '<div class="cfv2-pair">'+card('movements',movementPanel(s.movements),'movements')+card('investmentReport',investmentPanel(s.investment),'investmentReport')+'</div>'+
    card('balance','<div class="cfv2-metrics">'+metric('opening',fmt(bal.opening))+metric('closing',fmt(bal.closing))+metric('change',fmt(bal.change))+metric('other',fmt(bal.nonCashflowChange))+'</div>'+metric('current',fmt(s.currentAssets)),'balance','history');
  }
  function planContext(s){
@@ -139,10 +177,13 @@ export function mountCashflowV2(root,adapter){
   last=null;let s;try{s=snapshot()}catch{s=null}
   if(!s){opener=null;paintedDialog='';root.innerHTML='<div class="cfv2"><p role="status">'+e(tr('unavailable'))+'</p></div>';return}
   last=s;const opts=(a)=>[['',tr('all')],...(a||[]).map(v=>[String(v),String(v)])];
-  const nav='<header class="cfv2-top"><div role="group" class="cfv2-tabs">'+(adapter.releaseReadOnly?['summary']:['summary','planning']).map(k=>'<button type="button" data-action="tab" data-key="'+k+'" aria-pressed="'+(tab===k)+'">'+e(tr(k))+'</button>').join('')+'</div>'+(tab==='summary'?btn('report','report'):'')+'</header>';
-  const controls='<div class="cfv2-filters">'+select('currency',s.codes.map(c=>[c,c]),currency,'currency')+(tab==='summary'?select('preset',presets.map(k=>[k,tr(k==='all'?'allTime':k)]),preset,'period')+select('account',opts(s.source.accounts),account,'account')+select('category',opts(s.source.categories),category,'category')+select('original',opts(s.codes),original,'original'):'')+'</div>';
-  const customFields=tab==='summary'&&preset==='custom'?'<form data-cfv2-range><input type="date" name="start" aria-label="'+e(tr('start'))+'" value="'+e(custom.start)+'" required><input type="date" name="end" aria-label="'+e(tr('end'))+'" value="'+e(custom.end)+'" required><button>'+e(tr('apply'))+'</button></form>':'';
-  root.innerHTML='<div class="cfv2">'+nav+controls+customFields+(tab==='summary'?'<p class="cfv2-muted">'+e(s.range.start+' – '+s.range.end)+'</p>'+summary(s):planning(s))+modal(s)+'</div>';
+  const isFlow=tab!=='planning';
+  const filters=select('preset',presets.map(k=>[k,tr(k==='all'?'allTime':k)]),preset,'period')+select('account',opts(s.source.accounts),account,'account')+select('category',opts(s.source.categories),category,'category')+select('original',opts(s.codes),original,'original');
+  const controls='<div class="cfv2-filters">'+select('currency',s.codes.map(c=>[c,c]),currency,'currency')+(isFlow?calendarControls()+'<button type="button" data-action="filters" aria-expanded="'+filtersOpen+'" aria-controls="cfv2-advanced-filters">'+e(tr('filters'))+([account,category,original].filter(Boolean).length?' ('+[account,category,original].filter(Boolean).length+')':'')+'</button>':'')+'</div>';
+  const heading='<div class="cfv2-title"><div><h1>'+e(tr('cashflow'))+'</h1><p class="cfv2-muted">'+e(tr('overviewNote'))+'</p></div>'+controls+'</div>';
+  const nav='<header class="cfv2-top"><div role="group" class="cfv2-tabs">'+(adapter.releaseReadOnly?['summary','analysis']:['summary','analysis','planning']).map(k=>'<button type="button" data-action="tab" data-key="'+k+'" aria-pressed="'+(tab===k)+'">'+e(tr(k==='summary'?'cashflow':k))+'</button>').join('')+'</div>'+(isFlow?btn('report','report'):'')+'</header>';
+  const customFields=isFlow&&preset==='custom'?'<form data-cfv2-range><input type="date" name="start" aria-label="'+e(tr('start'))+'" value="'+e(custom.start)+'" required><input type="date" name="end" aria-label="'+e(tr('end'))+'" value="'+e(custom.end)+'" required><button>'+e(tr('apply'))+'</button></form>':'';
+  root.innerHTML='<div class="cfv2">'+heading+nav+(isFlow?'<div id="cfv2-advanced-filters" class="cfv2-filters" '+(filtersOpen?'':'hidden')+'>'+filters+'</div>'+customFields+'<p class="cfv2-muted cfv2-range">'+e(s.range.start+' – '+s.range.end)+'</p>'+kpis(s)+(tab==='summary'?summary(s):analysisPage(s)):planning(s))+modal(s)+'</div>';
   enhanceCurrencies(root,adapter.releaseReadOnly?null:win.MMHCurrencyPickerV3,{labelFor:select=>tr(select.dataset.field==='original'?'original':'currency'),canChange:()=>adapter.owner()===owner&&last?.source.isCurrent?.()!==false});
   const d=root.querySelector('[data-cfv2-dialog]');if(d){d.addEventListener('cancel',ev=>{ev.preventDefault();dialog='';paint()},{once:true});d.showModal();if(priorOwner===owner&&priorDialog===dialog){d.querySelector('.cfv2-dialog-body').scrollTop=priorScroll}}else if(priorDialog&&priorOwner===owner){restoreAction(root,opener);opener=null}paintedDialog=dialog;
  }
@@ -152,7 +193,7 @@ export function mountCashflowV2(root,adapter){
  }
  function click(ev){
   const b=ev.target.closest('[data-action]');if(!b||!root.contains(b)||adapter.owner()!==owner){if(adapter.owner()!==owner)paint();return}
-  const a=b.dataset.action,k=b.dataset.key;if(!dialog&&a!=='tab'&&a!=='point')opener=actionIdentity(b);
+  const a=b.dataset.action,k=b.dataset.key;if(!dialog&&!['tab','point','filters','calendar-mode','calendar-step'].includes(a))opener=actionIdentity(b);
   if(a.startsWith('plan-')&&last?.planModel){
    planError=false;
    if(['plan-forecast','plan-budget','plan-goals','plan-recurring','plan-trend'].includes(a)){dialog=a;planEdit=null;planConfirm=''}
@@ -168,12 +209,12 @@ export function mountCashflowV2(root,adapter){
    }
    paint();return;
   }
-  if(a==='tab'){tab=k;dialog=''}else if(a==='point'){selected=k}else if(a==='close'){dialog=''}else if(a==='export-report'){download(k);return}else if(['forecast','budget','goals','recurring'].includes(a)&&adapter.openModule){adapter.openModule(a);return}else dialog=a;
+  if(a==='calendar-mode'&&['month','year'].includes(k)){preset=k;calendarKey='';grain=k==='month'?'week':'month';selected=''}else if(a==='calendar-step'&&['month','year'].includes(preset)&&['-1','1'].includes(k)){const today=adapter.today(),next=stepCalendar(preset,calendarKey||currentKey(preset,today),Number(k),today);if(next)calendarKey=next;selected=''}else if(a==='filters'){filtersOpen=!filtersOpen}else if(a==='tab'){tab=k;dialog=''}else if(a==='point'){selected=k}else if(a==='close'){dialog=''}else if(a==='export-report'){download(k);return}else if(['forecast','budget','goals','recurring'].includes(a)&&adapter.openModule){adapter.openModule(a);return}else dialog=a;
   paint();
  }
  function change(ev){
   if(adapter.owner()!==owner||last?.source.isCurrent?.()===false){paint();return}const f=ev.target.dataset.field,v=ev.target.value;if(!f)return;
-  if(f==='currency')currency=v;else if(f==='preset'){preset=v;if(v==='custom')custom=last?.range||dateRange('month',adapter.today())}
+  if(f==='currency')currency=v;else if(f==='calendarKey'){if(calendarBounds(preset,v,adapter.today()))calendarKey=v}else if(f==='preset'){calendarKey='';preset=v;grain=['today','week'].includes(v)?'day':['month','lastMonth'].includes(v)?'week':'month';if(v==='custom')custom=last?.range||dateRange('month',adapter.today())}
   else if(f==='planHorizon'||f==='planPreset'){const n=Number(v);if(Number.isInteger(n)&&n>=1&&n<=240)horizon=n}else if(f==='planGrain')planGrain=v;else if(f==='budgetPeriod'){budgetPeriod=v;budgetKey=''}else if(f==='budgetKey'){if(planKit.bounds(budgetPeriod,v))budgetKey=v}else if(f==='grain')grain=v;else if(f==='account')account=v;else if(f==='category')category=v;else if(f==='original')original=v;else if(f==='horizon')horizon=Number(v);else if(f==='largeThreshold')largeThreshold=v;else if(f==='reportType'){reportType=v;exportError=''}else if(f.startsWith('report-')){reportSelection={...reportSelection,[f.slice(7)]:v};exportError=''}selected='';paint();
  }
  function savePlan(s,next){
