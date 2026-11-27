@@ -1,0 +1,25 @@
+name: Personal Investment isolated visual QA (NO DEPLOY)
+on:
+  push:
+    branches: ['personal/v2.0.60-investment-accents']
+    paths: ['css/mmhvault-invest-workspace-v2.css','tests/personal-investment-accents.mjs','.github/workflows/personal-investment-accents.yml']
+  pull_request:
+    branches: [main]
+    paths: ['css/mmhvault-invest-workspace-v2.css','tests/personal-investment-accents.mjs','.github/workflows/personal-investment-accents.yml']
+permissions:
+  contents: read
+jobs:
+  synthetic-browser:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: node --check tests/personal-investment-accents.mjs
+      - run: npm install --no-save --package-lock=false --ignore-scripts playwright@1.51.1
+      - run: npx playwright install --with-deps chromium
+      - run: node tests/personal-investment-accents.mjs
