@@ -20383,45 +20383,75 @@ html body #invest .invest-subtabs-v371{display:grid!important;grid-template-colu
  }
  function setupGuide(){
   if(!picker||I('mmhInvestGuideV231'))return;
-  const button=document.createElement('button');button.type='button';button.id='mmhInvestGuideV231';button.textContent='?';button.setAttribute('aria-haspopup','dialog');button.setAttribute('aria-controls','mmhInvestGuideDialogV231');picker.append(button);
-  const dialog=document.createElement('dialog');dialog.id='mmhInvestGuideDialogV231';dialog.setAttribute('aria-labelledby','mmhInvestGuideTitleV231');
-  dialog.innerHTML='<div class="mmh-onboard-head-v1"><b id="mmhIGBrandV233" class="mmh-onboard-brand-v1"></b><button type="button" id="mmhIGCloseV233">×</button></div><div id="mmhIGProgressV233" class="mmh-onboard-step-v1" aria-live="polite"></div><div id="mmhIGDotsV233" class="mmh-onboard-dotrow-v1" aria-hidden="true"></div><h2 id="mmhInvestGuideTitleV231"></h2><p id="mmhInvestGuideIntroV231"></p><p id="mmhIGNoteV233" class="mmh-onboard-note-v1"></p><div class="mmh-onboard-actions-v1"><button type="button" id="mmhIGSkipV233"></button><button type="button" id="mmhIGBackV233"></button><button type="button" id="mmhIGOpenV233"></button><button type="button" id="mmhIGNextV233" class="is-primary" autofocus></button></div>';
-  root.append(dialog);
+  const doc=document,make=(tag,cls,txt)=>{const el=doc.createElement(tag);if(cls)el.className=cls;if(txt!=null)el.textContent=txt;return el;};
+  const button=make('button','','?');button.type='button';button.id='mmhInvestGuideV231';button.setAttribute('aria-haspopup','dialog');button.setAttribute('aria-controls','mmhInvestCoachV234');picker.append(button);
+  // UI-only recording tutorial; never calls a submit, save, upload or delete handler.
   const steps=[
-   ['Welcome','欢迎使用','Learn how to organize and review investment records. You can complete this guide without adding any data.','一步步了解如何整理和查看投资记录；无需新增任何数据即可完成教程。'],
-   ['1 · Investment Types','1 · 投资类型','Open Investment Types & Assets. Review the existing types. If you need your own type, enter a name in the first section and use Add Type only if you intend to create it.','打开 Investment Types & Assets，查看已有类型。需要自定义类型时，在第一区输入名称，确认需要创建才点击 Add Type。','manage','mmhTypeNameV1'],
-   ['2 · Assets','2 · 资产','In the second section, choose an existing type and review its assets. Add an asset name only if it is missing and you want to create it.','在第二区选择已有类型，查看对应资产。仅在确实缺少且需要创建时填写资产名称并添加。','manage','mmhAssetNameV1'],
-   ['3 · Buy record','3 · 买入记录','Buy records a purchase that has already happened. Review the type, asset, source account, date, amount, costs and purchase-day price fields. Quantity is calculated by the existing form.','Buy 用于记录已经发生的买入。认识类型、资产、来源账户、日期、金额、费用及买入日价格字段；数量由现有表单计算。','add','mmhAddInvestmentModeV193','BUY'],
-   ['4 · Sell record','4 · 卖出记录','Sell is for recording a completed sale. Review the asset, account, proceeds, quantity and existing holdings warnings. This guide does not execute any trade.','Sell 用于记录已经发生的卖出。查看资产、账户、收入金额、数量及现有持仓提示；教程不会执行任何交易。','add','mmhAddSellModeV231','SELL'],
-   ['5 · Transfer record','5 · 转账记录','Transfer records existing wallet activity. Review the source and destination, amount and fee fields, and check the preview. Transfer editing remains unavailable.','Transfer 用于记录已经发生的钱包活动。查看转出与转入、金额、费用及预览；转账编辑暂未开放。','add','mmhAddWalletModeV193','wallet'],
-   ['6 · Receipt attachment','6 · 凭证附件','The receipt is optional. Review the supported file formats and size limit. Attach proof only when you intend to save a real record; no attachment is required for this guide.','凭证附件为选填。查看支持的格式和大小限制；仅在确实要保存真实记录时选择凭证，教程无需上传附件。','add','investmentReceiptDropzoneV3300','BUY'],
-   ['7 · Overview and records','7 · 概览与记录','Overview shows recorded holdings; the Records icon opens history. Review existing records and available detail or edit actions. Delete All and Transfer editing remain restricted.','Overview 查看已记录的持仓，记录图标打开历史记录。查看已有记录及可用的详情或编辑功能；全部删除和转账编辑仍受限制。','portfolio','mmhUnifiedHistoryV1'],
-   ['All done','教程完成','You can return to Overview or restart this guide with the Help button. No record was created by this tutorial.','您可以返回 Overview 或通过帮助按钮重新打开教程。本教程没有创建任何记录。','overview','investSubOverviewV371']
+   ['Welcome','欢迎使用','Learn to organize and review existing records on the real page. No new record is required.','在真实页面逐步学习整理与查看已有记录，无需新增任何数据。'],
+   ['Investment Types & Assets','投资类型与资产','Review the existing types. Select the highlighted name field to see where a custom type would be entered. You can leave it empty.','先查看已有类型，再点击高亮的名称框认识填写位置，可以留空。','manage','mmhTypeNameV1'],
+   ['Choose a type','选择类型','Open the highlighted type selector in Assets to inspect the existing options.','点击资产区域高亮的类型选择器，查看已有选项。','manage','mmhAssetTypeV1'],
+   ['Asset name','资产名称','This is where an asset name would be entered. Existing assets can be used without creating anything.','这里是资产名称输入框，已有资产时无需新增。','manage','mmhAssetNameV1'],
+   ['Buy record','买入记录','This tab records a purchase that has already occurred. Select the highlighted Buy tab if needed.','此页仅用于记录已经发生的买入。可点击高亮的 Buy 标签。','add','mmhAddInvestmentModeV193','buy'],
+   ['Record date','记录日期','Tap the date field to see where the date of an existing record is entered.','点击日期框，认识已发生记录的日期填写位置。','add','invDate','buy'],
+   ['Asset type','资产类型','Inspect the type selector for the existing record.','查看已有记录对应的类型选择器。','add','invAsset','buy'],
+   ['Asset identifier','资产名称','The symbol field identifies the asset in the existing record. No sample value is needed.','名称框用于识别已有记录中的资产，无需填写示例。','add','invSymbol','buy'],
+   ['Source account','来源账户','Inspect the account selector. The guide does not create or change accounts.','认识来源账户选择器；教程不会创建或修改账户。','add','invSource','buy'],
+   ['Amount','金额','This field is for the amount on the existing record. You can continue without entering a value.','此处记录已发生的金额，可以留空继续。','add','invAmount','buy'],
+   ['Historical price','历史价格','This is the historical price field used by the record form. No price lookup or trade is required.','这是记录表单的历史价格字段，无需查询价格或进行交易。','add','invBuy','buy'],
+   ['Receipt','凭证附件','An attachment is optional. Review this area without uploading a file.','附件为选填，查看区域即可，无需上传文件。','add','investmentReceiptDropzoneV3300','buy'],
+   ['Sell record','卖出记录','The Sell tab displays the form for an existing sale record. Nothing is executed by switching tabs.','Sell 标签显示已发生卖出的记录表单，切换标签不会执行交易。','add','mmhAddSellModeV231','sell'],
+   ['Sale record fields','卖出记录字段','Locate the amount field on the existing sale record form. Review the form warnings without submitting.','定位已发生卖出记录的金额框，查看表单提示，无需提交。','add','invAmount','sell'],
+   ['Transfer record','转账记录','The Transfer tab displays the existing wallet record form. No transfer is executed.','Transfer 标签显示钱包活动记录表单，不会实际转账。','add','mmhAddWalletModeV193','wallet'],
+   ['Source field','转出字段','Review where the source of an existing wallet record is identified.','查看已有钱包记录的转出信息填写位置。','add','mmhWalletFromV172','wallet'],
+   ['Destination field','转入字段','Review the destination field. No information needs to be entered.','查看转入字段，无需填写信息。','add','mmhWalletToV172','wallet'],
+   ['Record preview','记录预览','Inspect the existing preview area. Do not save a practice record.','认识现有预览区域，无需保存练习记录。','add','mmhWalletPreviewV172','wallet'],
+   ['Overview','概览','Review the Overview page and existing recorded holdings.','查看 Overview 以及已有记录的持仓。','overview','mmhUnifiedKpisV1'],
+   ['Records','历史记录','Review the records list and existing detail actions. Transfer editing and Delete All remain restricted.','查看记录列表与已有详情操作；转账编辑及全部删除仍受限制。','portfolio','mmhUnifiedHistoryV1'],
+   ['All done','教程完成','You have reviewed the main record screens. The guide has not submitted any data.','已经认识主要记录页面，教程未提交任何数据。','overview','investSubOverviewV371']
   ];
-  let step=0,returnTarget=null;
-  const render=()=>{
-   const [en,zh,copy,cn,route]=steps[step];
-   I('mmhIGBrandV233').textContent=L('MMHVAULT · QUICK GUIDE','MMHVAULT · 新手引导');
-   I('mmhIGProgressV233').textContent=L('STEP '+(step+1)+' OF '+steps.length,'步骤 '+(step+1)+' / '+steps.length);
-   const dots=I('mmhIGDotsV233');dots.replaceChildren();for(let j=0;j<steps.length;j++){const dot=document.createElement('span');dot.className='mmh-onboard-dot-v1'+(j<=step?' is-done':'');dots.append(dot);}
-   I('mmhInvestGuideTitleV231').textContent=L(en,zh);I('mmhInvestGuideIntroV231').textContent=L(copy,cn);
-   I('mmhIGNoteV233').textContent=L('Navigation only. No automatic save, upload or deletion. Reopen ? to resume this session.','仅引导页面操作，不自动保存、上传或删除。重新点击 ? 可继续本次教程。');
-   I('mmhIGCloseV233').setAttribute('aria-label',L('Close guide','关闭教程'));I('mmhIGSkipV233').textContent=L('Skip guide','跳过教程');I('mmhIGBackV233').textContent=L('Back','上一步');I('mmhIGBackV233').disabled=step===0;
-   I('mmhIGOpenV233').hidden=!route;I('mmhIGOpenV233').textContent=L('Open page','打开页面');
-   I('mmhIGNextV233').textContent=step===steps.length-1?L('Finish','完成'):step===0?L('Start guide','开始教程'):L('Continue','下一步');
+  let step=0,stage=null,card=null,halo=null,frame=0,observer=null,seen=false,owner='',resumeOwner='';
+  const currentOwner=()=>{try{return String(currentSessionUser?.id||'')}catch(_){return ''}};
+  const active=()=>root.isConnected&&root.classList.contains('active')&&currentOwner()===owner;
+  const visible=el=>!!(el?.isConnected&&el.getClientRects().length&&el.getBoundingClientRect().width>0&&el.getBoundingClientRect().height>0);
+  const target=()=>{const id=steps[step][5],el=id&&I(id);if(!el)return null;
+   if(el.tagName==='SELECT'){const t=el.parentElement?.querySelector('button.mmh-shared-trigger-v217');if(visible(t))return t;}
+   return visible(el)?el:null;
   };
-  button.addEventListener('click',()=>{render();if(!dialog.open)dialog.showModal();});
-  I('mmhIGBackV233').addEventListener('click',()=>{if(step>0){step--;render();}});
-  I('mmhIGNextV233').addEventListener('click',()=>{if(step<steps.length-1){step++;render();}else{step=0;dialog.close();}});
-  I('mmhIGSkipV233').addEventListener('click',()=>{step=0;dialog.close();});
-  I('mmhIGCloseV233').addEventListener('click',()=>dialog.close());
-  I('mmhIGOpenV233').addEventListener('click',()=>{
-   const route=steps[step][4],target=steps[step][5],mode=steps[step][6];if(!route)return;
-   returnTarget=target;dialog.close();select(route);
-   if(mode==='wallet')setAddMode('wallet');else if(mode==='BUY'||mode==='SELL')setAddMode(mode.toLowerCase());
-  });
-  dialog.addEventListener('keydown',e=>{if(e.key==='Escape'){e.preventDefault();e.stopPropagation();dialog.close();}});
-  dialog.addEventListener('close',()=>{const target=returnTarget;returnTarget=null;requestAnimationFrame(()=>{const el=target?I(target):button;if(el&&el.getClientRects().length){el.scrollIntoView({block:'nearest'});if(el.matches('button,input,select,textarea,[tabindex]'))el.focus({preventScroll:true});else button.focus({preventScroll:true});}else button.focus({preventScroll:true});});});
+  const action=(label,fn,primary=false)=>{const b=make('button','mmh-onboard-cta-v1'+(primary?' is-primary':''),label);b.type='button';b.addEventListener('click',fn);return b;};
+  const close=(reset=false,focus=true)=>{if(frame)cancelAnimationFrame(frame);frame=0;observer?.disconnect();observer=null;stage?.remove();stage=card=halo=null;owner='';if(reset)step=0;if(focus&&visible(button))button.focus({preventScroll:true});};
+  const place=()=>{frame=0;if(!stage)return;if(!active()){close(true,false);return;}
+   const t=target(),r=t?.getBoundingClientRect(),vv=window.visualViewport,vl=vv?.offsetLeft||0,vt=vv?.offsetTop||0,vr=vl+(vv?.width||innerWidth),vb=vt+(vv?.height||innerHeight),bounds=window.MMHWorkspaceDialogBoundsV2?.(null);
+   const left=Math.max(vl+8,bounds?.left||0),right=Math.min(vr-8,bounds?.right||vr),top=Math.max(vt+8,bounds?.top||0),bottom=Math.min(vb-8,bounds?.bottom||vb);
+   if(right<=left||bottom<=top)return;
+   const dim=stage.firstElementChild;Object.assign(dim.style,{left:left+'px',right:Math.max(0,innerWidth-right)+'px',top:top+'px',bottom:Math.max(0,innerHeight-bottom)+'px'});
+   const on=!!(r&&r.bottom>top&&r.top<bottom&&r.right>left&&r.left<right);halo.hidden=!on;
+   if(on){const x=Math.max(left,r.left-4),y=Math.max(top,r.top-4);Object.assign(halo.style,{width:Math.max(1,Math.min(right,r.right+4)-x)+'px',height:Math.max(1,Math.min(bottom,r.bottom+4)-y)+'px',transform:'translate('+x+'px,'+y+'px)'});}
+   const w=Math.min(390,right-left),maxH=bottom-top;card.style.width=w+'px';card.style.maxHeight=maxH+'px';const h=card.offsetHeight,clamp=(v,min,max)=>Math.max(min,Math.min(max,v));
+   let x=left+(right-left-w)/2,y=top+(maxH-h)/2;
+   if(on){const candidates=[{x:r.right+12,y:r.top},{x:r.left-w-12,y:r.top},{x:r.left,y:r.bottom+12},{x:r.left,y:r.top-h-12}].map(p=>({x:clamp(p.x,left,right-w),y:clamp(p.y,top,bottom-h)}));const overlap=p=>Math.max(0,Math.min(p.x+w,r.right)-Math.max(p.x,r.left))*Math.max(0,Math.min(p.y+h,r.bottom)-Math.max(p.y,r.top));candidates.sort((a,b)=>overlap(a)-overlap(b));({x,y}=candidates[0]);}
+   Object.assign(card.style,{left:clamp(x,left,right-w)+'px',right:'auto',top:clamp(y,top,bottom-h)+'px',bottom:'auto'});
+  };
+  const schedule=()=>{if(stage&&!frame)frame=requestAnimationFrame(place);};
+  const locate=()=>{const t=target();if(t)t.scrollIntoView({block:'center',inline:'nearest',behavior:'auto'});schedule();};
+  const render=()=>{if(!stage)return;const [en,zh,copy,cn,route]=steps[step];card.replaceChildren();
+   const head=make('div','mmh-onboard-head-v1'),brand=make('div','mmh-onboard-brand-v1');brand.append(make('span','mmh-onboard-logo-v1','?'),make('span','',L('MMHVAULT · QUICK GUIDE','MMHVAULT · 新手引导')));
+   const closeBtn=action('×',()=>close());closeBtn.className='mmh-onboard-close-v1';closeBtn.setAttribute('aria-label',L('Close guide','关闭教程'));head.append(brand,closeBtn);card.append(head);
+   const progress=make('div','mmh-onboard-step-v1');progress.append(make('span','',L('STEP '+(step+1)+' OF '+steps.length,'步骤 '+(step+1)+' / '+steps.length)),make('span','',Math.round((step+1)/steps.length*100)+'%'));card.append(progress,make('h2','mmh-onboard-title-v1',L(en,zh)),make('p','mmh-onboard-copy-v1',L(copy,cn)));
+   const note=make('div','mmh-onboard-note-v1',route?L('Use the highlighted control on the real page, or continue without editing.','可直接操作页面中高亮的控件，也可不修改内容继续。'):L('No automatic save, upload or deletion.','不会自动保存、上传或删除。'));note.setAttribute('aria-live','polite');note.id='mmhInvestCoachNoteV234';card.append(note);
+   const dots=make('div','mmh-onboard-dotrow-v1');dots.setAttribute('aria-hidden','true');for(let i=0;i<steps.length;i++)dots.append(make('span','mmh-onboard-dot-v1'+(i<=step?' is-done':'')));card.append(dots);
+   const footer=make('div','mmh-onboard-actions-v1');if(step>0)footer.append(action(L('Back','上一步'),()=>go(step-1)));footer.append(action(L('Skip guide','跳过教程'),()=>close(true)));
+   if(route)footer.append(action(L('Locate field','定位控件'),()=>{const t=target();if(!t){openRoute();}else locate();}));
+   footer.append(action(step===steps.length-1?L('Finish','完成'):step===0?L('Start guide','开始教程'):L('Continue','下一步'),()=>step===steps.length-1?close(true):go(step+1),true));card.append(footer);schedule();
+  };
+  function openRoute(){const [, , , ,route,,mode]=steps[step];if(route){if(I('mmhFive'+route)?.hidden)select(route);if(mode){const modeButton=I(mode==='buy'?'mmhAddInvestmentModeV193':mode==='sell'?'mmhAddSellModeV231':'mmhAddWalletModeV193');if(modeButton?.getAttribute('aria-selected')!=='true')setAddMode(mode);}}requestAnimationFrame(()=>{if(stage)locate()});}
+  function go(next){if(!stage||!active())return;step=Math.max(0,Math.min(steps.length-1,next));seen=false;openRoute();render();}
+  function open(){if(stage){close();return;}owner=currentOwner();if(!owner||!active())return;if(resumeOwner!==owner){step=0;resumeOwner=owner;}stage=make('div','mmh-onboard-stage-v1');stage.id='mmhInvestCoachV234';stage.append(make('div','mmh-onboard-dim-v1'));halo=make('div','mmh-onboard-halo-v1');halo.hidden=true;stage.append(halo);card=make('section','mmh-onboard-card-v1');card.tabIndex=-1;card.setAttribute('role','dialog');card.setAttribute('aria-label',L('Investment guide','投资操作引导'));stage.append(card);doc.body.append(stage);observer=new MutationObserver(schedule);observer.observe(root,{attributes:true,attributeFilter:['class','hidden','style'],subtree:true,childList:true});go(step);card.focus({preventScroll:true});}
+  button.addEventListener('click',open);
+  doc.addEventListener('keydown',e=>{if(stage&&e.key==='Escape'&&!e.defaultPrevented){e.preventDefault();close();}});
+  doc.addEventListener('scroll',schedule,true);window.addEventListener('resize',schedule);window.visualViewport?.addEventListener('resize',schedule);window.visualViewport?.addEventListener('scroll',schedule);
+  // A real interaction updates the instruction; navigation never dispatches a submit.
+  function acknowledge(e){if(!stage||!active()||seen)return;const t=target();if(!t||!(t===e.target||t.contains(e.target)))return;seen=true;const n=I('mmhInvestCoachNoteV234');if(n)n.textContent=L('Control located. Continue when ready; no practice record is required.','已定位对应控件，准备好即可继续，无需创建练习记录。');schedule();}
+  root.addEventListener('focusin',acknowledge);root.addEventListener('click',acknowledge);root.addEventListener('change',acknowledge);
  }
  function setup(){
   const menu=root.querySelector('.invest-subtabs-v371');if(!menu||I('mmhFiveadd'))return;
@@ -39508,21 +39538,28 @@ html body #invest#invest#invest#invest#invest#invest#invest#invest#invest#invest
 html body #invest#invest#invest#invest#invest#invest#invest#invest#invest#invest#invest#invest#invest#invest #mmhInvestCatalogV1 .mmh-catalog-row b{font:600 13px/1.4 var(--mmh-notice-font,system-ui)!important}
 html body #invest#invest#invest#invest#invest#invest#invest#invest#invest#invest#invest#invest#invest#invest #mmhInvestCatalogV1 .mmh-catalog-row small{font:400 12px/1.4 var(--mmh-notice-font,system-ui)!important;color:var(--uv-muted)!important}
 html body #invest#invest#invest#invest#invest#invest#invest#invest#invest#invest#invest#invest#invest#invest #mmhInvestCatalogV1 .mmh-catalog-row button{min-height:34px!important;border-radius:7px!important;font:500 12px/1.4 var(--mmh-notice-font,system-ui)!important}
-html body #invest#invest#invest#invest#invest#invest#invest#invest #mmhInvestGuideDialogV231{width:min(420px,calc(100vw - 24px))!important;max-height:calc(100dvh - 24px)!important;padding:16px!important;font:400 13px/1.5 var(--mmh-notice-font,system-ui)!important;overflow:auto!important;overscroll-behavior:contain!important}
-html body #invest#invest#invest#invest#invest#invest#invest#invest #mmhInvestGuideDialogV231 h2{font:600 17px/1.4 var(--mmh-notice-font,system-ui)!important}
-html body #invest#invest#invest#invest#invest#invest#invest#invest #mmhInvestGuideDialogV231 .mmh-onboard-actions-v1 button,html body #invest#invest#invest#invest#invest#invest#invest#invest #mmhInvestGuideDialogV231 #mmhIGCloseV233{display:inline-flex!important;align-items:center!important;justify-content:center!important;margin:0!important;min-height:36px!important;padding:7px 10px!important;border:1px solid var(--uv-line)!important;border-radius:7px!important;background:var(--uv-raised)!important;color:var(--uv-text)!important;font:500 12px/1.4 var(--mmh-notice-font,system-ui)!important;box-shadow:none!important}
-html body #invest#invest#invest#invest#invest#invest#invest#invest #mmhInvestGuideDialogV231 #mmhIGOpenV233[hidden]{display:none!important}
-html body #invest#invest#invest#invest#invest#invest#invest#invest #mmhInvestGuideDialogV231 #mmhIGBackV233:disabled{opacity:.45!important;cursor:not-allowed!important}
-html body #invest#invest#invest#invest#invest#invest#invest#invest #mmhInvestGuideDialogV231 #mmhIGNextV233{color:var(--uv-accent)!important;border-color:var(--uv-accent)!important}
-html body #invest#invest#invest#invest#invest#invest#invest#invest #mmhInvestGuideDialogV231 button:focus-visible{outline:2px solid var(--uv-accent)!important;outline-offset:2px!important}
 @media(max-width:620px){
 html body #invest#invest#invest#invest#invest#invest#invest#invest#invest#invest#invest#invest#invest#invest #invForm #investmentReceiptUploadV3300 #investmentReceiptDropzoneV3300{flex-wrap:wrap!important;padding:8px!important}
 html body #invest#invest#invest#invest#invest#invest#invest#invest#invest#invest#invest#invest#invest#invest #invForm #investmentReceiptUploadV3300 .receipt-browse-action-v21{margin-left:auto!important}
 html body #invest#invest#invest#invest#invest#invest#invest#invest#invest#invest#invest#invest#invest#invest #mmhInvestCatalogV1{padding:10px!important}
 html body #invest#invest#invest#invest#invest#invest#invest#invest#invest#invest#invest#invest#invest#invest #mmhInvestCatalogV1 .mmh-catalog-sections{grid-template-columns:minmax(0,1fr)!important}
 html body #invest#invest#invest#invest#invest#invest#invest#invest#invest#invest#invest#invest#invest#invest #mmhInvestCatalogV1 .mmh-catalog-form :is(input,select){font-size:16px!important;min-height:44px!important}
-html body #invest#invest#invest#invest#invest#invest#invest#invest#invest#invest#invest#invest#invest#invest #mmhInvestCatalogV1 .mmh-catalog-form button,html body #invest#invest#invest#invest#invest#invest#invest#invest#invest#invest#invest#invest#invest#invest #mmhInvestCatalogV1 .mmh-catalog-row button,html body #invest#invest#invest#invest#invest#invest#invest#invest #mmhInvestGuideDialogV231 .mmh-onboard-actions-v1 button{min-height:44px!important}
+html body #invest #mmhInvestCatalogV1 .mmh-catalog-form button,html body #invest #mmhInvestCatalogV1 .mmh-catalog-row button{min-height:44px!important}
 }
+
+/* V2.0.34: exact Transaction palette, locally scoped, no legacy glass. */
+html body #invest#invest#invest#invest#invest#invest#invest#invest#invest#invest#invest#invest#invest#invest#invest#invest #mmhInvestCatalogV1{--uv-card:#1c2531;--uv-raised:#273242;--uv-line:#344052;--uv-text:#edf0f6;--uv-muted:#b1b8c5;--uv-accent:#9bb7fb;background:#1c2531!important;background-image:none!important;backdrop-filter:none!important;-webkit-backdrop-filter:none!important;box-shadow:none!important;filter:none!important;opacity:1!important;color:var(--uv-text)!important}
+html body.light #invest#invest#invest#invest#invest#invest#invest#invest#invest#invest#invest#invest#invest#invest#invest#invest #mmhInvestCatalogV1{--uv-card:#fff;--uv-raised:#eef2f8;--uv-line:#d8dfe9;--uv-text:#202a3a;--uv-muted:#576477;--uv-accent:#365fae;background:#fff!important;background-image:none!important}
+html body #invest#invest#invest#invest#invest#invest#invest#invest#invest#invest#invest#invest#invest#invest#invest#invest #mmhInvestCatalogV1::before,html body #invest#invest#invest#invest#invest#invest#invest#invest#invest#invest#invest#invest#invest#invest#invest#invest #mmhInvestCatalogV1::after,html body #invest#invest#invest#invest#invest#invest#invest#invest#invest#invest#invest#invest#invest#invest#invest#invest #mmhInvestCatalogV1 :is(.mmh-catalog-section,.mmh-ui-heading,#mmhCatalogNoticeV1)::before,html body #invest#invest#invest#invest#invest#invest#invest#invest#invest#invest#invest#invest#invest#invest#invest#invest #mmhInvestCatalogV1 :is(.mmh-catalog-section,.mmh-ui-heading,#mmhCatalogNoticeV1)::after{content:none!important;display:none!important}
+html body #invest#invest#invest#invest#invest#invest#invest#invest#invest#invest#invest#invest#invest#invest#invest#invest #mmhInvestCatalogV1 :is(.mmh-catalog-section,.mmh-ui-heading,#mmhCatalogNoticeV1,.mmh-catalog-form input,.mmh-catalog-form select,.mmh-catalog-form button,.mmh-shared-trigger-v217){background-image:none!important;backdrop-filter:none!important;-webkit-backdrop-filter:none!important;box-shadow:none!important}
+html body #invest#invest#invest#invest#invest#invest#invest#invest#invest#invest#invest#invest#invest#invest#invest#invest #mmhInvestCatalogV1 .mmh-catalog-section{background:var(--uv-card)!important;color:var(--uv-text)!important}
+html body #invest#invest#invest#invest#invest#invest#invest#invest#invest#invest#invest#invest#invest#invest#invest#invest #mmhInvestCatalogV1 #mmhCatalogNoticeV1,html body #invest#invest#invest#invest#invest#invest#invest#invest#invest#invest#invest#invest#invest#invest#invest#invest #mmhInvestCatalogV1 .mmh-catalog-form :is(input,select,button),html body #invest#invest#invest#invest#invest#invest#invest#invest#invest#invest#invest#invest#invest#invest#invest#invest #mmhInvestCatalogV1 .mmh-shared-trigger-v217{background:var(--uv-raised)!important;background-image:none!important;border-color:var(--uv-line)!important}
+html body #invest#invest#invest#invest#invest#invest#invest#invest#invest#invest#invest#invest#invest#invest#invest#invest #mmhInvestCatalogV1 .mmh-catalog-form button{color:var(--uv-accent)!important;border-color:var(--uv-accent)!important}
+html body #invest#invest#invest#invest#invest#invest#invest#invest#invest#invest#invest#invest#invest#invest#invest#invest #mmhInvestCatalogV1 .mmh-catalog-form input::placeholder{color:var(--uv-muted)!important}
+html body #invest#invest#invest#invest#invest#invest#invest#invest#invest#invest#invest#invest#invest#invest#invest#invest #mmhInvestCatalogV1 .mmh-catalog-row{color:var(--uv-text)!important;background:transparent!important;background-image:none!important}
+html body #invest#invest#invest#invest#invest#invest#invest#invest#invest#invest#invest#invest#invest#invest#invest#invest #mmhInvestCatalogV1 .mmh-catalog-row :is(small,span){color:var(--uv-muted)!important}
+#mmhInvestCoachV234 .mmh-onboard-dim-v1{opacity:.16}
+#mmhInvestCoachV234 .mmh-onboard-halo-v1{border-width:3px;box-shadow:0 0 0 3px var(--mmh-notice-active)}
 </style>
 </body>
 </html>
