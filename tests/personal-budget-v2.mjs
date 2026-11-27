@@ -34,6 +34,38 @@ for(const lang of ['en','zh','my']){
 }
 const labels=Object.fromEntries(['en','zh','my'].map(lang=>[lang,['MONTHLY BUDGET','SPENT','REMAINING','UTILIZATION','Analyze spending','Transaction history'].map(base=>translator(base,fixtureEl,lang))]));
 try{
+ // Run the actual app text/attribute engine in Chromium, without booting auth,
+ // finance services or the unrelated Invest/Transactions translation surfaces.
+ const actual=(start,end)=>{
+  const a=app.indexOf(start),b=app.indexOf(end,a+start.length);
+  assert.ok(a>=0&&b>a,start);return app.slice(a,b);
+ };
+ const engine=copy[0]+actual('function translateAttributes(root){','function translateDynamicText(base){')+actual('const mmhI18nTextStateV135=new WeakMap();','window.mmhI18nTextV135=')+actual('function walk(root){','function syncLanguageChoices()');
+ const switchPage=await browser.newPage();
+ try{
+  await switchPage.route('**/*',r=>r.abort());
+  await switchPage.setContent('<section id="budget" aria-label="Budget"><h2>Monthly Budget</h2><label>Month<input aria-label="Budget month"></label><div id="progress">145.92% used · ฿ 10,331.11 over budget</div><div class="budget-category-name-v110"><span>Spent</span></div><div class="budget-category-meta-v110"><span>Spent <b>฿ 1,607.00</b></span></div></section>');
+  const results=await switchPage.evaluate(({engine})=>{
+   const run=new Function(engine+`
+    let lang='en';
+    const investCopySurfaceV236=()=>false,txUiSurfaceV2=()=>false;
+    const root=document.querySelector('#budget'),progress=root.querySelector('#progress');
+    const read=()=>({title:root.querySelector('h2').textContent,label:root.getAttribute('aria-label'),month:root.querySelector('input').getAttribute('aria-label'),progress:progress.textContent,category:root.querySelector('.budget-category-name-v110 span').textContent,amount:root.querySelector('.budget-category-meta-v110 b').textContent});
+    const states=[];
+    for(const next of ['en','zh','my','en']){lang=next;translateRoot(root);states.push(read());}
+    lang='zh';translateRoot(root);progress.firstChild.nodeValue='80.00% used · ฿ 4,500.00 remaining';translateRoot(root);states.push(read());
+    lang='my';translateRoot(root);states.push(read());
+    lang='en';translateRoot(root);states.push(read());
+    return states;`);
+   return run();
+  },{engine});
+  assert.equal(results.length,7);
+  for(const [index,lang] of ['en','zh','my','en','zh','my','en'].entries()){
+   const state=results[index],base=index<4?'145.92% used · ฿ 10,331.11 over budget':'80.00% used · ฿ 4,500.00 remaining';
+   assert.deepEqual(state,{title:translator('Monthly Budget',fixtureEl,lang),label:translator('Budget',fixtureEl,lang),month:translator('Budget month',fixtureEl,lang),progress:translator(base,fixtureEl,lang),category:'Spent',amount:'฿ 1,607.00'},`language switch ${index} ${lang}`);
+  }
+  console.log('PASS isolated Budget actual translation-engine switch and dynamic refresh: 7 states');
+ }finally{await switchPage.close();}
  for(const width of [320,393,768,1440])for(const lang of ['en','zh','my'])for(const light of [false,true]){
  const page=await browser.newPage({viewport:{width,height:844}});await page.route('**/*',r=>r.abort());
  await page.setContent('<html lang="'+lang+'"><body class="mmh-workspace-active '+(light?'light':'')+'"><main class="wrap">'+markup.replace('class="page" id="budget"','class="page active" id="budget"')+'</main></body></html>');
