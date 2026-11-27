@@ -7,7 +7,7 @@ import * as planKit from './mmhvault-cashflow-v2-planning.mjs';
 import * as planView from './mmhvault-cashflow-v2-planning-view.mjs';
 import {reportContext} from './mmhvault-cashflow-v2-report-context.mjs';
 import {exportLocal} from './mmhvault-cashflow-v2-report-browser.mjs';
-import {enhanceCurrencies,actionIdentity,restoreAction} from './mmhvault-cashflow-v2-presentation.mjs?v=2.0.39';
+import {enhanceCurrencies,actionIdentity,restoreAction} from './mmhvault-cashflow-v2-presentation.mjs?v=2.0.40';
 import {summarizeMovements,movementKinds} from './mmhvault-cashflow-v2-movements.mjs';
 import {investmentReport} from './mmhvault-cashflow-v2-investment.mjs';
 const D={
@@ -269,12 +269,31 @@ export function mountCashflowV2(root,adapter){
  }
  function submit(ev){if(ev.target.matches('[data-cfv2-plan]')){submitPlan(ev);return}if(!ev.target.matches('[data-cfv2-range]'))return;ev.preventDefault();const f=new win.FormData(ev.target),next={start:f.get('start'),end:f.get('end')};try{dateRange('custom',adapter.today(),null,next);custom=next;paint()}catch{ev.target.querySelector('[name=end]').setCustomValidity(tr('invalid'));ev.target.querySelector('[name=end]').reportValidity();ev.target.querySelector('[name=end]').addEventListener('input',x=>x.target.setCustomValidity(''),{once:true})}}
  const events=['mmhvault-language-change','mmhvault:config-owner-changed','mmhvault:data-state','mmhvault:data-loading','mmhvault:data-error','mmhvault:data-loaded','mmhvault:data-change','mmhvault:exchange-reference-updated','mmhvault:theme-mode-changed','mmhvault:budget-changed'];
+ function closeToolbarFilters(){
+  filtersOpen=false;
+  const panel=root.querySelector('#cfv2-advanced-filters'),button=root.querySelector('[data-action="filters"]');
+  if(panel)panel.hidden=true;
+  if(button)button.setAttribute('aria-expanded','false');
+ }
+ function reconcileToolbar(ev){
+  if(!adapter.releaseReadOnly||disposed)return;
+  const currencyAnchor=root.querySelector('.cfv2-currency-anchor');
+  if(!currencyAnchor)return;
+  const insideCurrency=currencyAnchor.contains(ev.target);
+  const insideFilter=!!ev.target.closest?.('.cfv2-filter-anchor')&&root.contains(ev.target);
+  // The shared listbox is portalled to body. Preserve filter state when using it.
+  const sharedMenu=ev.target.closest?.('#mmhCategoryPickerV2');
+  if(sharedMenu&&root.querySelector('#cfv2-advanced-filters .mmh-shared-trigger-v217[aria-expanded=true]'))return;
+  if(insideCurrency&&filtersOpen)closeToolbarFilters();
+  if(!insideCurrency){const picker=currencyAnchor.querySelector('details[open]');if(picker)picker.open=false}
+  if(!insideCurrency&&!insideFilter&&filtersOpen)closeToolbarFilters();
+ }
  function dismissToolbar(ev){
   if(!adapter.releaseReadOnly||disposed||!root.contains(ev.target))return;
   if(ev.type==='keydown'&&ev.key==='Escape'&&filtersOpen&&!ev.defaultPrevented&&!ev.target.closest('.mmh-shared-trigger-v217')){
    ev.preventDefault();filtersOpen=false;paint();root.querySelector('[data-action="filters"]')?.focus({preventScroll:true});
   }
  }
- root.addEventListener('click',click);root.addEventListener('change',change);root.addEventListener('submit',submit);root.addEventListener('keydown',dismissToolbar);events.forEach(k=>win.addEventListener(k,paint));paint();
- return {refresh:paint,destroy(){disposed=true;last=null;root.removeEventListener('click',click);root.removeEventListener('change',change);root.removeEventListener('submit',submit);root.removeEventListener('keydown',dismissToolbar);events.forEach(k=>win.removeEventListener(k,paint));root.replaceChildren()}};
+ root.addEventListener('click',click);root.addEventListener('change',change);root.addEventListener('submit',submit);root.addEventListener('keydown',dismissToolbar);doc.addEventListener('click',reconcileToolbar,true);events.forEach(k=>win.addEventListener(k,paint));paint();
+ return {refresh:paint,destroy(){disposed=true;last=null;root.removeEventListener('click',click);root.removeEventListener('change',change);root.removeEventListener('submit',submit);root.removeEventListener('keydown',dismissToolbar);doc.removeEventListener('click',reconcileToolbar,true);events.forEach(k=>win.removeEventListener(k,paint));root.replaceChildren()}};
 }

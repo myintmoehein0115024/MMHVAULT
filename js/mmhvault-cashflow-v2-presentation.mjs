@@ -34,7 +34,7 @@ export function enhanceCurrencies(root,api,{labelFor,canChange=()=>true}={}){
    if(select.value!==code){select.value=code;update();select.dispatchEvent(new doc.defaultView.Event('change',{bubbles:true}))}
    if(details.isConnected)summary.focus({preventScroll:true});
   });
-  details.addEventListener('toggle',()=>{if(details.open){search.value='';try{api.render({select,search,list,group,label:title,includeNative:false});list.scrollTop=0;if(details.closest('.cfv2-currency-anchor'))search.focus({preventScroll:true})}catch{host.hidden=false;details.remove()}}});
+  details.addEventListener('toggle',()=>{if(details.open){search.value='';try{api.render({select,search,list,group,label:title,includeNative:false});list.scrollTop=0;/* retain summary focus; search remains the next keyboard target */}catch{host.hidden=false;details.remove()}}});
   details.addEventListener('keydown',event=>{if(event.key==='Escape'&&details.open){event.preventDefault();event.stopPropagation();details.open=false;summary.focus({preventScroll:true})}});
  }
  return count;
