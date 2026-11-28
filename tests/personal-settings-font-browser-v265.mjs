@@ -459,28 +459,29 @@ sys.stdout.buffer.write(data)
    });
    const page=await ctx.newPage();
    await page.goto(origin+'/');
-   const faces=[...lazyCandidates].map(([name])=>'@font-face{font-family:"Candidate-'+name+'";src:url("/fonts/'+name+'.woff2") format("woff2");font-display:swap}').join('');
-   await page.addStyleTag({content:faces+'body{font-family:system-ui,sans-serif}body.mmh-workspace-active:not(.auth-page-active)[data-mmh-personal-font-v265] #text{font-family:var(--mmh-personal-font-v265),sans-serif}'});
-   const setText=locale=>page.locator('#text').evaluate((el,s)=>{el.textContent=s},samples[locale]);
+   const aliases={notosanssc:'MMH Personal Chinese A',notoserifsc:'MMH Personal Chinese B',zcoolqingkehuangyou:'MMH Personal Chinese C',lxgwwenkai:'MMH Personal Chinese D',notosansmyanmar:'MMH Personal Myanmar A',notoserifmyanmar:'MMH Personal Myanmar B',padauk:'MMH Personal Myanmar C',tharlon:'MMH Personal Myanmar D'};
+   // Use actual Settings helper and CSS, not a hand-written font selection implementation.
+   const faces=[...lazyCandidates].map(([name])=>'@font-face{font-family:"'+aliases[name]+'";src:url("/fonts/'+name+'.woff2") format("woff2");font-display:swap}').join('');
+   await page.locator('main').evaluate(el=>{el.id='settings';el.insertAdjacentHTML('afterbegin','<div id="rows"></div>')});
+   await page.addStyleTag({content:faces+'body{font-family:system-ui,sans-serif}'+css});
+   await page.addScriptTag({content:`const $=id=>document.getElementById(id);let owner='a';const store=new Map();const prefOwner=()=>owner;const lsGet=k=>store.get(k)??null;const lsSet=(k,v)=>{store.set(k,v);return true};`+row+helpers+`addFontV265($('rows'));window.fontFixture={owner:id=>{owner=id;dispatchEvent(new Event('mmhvault:config-owner-changed'))},lang:id=>{document.documentElement.lang=id;dispatchEvent(new Event('mmhvault-language-change'))}};`});
+   const setText=async locale=>{await page.evaluate(l=>fontFixture.lang(l),locale);await page.locator('#text').evaluate((el,s)=>{el.textContent=s},samples[locale])};
    const settle=()=>page.evaluate(async()=>{document.querySelector('#text').getBoundingClientRect();await document.fonts.ready;await new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r)))});
-   const select=async folder=>{
-    await setText(lazyCandidates.get(folder).locale);
-    await page.evaluate(name=>{document.body.setAttribute('data-mmh-personal-font-v265','candidate');document.body.style.setProperty('--mmh-personal-font-v265','"Candidate-'+name+'"')},folder);
-    await settle();
-   };
+   const select=async (locale,style)=>{await setText(locale);await page.locator('#stPref_fontV265').selectOption(style);await settle()};
    await setText('my');await settle();assert.deepEqual(requests,[],'System must not request candidate fonts');
    await page.evaluate(()=>document.body.classList.add('auth-page-active'));
-   await select('notosansmyanmar');assert.deepEqual(requests,[],'Auth page must not request candidate fonts');
+   await select('my','modern');assert.deepEqual(requests,[],'Auth page including preview must not request candidate fonts');
    await page.evaluate(()=>document.body.classList.remove('auth-page-active'));
-   await select('notosansmyanmar');assert.deepEqual(requests,['notosansmyanmar'],'Only selected Myanmar font requested');
-   await select('notosansmyanmar');assert.deepEqual(requests,['notosansmyanmar'],'Repeat selection reuses loaded font');
-   await select('notoserifsc');assert.deepEqual(requests,['notosansmyanmar','notoserifsc'],'Language/choice switch loads only the requested Chinese candidate');
-   await page.evaluate(()=>{document.body.removeAttribute('data-mmh-personal-font-v265');document.body.style.removeProperty('--mmh-personal-font-v265')});
-   await settle();assert.equal(requests.length,2,'System reset requests no candidate');
-   rejectFont='padauk';await select('padauk');assert.deepEqual(requests,['notosansmyanmar','notoserifsc','padauk']);
+   await select('my','modern');assert.deepEqual(requests,['notosansmyanmar'],'Only selected Myanmar font requested');
+   await select('my','modern');assert.deepEqual(requests,['notosansmyanmar'],'Repeat selection reuses loaded font');
+   await select('zh-CN','elegant');assert.deepEqual(requests,['notosansmyanmar','notoserifsc'],'Language/choice switch loads only requested Chinese candidate');
+   await page.evaluate(()=>fontFixture.owner('guest'));await settle();assert(await page.locator('#stPref_fontV265').isDisabled());assert.equal(requests.length,2,'Guest requests no candidate');
+   await page.evaluate(()=>fontFixture.owner('a'));await settle();assert.equal(await page.locator('#stPref_fontV265').inputValue(),'elegant');
+   await select('zh-CN','system');assert.equal(requests.length,2,'System reset requests no candidate');
+   rejectFont='padauk';await select('my','minimal');assert.deepEqual(requests,['notosansmyanmar','notoserifsc','padauk']);
    const fallback=await page.locator('#text').evaluate(el=>{const b=el.getBoundingClientRect();return {text:el.textContent,width:b.width,height:b.height}});
    assert(fallback.text===samples.my&&fallback.width>0&&fallback.height>0,'Missing font retains visible text layout');
-   console.log('PASS: isolated same-origin font loading prototype: System/auth zero requests, selected-only fetch, repeated selection reuse, language switch, System reset and missing-asset fallback');
+   console.log('PASS: isolated same-origin font loading with actual Settings helper/CSS: System/auth/guest zero requests, selected-only fetch, language/owner memory and missing-asset fallback');
   }finally{await ctx.close()}
   // Partition full Chinese source cmap into common UI glyphs and bounded rare-glyph shards.
   // Prototype only: no generated fonts are distributed or deployed.
