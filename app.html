@@ -14678,6 +14678,7 @@ async function loadAll(opts={}){
   if(loadAllPromiseV384&&loadAllPromiseOwnerV1239===requestedOwner&&loadAllPromiseEpochV1239===requestedEpoch)return loadAllPromiseV384;
   const task=(async()=>{
     const loadOwner=requestedOwner,loadEpoch=requestedEpoch;
+    window.__mmhReportInvestmentSourceV265=null;
     const hadExisting=transactions.length>0||investments.length>0;
     const quietPresentation=opts.quietResume===true&&mmhVaultCanQuietVerifyV1239(loadOwner);
     setDataErrorV384("");
@@ -14702,6 +14703,7 @@ async function loadAll(opts={}){
       if((a.data||[]).some(x=>x.user_id!==loadOwner)||(b.data||[]).some(x=>x.user_id!==loadOwner)||(c.data||[]).some(x=>x.user_id!==loadOwner)||(w.data||[]).some(x=>x.user_id!==loadOwner)||(r.data&&r.data.user_id!==loadOwner))throw Error('Unexpected record owner');
       if(!quietPresentation)window.mmhV2LoadStage?.(85,'preparing');
       transactions=a.data||[];investments=b.data||[];window.transactions=transactions;window.investments=investments;window.mmhWalletMovementsV174=w.data||[];window.mmhWalletDataOwnerV191=loadOwner;window.mmhCustomInvestRecords=c.data||[];window.mmhCustomInvestLoaded=true;
+      window.__mmhReportInvestmentSourceV265={owner:loadOwner,epoch:loadEpoch,rows:window.investments,moves:window.mmhWalletMovementsV174};
       mmhVaultRecoverOwnedLegacyConfigV1(loadOwner);
       mmhVaultRestoreReferencedBuiltinAccountsV1(loadOwner);
       window.mmhGoldFxReadyV1=!r.error&&!!r.data;
@@ -17627,7 +17629,7 @@ function mmhPersonalReadWalletV191(owner){
 const mmhPersonalPreferenceKeysV191=['myfinance_ws_months_v315','myfinance_ws_mode_v315','mmhvault_wealth_rules_v326'];
 function mmhPersonalPreferencesV191(){const out={};for(const key of mmhPersonalPreferenceKeysV191){const value=window.mmhVaultLocalGetV12310?.(key);if(value!==null&&value!==undefined)out[key]=value}out.display=window.mmhSettingsDisplayPrefsV1237?.()||{};return out}
 window.addEventListener('mmhvault:config-owner-changed',()=>{
- mmhWalletReadPendingV191=null;window.mmhWalletMovementsV174=[];window.mmhWalletDataOwnerV191='';window.restorePreviewV383=null;try{restorePreviewV383=null}catch(_){}
+ mmhWalletReadPendingV191=null;window.__mmhReportInvestmentSourceV265=null;window.mmhWalletMovementsV174=[];window.mmhWalletDataOwnerV191='';window.restorePreviewV383=null;try{restorePreviewV383=null}catch(_){}
  document.getElementById('restorePreviewV383')?.classList.remove('show');document.getElementById('mmhDataHealthResultsV191')?.replaceChildren();const status=document.getElementById('mmhDataHealthStatusV191');if(status){status.textContent='Not checked / 尚未检查';status.style.color=''}
  window.mmhVaultCloseDialogV449?.();
 });
@@ -26093,10 +26095,14 @@ window.MMHBalanceBridgeV202=Object.freeze({current,kind,movements});
   function comparePct(cur,prev){if(Math.abs(prev)<1e-9)return cur===0?null:null;return (cur-prev)/Math.abs(prev)*100}
   function deltaText(cur,prev,pp=false){if(pp){const d=cur-prev;return{txt:(d>=0?'+':'')+d.toFixed(2)+' pp',cls:d>0?'pos':d<0?'neg':'neutral'}}const d=comparePct(cur,prev);if(d===null)return{txt:'—',cls:'neutral'};return{txt:(d>=0?'+':'')+d.toFixed(2)+'%',cls:d>0?'pos':d<0?'neg':'neutral'}}
   function currentWealth(){let cash=0,invest=0,recv=0;try{cash=Math.max(0,num(typeof mmhvaultCashUSD==='function'?mmhvaultCashUSD():0))}catch(_e){}try{invest=Math.max(0,num(typeof window.mmhDashboardHeldInvestmentUSD==='function'?window.mmhDashboardHeldInvestmentUSD():(typeof mmhvaultInvestmentValueUSD==='function'?mmhvaultInvestmentValueUSD():0)))}catch(_e){}try{recv=Math.max(0,num(typeof window.mmhDashboardReceivableUSD==='function'?window.mmhDashboardReceivableUSD():0))}catch(_e){}return{cash,invest,recv,total:cash+invest+recv}}
+  function monthlyInvestmentSourceReadyV265(owner,rows){
+    const source=window.__mmhReportInvestmentSourceV265,moves=window.mmhWalletMovementsV174;
+    return !!owner&&!!source&&source.owner===owner&&source.epoch===(Number(window.__mmhSessionEpochV1239)||0)&&source.rows===rows&&source.moves===moves&&window.mmhWalletDataOwnerV191===owner&&Array.isArray(rows)&&rows.every(x=>x?.user_id===owner)&&Array.isArray(moves)&&moves.every(x=>x?.user_id===owner);
+  }
   function monthlyInvestmentRecordedV265(key){
     const owner=reportOwnerV265(),rows=window.investments;
     const finite=v=>(typeof v==='number'||(typeof v==='string'&&v.trim()!==''))&&Number.isFinite(Number(v));
-    if(!owner||window.mmhWalletDataOwnerV191!==owner||!Array.isArray(rows)||!/^\d{4}-(0[1-9]|1[0-2])$/.test(key)||!rows.every(x=>x?.user_id===owner))return null;
+    if(!monthlyInvestmentSourceReadyV265(owner,rows)||!/^\d{4}-(0[1-9]|1[0-2])$/.test(key))return null;
     let monthly=0;
     for(const x of rows){
       const date=String(x.inv_date||x.date||'');
@@ -26120,7 +26126,7 @@ window.MMHBalanceBridgeV202=Object.freeze({current,kind,movements});
   }
   function monthlyInvestmentValuationReadyV265(){
     const owner=reportOwnerV265(),rows=window.investments,finite=v=>(typeof v==='number'||(typeof v==='string'&&v.trim()!==''))&&Number.isFinite(Number(v));
-    if(!owner||window.mmhWalletDataOwnerV191!==owner||!Array.isArray(rows)||!rows.every(x=>x?.user_id===owner)||typeof window.mmhDashboardHeldInvestmentUSD!=='function'||typeof mmhvaultInvestmentCostUSD!=='function')return false;
+    if(!monthlyInvestmentSourceReadyV265(owner,rows)||typeof window.mmhDashboardHeldInvestmentUSD!=='function'||typeof mmhvaultInvestmentCostUSD!=='function')return false;
     try{
       const held=new Map();let gold=0,hasGold=false;
       for(const x of rows){
