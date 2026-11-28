@@ -105,4 +105,65 @@ try{
  await page.evaluate(()=>document.getElementById('stSettingsHomeV3').hidden=true);
  assert.equal(await page.locator('#stSettingsHomeV3').isVisible(),false,'detail navigation must keep overview hidden');
  console.log('PASS: V2.0.70 Settings overview and direct logo guide, '+cases+' '+engine+' cases, synthetic profile, duplicate entries hidden, compact grid and translations');
+
+ // V2.0.72: exercise actual new control script and shared currency renderer.
+ const combo=app.match(/<script id="mmhvault-personal-settings-combo-v272-js">([\s\S]*?)<\/script>/)?.[1];
+ const avatarBind=app.match(/for\(const id of \['accountAvatarV372','accountDisplayNameV372'\]\)\{[^\n]+\}/)?.[0];
+ const renderer=app.slice(app.indexOf('const flagMap={USD:'),app.indexOf('function setupDisplayPickerV3('));
+ assert(combo&&avatarBind&&renderer.includes('window.MMHCurrencyPickerV3=Object.freeze'),'actual runtime sources');
+ await page.evaluate(()=>{const root=document.getElementById('settings');root.classList.remove('st-in-subpage');document.getElementById('stSettingsHomeV3').hidden=false;
+  document.querySelector('.account-center-avatar-v375').id='accountAvatarV372';document.querySelector('.account-center-name-v375').id='accountDisplayNameV372';
+  const [currency,font]=document.querySelectorAll('#stPage_general select');currency.id='stPref_currency';font.id='stPref_fontV265';
+  currency.replaceChildren(...'USD THB MMK CNY AMD JPY KRW KPW HKD MOP TWD MNT BND IDR KHR LAK MYR PHP SGD VND INR EUR AUD'.split(' ').map(v=>new Option(v,v)));
+  font.replaceChildren(...[['system','System'],['modern','Modern'],['elegant','Elegant'],['minimal','Minimal'],['digital','Digital'],['soft','Soft'],['bold','Bold']].map(([v,t])=>new Option(t,v)));
+  window.fixtureChanges=[];for(const s of [currency,font])s.addEventListener('change',()=>window.fixtureChanges.push([s.id,s.value]));
+  window.fixtureProfile=[];window.mmhOpenSettingsSectionV3=(id,trigger)=>window.fixtureProfile.push([id,trigger.id]);
+ });
+ await page.addScriptTag({content:'(()=>{const $=id=>document.getElementById(id);'+avatarBind+'})();'});
+ await page.addScriptTag({content:'(()=>{const MMHVAULT_CONFIG={accounts:[]};'+renderer+'})();'});
+ await page.addScriptTag({content:combo});
+ let comboCases=0;
+ for(const width of [360,760,1100,1500]){
+  await page.setViewportSize({width,height:width===360?640:900});
+  for(const light of [false,true])for(const lang of ['en','zh','my']){
+   await page.evaluate(([light,lang])=>{document.body.classList.toggle('light',light);document.documentElement.lang=lang;localStorage.setItem('mmhvault_language_v3363',lang);dispatchEvent(new Event('mmhvault-language-change'))},[light,lang]);
+   const avatar=page.locator('#accountAvatarV372');
+   const layout=await avatar.evaluate(e=>{const a=e.getBoundingClientRect(),n=document.getElementById('accountDisplayNameV372').getBoundingClientRect(),card=e.closest('.account-center-card-v375').getBoundingClientRect();return {center:Math.abs(a.x+a.width/2-card.x-card.width/2),nameCenter:Math.abs(n.x+n.width/2-card.x-card.width/2),stack:a.bottom<=n.top+1,size:a.width,height:a.height}});
+   assert.ok(layout.center<=2&&layout.nameCenter<=2&&layout.stack&&layout.size>=72&&Math.abs(layout.size-layout.height)<=1,JSON.stringify({engine,width,lang,layout}));
+   assert.equal(await page.locator('.st-profile-link').isVisible(),false);
+   await avatar.click();assert.deepEqual(await page.evaluate(()=>window.fixtureProfile.at(-1)),['profile','accountAvatarV372']);
+   await avatar.focus();await page.keyboard.press('Enter');assert.deepEqual(await page.evaluate(()=>window.fixtureProfile.at(-1)),['profile','accountAvatarV372']);
+   await page.evaluate(()=>{document.getElementById('stSettingsHomeV3').hidden=true;document.getElementById('settings').classList.add('st-in-subpage');document.getElementById('stPage_general').hidden=false;document.getElementById('stPref_currency').value='USD';document.getElementById('stPref_fontV265').value='system';window.mmhRefreshSettingsCombosV272()});
+   const buttons=page.locator('#stPage_general .st-combo-trigger-v272'),currency=buttons.nth(0),font=buttons.nth(1),dialog=page.locator('#stComboV272');
+   assert.equal(await buttons.count(),2);assert.equal(await page.locator('#stPref_currency').isVisible(),false);assert.equal(await page.locator('#stPref_fontV265').isVisible(),false);
+   const dims=await buttons.evaluateAll(es=>es.map(e=>{const r=e.getBoundingClientRect();return {w:r.width,h:r.height,overflow:r.right-e.parentElement.getBoundingClientRect().right}}));
+   assert.ok(dims.every(d=>d.h>=44&&d.w>0&&d.overflow<=1)&&Math.abs(dims[0].w-dims[1].w)<=1,JSON.stringify(dims));
+   await currency.click();assert.equal(await dialog.evaluate(e=>e.open),true);
+   const box=await dialog.evaluate(e=>{const r=e.getBoundingClientRect();return {w:r.width,h:r.height,fits:r.left>=0&&r.right<=innerWidth+1&&r.top>=0&&r.bottom<=innerHeight+1}});
+   assert.ok(box.fits&&box.w<=360&&box.h<=480,JSON.stringify(box));
+   const search=dialog.locator('#stComboSearchV272');await search.fill('JPY');
+   assert.equal(await dialog.locator('button[data-ap-currency]').count(),1);await dialog.locator('button[data-ap-currency="JPY"]').click();
+   await dialog.waitFor({state:'hidden'});assert.equal(await page.locator('#stPref_currency').inputValue(),'JPY');
+   assert.deepEqual(await page.evaluate(()=>window.fixtureChanges.at(-1)),['stPref_currency','JPY']);
+   await page.waitForFunction(()=>document.activeElement?.classList.contains('st-combo-trigger-v272'));
+   assert.match(await currency.innerText(),/JPY/);
+   await font.click();assert.equal(await search.isVisible(),false);assert.equal(await dialog.locator('button[data-st-choice-v272]').count(),7);
+   await dialog.locator('button[data-st-choice-v272="modern"]').click();await dialog.waitFor({state:'hidden'});
+   assert.equal(await page.locator('#stPref_fontV265').inputValue(),'modern');assert.deepEqual(await page.evaluate(()=>window.fixtureChanges.at(-1)),['stPref_fontV265','modern']);
+   await font.click();await page.keyboard.press('Escape');await dialog.waitFor({state:'hidden'});
+   await page.waitForFunction(()=>document.activeElement?.classList.contains('st-combo-trigger-v272'));
+   // A choice opened for a previous owner must not write after owner change.
+   for(const button of [currency,font]){
+    await button.click();
+    const blocked=await dialog.evaluate(d=>{const choice=[...d.querySelectorAll('button[data-ap-currency],button[data-st-choice-v272]')].find(b=>b.getAttribute('aria-pressed')!=='true');if(!choice)throw Error('missing alternate option');const count=window.fixtureChanges.length;window.dispatchEvent(new Event('mmhvault:config-owner-changed'));choice.click();return {open:d.open,unchanged:window.fixtureChanges.length===count}});
+    assert.deepEqual(blocked,{open:false,unchanged:true});
+    await dialog.waitFor({state:'hidden'});await page.waitForFunction(()=>document.activeElement?.classList.contains('st-combo-trigger-v272'));
+   }
+   await page.evaluate(()=>{document.getElementById('stPref_fontV265').disabled=true});
+   assert.equal(await font.isDisabled(),true);
+   await page.evaluate(()=>{document.getElementById('stPref_fontV265').disabled=false;document.getElementById('stPage_general').hidden=true;document.getElementById('settings').classList.remove('st-in-subpage');document.getElementById('stSettingsHomeV3').hidden=false});
+   comboCases++;
+  }
+ }
+ console.log('PASS: V2.0.72 actual centered identity, avatar routing hook, searchable shared currency menu, font menu and existing change event bridge; '+comboCases+' '+engine+' cases (synthetic profile/preferences)');
 }finally{await browser.close()}
