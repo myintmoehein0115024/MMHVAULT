@@ -703,3 +703,32 @@ console.log('PASS: 53-code shared display registry, additional FX, missing rates
  unavailable({...base,__mmhReportInvestmentSourceV265:null});unavailable({...base,__mmhSessionEpochV1239:2});unavailable({...base,mmhWalletMovementsV174:[{user_id:'other'}]});unavailable({...base,__mmhReportInvestmentSourceV265:{owner:'u',epoch:0,rows:[],moves:[]}});
  console.log('PASS: monthly Report valuation readiness, owner, quote and rate absence, invalid helper results and undefined ROI');
 }
+
+
+{
+ const script=app.match(/<script id="mmhvault-monthly-report-v115-js">([\s\S]*?)<\/script>/)[1];
+ const helper=script.slice(script.indexOf('  let monthlyRenderEpochV265='),script.indexOf('  function render(){monthlyRenderedV265='));
+ const render=script.slice(script.indexOf('  function render(){monthlyRenderedV265='),script.indexOf('  function cloudKey()'));
+ let owner='a',ready=true,active=true,rate=1,shell={},mode='month',annualToken=7;
+ const state={month:'2026-11',currency:'USD',request:1};
+ const w={transactions:[],investments:[],mmhWalletMovementsV174:[],__mmhReportInvestmentSourceV265:{},mmhLegacyReportReadyV265:()=>ready,mmhLegacyReportDisplayV265:()=> '0',MMHBalanceBridgeV202:{current:()=>({ready:true})},MMHReportPeriodV201:{get:()=>({mode}),annualExportTokenV265:()=>annualToken}};
+ const doc={hidden:false},nodes=new Map();
+ const byId=id=>id==='reports'?{classList:{contains:()=>active},querySelector:()=>shell}:nodes.get(id)||nodes.set(id,{}).get(id);
+ const begin=render.slice(0,render.indexOf("if(!monthlySourcesReadyV265()"));
+ const finish=render.slice(render.lastIndexOf('    if(cloudReady&&window.mmhLegacyReportReadyV265'));
+ const api=new Function('window','state','reportOwnerV265','byId','displayRateReportV265','document',helper+begin+'const cloudReady=window.mmhLegacyReportReadyV265();'+finish+'return {token:monthlyExportTokenV265,render};')(w,state,()=>owner,byId,()=>rate,doc);
+ const exp=app.match(/<script id="mmhvault-report-export-v116-js">([\s\S]*?)<\/script>/)[1];
+ const context=exp.slice(exp.indexOf('  function exportContextV265()'),exp.indexOf('  function annualV201()'));
+ const exportApi=new Function('window','currentSessionUser','document','$','currency','fileMonth','localStorage','letDummy', 'let exportEpochV265=0;'+context+'return {exportContextV265,assertExportV265};')(w,{get id(){return owner}},doc,byId,()=>state.currency,()=>state.month,{getItem:()=> 'en'});
+ assert.equal(api.token(),null);assert.equal(exportApi.exportContextV265(),null);
+ api.render();assert.equal(api.token(),1);const first=exportApi.assertExportV265();assert.equal(first.monthlyToken,1);
+ api.render();assert.equal(api.token(),2);assert.throws(()=>exportApi.assertExportV265(first));
+ for(const [obj,key,val] of [[state,'month','2026-10'],[state,'currency','JPY'],[state,'request',2],[w,'__mmhReportInvestmentSourceV265',null],[w,'transactions',[]],[w,'investments',[]],[w,'mmhWalletMovementsV174',[]],[w,'__mmhSessionEpochV1239',1],[doc,'hidden',true]]){
+  const old=obj[key];obj[key]=val;assert.equal(api.token(),null);assert.equal(exportApi.exportContextV265(),null);obj[key]=old;assert.equal(api.token(),2);
+ }
+ owner='b';assert.equal(api.token(),null);owner='a';rate=2;assert.equal(api.token(),null);rate=1;active=false;assert.equal(api.token(),null);active=true;
+ ready=false;assert.equal(api.token(),null);api.render();ready=true;assert.equal(api.token(),null);api.render();assert.equal(api.token(),4);
+ shell={};assert.equal(api.token(),null);api.render();assert.equal(api.token(),5);
+ mode='year';const year=exportApi.assertExportV265();assert.equal(year.annualToken,7);assert.equal(year.monthlyToken,null);annualToken=8;assert.throws(()=>exportApi.assertExportV265(year));
+ console.log('PASS: monthly Report rendered snapshot, refresh, owner/currency/source changes and export cancellation');
+}
