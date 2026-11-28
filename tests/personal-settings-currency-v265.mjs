@@ -875,25 +875,25 @@ console.log('PASS: 53-code shared display registry, additional FX, missing rates
  const draw=guide.slice(guide.indexOf('  function drawGuide'),guide.indexOf('  let activeGuideTrigger=button;'));
  const build=new Function('document','T','matchMedia','navigator','guide','androidCustomTab','illustration','captions','let selectedDevice=null,installPrompt=null;'+draw+'return drawGuide');
  function elem(tag){return {tag,children:[],append(...items){this.children.push(...items)},replaceChildren(){this.children=[]},setAttribute(){},textContent:'',className:'',hidden:false,value:''}}
- for(const lang of [0,1,2])for(const device of ['ios','ios-other','android-chrome','android-firefox','android-other','desktop']){
+ for(const lang of [0,1,2])for(const device of ["ios","ios-other","ipad","ipad-other","android-chrome","android-firefox","android-other","android-tablet-chrome","android-tablet-firefox","android-tablet-other","tablet-other","desktop","desktop-chrome","desktop-edge","desktop-safari"]){
   const host=elem('section');
   const fn=build({createElement:elem},(...args)=>args[lang]||args[0],()=>({matches:false}),{},host,()=>false,(kind,desktop)=>({kind,desktop}),()=>'caption');
   fn(device);
   const list=host.children.find(x=>x.tag==='ol');
   assert(list.children.length>=3);
-  const art=({ios:'ios','ios-other':'ios','android-chrome':'android-chrome','android-other':'android-chrome'})[device];
+  const art=({"ios":"ios","ios-other":"ios","ipad":"ipad","ipad-other":"ipad","android-chrome":"android-chrome","android-firefox":"android-chrome","android-other":"android-chrome","android-tablet-chrome":"ipad","android-tablet-firefox":"ipad","android-tablet-other":"ipad","tablet-other":"ipad","desktop":"desktop","desktop-chrome":"desktop","desktop-edge":"desktop","desktop-safari":"desktop"})[device];
   assert(list.children.every(li=>li.children[0].children.length===(art?1:2)&&li.children[0].children.at(-1).textContent));
   assert(lang!==2||list.children.every(li=>/[\u1000-\u109f]/.test(li.children[0].children.at(-1).textContent)));
   const figure=host.children.find(x=>x.tag==='figure');assert.equal(!!figure,!!art);
   if(art)assert.equal(figure.children[0].children[0].src,'./images/mmhvault-install-'+art+'-v271.webp');
   assert.equal(host.children[1].children[0].value,device);
  }
- console.log('PASS: Settings Myanmar subtitles and illustrated installation steps, 18 device/locale combinations (mock DOM)');
+ console.log('PASS: Settings Myanmar subtitles and illustrated installation steps, 45 device/locale combinations (mock DOM)');
 }
 
 {
  const code=app.match(/<script id="mmhvault-settings-control-feedback-v4">([\s\S]*?)<\/script>/)[1];
- function fixture(ua='Android Chrome',referrer='',initial='my'){
+ function fixture(ua='Android Mobile Chrome',referrer='',initial='my'){
   let lang=initial;const events={};
   function elem(tag){return {tag,children:[],append(...n){this.children.push(...n)},replaceChildren(){this.children=[]},setAttribute(){},addEventListener(){},showModal(){this.open=true},close(){this.open=false;this.hidden=true},hidden:false,open:false,textContent:''}}
   const host=elem('section');
@@ -904,7 +904,7 @@ console.log('PASS: 53-code shared display registry, additional FX, missing rates
   return {events,button,status,guide,locale(v){lang=v;events['mmhvault-language-change']()},async prompt(p){events.beforeinstallprompt({preventDefault(){},...p});await button.onclick()}};
  }
  for(const [initial,label] of [['en','Add to Home Screen'],['zh','添加到主屏幕'],['my','ပင်မမျက်နှာပြင်သို့ ထည့်ပါ']]){
-  const q=fixture('Android Chrome','',initial);assert.equal(q.button.textContent,label);
+  const q=fixture('Android Mobile Chrome','',initial);assert.equal(q.button.textContent,label);
   const first=q.status.textContent;q.locale('en');q.locale(initial);assert.equal(q.status.textContent,first);
  }
  for(const [outcome,english] of [['accepted','Installation accepted.'],['dismissed','Installation cancelled. You can still follow the manual guide.'],['error','Follow the manual guide to add the app.'],['race','MMHVAULT has been installed.']]){
@@ -915,7 +915,7 @@ console.log('PASS: 53-code shared display registry, additional FX, missing rates
   q.locale('en');assert.equal(q.status.textContent,english);
   q.locale('zh');assert.match(q.status.textContent,/[\u4e00-\u9fff]/);
  }
- const custom=fixture('Android Chrome','android-app://example');
+ const custom=fixture('Android Mobile Chrome','android-app://example');
  assert.match(custom.status.textContent,/[\u1000-\u109f]/);
  custom.locale('en');assert.match(custom.status.textContent,/^Android in-app/);
  let customCalls=0;await custom.prompt({prompt:async()=>{customCalls++},userChoice:Promise.resolve({outcome:'accepted'})});assert.equal(customCalls,0);assert.equal(custom.guide.open,true);
