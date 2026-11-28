@@ -291,6 +291,29 @@ try{
    assert.equal(await nav.locator('[aria-selected=true]').count(),1);
    assert.equal(await root.getAttribute('data-market-view'),'market');
    assert.equal(await root.locator('.exchange-converter-panel').isVisible(),false);
+   if(kind==='currency'){
+    const board=panel.locator('.mv275-board'),ticker=panel.locator('.mv275-ticker'),dialog=panel.locator('.mv275-history-dialog');
+    assert.ok(await board.isVisible());assert.ok(await ticker.isVisible());
+    assert.equal(await panel.locator('.mv274-category-cards').isVisible(),false);
+    assert.equal(await panel.locator('.mv274-category-extra').isVisible(),false);
+    assert.equal(await panel.locator('.mv2-back').isVisible(),false);
+    assert.deepEqual(await board.locator('tbody tr').evaluateAll(rs=>rs.slice(0,21).map(r=>r.dataset.fxCode)),['USD','THB','CNY','EUR','SGD','MYR','JPY','GBP','KRW','AED','TWD','AUD','NZD','CAD','HKD','INR','MOP','PHP','KHR','VND','LAK']);
+    assert.ok((await board.locator('tbody td').allTextContents()).every(x=>x==='—'));
+    const fits=await board.evaluate(e=>{const r=e.getBoundingClientRect();return r.left>=-1&&r.right<=innerWidth+1});assert.ok(fits,JSON.stringify({width,light,lang}));
+    await ticker.locator('button').click();assert.equal(await ticker.getAttribute('data-paused'),'true');
+    await ticker.locator('button').click();assert.equal(await ticker.getAttribute('data-paused'),'false');
+    const trend=board.locator('[data-fx-trend=USD]');await trend.click();assert.ok(await dialog.isVisible());
+    assert.equal(await dialog.locator('svg,canvas').count(),0);
+    assert.equal(await dialog.locator('tbody tr').count(),1);
+    const d=await dialog.evaluate(e=>{const r=e.getBoundingClientRect();return r.left>=-1&&r.right<=innerWidth+1&&r.height<=innerHeight});assert.ok(d);
+    await dialog.locator('header button').click();assert.equal(await dialog.isVisible(),false);
+    await page.waitForFunction(()=>document.activeElement?.dataset.fxTrend==='USD');
+    await board.locator('[data-fx-trend=THB]').click();await dialog.waitFor({state:'visible'});await page.keyboard.press('Escape');await dialog.waitFor({state:'hidden'});
+    await page.waitForFunction(()=>document.activeElement?.dataset.fxTrend==='THB');
+    await board.locator('[data-fx-trend=CNY]').click();await dialog.waitFor({state:'visible'});await page.evaluate(()=>dispatchEvent(new Event('mmhvault:config-owner-changed')));await dialog.waitFor({state:'hidden'});
+    const search=panel.locator('.mv2-detail .mv2-search');await search.fill('THB');assert.deepEqual(await board.locator('tbody tr').evaluateAll(rs=>rs.map(r=>r.dataset.fxCode)),['THB']);await search.fill('');
+    continue;
+   }
    const cards=kind==='all'?panel.locator(':scope > .mv2-grid'):panel.locator('.mv274-category-cards');
    assert.equal(await cards.locator('.mv2-card').count(),count);
    const dims=await cards.evaluate(e=>{const r=e.getBoundingClientRect();return {fits:r.left>=-1&&r.right<=innerWidth+1,columns:getComputedStyle(e).gridTemplateColumns.split(' ').length}});
@@ -313,5 +336,5 @@ try{
   assert.ok(await panel.locator('.mv2-history').isVisible());
   mountedCases++;
  }
- console.log('PASS: V2.0.74 actual mounted Market, five sections, responsive columns, duplicate hero/shell hidden, converter roundtrip, empty Energy and history; '+mountedCases+' '+engine+' isolated cases');
+ console.log('PASS: V2.0.75 mounted Market, FX ordered board, ticker controls, search and native empty history dialog, responsive sections, converter roundtrip, empty Energy and history; '+mountedCases+' '+engine+' isolated cases');
 }finally{await browser.close()}
