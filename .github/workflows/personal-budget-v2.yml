@@ -25,4 +25,10 @@ jobs:
 
       - run: node tests/personal-goals-v263.mjs
       - run: node tests/personal-recurring-v264.mjs
+      - name: Prepare isolated font compression QA
+        run: |
+          python3 -m venv "$RUNNER_TEMP/mmh-fontqa"
+          "$RUNNER_TEMP/mmh-fontqa/bin/python" -m pip install --disable-pip-version-check fonttools==4.59.2 brotli==1.1.0
       - run: node --check tests/personal-settings-font-browser-v265.mjs && node tests/personal-settings-font-browser-v265.mjs
+        env:
+          MMH_FONTQA_PYTHON: ${{ runner.temp }}/mmh-fontqa/bin/python
