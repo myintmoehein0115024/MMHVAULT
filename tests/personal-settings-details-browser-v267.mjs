@@ -6,6 +6,9 @@ const app=readFileSync(new URL('../app.html',import.meta.url),'utf8');
 const external=readFileSync(new URL('../css/mmhvault-settings-life-p928.css',import.meta.url),'utf8');
 const css=[...app.matchAll(/<style\b[^>]*>([\s\S]*?)<\/style>|<link\b[^>]*href="css\/mmhvault-settings-life-p928\.css[^"]*"[^>]*>/gi)].map(m=>'<style>'+(m[1]??external)+'</style>').join('');
 assert.ok(css.includes('V2.0.67 — Personal Settings canvas'));
+const detailCss=app.match(/<style id="mmhvault-personal-settings-details-v267">([\s\S]*?)<\/style>/)?.[1];
+assert.ok(detailCss?.includes('>.st-page:not([hidden]) :is(.mmh-profile-photo-v1,.mmh-profile-name-v1){min-width:0!important}'),'profile name and photo stay inside active Settings scope');
+assert.ok(!detailCss.includes('.mmh-profile-photo-v1,.mmh-profile-name-v1{'),'no unscoped profile name selector');
 const ids=['profile','general','security','icon','data'];
 const content={
  profile:'<form id="mmhProfileFormV1" class="mmh-profile-edit-v1"><label class="mmh-profile-name-v1">Display name<input value="Sample user"></label><div class="mmh-profile-photo-v1"><button type="button" class="mmh-photo-trigger-v1">Change photo</button><input type="file" hidden></div><button type="button" id="mmhProfileSaveV1" class="btn primary">Save changes</button></form><div class="panel" id="mmhBirthdaySettingsV34215"><div class="toolbar"><h2>Birthday</h2></div><div class="mmh-birthday-grid-v34216"><input id="mmhBirthDateInputV34215" type="date"><div class="mmh-birthday-preview-v34216"><div><b>—</b></div></div></div></div>',
