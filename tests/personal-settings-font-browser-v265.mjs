@@ -201,7 +201,7 @@ try{
  const samples={'zh-CN':'账户余额与储蓄交易投资设置财务目标汇率预算收入支出','my':'လက်ကျန်ငွေနှင့်စုဆောင်းငွေမြန်မာဘာသာ၀၁၂၃၄၅၆၇၈၉'};
  const results={};
  const lazyCandidates=new Map();
- let chinesePartitionSource=null;
+ let chinesePartitionSource=null,chinesePartitionLicense=null;
  const python=process.env.MMH_FONTQA_PYTHON;
  if(process.env.CI)assert(python,'CI must provide isolated font compression interpreter');
  const compressionScript=`
@@ -244,7 +244,7 @@ sys.stdout.buffer.write(data)
   assert(bytes.length>0&&bytes.length<=40*1024*1024,folder+' asset size bounds');
   const actual=createHash('sha1').update('blob '+bytes.length+'\0').update(bytes).digest('hex');
   assert.equal(actual,expected,folder+' exact Git blob hash');
-  if(folder==='notosanssc')chinesePartitionSource=bytes;
+  if(folder==='notosanssc'){chinesePartitionSource=bytes;chinesePartitionLicense=license}
   let compressed=null,packManifest=null;
   if(python){
    if(locale==='my'){
@@ -377,50 +377,36 @@ sys.stdout.buffer.write(data)
   }finally{await ctx.close()}
   // Partition full Chinese source cmap into common UI glyphs and bounded rare-glyph shards.
   // Prototype only: no generated fonts are distributed or deployed.
-  assert(chinesePartitionSource,'pinned Chinese source required');
-  const partitionScript=`
-import io, json, sys
-from fontTools.ttLib import TTFont
-from fontTools import subset
-from base64 import b64encode
-source=sys.stdin.buffer.read()
-original=TTFont(io.BytesIO(source))
-all_chars=set(original.getBestCmap())
-# Only Han characters are split; non-Han combining marks and other script glyphs stay together.
-def han(cp):
-    return 0x3400<=cp<=0x4DBF or 0x4E00<=cp<=0x9FFF or 0xF900<=cp<=0xFAFF or 0x20000<=cp<=0x323AF
-ui=set(map(ord,sys.argv[1]))
-base={cp for cp in all_chars if not han(cp)} | (ui & all_chars)
-rest=sorted(all_chars-base)
-groups=[sorted(base)]+[rest[i:i+1024] for i in range(0,len(rest),1024)]
-assert len(groups)>1 and all(groups)
-output=[]
-seen=set()
-for i,group in enumerate(groups):
-    font=TTFont(io.BytesIO(source),recalcTimestamp=False)
-    opts=subset.Options()
-    opts.layout_features=["*"]
-    sub=subset.Subsetter(options=opts)
-    sub.populate(unicodes=group)
-    sub.subset(font)
-    font.flavor="woff2"
-    buffer=io.BytesIO()
-    font.save(buffer)
-    data=buffer.getvalue()
-    actual=set(TTFont(io.BytesIO(data)).getBestCmap())
-    # Extra mapped glyphs, if any, are not advertised by CSS unicode-range.
-    assert set(group)<=actual and not seen.intersection(group)
-    seen.update(group)
-    output.append({"id":i,"codes":group,"bytes":len(data),"data":b64encode(data).decode("ascii")})
-assert seen==all_chars
-print(json.dumps({"sourceCount":len(all_chars),"groups":output}))
-`;
-  // Derive common Han characters only from static application source; never use account data.
-  const ui=[...new Set([...app.matchAll(/[\u3400-\u4dbf\u4e00-\u9fff]/g)].map(x=>x[0]).concat([...samples['zh-CN']]))].join('');
-  const partition=spawnSync(python,['-c',partitionScript,ui],{input:chinesePartitionSource,maxBuffer:60*1024*1024,timeout:180000});
-  assert.ifError(partition.error);assert.equal(partition.status,0,partition.stderr?.toString().slice(-2000));
-  const bundle=JSON.parse(partition.stdout.toString());
-  assert(bundle.groups.length>1&&bundle.groups[0].codes.length>0);
+  assert(chinesePartitionSource&&chinesePartitionLicense,'pinned Chinese source and license required');
+  const partitionTemp=mkdtempSync(join(tmpdir(),'mmh-chinese-pack-'));
+  let bundle,partitionCss;
+  try{
+   const sourcePath=join(partitionTemp,'source.ttf'),licensePath=join(partitionTemp,'OFL-source.txt'),uiPath=join(partitionTemp,'ui.html'),output=join(partitionTemp,'candidate');
+   writeFileSync(sourcePath,chinesePartitionSource);writeFileSync(licensePath,chinesePartitionLicense);writeFileSync(uiPath,app);
+   const script=fileURLToPath(new URL('../tools/personal-font-pack-v265.py',import.meta.url));
+   const build=(source,lic,dest)=>spawnSync(python,[script,'notosanssc','--source',source,'--license',lic,'--ui-source',uiPath,'--output',dest],{maxBuffer:8*1024*1024,timeout:180000});
+   const generated=build(sourcePath,licensePath,output);
+   assert.ifError(generated.error);assert.equal(generated.status,0,generated.stderr?.toString().slice(-2000));
+   bundle=JSON.parse(readFileSync(join(output,'manifest.json'),'utf8'));
+   assert.equal(bundle.source_git_blob,'fb0637bafbcd804fe32152370a1225990745b4bc');
+   assert.equal(bundle.license_git_blob,'1c9f43281b8f216c5461fe9ac729afbade7724e4');
+   assert.deepEqual(readFileSync(join(output,'OFL.txt')),chinesePartitionLicense);
+   assert.equal(bundle.family,'MMH Personal Chinese A');
+   assert.equal(bundle.sourceCount,30890);
+   assert(bundle.groups.length>1&&bundle.groups[0].codes.length>0);
+   partitionCss=readFileSync(join(output,'font.css'),'utf8');
+   assert.equal((partitionCss.match(/@font-face/g)||[]).length,bundle.groups.length);
+   assert.equal(new Set(bundle.groups.map(g=>g.family)).size,bundle.groups.length);
+   for(const g of bundle.groups){
+    assert.equal(g.file,'part-'+g.id+'.woff2');
+    const bytes=readFileSync(join(output,g.file));assert.equal(bytes.length,g.bytes);
+    assert.equal(createHash('sha256').update(bytes).digest('hex'),g.sha256);
+    assert(partitionCss.includes('src:url("./'+g.file+'")'));g.data=bytes.toString('base64');
+   }
+   const badLicense=join(partitionTemp,'bad-license.txt');writeFileSync(badLicense,Buffer.concat([chinesePartitionLicense,Buffer.from([0])]));
+   assert.notEqual(build(sourcePath,badLicense,join(partitionTemp,'reject-license')).status,0,'Chinese tampered license rejected');
+   assert.notEqual(build(sourcePath,licensePath,output).status,0,'Chinese existing output protected');
+  }finally{rmSync(partitionTemp,{recursive:true,force:true})}
   const lookup=new Map();
   for(const g of bundle.groups){
    assert.equal(Buffer.from(g.data,'base64').length,g.bytes);
@@ -428,11 +414,6 @@ print(json.dumps({"sourceCount":len(all_chars),"groups":output}))
   }
   assert.equal(lookup.size,bundle.sourceCount);
   const rare=bundle.groups[1].codes.find(cp=>cp>=0x4e00&&cp<=0x9fff)??bundle.groups[1].codes[0];
-  const ranges=codes=>{
-   const out=[];let start=codes[0],end=start;
-   for(const cp of codes.slice(1)){if(cp===end+1){end=cp;continue}out.push('U+'+start.toString(16)+(end===start?'':'-'+end.toString(16)));start=end=cp}
-   out.push('U+'+start.toString(16)+(end===start?'':'-'+end.toString(16)));return out.join(',');
-  };
   const splitCtx=await browser.newContext(),splitRequests=[];
   try{
    await splitCtx.route('**/*',route=>{
@@ -446,8 +427,7 @@ print(json.dumps({"sourceCount":len(all_chars),"groups":output}))
     return route.fulfill({status:200,contentType:'font/woff2',body:Buffer.from(g.data,'base64')});
    });
    const p=await splitCtx.newPage();await p.goto(origin+'/');
-   const css=bundle.groups.map(g=>'@font-face{font-family:SplitCandidate;src:url("/part-'+g.id+'.woff2") format("woff2");font-weight:100 900;font-display:swap;unicode-range:'+ranges(g.codes)+'}').join('');
-   await p.addStyleTag({content:css+'#sample{font:400 28px SplitCandidate,sans-serif}'});
+   await p.addStyleTag({content:partitionCss+'#sample{font:400 28px "'+bundle.family+'",sans-serif}'});
    const set=async s=>{await p.locator('#sample').evaluate((el,value)=>{el.textContent=value},s);await p.evaluate(async()=>{document.querySelector('#sample').getBoundingClientRect();await document.fonts.ready;await new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r)))})};
    await set(samples['zh-CN']);assert.deepEqual([...new Set(splitRequests)],[0],'UI sample only loads core');
    const mixed=samples['zh-CN']+String.fromCodePoint(rare);
@@ -455,7 +435,7 @@ print(json.dumps({"sourceCount":len(all_chars),"groups":output}))
    const session=await splitCtx.newCDPSession(p);
    try{await session.send('DOM.enable');await session.send('CSS.enable');const {root}=await session.send('DOM.getDocument');const {nodeId}=await session.send('DOM.querySelector',{nodeId:root.nodeId,selector:'#sample'});const {fonts}=await session.send('CSS.getPlatformFontsForNode',{nodeId});assert(fonts.some(x=>x.glyphCount>0)&&fonts.filter(x=>x.glyphCount>0).every(x=>x.isCustomFont),'mixed sample renders without platform fallback')}finally{await session.detach()}
    console.log('FONT-PARTITION '+JSON.stringify({sourceCount:bundle.sourceCount,shards:bundle.groups.length,coreBytes:bundle.groups[0].bytes,totalBytes:bundle.groups.reduce((n,g)=>n+g.bytes,0),largestBytes:Math.max(...bundle.groups.map(g=>g.bytes)),requests:splitRequests}));
-   console.log('PASS: full source Chinese cmap partition, selected unicode-range shard requests and mixed sample rendering (isolated Noto Sans SC prototype)');
+   console.log('PASS: pinned Chinese offline pack, full source cmap partition, original license, shard hashes, tampered license/overwrite rejection, generated CSS and mixed sample rendering (isolated Noto Sans SC candidate)');
   }finally{await splitCtx.close()}
  }
 }finally{await browser.close()}
