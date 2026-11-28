@@ -773,14 +773,14 @@ with tempfile.TemporaryDirectory() as temp:
   assert.equal(fullPacks.size,8);
   const combinedCSS=assembledCSS;
   const combinedOrigin='https://mmh-font-bundle-fixture.invalid';
-  const allCtx=await browser.newContext(),allRequests=[];
+  const allCtx=await browser.newContext(),allRequests=[],stylesheetRequests=[];
   try{
    await allCtx.route('**/*',route=>{
     const url=new URL(route.request().url());
     if(url.origin!==combinedOrigin)return route.abort();
-    if(url.pathname==='/')return route.fulfill({status:200,contentType:'text/html',body:'<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><link rel="stylesheet" href="/fonts/fonts.css"></head><body class="mmh-workspace-active"><main id="settings" class="page active"><div id="rows"></div><p id="sample"></p></main></body></html>'});
-    if(url.pathname==='/fonts/fonts.css')return route.fulfill({status:200,contentType:'text/css',body:combinedCSS});
-    const match=/^\/fonts\/([a-z]+)\/(font|part-\d+)\.woff2$/.exec(url.pathname);
+    if(url.pathname==='/')return route.fulfill({status:200,contentType:'text/html',body:'<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="mmh-personal-font-bundle-v265" content="approved"></head><body class="mmh-workspace-active"><main id="settings" class="page active"><div id="rows"></div><p id="sample"></p></main></body></html>'});
+    if(url.pathname==='/assets/personal-fonts-v265/fonts.css'){stylesheetRequests.push(url.pathname);return route.fulfill({status:200,contentType:'text/css',body:combinedCSS});}
+    const match=/^\/assets\/personal-fonts-v265\/([a-z]+)\/(font|part-\d+)\.woff2$/.exec(url.pathname);
     const data=match&&fullPacks.get(match[1])?.files.get(match[2]+'.woff2');
     if(!data)return route.fulfill({status:404,body:''});
     allRequests.push({folder:match[1],file:match[2]+'.woff2'});
@@ -791,9 +791,13 @@ with tempfile.TemporaryDirectory() as temp:
    await page.addStyleTag({content:'body{font-family:system-ui,sans-serif}#sample{font-size:28px;font-weight:400}'+css});
    await page.addScriptTag({content:`const $=id=>document.getElementById(id);let owner='a';const store=new Map();const prefOwner=()=>owner;const lsGet=k=>store.get(k)??null;const lsSet=(k,v)=>{store.set(k,v);return true};`+row+helpers+`addFontV265($('rows'));window.fontFixture={owner:id=>{owner=id;dispatchEvent(new Event('mmhvault:config-owner-changed'))},lang:id=>{document.documentElement.lang=id;dispatchEvent(new Event('mmhvault-language-change'))}};`});
    const picker=page.locator('#stPref_fontV265');
-   const settle=()=>page.evaluate(async()=>{document.querySelector('#sample').getBoundingClientRect();await document.fonts.ready;await new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r)))});
+   const settle=async()=>{await page.waitForFunction(()=>{const link=document.getElementById('mmhPersonalFontBundleV265');return !link||!!link.sheet});await page.evaluate(async()=>{document.querySelector('#sample').getBoundingClientRect();await document.fonts.ready;await new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r)))})};
    const setText=async locale=>{await page.evaluate(l=>fontFixture.lang(l),locale);await page.locator('#sample').evaluate((el,s)=>{el.textContent=s},samples[locale]);await settle()};
-   await setText('zh-CN');assert.equal(await picker.inputValue(),'system');assert.deepEqual(allRequests,[]);
+   await setText('zh-CN');assert.equal(await picker.inputValue(),'system');assert.deepEqual(allRequests,[]);assert.deepEqual(stylesheetRequests,[]);
+   await page.evaluate(()=>document.body.classList.add('auth-page-active'));await picker.selectOption('modern');await settle();assert.deepEqual(stylesheetRequests,[],'auth state must not request bundle CSS');
+   await picker.selectOption('system');await page.evaluate(()=>document.body.classList.remove('auth-page-active'));await settle();assert.deepEqual(stylesheetRequests,[]);
+   await page.evaluate(()=>document.querySelector('meta[name="mmh-personal-font-bundle-v265"]').remove());await picker.selectOption('modern');await settle();assert.deepEqual(stylesheetRequests,[],'missing approval marker must not request bundle CSS');
+   await picker.selectOption('system');await page.evaluate(()=>{const m=document.createElement('meta');m.name='mmh-personal-font-bundle-v265';m.content='approved';document.head.append(m)});
    const styleCases=[['zh-CN','modern','notosanssc'],['zh-CN','elegant','notoserifsc'],['zh-CN','minimal','lxgwwenkai'],['zh-CN','digital','zcoolqingkehuangyou'],['my','modern','notosansmyanmar'],['my','elegant','notoserifmyanmar'],['my','minimal','padauk'],['my','bold','tharlon']];
    const session=await allCtx.newCDPSession(page);
    try{
@@ -809,6 +813,7 @@ with tempfile.TemporaryDirectory() as temp:
      const {fonts}=await session.send('CSS.getPlatformFontsForNode',{nodeId});
      assert(fonts.some(f=>f.glyphCount>0)&&fonts.filter(f=>f.glyphCount>0).every(f=>f.isCustomFont),folder+' custom sample rendered');
     }
+    assert.deepEqual(stylesheetRequests,['/assets/personal-fonts-v265/fonts.css'],'stylesheet loaded only once');
     const before=allRequests.length;
     await picker.selectOption('system');await settle();
     await setText('zh-CN');await picker.selectOption('modern');await settle();
@@ -816,7 +821,7 @@ with tempfile.TemporaryDirectory() as temp:
     await page.evaluate(()=>fontFixture.owner('guest'));await settle();
     assert(await picker.isDisabled());assert.equal(allRequests.length,before,'guest no font requests');
    }finally{await session.detach()}
-   console.log('FONT-COMBINED '+JSON.stringify({families:fullPacks.size,requests:allRequests,cssBytes:Buffer.byteLength(combinedCSS)}));
+   console.log('FONT-COMBINED '+JSON.stringify({families:fullPacks.size,requests:allRequests,cssBytes:Buffer.byteLength(combinedCSS),stylesheetRequests}));
    console.log('PASS: all eight actual full font packs coexist in one same-origin Settings fixture with selected-only requests, custom glyphs, reuse and guest isolation (not deployed)');
   }finally{await allCtx.close()}
   }finally{rmSync(assemblyTemp,{recursive:true,force:true})}
