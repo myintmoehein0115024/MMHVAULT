@@ -29231,8 +29231,19 @@ const fontCopyV265={
  my:['ဖောင့်ပုံစံ','စနစ်မူလ','ခေတ်မီ','တင့်တယ်','ရိုးရှင်း','ဒစ်ဂျစ်တယ်','နူးညံ့','ထင်ရှား','လက်ကျန်ငွေ · ဝင်ငွေ · ထွက်ငွေ','ဘာသာစကားတစ်ခုစီအတွက် ဤစက်တွင် သီးသန့်သိမ်းဆည်းသည်။ ရရှိနိုင်သောဖောင့်သည် စက်ပေါ်မူတည်သည်။','ဖောင့်ဆက်တင်ကို မသိမ်းဆည်းနိုင်ပါ။']
 };
 function activeFontLanguageV265(){return fontLanguageV265(document.documentElement.lang||lsGet('mmhvault_language_v3363'))}
+// Resource activation is intentionally absent until a reviewed bundle is installed.
+function fontBundleEnabledV265(){return !!document.querySelector?.('meta[name="mmh-personal-font-bundle-v265"][content="approved"]')}
+function ensureFontBundleV265(lang,choice,key){
+ if(!key||choice==='system'||!fontStackV265(lang,choice).includes('"MMH Personal ')||!fontBundleEnabledV265())return;
+ const body=document.body;
+ if(!body?.classList?.contains('mmh-workspace-active')||body.classList.contains('auth-page-active')||!document.head||$('mmhPersonalFontBundleV265'))return;
+ const link=document.createElement('link');link.id='mmhPersonalFontBundleV265';link.rel='stylesheet';link.href='/assets/personal-fonts-v265/fonts.css';
+ // One fixed same-origin stylesheet. Browser fallback remains active if it is unavailable.
+ document.head.append(link);
+}
 function applyFontV265(){const lang=activeFontLanguageV265(),key=fontKeyV265(prefOwner(),lang),choice=fontChoiceV265(key?lsGet(key):null),stack=fontStackV265(lang,choice);
  const body=document.body;if(choice==='system'){body.removeAttribute('data-mmh-personal-font-v265');body.style.removeProperty('--mmh-personal-font-v265')}else{body.setAttribute('data-mmh-personal-font-v265',choice);body.style.setProperty('--mmh-personal-font-v265',stack)}
+ ensureFontBundleV265(lang,choice,key);
  const select=$('stPref_fontV265'),copy=fontCopyV265[lang];if(!select)return;
  $('stFontLabelV265').textContent=copy[0];for(let i=0;i<fontStylesV265.length;i++)select.options[i].textContent=copy[i+1];select.value=choice;select.disabled=!key;
  $('stFontPreviewV265').textContent=copy[8];
@@ -29241,7 +29252,9 @@ function applyFontV265(){const lang=activeFontLanguageV265(),key=fontKeyV265(pre
 function addFontV265(r){const holder=row('Aa','Font style','stPref_fontV265',fontStylesV265.map((v,i)=>[v,fontCopyV265.en[i+1]]),'system');holder.id='stFontRowV265';holder.setAttribute('data-mmh-font-copy-v265','');holder.children[1].id='stFontLabelV265';r.append(holder);
  const preview=document.createElement('div');preview.id='stFontPreviewV265';preview.setAttribute('data-mmh-font-copy-v265','');preview.className='st-font-preview-v265';const note=document.createElement('p');note.id='stFontNoteV265';note.setAttribute('data-mmh-font-copy-v265','');note.className='st-note';const status=document.createElement('p');status.id='stFontStatusV265';status.setAttribute('data-mmh-font-copy-v265','');status.className='st-note';status.setAttribute('role','status');r.append(preview,note,status);
  $('stPref_fontV265').addEventListener('change',e=>{const lang=activeFontLanguageV265(),key=fontKeyV265(prefOwner(),lang),choice=e.target.value,ok=key&&fontStylesV265.includes(choice)&&lsSet(key,choice);applyFontV265();if(!ok)$('stFontStatusV265').textContent=fontCopyV265[lang][10]});
- window.addEventListener('mmhvault-language-change',applyFontV265);window.addEventListener('mmhvault:config-owner-changed',applyFontV265);window.addEventListener('mmhvault:personal-display-preferences-restored',applyFontV265);applyFontV265();
+ window.addEventListener('mmhvault-language-change',applyFontV265);window.addEventListener('mmhvault:config-owner-changed',applyFontV265);window.addEventListener('mmhvault:personal-display-preferences-restored',applyFontV265);
+ if(fontBundleEnabledV265()&&typeof MutationObserver==='function')new MutationObserver(()=>{const lang=activeFontLanguageV265(),key=fontKeyV265(prefOwner(),lang);ensureFontBundleV265(lang,fontChoiceV265(key?lsGet(key):null),key)}).observe(document.body,{attributes:true,attributeFilter:['class']});
+ applyFontV265();
 }
 
 function disclosure(title,source){const d=document.createElement('details');d.className='st-detail';const su=document.createElement('summary');su.textContent=title;const arrow=document.createElement('span');arrow.textContent='›';su.append(arrow);d.append(su);if(source)d.append(source);return d;}
