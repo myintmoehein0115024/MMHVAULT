@@ -40,6 +40,22 @@ def source_bytes(root, candidate, filename, limit):
     require(path.is_file() and 0 < path.stat().st_size <= limit, "missing or oversized source: " + candidate)
     return path.read_bytes()
 
+# Reserved names from the exact pinned license headers; neutral derivative names
+# are used even where a license grants additional web-subsetting permission.
+RESERVED_NAMES = {
+    "notosanssc": ["Source"],
+    "padauk": ["Padauk", "Namkio", "Deemawso"],
+    "tharlon": ["Yunghkio", "Arimo", "TharLon"],
+    "lxgwwenkai": ["霞鹜", "霞鶩", "落霞孤鹜", "落霞孤鶩", "LXGW"],
+}
+
+def provenance(name, filename):
+    if name == "lxgwwenkai":
+        return ("lxgw/LxgwWenKai", "f4cc16fa07f7d115135d203065e711d43c3076d3",
+                "fonts/TTF/" + filename, "OFL.txt")
+    return ("google/fonts", pack.REVISION, "ofl/" + name + "/" + filename,
+            "ofl/" + name + "/OFL.txt")
+
 def build_bundle(root, ui_path, output):
     root = root.resolve()
     output = isolated(output)
@@ -81,9 +97,22 @@ def build_bundle(root, ui_path, output):
             names = re.findall(r'src:url\("\./([^"]+)"\)', stylesheet)
             require(names == [item["file"] for item in files], "unexpected generated CSS URLs")
             css.append(stylesheet.replace('src:url("./', 'src:url("./' + name + '/'))
+            filename, font_hash, license_hash, family = candidates[name]
+            repository, revision, source_path, license_path = provenance(name, filename)
+            reserved = RESERVED_NAMES.get(name, [])
+            require(result["family"] == family and all(
+                word.casefold() not in family.casefold() for word in reserved),
+                "reserved derivative family name: " + name)
+            require(result["source_git_blob"] == font_hash and result["license_git_blob"] == license_hash,
+                    "manifest input provenance mismatch: " + name)
             records.append({"candidate": name, "family": result["family"],
+                            "source_repository": repository, "source_revision": revision,
+                            "source_path": source_path, "source_license_path": license_path,
                             "source_git_blob": result["source_git_blob"],
                             "license_git_blob": result["license_git_blob"],
+                            "license_id": "OFL-1.1", "reserved_source_names": reserved,
+                            "derivative": "neutral family rename; WOFF2 conversion" +
+                                          (" and Unicode partitioning" if is_chinese else ""),
                             "license": name + "/OFL.txt",
                             "manifest": name + "/manifest.json",
                             "manifest_sha256": digest((dest / "manifest.json").read_bytes()),
@@ -91,7 +120,23 @@ def build_bundle(root, ui_path, output):
         require(len({r["family"] for r in records}) == 8, "duplicate font family")
         stylesheet = "\n".join(css).encode("utf-8")
         (stage / "fonts.css").write_bytes(stylesheet)
+        notice = ["MMHVAULT Personal font candidate notices",
+                  "Isolated QA only; not approved for distribution.",
+                  "Each candidate retains its exact upstream OFL.txt.\n"]
+        for record in records:
+            notice.extend([record["family"],
+                           "Source: https://github.com/" + record["source_repository"] +
+                           "/tree/" + record["source_revision"],
+                           "Original file: " + record["source_path"],
+                           "Original license: " + record["source_license_path"],
+                           "Local notice: " + record["license"],
+                           "Modification: " + record["derivative"],
+                           "Reserved source names: " + (", ".join(record["reserved_source_names"]) or "none declared in pinned header"),
+                           ""])
+        notice_data = ("\n".join(notice) + "\n").encode("utf-8")
+        (stage / "FONT-NOTICES.txt").write_bytes(notice_data)
         manifest = {"status": "isolated QA only; not approved for distribution",
+                    "notices": "FONT-NOTICES.txt", "notices_sha256": digest(notice_data),
                     "static_ui_sha256": digest(ui.encode("utf-8")),
                     "stylesheet": "fonts.css", "stylesheet_sha256": digest(stylesheet),
                     "candidates": records}
