@@ -166,6 +166,12 @@
         if(result.error)throw result.error;
         if(!currentRequest())return;
         if(!Array.isArray(result.data))throw new Error('Invalid annual budget response');
+        const months=new Set();
+        for(const b of result.data){
+          const month=String(b?.budget_month??''),code=String(b?.currency??''),amount=b?.monthly_amount;
+          if(!new RegExp('^'+requestedYear+'-(0[1-9]|1[0-2])-01$').test(month)||months.has(month)||! /^[A-Za-z]{3}$/.test(code)||!(typeof amount==='number'||typeof amount==='string'&&amount.trim()!=='')||!Number.isFinite(Number(amount))||Number(amount)<0)throw new Error('Invalid annual budget row');
+          months.add(month);
+        }
         request.data=result.data;
       }catch(e){if(currentRequest()){request.error=true;console.warn('[MMHVAULT Report] Annual budgets unavailable',e)}}
       finally{if(currentRequest())request.pending=false}
