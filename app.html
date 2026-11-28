@@ -41102,7 +41102,7 @@ html body.mmh-workspace-active:not(.auth-page-active) #stComboV272 button:focus-
   dialog.addEventListener('click',e=>{if(e.target!==dialog)return;const r=dialog.getBoundingClientRect();if(e.clientX<r.left||e.clientX>r.right||e.clientY<r.top||e.clientY>r.bottom)dialog.close()});
   dialog.addEventListener('close',()=>{const b=trigger;active=null;trigger=null;if(b){b.setAttribute('aria-expanded','false');if(b.isConnected&&!b.disabled&&b.getClientRects().length)b.focus({preventScroll:true})}refresh()});
   list.addEventListener('click',e=>{
-   const b=e.target.closest('button[data-ap-currency],button[data-st-choice-v272]');if(!b||!active)return;
+   const b=e.target.closest('button[data-ap-currency],button[data-st-choice-v272]');if(!b||!active||!dialog.open)return;
    const value=b.dataset.apCurrency??b.dataset.stChoiceV272;
    if(active.disabled||![...active.options].some(o=>o.value===value&&!o.disabled))return;
    if(active.value!==value){active.value=value;active.dispatchEvent(new Event('change',{bubbles:true}))}
@@ -41155,6 +41155,7 @@ html body.mmh-workspace-active:not(.auth-page-active) #stComboV272 button:focus-
  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',ready,{once:true});else ready();
  document.addEventListener('mmhvault-language-change',()=>{refresh();if(dialog?.open)draw()});
  window.addEventListener('mmhvault:personal-display-currency-changed',refresh);
+ window.addEventListener('mmhvault:config-owner-changed',()=>{if(dialog?.open){active=null;dialog.close()}refresh()});
 })();
 </script>
 </body>
