@@ -20271,7 +20271,7 @@ function translateAttributes(root){
       if(txUiSurfaceV2(el)&&(txUiOwnedV2(el)||txUiDataV2(el)))return;
       const key='i18n'+a.replace(/-([a-z])/g,(_,c)=>c.toUpperCase());
       if(!el.dataset[key]) el.dataset[key]=v;
-      const base=el.dataset[key]; const desired=recurringCopySurfaceV264(el)?(recurringCopyProtectedV264(el)?base:recurringCopyTextV264(base,lang)):goalCopySurfaceV263(el)?goalCopyTextV263(base,el):el.closest('#budget')?budgetCopyTextV262(base,el):txUiSurfaceV2(el)?txUiTextV2(base):lang==='zh'?(myWorkspaceUiV2(el)&&zhWorkspaceV2[base]||zh[base]||base):lang==='my'?myWorkspaceTextV2(base,el):base;if(v!==desired)el.setAttribute(a,desired);
+      const base=el.dataset[key]; const desired=(el.id==='mmhProfileNameV1'&&a==='placeholder'?personalSettingsCopyV268(base,el,lang):null)??(recurringCopySurfaceV264(el)?(recurringCopyProtectedV264(el)?base:recurringCopyTextV264(base,lang)):goalCopySurfaceV263(el)?goalCopyTextV263(base,el):el.closest('#budget')?budgetCopyTextV262(base,el):txUiSurfaceV2(el)?txUiTextV2(base):lang==='zh'?(myWorkspaceUiV2(el)&&zhWorkspaceV2[base]||zh[base]||base):lang==='my'?myWorkspaceTextV2(base,el):base);if(v!==desired)el.setAttribute(a,desired);
     });
   };
   if(root?.nodeType===Node.ELEMENT_NODE&&(root.matches?.('[placeholder],[title],[aria-label]')||(investCopySurfaceV236(root)&&root.hasAttribute('data-mmh-hint'))))applyAttrs(root);
@@ -20753,6 +20753,24 @@ function personalSettingsCopyV268(base,el,locale){
  // Fixed, original Settings labels only, including English for legacy bilingual copy.
  const j=['en','zh','my'].indexOf(locale);
  if(j<0)return null;
+ // Profile copy is scoped to fixed labels and known app-generated statuses.
+ const profileRows=[
+  ['#settings .mmh-profile-name-v1>span','Display name','昵称','ပြသမည့် အမည်'],
+  ['#settings #mmhProfileNameV1','Your display name','您的昵称','သင့်ပြသမည့် အမည်'],
+  ['#settings #mmhProfilePickV1 span','Change photo','更换头像','ပရိုဖိုင်ပုံ ပြောင်းရန်'],
+  ['#settings #mmhProfileFileNameV1','JPG, PNG or WEBP · up to 2 MB','JPG、PNG 或 WEBP · 最大 2 MB','JPG၊ PNG သို့မဟုတ် WEBP · 2 MB အထိ'],
+  ['#settings #mmhProfileSaveV1','Save changes','保存更改','ပြောင်းလဲမှုများ သိမ်းရန်'],
+  ['#settings #mmhProfileCancelV271','Cancel','取消','မလုပ်တော့ပါ'],
+  ['#settings #mmhProfileResultV1','Enter a display name of 1–40 characters.','请输入 1–40 个字符的昵称。','စာလုံး 1–40 ပါသော အမည် ထည့်ပါ။'],
+  ['#settings #mmhProfileResultV1','Choose a JPG, PNG or WEBP image under 2 MB.','请选择不超过 2 MB 的 JPG、PNG 或 WEBP 图片。','2 MB ထက် မကျော်သော JPG၊ PNG သို့မဟုတ် WEBP ပုံ ရွေးပါ။'],
+  ['#settings #mmhProfileResultV1','Please sign in again.','请重新登录。','ထပ်မံ ဝင်ရောက်ပါ။'],
+  ['#settings #mmhProfileResultV1','Saving profile…','正在保存个人资料…','ပရိုဖိုင် သိမ်းဆည်းနေသည်…'],
+  ['#settings #mmhProfileResultV1','Profile saved. Your name and photo sync with this account.','个人资料已保存。昵称和头像已同步至此账户。','ပရိုဖိုင် သိမ်းပြီးပါပြီ။ အမည်နှင့်ပုံကို ဤအကောင့်နှင့် စင့်ခ်လုပ်ထားသည်။'],
+  ['#settings #mmhProfileResultV1','Account changed. Reopen profile settings.','账户已切换，请重新打开个人资料设置。','အကောင့် ပြောင်းသွားပါပြီ။ ပရိုဖိုင်ဆက်တင်ကို ပြန်ဖွင့်ပါ။'],
+  ['#settings #mmhProfileResultV1','Profile update failed.','个人资料更新失败。','ပရိုဖိုင် အပ်ဒိတ် မအောင်မြင်ပါ။'],
+  ['#settings #mmhProfileResultV1','Could not save profile.','无法保存个人资料。','ပရိုဖိုင်ကို မသိမ်းနိုင်ပါ။']
+ ];
+ for(const [selector,en,zh,my] of profileRows)if(base===en&&el.matches(selector))return [en,zh,my][j];
  if(el.matches('#settings #mmhDataHealthV191 h2')&&base==='Data Health / 数据健康检查')return ['Data Health','数据健康检查','ဒေတာအခြေအနေ စစ်ဆေးခြင်း'][j];
  if(el.matches('#settings #mmhDataHealthV191 .small')&&base==='Read only · 仅检查，不自动修改数据')return ['Read only · No automatic data changes','只读 · 仅检查，不自动修改数据','ဖတ်ရှုရန်သာ · ဒေတာကို အလိုအလျောက် မပြောင်းလဲပါ'][j];
  if(el.matches('#settings #mmhDataHealthRunV191')&&base==='Check / 检查')return ['Check','检查','စစ်ဆေးရန်'][j];
@@ -20783,6 +20801,7 @@ function translateTextNode(n){
   if(investCopySurfaceV236(parent)){if(investCopyProtectedV236(parent)||investCopyOwnedV236(parent))return;const translated=investCopyStableV236(investCopyNodeStateV236,n,current);if(translated!=null){if(current!==translated){const raw=n.nodeValue;n.nodeValue=(raw.match(/^\s*/)?.[0]||'')+translated+(raw.match(/\s*$/)?.[0]||'');}return;}}
   if(txUiSurfaceV2(parent)&&(txUiOwnedV2(parent)||txUiDataV2(parent)))return;
   if(parent.id==='txReceiptHint'&&document.getElementById('txReceipt')?.files?.length)return;
+  if(parent.id==='mmhProfileFileNameV1'&&document.getElementById('mmhProfilePhotoV1')?.files?.length){mmhI18nTextStateV135.delete(n);return;}
   if(parent.closest('.fc-planning-nav-v263,#apCurrencyPickerV2,#apRowCurrencyPickerV2,#accounts-page .am-row[data-account-id] .am-row-copy b,#mmhNotifyPopoverV560,.wv-choice-menu-v2,.mmh-notification-dialog-v149,#dataLoadOverlayV384,#mmhBootWorkspaceTextV2,#welcomeScreen .welcome-title,#welcomeScreen .welcome-sub,#welcomeScreen .welcome-ready,#mmhP947AccountGuard'))return; // These surfaces own their translations and user content.
   // Never translate member-entered account/category names or machine-readable finance types in the new dashboard.
   if(parent.closest('#mmhPremiumDashboardV500 .pf-tx-copy-v500,#mmhPremiumDashboardV500 .pf-tag-v500,#mmhPremiumDashboardV500 .pf-name-v500,#mmhPremiumDashboardV500 .pf-asset-v500,#mmhPremiumDashboardV500 .pf-signal-card-v150[data-signal-action-v150="category"] b,#header .wvLiveClockV2'))return;
