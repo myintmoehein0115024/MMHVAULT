@@ -29180,6 +29180,37 @@ function row(icon,label,id,options,value){const l=document.createElement('label'
 function group(title){const g=document.createElement('section');g.className='st-group';const h=document.createElement('h2');h.textContent=title;const r=document.createElement('div');r.className='st-rows';g.append(h,r);$('stPreferences').append(g);return r;}
 function add(r,icon,label,name,options){const id='stPref_'+name;r.append(row(icon,label,id,options,prefs[name]));$(id).addEventListener('change',e=>{if(name==='theme'){window.mmhSetWorkspaceThemeV2(e.target.value);return}if(name==='currency'&&!validSettingsCurrencyV265(e.target.value)){e.target.value=prefs.currency;return}prefs[name]=options?e.target.value:e.target.checked;save();if(name==='currency'){window.mmhRestoreAnalyzeCurrencyV918?.();window.dispatchEvent(new Event('mmhvault:personal-display-currency-changed'))}});}
 
+
+// Personal font choice: independent per signed-in owner and language, local device only.
+const fontStylesV265=Object.freeze(['system','modern','elegant','minimal','digital','soft','bold']);
+const fontStacksV265=Object.freeze({
+ en:['system-ui','"Inter", "Segoe UI", sans-serif','Georgia, "Times New Roman", serif','"Helvetica Neue", Arial, sans-serif','"SF Mono", Consolas, monospace','"Nunito", "Trebuchet MS", sans-serif','"Montserrat", "Arial Black", sans-serif'],
+ zh:['system-ui','"Source Han Sans SC", "Noto Sans CJK SC", sans-serif','"Source Han Serif SC", "Noto Serif CJK SC", "Songti SC", SimSun, serif','"LXGW WenKai", "Kaiti SC", KaiTi, serif','"QingKe HuangYou", "ZCOOL QingKe HuangYou", "Heiti SC", sans-serif','"Smiley Sans", "PingFang SC", sans-serif','"Zhuque Fangsong", "FangSong", STFangsong, serif'],
+ my:['system-ui','"Noto Sans Myanmar", "Myanmar Text", sans-serif','"Noto Serif Myanmar", "Myanmar Text", serif','Padauk, "Myanmar Text", sans-serif','Pyidaungsu, "Myanmar Text", sans-serif','Myanmar3, "Myanmar Text", sans-serif','Tharlon, "Myanmar Text", sans-serif']
+});
+function fontLanguageV265(lang){return /^zh/i.test(lang||'')?'zh':/^(my|mm)/i.test(lang||'')?'my':'en'}
+function fontChoiceV265(value){return fontStylesV265.includes(value)?value:'system'}
+function fontKeyV265(owner,lang){return typeof owner==='string'&&owner&&owner!=='guest'?'mmhvault_personal_font_v265_'+encodeURIComponent(owner)+'_'+fontLanguageV265(lang):null}
+function fontStackV265(lang,choice){return fontStacksV265[fontLanguageV265(lang)][fontStylesV265.indexOf(fontChoiceV265(choice))]}
+const fontCopyV265={
+ en:['Font style','System','Modern','Elegant','Minimal','Digital','Soft','Bold','Balance · Income · Expenses','Saved separately for each language on this device. Font availability depends on your device.','Unable to save font preference.'],
+ zh:['字体样式','系统默认','现代','优雅','简约','数字','柔和','醒目','账户余额 · 收入 · 支出','每种语言在此设备独立保存。字体效果取决于设备已安装字体。','无法保存字体设置。'],
+ my:['ဖောင့်ပုံစံ','စနစ်မူလ','ခေတ်မီ','တင့်တယ်','ရိုးရှင်း','ဒစ်ဂျစ်တယ်','နူးညံ့','ထင်ရှား','လက်ကျန်ငွေ · ဝင်ငွေ · ထွက်ငွေ','ဘာသာစကားတစ်ခုစီအတွက် ဤစက်တွင် သီးသန့်သိမ်းဆည်းသည်။ ရရှိနိုင်သောဖောင့်သည် စက်ပေါ်မူတည်သည်။','ဖောင့်ဆက်တင်ကို မသိမ်းဆည်းနိုင်ပါ။']
+};
+function activeFontLanguageV265(){return fontLanguageV265(document.documentElement.lang||lsGet('mmhvault_language_v3363'))}
+function applyFontV265(){const lang=activeFontLanguageV265(),key=fontKeyV265(prefOwner(),lang),choice=fontChoiceV265(key?lsGet(key):null),stack=fontStackV265(lang,choice);
+ const body=document.body;if(choice==='system'){body.removeAttribute('data-mmh-personal-font-v265');body.style.removeProperty('--mmh-personal-font-v265')}else{body.setAttribute('data-mmh-personal-font-v265',choice);body.style.setProperty('--mmh-personal-font-v265',stack)}
+ const select=$('stPref_fontV265'),copy=fontCopyV265[lang];if(!select)return;
+ $('stFontLabelV265').textContent=copy[0];for(let i=0;i<fontStylesV265.length;i++)select.options[i].textContent=copy[i+1];select.value=choice;select.disabled=!key;
+ $('stFontPreviewV265').textContent=copy[8];$('stFontPreviewV265').style.fontFamily=stack;
+ $('stFontNoteV265').textContent=copy[9];$('stFontStatusV265').textContent='';
+}
+function addFontV265(r){const holder=row('Aa','Font style','stPref_fontV265',fontStylesV265.map((v,i)=>[v,fontCopyV265.en[i+1]]),'system');holder.id='stFontRowV265';holder.children[1].id='stFontLabelV265';r.append(holder);
+ const preview=document.createElement('div');preview.id='stFontPreviewV265';preview.className='st-font-preview-v265';const note=document.createElement('p');note.id='stFontNoteV265';note.className='st-note';const status=document.createElement('p');status.id='stFontStatusV265';status.className='st-note';status.setAttribute('role','status');r.append(preview,note,status);
+ $('stPref_fontV265').addEventListener('change',e=>{const lang=activeFontLanguageV265(),key=fontKeyV265(prefOwner(),lang),choice=e.target.value,ok=key&&fontStylesV265.includes(choice)&&lsSet(key,choice);applyFontV265();if(!ok)$('stFontStatusV265').textContent=fontCopyV265[lang][10]});
+ window.addEventListener('mmhvault-language-change',applyFontV265);window.addEventListener('mmhvault:config-owner-changed',applyFontV265);window.addEventListener('mmhvault:personal-display-preferences-restored',applyFontV265);applyFontV265();
+}
+
 function disclosure(title,source){const d=document.createElement('details');d.className='st-detail';const su=document.createElement('summary');su.textContent=title;const arrow=document.createElement('span');arrow.textContent='›';su.append(arrow);d.append(su);if(source)d.append(source);return d;}
 function stats(){const days=[...new Set(transactions.map(t=>String(t.tx_date||'').slice(0,10)).filter(d=>/^\d{4}-\d{2}-\d{2}$/.test(d)))];const set=new Set(days);let streak=0;const d=new Date();const local=()=>`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;if(!set.has(local()))d.setDate(d.getDate()-1);while(set.has(local())){streak++;d.setDate(d.getDate()-1)};[$('stStreak'),$('stDays'),$('stCount')].forEach((e,i)=>{if(e)e.textContent=[streak,days.length,transactions.length][i]});}
 function txKey(){return 'mmhvault_transaction_defaults_v2_'+(currentSessionUser?.id||'guest')}
@@ -29193,7 +29224,7 @@ for(const id of ['accountAvatarV372','accountDisplayNameV372']){const e=$(id);e.
 const head=top.querySelector('.toolbar');head.querySelector('h2').textContent='My profile';head.querySelector('.small').textContent='Your identity and everyday progress';
 const summary=document.createElement('div');summary.className='st-stats';summary.innerHTML='<div><b id="stStreak">0</b><small>Day streak</small></div><div><b id="stDays">0</b><small>Days recorded</small></div><div><b id="stCount">0</b><small>Transactions</small></div>';top.querySelector('.settings-profile-editor').before(summary);
 let r=group('Appearance');add(r,'◫','Overview','overview',[['comfortable','Comfortable'],['compact','Compact']]);add(r,'◴','Budget','budget',[['comfortable','Comfortable'],['compact','Compact']]);add(r,'◐','Theme','theme',[['system','System'],['light','Light'],['dark','Dark']]);
-r=group('General');r.append(row('文','Language','stLanguage',[['en','English'],['zh','中文'],['my','မြန်မာ']],lsGet('mmhvault_language_v3363')||'en'));$('stLanguage').addEventListener('change',e=>window.setMMHVAULTLanguage?.(e.target.value));add(r,'$','Default display currency','currency',settingsCurrencyOptionsV265());
+r=group('General');r.append(row('文','Language','stLanguage',[['en','English'],['zh','中文'],['my','မြန်မာ']],lsGet('mmhvault_language_v3363')||'en'));$('stLanguage').addEventListener('change',e=>window.setMMHVAULTLanguage?.(e.target.value));add(r,'$','Default display currency','currency',settingsCurrencyOptionsV265());addFontV265(r);
 const note=document.createElement('p');note.className='st-note';note.textContent='Amounts always display two decimal places. Investment quantities and original stored values retain their precision.';r.parentNode.append(note);
 r=group('Transactions');for(const type of ['Expense','Income','Transfer']){r.append(row(type==='Expense'?'↗':type==='Income'?'↙':'⇄',type==='Transfer'?'Default transfer source':'Default '+type.toLowerCase()+' category','stDefault'+type,[['','Use existing default']],''));$('stDefault'+type).addEventListener('change',e=>{const saved=txPrefs();saved[type]=e.target.value;lsSet(txKey(),JSON.stringify(saved))})}
 const security=account.querySelector('.account-security-v379');if(security)account.append(disclosure('Password & devices',security));const birthday=$('mmhBirthdaySettingsV34215');if(birthday)account.append(disclosure('Personal time',birthday));
@@ -29220,6 +29251,20 @@ root.addEventListener('click',stats);root.addEventListener('focusin',e=>{if(e.ta
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});else init();
 })();
 </script>
+<style id="mmhvault-personal-font-v265-css">
+/* Only Personal workspace; System removes the override entirely. */
+html body.mmh-workspace-active:not(.auth-page-active)[data-mmh-personal-font-v265]{
+ --wv-font:var(--mmh-personal-font-v265)!important;
+ --mmh-notice-font:var(--mmh-personal-font-v265)!important;
+ font-family:var(--mmh-personal-font-v265)!important;
+}
+html body.mmh-workspace-active:not(.auth-page-active)[data-mmh-personal-font-v265] :is(.page,#header,#bottomNav,dialog){font-family:var(--mmh-personal-font-v265)!important}
+#settings #stFontRowV265 select{min-width:0;max-width:100%;min-height:44px}
+#settings #stFontPreviewV265{padding:12px 10px;text-align:center;line-height:1.65;overflow-wrap:anywhere;font-size:16px;border:1px solid var(--wv-border, #64748b66);border-radius:8px}
+#settings #stFontNoteV265,#settings #stFontStatusV265{margin:0;padding:4px 8px;line-height:1.55;overflow-wrap:anywhere}
+#settings #stFontStatusV265:empty{display:none}
+</style>
+
 
 
 <style id="mmhvault-mobile-layout-v1">
