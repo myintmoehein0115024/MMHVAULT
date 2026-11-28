@@ -587,3 +587,25 @@ console.log('PASS: 53-code shared display registry, additional FX, missing rates
  assert(script.includes("if(!cloudReady)for(const id of ['reportBudgetV115','reportGoalsV115','reportRecurringV115'])"));
  console.log('PASS: monthly Report owner/month ABA, refresh invalidation, mismatched response, valid empty budget and unavailable state');
 }
+
+
+{
+ const settings=app.match(/<script id="mmhvault-settings-v2-js">([\s\S]*?)<\/script>/)[1],snippet=settings.slice(settings.indexOf('const $=id'),settings.indexOf('let prefs=readPrefs()'));
+ const codes=JSON.parse(app.match(/MMHPersonalDisplayCurrenciesV265=Object\.freeze\((\[[^\n]*?\])\)/)[1]);
+ let uid='a';const values=new Map(),win={MMHPersonalDisplayCurrenciesV265:codes},storage={getItem:k=>values.get(k)||null,setItem:(k,v)=>values.set(k,v)};
+ const api=new Function('window','localStorage','currentSessionUser','document',snippet+';return {readPrefs,validSettingsCurrencyV265,settingsCurrencyOptionsV265};')(win,storage,{get id(){return uid}},{});
+ assert.equal(api.settingsCurrencyOptionsV265().length,53);assert.deepEqual(api.settingsCurrencyOptionsV265().map(x=>x[0]),codes);
+ values.set('mmhvault_settings_display_v2_a',JSON.stringify({currency:'JPY',theme:'dark'}));
+ assert.equal(api.readPrefs().currency,'JPY');assert.equal(api.readPrefs().theme,'dark');uid='b';assert.equal(api.readPrefs().currency,'USD');
+ values.set('mmhvault_settings_display_v2_b',JSON.stringify({currency:'ZZZ'}));assert.equal(api.readPrefs().currency,'USD');
+ values.set('mmhvault_settings_display_v2_b',JSON.stringify({currency:'SGD'}));assert.equal(api.readPrefs().currency,'SGD');uid='a';assert.equal(api.readPrefs().currency,'JPY');
+ assert(!api.validSettingsCurrencyV265('GLOBAL'));assert(!api.validSettingsCurrencyV265(true));assert(!api.validSettingsCurrencyV265('jpy'));
+ const restore=app.match(/const display=state\.data\.settings\?\.display,displayKey='mmhvault_settings_display_v2_'\+u\.id;[^\n]+/)[0],fn=new Function('state','u','window','localStorage',restore);
+ fn({data:{settings:{display:{currency:'KPW',theme:'dark'}}}},{id:'c'},win,storage);assert.equal(JSON.parse(values.get('mmhvault_settings_display_v2_c')).currency,'KPW');
+ fn({data:{settings:{display:{currency:'bad',theme:'dark'}}}},{id:'d'},win,storage);assert(!('currency' in JSON.parse(values.get('mmhvault_settings_display_v2_d'))));
+ fn({data:{settings:{display:{currency:'THB'}}}},{id:'a'},win,storage);assert.equal(JSON.parse(values.get('mmhvault_settings_display_v2_a')).currency,'JPY');
+ assert(settings.includes("add(r,'$','Default display currency','currency',settingsCurrencyOptionsV265())"));
+ assert(settings.includes("if(name==='currency'&&!validSettingsCurrencyV265(e.target.value))"));
+ assert(settings.includes("mmhvault:personal-display-preferences-restored"));
+ console.log('PASS: global Settings currency registry, account isolation, validation and non-overwriting backup display preference');
+}
