@@ -761,3 +761,35 @@ console.log('PASS: 53-code shared display registry, additional FX, missing rates
  owner='a';store.set(api.fontKeyV265('a','en'),'invalid');api.applyFontV265();assert.equal(select.value,'system');assert.equal(select.disabled,false);
  console.log('PASS: Personal font style mapping, language memory, owner isolation and System reset (mock DOM)');
 }
+
+{
+ const code=app.match(/<script id="mmhvault-v34216-age-js">([\s\S]*?)<\/script>/)?.[1];assert(code,'birthday module');
+ const data=new Map(),domEvents={},windowEvents={},nodes={},owner={id:'a'};let blocked=false;
+ const input={value:'',disabled:false,handlers:{},addEventListener(n,fn){this.handlers[n]=fn},setCustomValidity(v){this.validity=v},reportValidity(){}};
+ const outputs=['mmhSettingsAgeValueV34215','mmhSettingsBirthdayValueV34215','mmhSettingsBirthdayCountdownV34215'];
+ for(const id of outputs)nodes[id]={textContent:''};
+ nodes.mmhBirthDateInputV34215=input;
+ const doc={readyState:'loading',documentElement:{lang:'en'},visibilityState:'visible',activeElement:null,getElementById:id=>nodes[id]||null,addEventListener:(n,fn)=>domEvents[n]=fn};
+ const win={addEventListener:(n,fn)=>windowEvents[n]=fn,dispatchEvent:e=>windowEvents[e.type]?.(e)};
+ const storage={getItem:k=>{if(blocked)throw Error('blocked');return data.has(k)?data.get(k):null},setItem:(k,v)=>{if(blocked)throw Error('blocked');data.set(k,String(v))}};
+ new Function('localStorage','document','window','CustomEvent','setTimeout','clearTimeout','currentSessionUser',code)(storage,doc,win,function(t){this.type=t},()=>0,()=>{},owner);
+ const key='mmhvault_birth_date_v34216',change=v=>{input.value=v;input.handlers.change()},switchOwner=id=>{owner.id=id;windowEvents['mmhvault:config-owner-changed']()},blank=()=>input.value===''&&outputs.every(id=>nodes[id].textContent==='—');
+ domEvents.DOMContentLoaded();
+ assert(blank(),'unset birthday must remain unavailable');
+ data.set(key,'1990-02-12');switchOwner('a');assert(blank()&&!data.has(key+'_a'),'unclaimed legacy not migrated');
+ data.set(key+'_legacy_owner','a');switchOwner('a');assert(input.value==='1990-02-12'&&!data.has(key+'_a'),'claimed legacy read only');
+ change('1992-02-30');assert(!data.has(key+'_a'),'invalid calendar date rejected');
+ change('2999-01-01');assert(!data.has(key+'_a'),'future date rejected');
+ change('1992-02-29');assert(data.get(key+'_a')==='1992-02-29','valid leap date saved to current owner');
+ change('');assert(data.get(key+'_a')===''&&blank(),'explicit clear masks claimed legacy');
+ doc.activeElement=input;input.handlers.focus();switchOwner('b');assert(blank(),'owner switch clears input');
+ change('1998-01-01');assert(!data.has(key+'_b'),'stale edit cannot write to new owner');
+ doc.activeElement=null;input.handlers.blur();change('1998-01-01');assert(!data.has(key+'_b'),'late edit remains invalidated after blur');
+ doc.activeElement=input;input.handlers.focus();change('1998-01-02');assert(data.get(key+'_b')==='1998-01-02','new focus permits explicit new owner edit');
+ doc.activeElement=null;input.handlers.blur();switchOwner('guest');assert(input.disabled&&blank(),'guest disabled and blank');
+ change('1999-01-01');assert(!data.has(key+'_guest'),'guest cannot save');
+ switchOwner('a');assert(!input.disabled&&blank(),'owner a explicit clear preserved');
+ blocked=true;switchOwner('a');assert(blank(),'blocked storage fails closed');change('1999-01-01');assert(blank(),'blocked write fails closed');blocked=false;
+ assert(/id="mmhBirthDateInputV34215" type="date" value=""/.test(app),'no invented HTML default');
+ console.log('PASS: Personal birthday unset/legacy owner isolation, calendar validation, explicit clear, stale edit rejection and blocked storage (mock DOM)');
+}
