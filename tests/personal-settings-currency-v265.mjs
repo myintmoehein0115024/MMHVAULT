@@ -655,3 +655,19 @@ console.log('PASS: 53-code shared display registry, additional FX, missing rates
  }
  console.log('PASS: actual monthly and annual Report source FX guards, signed amounts, comparison period, exclusions and owner gate');
 }
+
+
+{
+ const i=app.indexOf('  function monthlyInvestmentRecordedV265(key){'),j=app.indexOf('  function investmentSnapshot(key)',i);
+ assert(i>=0&&j>i);
+ const factory=new Function('window','reportOwnerV265','rates','displayRateReportV265',app.slice(i,j)+'return monthlyInvestmentRecordedV265;');
+ const base={user_id:'u',inv_date:'2026-11-02',asset:'Crypto',side:'BUY',quantity:1,amount:100,fee:2,other_cost:3,currency:'USD'};
+ const gold={...base,asset:'Gold',currency:'MMK',amount:4000,fee:0,other_cost:0};
+ const check=(rows,expected,{owner='u',wallet='u',legacy=4000,effective=4000,key='2026-11'}={})=>assert.equal(factory({investments:rows,mmhWalletDataOwnerV191:wallet},()=>owner,{usd_mmk:legacy},()=>effective)(key),expected);
+ check([],0);check([base],105);check([gold],1);check([gold],null,{effective:null});check([gold],null,{legacy:0});check([gold],null,{effective:5000});check([gold],null,{effective:NaN});check([{...gold,amount:0}],0,{effective:null});
+ check([{...gold,quantity:0,weight_kyattha:1}],1);check([{...gold,weight_kyattha:-1}],null);
+ check([{...base,user_id:'other'}],null);check([],null,{wallet:'other'});check([],null,{owner:''});check([{...base,asset:'Other'}],null);
+ check([{...base,amount:''}],null);check([{...base,fee:true}],null);check([{...base,quantity:-1}],null);check([{...base,side:'SELL',quantity:-1}],0);check([{...base,currency:'THB'}],null);
+ check([{...base,inv_date:'2026-10-02'}],0);check([{...base,inv_date:'bad'}],null);check([{...base,amount:0,fee:0,other_cost:0}],0);check([base],null,{key:'2026-13'});check(null,null);check([{...base,amount:1e308,fee:1e308}],null);
+ console.log('PASS: monthly Report recorded investment amount, owner gate, source rates, Gold weight and valid zero');
+}
