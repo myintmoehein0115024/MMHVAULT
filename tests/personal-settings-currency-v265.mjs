@@ -257,3 +257,32 @@ assert(txScriptV265.includes('txDisplayMoneyV265(t,primary.amount,primary.accoun
 assert(txScriptV265.includes('MMHExchangeEffectiveFXV2?.getUsdRate?.(c)'));
 assert(app.includes('id="txDisplayPickerV265"'));assert(app.includes('id="mmhvault-tx-display-picker-v265-style"'));
 console.log('PASS: Transactions native amounts, reference FX, independent owner preference, reset, missing rates and keyed renderer integration');
+
+/* Actual owner-scoped reader/provider contracts; no network or real records. */
+const readStart265=app.indexOf('async function mmhPersonalReadAllV191('),readEnd265=app.indexOf('let mmhWalletReadPendingV191',readStart265);
+assert(readStart265>=0&&readEnd265>readStart265);
+const readerFactory265=new Function('db','session','let currentSessionUser=session;'+app.slice(readStart265,readEnd265)+';return mmhPersonalReadAllV191');
+const ownerSession265={id:'reader-a'}, calls265=[];
+const fakeDb265={from(table){return {select(cols){return {eq(key,owner){return {order(order){return {async range(start,end){calls265.push({table,cols,key,owner,order,start,end});return {data:start===0?Array.from({length:500},(_,i)=>({id:i,user_id:owner})): [{id:500,user_id:owner}]}}}}}}}}}}};
+const read265=readerFactory265(fakeDb265,ownerSession265);
+const records265=await read265('transactions','reader-a');
+assert.equal(records265.length,501);
+assert(records265.every(x=>x.user_id==='reader-a'));
+assert.deepEqual(calls265.map(c=>[c.cols,c.key,c.owner,c.start,c.end]),[['*','user_id','reader-a',0,499],['*','user_id','reader-a',500,999]]);
+await assert.rejects(()=>read265('transactions','reader-b'),/session changed/i);
+assert.equal(calls265.length,2);
+const switchDb265={from(){return {select(){return {eq(){return {order(){return {async range(){ownerSession265.id='reader-b';return {data:[{user_id:'reader-a'}]}}}}}}}}}}};
+await assert.rejects(()=>readerFactory265(switchDb265,ownerSession265)('transactions','reader-a'),/session changed/i);
+assert(app.includes("(a.data||[]).some(x=>x.user_id!==loadOwner)||(b.data||[]).some(x=>x.user_id!==loadOwner)"));
+assert(app.includes("transactions=a.data||[];investments=b.data||[];window.transactions=transactions;"));
+const effectiveLine265=app.match(/window\.MMHExchangeEffectiveFXV2=\{recompute,getUsdRate:[^\n]+\};/);
+assert(effectiveLine265);
+const effectiveFactory265=new Function('window','currentSessionUser','effective','recompute',effectiveLine265[0]+';return window.MMHExchangeEffectiveFXV2.getUsdRate;');
+const effectiveSession265={id:'reader-a'},effectiveRow265={user_id:'reader-a',fxUsdRates:{THB:35,JPY:0,CNY:-7}};
+const getActualRate265=effectiveFactory265({},effectiveSession265,effectiveRow265,()=>{});
+assert.equal(getActualRate265('THB'),35);
+assert.equal(getActualRate265('JPY'),null);
+assert.equal(getActualRate265('CNY'),null);
+assert.equal(getActualRate265('MMK'),null);
+effectiveSession265.id='reader-b';assert.equal(getActualRate265('THB'),null);
+console.log('PASS: actual paginated owner reader, session-switch rejection, load owner guards and effective FX owner isolation');
