@@ -65,6 +65,10 @@ try{
     assert.equal(await page.locator('#stFontPreviewV265').isVisible(),false,label+' font sample hidden');
     assert.equal(await page.locator('#stPage_general .st-rows>.st-row').count(),3,label+' exactly three rows');
     assert.equal(await page.locator('#stFontNoteV265').evaluate(e=>e.parentElement.classList.contains('st-group')),true,label+' font note outside rows');
+    const selectChecks=await page.locator('#stPage_general .st-rows>.st-row>select').evaluateAll(es=>es.map(e=>{const cs=getComputedStyle(e),r=e.getBoundingClientRect();return {w:r.width,h:r.height,right:r.right,rowRight:e.parentElement.getBoundingClientRect().right,scheme:cs.colorScheme,image:cs.backgroundImage,appearance:cs.appearance,options:[...e.options].map(o=>o.value)}}));
+    assert.equal(selectChecks.length,2,label+' original native dropdowns');
+    assert.ok(selectChecks.every(x=>x.h>=44&&x.w>0&&x.right<=x.rowRight+1&&x.scheme===(light?'light':'dark')&&x.image==='none'&&x.appearance==='auto'&&x.options.length),label+' V2 native dropdown appearance');
+    assert.ok(Math.abs(selectChecks[0].w-selectChecks[1].w)<=1,label+' stable equal General dropdown widths');
     const logo=page.locator('#stAppIconGuideV270'),guide=page.locator('#stInstallGuideV5');
     assert.equal(await logo.locator('img').getAttribute('src'),'./images/mmhvault-v2-auth-mark.webp');
     await logo.click();assert.equal(await guide.evaluate(e=>e.open),true,label+' opens guide directly');
