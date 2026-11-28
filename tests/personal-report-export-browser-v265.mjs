@@ -72,4 +72,48 @@ try{
  }
  assert.deepEqual(unexpected,[]);
  console.log('PASS: actual Report export control flow with synthetic canvas/PDF adapters, monthly/annual naming, stage cleanup, cancellation on token/owner/market/readiness/currency/page change and no external requests');
+
+ // Exercise the actual pinned export libraries in a second isolated context.
+ // Real generated files stay in Playwright's temporary download directory.
+ const visual=await browser.newContext({viewport:{width:390,height:844},acceptDownloads:true});
+ try{
+  const blocked=[];
+  await visual.route('**/*',route=>{
+   if(route.request().url()===origin+'/')return route.fulfill({status:200,contentType:'text/html',body:'<!doctype html><html lang="en"><head><meta charset="utf-8"></head><body class="mmh-workspace-active"><main id="reports" class="page active"><div class="report-shell-v115"><header class="report-head-v115"><div><h1>Financial Report</h1><p>Sample data only</p></div><div class="report-controls-v115"><input id="reportMonthV115" value="2026-11"><select id="reportCurrencyV115"><option>USD</option></select></div></header><section class="report-kpis-v115"><article class="report-kpi-v115 income"><span>Income</span><strong>$1,234.00</strong><small>Sample</small></article><article class="report-kpi-v115 expense"><span>Expenses</span><strong>$234.00</strong><small>Sample</small></article><article class="report-kpi-v115 remaining"><span>Balance</span><strong>$1,000.00</strong></article></section><div class="report-panel-v115"><h2>Monthly summary</h2><div id="sampleRows"></div></div></div></main></body></html>'});
+   if(route.request().url().startsWith('blob:'))return route.continue();
+   blocked.push(route.request().url());return route.abort();
+  });
+  const v=await visual.newPage();await v.goto(origin+'/');
+  for(const id of ['mmhvault-monthly-report-v115-css','mmhvault-v123-report-safe-responsive','mmhvault-report-export-v116-css']){
+   const css=app.match(new RegExp('<style id="'+id+'">([\\s\\S]*?)<\\/style>'))?.[1];assert(css,id);await v.addStyleTag({content:css});
+  }
+  await v.addStyleTag({content:'body{margin:0;background:#06111f;color:#e4edf4;font-family:system-ui,sans-serif}*{box-sizing:border-box}'});
+  await v.addScriptTag({path:'node_modules/html2canvas/dist/html2canvas.min.js'});
+  await v.addScriptTag({path:'node_modules/jspdf/dist/jspdf.umd.min.js'});
+  await v.addScriptTag({content:[
+   "var currentSessionUser={id:'visual-fixture'};",
+   "window.visualErrors=[];window.MMHUI={message:m=>visualErrors.push(m),toast:()=>{}};",
+   "window.MMHReportPeriodV201={get:()=>({mode:'month',year:2026})};window.mmhMonthlyReportExportTokenV265=()=>1;window.mmhLegacyReportDisplayV265=()=> '0';window.MMHBalanceBridgeV202={current:()=>({ready:true})};",
+   "for(let i=0;i<36;i++){const el=document.createElement('div');el.className='report-mini-v115';el.innerHTML='<span>Sample row '+(i+1)+'</span><b>$12.34</b>';document.querySelector('#sampleRows').append(el)}",
+   "window.visualCapture=[];const realCapture=window.html2canvas;window.html2canvas=async(stage,options)=>{const bounds=stage.getBoundingClientRect();const canvas=await realCapture(stage,options);const pixels=canvas.getContext('2d').getImageData(0,0,canvas.width,canvas.height).data;let varied=0;for(let i=0;i<pixels.length;i+=64){if(pixels[i]!==6||pixels[i+1]!==17||pixels[i+2]!==31)varied++}visualCapture.push({width:canvas.width,height:canvas.height,stageWidth:bounds.width,stageHeight:bounds.height,varied});return canvas};",
+   script,"window.MMHReportExportV116.install();"
+  ].join('\n')});
+  for(const [method,name] of [['exportImage','MMHVAULT-Report-2026-11-USD.png'],['exportPdf','MMHVAULT-Report-2026-11-USD.pdf']]){
+   const [download]=await Promise.all([v.waitForEvent('download',{timeout:45000}),v.evaluate(method=>window.MMHReportExportV116[method](),method)]);
+   assert.equal(download.suggestedFilename(),name);assert.equal(await download.failure(),null);
+   const bytes=readFileSync(await download.path());assert(bytes.length>10000,name+' contains real output');
+   if(method==='exportImage'){
+    assert.equal(bytes.subarray(0,8).toString('hex'),'89504e470d0a1a0a');
+    assert.equal(bytes.readUInt32BE(16),2360);assert(bytes.readUInt32BE(20)>1000);
+   }else{
+    assert.match(bytes.subarray(0,8).toString(),/^%PDF-/);
+    assert((bytes.toString('latin1').match(/\/Type\s*\/Page\b/g)||[]).length>=2,'real multipage PDF');
+   }
+   const result=await v.evaluate(()=>({errors:visualErrors,capture:visualCapture.at(-1),stages:document.querySelectorAll('.report-export-stage-v116').length}));
+   assert.deepEqual(result.errors,[]);assert.equal(result.stages,0);assert.equal(result.capture.stageWidth,1180);assert.equal(result.capture.width,2360);assert(result.capture.varied>1000,'nonblank captured report');
+   console.log('REPORT-REAL-EXPORT '+JSON.stringify({name,bytes:bytes.length,...result.capture}));
+  }
+  assert.deepEqual(blocked,[]);
+  console.log('PASS: real pinned html2canvas/jsPDF produced nonblank fixed-width PNG and multipage PDF from synthetic mobile report with actual scoped CSS; no external requests');
+ }finally{await visual.close()}
 }finally{await browser.close()}
