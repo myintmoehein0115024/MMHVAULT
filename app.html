@@ -29343,7 +29343,7 @@ function applyFontV265(){const lang=activeFontLanguageV265(),key=fontKeyV265(pre
  const select=$('stPref_fontV265'),copy=fontCopyV265[lang];if(!select)return;
  $('stFontLabelV265').textContent=copy[0];for(let i=0;i<fontStylesV265.length;i++)select.options[i].textContent=copy[i+1];select.value=choice;select.disabled=!key;
  $('stFontPreviewV265').textContent=copy[8];
- $('stFontNoteV265').textContent=fontBundleEnabledV265()&&fontBundleCopyV265[lang]?fontBundleCopyV265[lang]:copy[9];$('stFontStatusV265').textContent='';
+ $('stFontNoteV265').textContent=fontBundleEnabledV265()&&fontBundleCopyV265[lang]?fontBundleCopyV265[lang]:copy[9];$('stFontStatusV265').textContent='';window.mmhRefreshSettingsCombosV272?.();
 }
 function addFontV265(r){const holder=row('Aa','Font style','stPref_fontV265',fontStylesV265.map((v,i)=>[v,fontCopyV265.en[i+1]]),'system');holder.id='stFontRowV265';holder.setAttribute('data-mmh-font-copy-v265','');holder.children[1].id='stFontLabelV265';r.append(holder);
  const preview=document.createElement('div');preview.id='stFontPreviewV265';preview.setAttribute('data-mmh-font-copy-v265','');preview.className='st-font-preview-v265';const note=document.createElement('p');note.id='stFontNoteV265';note.setAttribute('data-mmh-font-copy-v265','');note.className='st-note';const status=document.createElement('p');status.id='stFontStatusV265';status.setAttribute('data-mmh-font-copy-v265','');status.className='st-note';status.setAttribute('role','status');r.append(preview,note,status);
@@ -29360,7 +29360,7 @@ function txPrefs(){try{const value=JSON.parse(localStorage.getItem(txKey())||'{}
 function optionsFor(type){return type==='Transfer'?[...($('fromAccount')?.options||[])].map(o=>[o.value,o.textContent]):(window.CATS?.[type]||[]).filter(x=>x!=='Data Adjustment').map(x=>[x,x]);}
 function refreshDefaults(){const saved=txPrefs();for(const type of ['Expense','Income','Transfer']){const el=$('stDefault'+type);if(!el)continue;const previous=document.activeElement===el?el.value:saved[type]||'';const choices=[['','Use existing default'],...optionsFor(type)];el.replaceChildren(...choices.map(([v,t])=>{const o=document.createElement('option');o.value=v;o.textContent=t;return o}));el.value=choices.some(x=>x[0]===previous)?previous:'';}}
 function applyTxDefault(){const type=$('txType')?.value,v=txPrefs()[type];if(!v)return;const target=$(type==='Transfer'?'fromAccount':'txCategory');if(target&&[...target.options].some(o=>o.value===v)&& (type==='Transfer'||$('txGroup')?.value===type)){target.value=v;if(type==='Transfer')target.dispatchEvent(new Event('change',{bubbles:true}));}}
-function syncPrefControls(){for(const name of ['overview','budget','currency','theme']){const el=$('stPref_'+name);if(el)el.value=prefs[name]}for(const name of ['decimals','round']){const el=$('stPref_'+name);if(el)el.checked=!!prefs[name]}const theme=document.querySelector('input[name="theme"][value="'+prefs.theme+'"]');if(theme)theme.checked=true}
+function syncPrefControls(){for(const name of ['overview','budget','currency','theme']){const el=$('stPref_'+name);if(el)el.value=prefs[name]}for(const name of ['decimals','round']){const el=$('stPref_'+name);if(el)el.checked=!!prefs[name]}const theme=document.querySelector('input[name="theme"][value="'+prefs.theme+'"]');if(theme)theme.checked=true;window.mmhRefreshSettingsCombosV272?.()}
 function init(){const root=$('settings');if(!root)return;const account=$('settingsPanelAccountV371');const top=account.querySelector('.panel');const main=document.createElement('div');main.id='stPreferences';top.after(main);
 for(const id of ['accountAvatarV372','accountDisplayNameV372']){const e=$(id);e.tabIndex=0;e.setAttribute('role','button');e.setAttribute('aria-label','Edit profile');const open=()=>window.mmhOpenSettingsSectionV3?.('profile',e);e.addEventListener('click',open);e.addEventListener('keydown',ev=>{if(ev.key==='Enter'||ev.key===' '){ev.preventDefault();open()}})}
 const head=top.querySelector('.toolbar');head.querySelector('h2').textContent='My profile';head.querySelector('.small').textContent='Your identity and everyday progress';
@@ -41041,5 +41041,121 @@ html body.mmh-workspace-active:not(.auth-page-active) #settings#settings#setting
 html body.mmh-workspace-active:not(.auth-page-active) #settings#settings#settings.page.active>.st-page:not([hidden])#stPage_profile .mmh-birth-dialog-v271 .mmh-birthday-preview-v34216{grid-template-columns:1fr!important;gap:8px!important}
 @media(max-width:700px){html body.mmh-workspace-active:not(.auth-page-active) #settings#settings#settings.page.active>.st-page:not([hidden])#stPage_profile #mmhProfileCardV271{padding:12px}html body.mmh-workspace-active:not(.auth-page-active) #settings#settings#settings.page.active>.st-page:not([hidden])#stPage_profile #mmhProfileCardV271>#mmhProfileFormV1{grid-template-columns:minmax(0,1fr)!important}html body.mmh-workspace-active:not(.auth-page-active) #settings#settings#settings.page.active>.st-page:not([hidden])#stPage_profile #mmhProfileFormV1>.mmh-profile-photo-v1{grid-column:1!important;grid-row:1!important}html body.mmh-workspace-active:not(.auth-page-active) #settings#settings#settings.page.active>.st-page:not([hidden])#stPage_profile #mmhProfileFormV1>.mmh-profile-name-v1{grid-column:1!important;grid-row:2!important}html body.mmh-workspace-active:not(.auth-page-active) #settings#settings#settings.page.active>.st-page:not([hidden])#stPage_profile #mmhProfileFormV1>#mmhBirthdaySettingsV34215{grid-column:1!important;grid-row:3!important}html body.mmh-workspace-active:not(.auth-page-active) #settings#settings#settings.page.active>.st-page:not([hidden])#stPage_profile #mmhProfileCardV271>.st-profile-actions-v269 #mmhProfileSaveV1{width:auto!important;flex:1 1 140px!important}}
 </style>
+<style id="mmhvault-personal-settings-combo-v272">
+/* Personal V2.0.72 — centered identity; compact, viewport-safe custom preferences. */
+html body.mmh-workspace-active:not(.auth-page-active) #settings#settings.page.active:has(>#stSettingsHomeV3:not([hidden])) > #stSettingsHomeV3:not([hidden]) > #settingsPanelAccountV371 .account-center-card-v375:first-child{grid-template-columns:minmax(0,1fr)!important;justify-items:center!important;gap:12px!important}
+html body.mmh-workspace-active:not(.auth-page-active) #settings#settings.page.active:has(>#stSettingsHomeV3:not([hidden])) > #stSettingsHomeV3:not([hidden]) > #settingsPanelAccountV371 .account-center-card-v375:first-child>.account-center-head-v375{grid-column:1/-1!important;width:100%!important;flex-direction:column!important;justify-content:center!important;align-items:center!important;text-align:center!important;gap:8px!important}
+html body.mmh-workspace-active:not(.auth-page-active) #settings#settings.page.active:has(>#stSettingsHomeV3:not([hidden])) > #stSettingsHomeV3:not([hidden]) > #settingsPanelAccountV371 .account-center-head-v375>div:nth-child(2){flex:none!important;width:100%!important;min-width:0!important;text-align:center!important}
+html body.mmh-workspace-active:not(.auth-page-active) #settings#settings.page.active:has(>#stSettingsHomeV3:not([hidden])) > #stSettingsHomeV3:not([hidden]) > #settingsPanelAccountV371 .account-center-avatar-v375{width:80px!important;height:80px!important;min-width:80px!important;flex:0 0 80px!important;border-radius:50%!important}
+html body.mmh-workspace-active:not(.auth-page-active) #settings#settings.page.active:has(>#stSettingsHomeV3:not([hidden])) > #stSettingsHomeV3:not([hidden]) > #settingsPanelAccountV371 #accountAvatarV372[role=button]{cursor:pointer!important}
+html body.mmh-workspace-active:not(.auth-page-active) #settings#settings.page.active:has(>#stSettingsHomeV3:not([hidden])) > #stSettingsHomeV3:not([hidden]) > #settingsPanelAccountV371 #accountAvatarV372:focus-visible,html body.mmh-workspace-active:not(.auth-page-active) #settings#settings.page.active:has(>#stSettingsHomeV3:not([hidden])) > #stSettingsHomeV3:not([hidden]) > #settingsPanelAccountV371 #accountDisplayNameV372:focus-visible{outline:2px solid var(--s66-accent)!important;outline-offset:3px!important}
+html body.mmh-workspace-active:not(.auth-page-active) #settings#settings.page.active:has(>#stSettingsHomeV3:not([hidden])) > #stSettingsHomeV3:not([hidden]) > #settingsPanelAccountV371 .account-center-card-v375:first-child>.st-stats{grid-column:1/-1!important;width:min(100%,420px)!important;justify-self:center!important}
+html body.mmh-workspace-active:not(.auth-page-active) #settings#settings.page.active:has(>#stSettingsHomeV3:not([hidden])) > #stSettingsHomeV3:not([hidden]) > #settingsPanelAccountV371 .account-center-card-v375:first-child:has(#accountAvatarV372[role=button])>.st-profile-link{display:none!important}
+html body.mmh-workspace-active:not(.auth-page-active) #settings#settings#settings#settings.page.active>.st-page:not([hidden])#stPage_general .st-rows>.st-row>select[data-mmh-combo-v272]{display:none!important}
+html body.mmh-workspace-active:not(.auth-page-active) #settings#settings#settings#settings.page.active>.st-page:not([hidden])#stPage_general .st-rows>.st-row>button.st-combo-trigger-v272{box-sizing:border-box!important;display:flex!important;align-items:center!important;justify-content:space-between!important;gap:7px!important;flex:0 0 min(180px,48%)!important;width:min(180px,48%)!important;max-width:48%!important;min-width:0!important;min-height:44px!important;height:auto!important;margin:0 0 0 auto!important;padding:8px 10px!important;border:1px solid var(--uv-line,#344052)!important;border-radius:8px!important;background:var(--uv-raised,#273242)!important;background-image:none!important;color:var(--uv-text,#e8edf4)!important;box-shadow:none!important;font:inherit!important;text-align:left!important}
+html body.mmh-workspace-active:not(.auth-page-active) #settings#settings#settings#settings.page.active>.st-page:not([hidden])#stPage_general .st-rows>.st-row>button.st-combo-trigger-v272>span:first-child{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+html body.mmh-workspace-active:not(.auth-page-active) #settings#settings#settings#settings.page.active>.st-page:not([hidden])#stPage_general .st-rows>.st-row>button.st-combo-trigger-v272>span:last-child{flex:none;color:var(--uv-muted,#aab8c8)}
+html body.mmh-workspace-active:not(.auth-page-active) #settings#settings#settings#settings.page.active>.st-page:not([hidden])#stPage_general .st-rows>.st-row>button.st-combo-trigger-v272:disabled{opacity:.5;cursor:default}
+html body.mmh-workspace-active:not(.auth-page-active) #settings#settings#settings#settings.page.active>.st-page:not([hidden])#stPage_general .st-rows>.st-row>button.st-combo-trigger-v272:focus-visible{outline:2px solid var(--uv-accent,#9bb7fb)!important;outline-offset:2px!important}
+html body.mmh-workspace-active:not(.auth-page-active) #stComboV272{box-sizing:border-box!important;width:min(360px,calc(100vw - 24px))!important;max-width:calc(100vw - 24px)!important;max-height:min(480px,calc(100vh - 32px))!important;max-height:min(480px,calc(100dvh - 32px))!important;margin:auto!important;padding:12px!important;border:1px solid var(--uv-line,#344052)!important;border-radius:14px!important;background:var(--uv-card,#1c2531)!important;color:var(--uv-text,#e8edf4)!important;box-shadow:0 12px 40px #0003!important;overflow:auto!important;font-family:var(--mmh-personal-font-v265,system-ui,sans-serif)!important}
+html body.mmh-workspace-active:not(.auth-page-active) #stComboV272[open]{display:grid!important;grid-template-rows:auto minmax(0,1fr);gap:8px}
+html body.mmh-workspace-active:not(.auth-page-active) #stComboV272::backdrop{background:rgba(0,0,0,.38)}
+html body.mmh-workspace-active:not(.auth-page-active) #stComboV272 .st-combo-head-v272{display:flex;align-items:center;justify-content:space-between;gap:8px}
+html body.mmh-workspace-active:not(.auth-page-active) #stComboV272 h3{font-size:15px!important;line-height:1.4!important;margin:0!important;color:inherit!important}
+html body.mmh-workspace-active:not(.auth-page-active) #stComboV272 button{box-sizing:border-box!important;color:inherit!important;border:1px solid transparent!important;border-radius:8px!important;background:transparent!important;box-shadow:none!important;font:inherit!important;cursor:pointer}
+html body.mmh-workspace-active:not(.auth-page-active) #stComboV272 .st-combo-close-v272{min-width:40px!important;min-height:40px!important;font-size:20px!important}
+html body.mmh-workspace-active:not(.auth-page-active) #stComboV272 .st-combo-group-v272{display:flex!important;flex-direction:column!important;gap:5px!important;min-height:0!important;width:100%!important}
+html body.mmh-workspace-active:not(.auth-page-active) #stComboV272 .st-combo-group-v272>label{font-size:12px!important;color:var(--uv-muted,#aab8c8)!important}
+html body.mmh-workspace-active:not(.auth-page-active) #stComboV272 input{box-sizing:border-box!important;min-width:0!important;width:100%!important;height:40px!important;min-height:40px!important;padding:8px 10px!important;border:1px solid var(--uv-line,#344052)!important;border-radius:8px!important;background:var(--uv-raised,#273242)!important;color:inherit!important;font-size:16px!important}
+html body.mmh-workspace-active:not(.auth-page-active) #stComboV272 .ap-currency-list-v2{display:grid!important;grid-auto-rows:max-content!important;gap:3px!important;min-height:0!important;max-height:min(320px,46vh)!important;max-height:min(320px,46dvh)!important;overflow:auto!important;overscroll-behavior:contain;scrollbar-width:thin}
+html body.mmh-workspace-active:not(.auth-page-active) #stComboV272 .ap-currency-section-v2{padding:5px 8px!important;color:var(--uv-muted,#aab8c8)!important;font-size:11px!important}
+html body.mmh-workspace-active:not(.auth-page-active) #stComboV272 .ap-currency-list-v2 button{display:grid!important;grid-template-columns:minmax(0,1fr) minmax(0,1fr)!important;align-items:center!important;gap:8px!important;width:100%!important;min-height:40px!important;padding:7px 9px!important;text-align:left!important;font-size:13px!important}
+html body.mmh-workspace-active:not(.auth-page-active) #stComboV272 .ap-currency-list-v2 button>span:last-child{text-align:right;color:var(--uv-muted,#aab8c8);overflow-wrap:anywhere}
+html body.mmh-workspace-active:not(.auth-page-active) #stComboV272 .ap-currency-list-v2 button[aria-pressed=true]{background:var(--uv-raised,#273242)!important;border-color:var(--uv-accent,#9bb7fb)!important}
+html body.mmh-workspace-active:not(.auth-page-active) #stComboV272 button:focus-visible,html body.mmh-workspace-active:not(.auth-page-active) #stComboV272 input:focus-visible{outline:2px solid var(--uv-accent,#9bb7fb)!important;outline-offset:-2px!important}
+</style>
+<script id="mmhvault-personal-settings-combo-v272-js">
+(function(){
+ const ids=['stPref_currency','stPref_fontV265'];
+ const controls=new Map();let dialog=null,active=null,trigger=null,group=null,search=null,list=null,heading=null,closeButton=null,label=null;
+ const $=id=>document.getElementById(id);
+ const T=(en,zh,my)=>/^zh/i.test(document.documentElement.lang)?zh:/^(my|mm|bur)/i.test(document.documentElement.lang)?my:en;
+ function text(el,value){if(el.textContent!==value)el.textContent=value}
+ function caption(select){return select.selectedOptions[0]?.textContent||select.value}
+ function refresh(){
+  for(const [select,b] of controls){
+   if(!select.isConnected){controls.delete(select);b.remove();continue}
+   text(b.firstElementChild,caption(select));b.disabled=select.disabled;
+   b.setAttribute('aria-label',(select.parentElement.children[1]?.textContent||'')+': '+caption(select));
+  }
+  if(active&&(!active.isConnected||active.disabled||active.closest('.st-page')?.hidden||!$('settings')?.classList.contains('active')))dialog?.close();
+ }
+ window.mmhRefreshSettingsCombosV272=refresh;
+ function makeDialog(){
+  dialog=document.createElement('dialog');dialog.id='stComboV272';dialog.setAttribute('aria-labelledby','stComboTitleV272');
+  const head=document.createElement('div');head.className='st-combo-head-v272';
+  heading=document.createElement('h3');heading.id='stComboTitleV272';
+  closeButton=document.createElement('button');closeButton.type='button';closeButton.className='st-combo-close-v272';closeButton.textContent='×';closeButton.autofocus=true;closeButton.onclick=()=>dialog.close();head.append(heading,closeButton);
+  group=document.createElement('div');group.className='st-combo-group-v272';label=document.createElement('label');label.htmlFor='stComboSearchV272';
+  search=document.createElement('input');search.id='stComboSearchV272';search.type='search';search.autocomplete='off';search.spellcheck=false;
+  list=document.createElement('div');list.className='ap-currency-list-v2';group.append(label,search,list);dialog.append(head,group);document.body.append(dialog);
+  dialog.addEventListener('click',e=>{if(e.target!==dialog)return;const r=dialog.getBoundingClientRect();if(e.clientX<r.left||e.clientX>r.right||e.clientY<r.top||e.clientY>r.bottom)dialog.close()});
+  dialog.addEventListener('close',()=>{const b=trigger;active=null;trigger=null;if(b){b.setAttribute('aria-expanded','false');if(b.isConnected&&!b.disabled&&b.getClientRects().length)b.focus({preventScroll:true})}refresh()});
+  list.addEventListener('click',e=>{
+   const b=e.target.closest('button[data-ap-currency],button[data-st-choice-v272]');if(!b||!active)return;
+   const value=b.dataset.apCurrency??b.dataset.stChoiceV272;
+   if(active.disabled||![...active.options].some(o=>o.value===value&&!o.disabled))return;
+   if(active.value!==value){active.value=value;active.dispatchEvent(new Event('change',{bubbles:true}))}
+   refresh();if(dialog.open)dialog.close();
+  });
+ }
+ function draw(){
+  if(!active)return;
+  const currency=active.id==='stPref_currency',name=active.parentElement.children[1]?.textContent||'';
+  text(heading,name);closeButton.setAttribute('aria-label',T('Close','关闭','ပိတ်ရန်'));
+  search.value='';search.hidden=!currency;label.hidden=!currency;list.replaceChildren();search.oninput=null;
+  if(currency&&window.MMHCurrencyPickerV3?.render){
+   try{window.MMHCurrencyPickerV3.render({select:active,search,list,group,label:name});return}catch(_){list.replaceChildren();search.oninput=null}
+  }
+  const render=()=>{
+   if(!active)return;list.replaceChildren();
+   const term=search.value.trim().toLowerCase();
+   for(const o of active.options){
+    if(o.disabled||(currency&&term&&!o.textContent.toLowerCase().includes(term)&&!o.value.toLowerCase().includes(term)))continue;
+    const b=document.createElement('button');b.type='button';b.dataset.stChoiceV272=o.value;b.setAttribute('aria-pressed',String(o.value===active.value));
+    const a=document.createElement('span'),mark=document.createElement('span');a.textContent=o.textContent;mark.textContent=o.value===active.value?'✓':'';b.append(a,mark);list.append(b);
+   }
+  };
+  if(currency){text(label,T('Search currencies','搜索币种','ငွေကြေး ရှာရန်'));search.placeholder=T('Currency code or name','币种代码或名称','ငွေကြေးကုဒ် သို့မဟုတ် အမည်');search.oninput=render}
+  render();
+ }
+ function open(select,b){
+  if(select.disabled||!select.isConnected)return;
+  if(!dialog)makeDialog();
+  if(dialog.open)return;
+  active=select;trigger=b;draw();dialog.showModal();b.setAttribute('aria-expanded','true');closeButton.focus({preventScroll:true});
+ }
+ function init(){
+  const page=$('stPage_general');if(!page||typeof HTMLDialogElement==='undefined'||!HTMLDialogElement.prototype.showModal)return;
+  for(const id of ids){
+   const select=$(id);if(!select||!page.contains(select)||controls.has(select))continue;
+   const b=document.createElement('button');b.type='button';b.className='st-combo-trigger-v272';b.setAttribute('aria-haspopup','dialog');b.setAttribute('aria-controls','stComboV272');b.setAttribute('aria-expanded','false');
+   const value=document.createElement('span'),chevron=document.createElement('span');chevron.textContent='⌄';chevron.setAttribute('aria-hidden','true');b.append(value,chevron);
+   b.addEventListener('click',e=>{e.preventDefault();open(select,b)});
+   select.after(b);select.dataset.mmhComboV272='1';select.hidden=true;select.tabIndex=-1;controls.set(select,b);
+   select.addEventListener('change',refresh);
+   new MutationObserver(()=>{refresh();if(dialog?.open&&active===select)draw()}).observe(select,{attributes:true,attributeFilter:['disabled'],childList:true,characterData:true,subtree:true});
+  }
+  refresh();
+ }
+ function ready(){
+  init();const root=$('settings');if(!root)return;
+  new MutationObserver(()=>{init();refresh()}).observe(root,{childList:true,subtree:true,attributes:true,attributeFilter:['hidden','class']});
+ }
+ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',ready,{once:true});else ready();
+ document.addEventListener('mmhvault-language-change',()=>{refresh();if(dialog?.open)draw()});
+ window.addEventListener('mmhvault:personal-display-currency-changed',refresh);
+})();
+</script>
 </body>
 </html>
