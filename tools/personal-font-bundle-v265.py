@@ -12,11 +12,13 @@ import json
 from pathlib import Path
 import re
 import tempfile
+import sys
 
 HERE = Path(__file__).resolve().parent
 REPO = HERE.parent
 spec = importlib.util.spec_from_file_location("personal_font_pack", HERE / "personal-font-pack-v265.py")
 pack = importlib.util.module_from_spec(spec)
+sys.dont_write_bytecode = True
 spec.loader.exec_module(pack)
 
 def require(condition, message):
