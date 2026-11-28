@@ -11,7 +11,7 @@ const css=[...app.matchAll(/<style\b[^>]*>([\s\S]*?)<\/style>|<link\b[^>]*href="
 const items=[['general','General','⚙'],['security','Password &amp; devices','⌑'],['icon','App icon','▣'],['data','Data &amp; backup','⇩']];
 const buttons=items.map(([id,title,icon])=>'<button type="button" class="st-nav" aria-controls="stPage_'+id+'"><span class="st-icon" aria-hidden="true">'+icon+'</span><span class="st-nav-name">'+title+'</span><span class="st-chevron" aria-hidden="true">›</span></button>').join('');
 const stats=['Day streak','Days recorded','Transactions'].map((x,i)=>'<div><b>'+[19,91,271][i]+'</b><small>'+x+'</small></div>').join('');
-const html='<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">'+css+'</head><body class="mmh-workspace-active"><main class="wrap"><section id="settings" class="page active"><h1>Settings</h1><div id="stSettingsHomeV3" class="st-home"><div id="settingsPanelAccountV371"><div class="panel"><div class="toolbar"><h2>My profile</h2><button class="btn danger">Logout</button></div><div class="account-center-v375"><div class="account-center-card-v375"><div class="account-center-head-v375"><div class="account-center-avatar-v375">MF</div><div><div class="account-center-name-v375">Sample profile</div><div class="account-center-email-v375">sample-long-address@example.invalid</div></div></div><div class="st-stats">'+stats+'</div><button class="st-nav st-profile-link">Edit profile</button></div></div></div></div><nav class="st-home-menu">'+buttons+'</nav></div>'+items.map(([id])=>'<section id="stPage_'+id+'" class="st-page" hidden>Mock detail</section>').join('')+'</section></main></body></html>';
+const html='<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">'+css+'</head><body class="mmh-workspace-active"><main class="wrap"><section id="settings" class="page active"><h1>Settings</h1><div id="stSettingsHomeV3" class="st-home"><div id="settingsPanelAccountV371"><div class="panel"><div class="toolbar"><h2>My profile</h2><button class="btn danger">Logout</button></div><div class="account-center-v375"><div class="account-center-card-v375"><div class="account-center-head-v375"><div class="account-center-avatar-v375">MF</div><div><div class="account-center-name-v375">Sample profile</div><div class="account-center-email-v375">sample-long-address@example.invalid</div></div></div><div class="st-stats">'+stats+'</div><button class="st-nav st-profile-link">Edit profile</button></div></div></div></div><nav class="st-home-menu">'+buttons+'</nav></div>'+items.map(([id])=>'<section id="stPage_'+id+'" class="st-page" hidden>'+(id==='general'?'<div class="st-group"><div class="st-rows"><label class="st-row"><span class="st-icon">$</span><span>Default display currency</span><select><option>USD</option></select></label><label class="st-row"><span class="st-icon">Aa</span><span>Font style</span><select><option>System</option></select></label></div></div>':'Mock detail')+'</section>').join('')+'</section></main></body></html>';
 const engine=process.env.MMH_SETTINGS_BROWSER||'chromium';
 assert(['chromium','webkit'].includes(engine));
 const browser=await (engine==='webkit'?webkit:chromium).launch({headless:true});
@@ -24,6 +24,7 @@ try{
  await page.addScriptTag({content:grouping});
  await page.evaluate(()=>{const last=document.querySelector('.st-template-group:last-child');for(const [cls,text] of [['fb-nav','Feedback center'],['st-nav cs-entry-v1518','Live support']]){const b=document.createElement('button');b.className=cls;b.textContent=text;last.append(b)}});
  assert.equal(await page.locator('.st-template-group').count(),3);
+ assert.equal(await page.locator('#settings>h1').isVisible(),false,'duplicate page title suppressed');
  assert.equal(await page.locator('.st-template-legacy-support-v268').isVisible(),false);
  assert.equal(await page.locator('.st-home-menu [aria-controls="stPage_icon"]').count(),0);
  assert.equal(await page.locator('#stPage_general [aria-controls="stPage_icon"]').count(),1);
@@ -50,12 +51,13 @@ try{
     assert.ok(result.entries.every(x=>x.display!=='none'&&x.rect.w>0&&x.rect.h>=44&&x.overflow<=2),label+' three available home entries, no overflow');
     assert.ok(Math.abs(result.profile.x-result.menu.x)<=2&&Math.abs(result.profile.right-result.menu.right)<=2,label+' profile and menu align');
     assert.ok(result.groups.every(x=>x.h>0&&x.h<260&&x.x>=result.menu.x-2&&x.right<=result.menu.right+2),label+' compact groups');
-    assert.equal(result.columns,result.home.w>=560?2:1,label+' responsive content columns');
+    assert.equal(result.columns,1,label+' unified single settings card');
     assert.equal(result.heading,{en:'Preferences',zh:'偏好设置',my:'စိတ်ကြိုက်ဆက်တင်များ'}[lang],label+' actual group translation');
     assert.equal(await page.locator('#stPage_general .st-general-icon-link-v268 small').textContent(),{en:'App icon and home screen installation',zh:'应用图标与添加主屏幕',my:'အက်ပ်အိုင်ကွန်နှင့် ပင်မမျက်နှာပြင်သို့ ထည့်သွင်းခြင်း'}[lang]);
     await page.evaluate(()=>{document.getElementById('stSettingsHomeV3').hidden=true;document.getElementById('settings').classList.add('st-in-subpage');document.getElementById('stPage_general').hidden=false});
     const nested=page.locator('#stPage_general .st-general-icon-link-v268');
     assert.equal(await nested.isVisible(),true,label+' icon link visible in General');
+    assert.equal(await nested.evaluate(e=>e.parentElement.classList.contains('st-rows')),true,label+' integrated into the existing General rows');
     assert.ok(await nested.evaluate(e=>e.getBoundingClientRect().height>=44&&e.scrollWidth-e.clientWidth<=2),label+' icon link fits');
     await page.evaluate(()=>{document.getElementById('stPage_general').hidden=true;document.getElementById('settings').classList.remove('st-in-subpage');document.getElementById('stSettingsHomeV3').hidden=false});
     cases++;
