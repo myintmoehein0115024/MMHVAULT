@@ -205,6 +205,66 @@ try{
  const chinesePackInputs=new Map();
  const python=process.env.MMH_FONTQA_PYTHON;
  if(process.env.CI)assert(python,'CI must provide isolated font compression interpreter');
+ // Inspect official release archives in memory only; no installation or extracted files.
+ // Smiley's release metadata does not provide a digest, so its computed hash is
+ // diagnostic until independently pinned. Zhuque's archive digest is published.
+ if(python){
+  const releaseArchives=[
+   {folder:'smileysans',url:'https://github.com/atelier-anchor/smiley-sans/releases/download/v2.0.1/smiley-sans-v2.0.1.zip',size:5781344,sha256:null,licenseUrl:'https://raw.githubusercontent.com/atelier-anchor/smiley-sans/v2.0.1/LICENSE',licenseHash:'d4511630b94994b2b3eb0c99cec1a11cac804004'},
+   {folder:'zhuquefangsong',url:'https://github.com/TrionesType/zhuque/releases/download/v0.212/ZhuqueFangsong-v0.212.zip',size:5743932,sha256:'bb8b661a7643d2296a72d9d10530a00949419c4e527fb61783f73c2ba1a8c062',licenseUrl:'https://raw.githubusercontent.com/TrionesType/zhuque/v0.212/LICENSE.txt',licenseHash:'1091c8f8b724daaa25b0c941ae3115217744c6c6'}
+  ];
+  const archiveInspector=String.raw`
+import hashlib, io, json, pathlib, sys, zipfile
+from fontTools.ttLib import TTFont
+source = sys.stdin.buffer.read()
+sample = set(map(ord, sys.argv[1]))
+with zipfile.ZipFile(io.BytesIO(source)) as archive:
+    entries = archive.infolist()
+    assert len(entries) <= 256 and sum(e.file_size for e in entries) <= 80*1024*1024, "archive bounds"
+    fonts, licenses = [], []
+    for entry in entries:
+        if entry.is_dir():
+            continue
+        assert 0 <= entry.file_size <= 40*1024*1024, "entry bounds"
+        path = pathlib.PurePosixPath(entry.filename)
+        assert not path.is_absolute() and ".." not in path.parts and "\\" not in entry.filename, "unsafe archive path"
+        suffix = path.suffix.lower()
+        if suffix in (".ttf", ".otf", ".woff2"):
+            data = archive.read(entry)
+            with TTFont(io.BytesIO(data)) as font:
+                chars = set(font.getBestCmap())
+                names = font["name"]
+                fonts.append({"path": entry.filename, "bytes": len(data), "sha256": hashlib.sha256(data).hexdigest(), "family": names.getDebugName(1), "style": names.getDebugName(2), "sourceCount": len(chars), "missingSample": sorted(sample-chars)})
+        elif ("license" in path.name.lower() or "ofl" in path.name.lower()) and entry.file_size <= 65536:
+            data = archive.read(entry)
+            licenses.append({"path": entry.filename, "sha256": hashlib.sha256(data).hexdigest(), "gitBlob": hashlib.sha1(b"blob "+str(len(data)).encode()+b"\x00"+data).hexdigest(), "oflNotice": b"SIL OPEN FONT LICENSE VERSION 1.1" in data.upper()})
+    assert fonts, "no supported fonts in archive"
+    print(json.dumps({"fonts": fonts, "licenses": licenses}, ensure_ascii=True))
+`;
+  for(const spec of releaseArchives){
+   const licResponse=await fetch(spec.licenseUrl,{redirect:'error',signal:AbortSignal.timeout(30000)});
+   assert(licResponse.ok,spec.folder+' release license HTTP '+licResponse.status);
+   const license=Buffer.from(await licResponse.arrayBuffer());
+   assert(license.length>0&&license.length<=65536,spec.folder+' license size');
+   assert.equal(createHash('sha1').update('blob '+license.length+String.fromCharCode(0)).update(license).digest('hex'),spec.licenseHash,spec.folder+' release license hash');
+   assert.match(license.toString('utf8'),/SIL OPEN FONT LICENSE Version 1\.1/i);
+   const response=await fetch(spec.url,{redirect:'follow',signal:AbortSignal.timeout(45000)});
+   assert(response.ok,spec.folder+' archive HTTP '+response.status);
+   const final=new URL(response.url);
+   assert(final.protocol==='https:'&&['github.com','release-assets.githubusercontent.com','objects.githubusercontent.com'].includes(final.hostname),spec.folder+' archive host');
+   const bytes=Buffer.from(await response.arrayBuffer());
+   assert.equal(bytes.length,spec.size,spec.folder+' release archive size');
+   const sha256=createHash('sha256').update(bytes).digest('hex');
+   if(spec.sha256)assert.equal(sha256,spec.sha256,spec.folder+' published archive digest');
+   const audit=spawnSync(python,['-c',archiveInspector,samples['zh-CN']],{input:bytes,maxBuffer:1024*1024,timeout:45000});
+   assert.ifError(audit.error);
+   assert.equal(audit.status,0,spec.folder+' release inspection: '+audit.stderr?.toString().slice(-2000));
+   const inspected=JSON.parse(audit.stdout.toString());
+   console.log('FONT-RELEASE-AUDIT '+JSON.stringify({folder:spec.folder,archiveSha256:sha256,publishedDigestVerified:!!spec.sha256,upstreamLicenseGitBlob:spec.licenseHash,...inspected}));
+  }
+  console.log('PASS: two Chinese release archives inspected in memory (metadata and coverage diagnostics only; no production assets)');
+ }
+
  const compressionScript=`
 import io, sys
 from fontTools.ttLib import TTFont
