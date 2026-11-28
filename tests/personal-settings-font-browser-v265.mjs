@@ -83,7 +83,8 @@ try{
   ['zh-CN','zcoolqingkehuangyou','ZCOOLQingKeHuangYou-Regular.ttf','982a3b80143268592f573feb196791fbc2330e17'],
   ['my','notosansmyanmar','NotoSansMyanmar[wdth,wght].ttf','a7af8e405d24076f2930c0840523110b3236560b'],
   ['my','notoserifmyanmar','NotoSerifMyanmar-Regular.ttf','86adf96a587b326f5961b9550d54029608bdc760'],
-  ['my','padauk','Padauk-Regular.ttf','a6882fbb2177bec0271a0b10821a33100efe1fc7']
+  ['my','padauk','Padauk-Regular.ttf','a6882fbb2177bec0271a0b10821a33100efe1fc7'],
+  ['my','tharlon','Tharlon-Regular.ttf','d3840f3ccd173b3da87e0ed476d33027ad880490']
  ];
  const samples={'zh-CN':'账户余额与储蓄交易投资设置财务目标汇率预算收入支出','my':'လက်ကျန်ငွေနှင့်စုဆောင်းငွေမြန်မာဘာသာ၀၁၂၃၄၅၆၇၈၉'};
  const results={};
@@ -115,7 +116,7 @@ if sys.argv[1]=="my":
 sys.stdout.buffer.write(data)
 `;
  for(const [locale,folder,file,expected] of candidates){
-  const licenseHashes={"notosanssc":"1c9f43281b8f216c5461fe9ac729afbade7724e4","notoserifsc":"94d1bf7b52481343e2983fb7751e8b7abe1ea07b","zcoolqingkehuangyou":"bd3df5cf6f237a4afaea70106f8243da07cd8cd8","notosansmyanmar":"c94c47416f38b8ddec9f3fbc9e0241998d7823dc","notoserifmyanmar":"94d1bf7b52481343e2983fb7751e8b7abe1ea07b","padauk":"57410e8e9eb58b0cce938440696cf36e2daf8fcf"};
+  const licenseHashes={"notosanssc":"1c9f43281b8f216c5461fe9ac729afbade7724e4","notoserifsc":"94d1bf7b52481343e2983fb7751e8b7abe1ea07b","zcoolqingkehuangyou":"bd3df5cf6f237a4afaea70106f8243da07cd8cd8","notosansmyanmar":"c94c47416f38b8ddec9f3fbc9e0241998d7823dc","notoserifmyanmar":"94d1bf7b52481343e2983fb7751e8b7abe1ea07b","padauk":"57410e8e9eb58b0cce938440696cf36e2daf8fcf","tharlon":"6ef7b18ea7f5b430f10160034ecdcd0295335954"};
   const licenseResponse=await fetch('https://raw.githubusercontent.com/google/fonts/'+revision+'/ofl/'+folder+'/OFL.txt',{redirect:'error',signal:AbortSignal.timeout(30000)});
   assert(licenseResponse.ok,folder+' license HTTP '+licenseResponse.status);
   const license=Buffer.from(await licenseResponse.arrayBuffer());
@@ -184,6 +185,6 @@ sys.stdout.buffer.write(data)
   assert.equal(new Set(fonts.map(x=>x.pixels)).size,fonts.length,locale+' candidate sample images must differ');
   console.log('FONT-CANDIDATE '+JSON.stringify({locale,fonts}));
  }
- console.log('PASS: six pinned OFL candidate assets rendered isolated sample text without platform fallback; three distinct sample images per language (not full coverage or application integration)');
- if(python)console.log('PASS: six WOFF2 candidates rendered sample without fallback and preserved glyph count and geometry (Chinese sample subset only; Myanmar full cmap preserved; no assets distributed)');
+ console.log('PASS: seven pinned OFL candidate assets rendered isolated sample text without platform fallback; three Chinese and four Myanmar distinct sample images (not full coverage or application integration)');
+ if(python)console.log('PASS: seven WOFF2 candidates rendered sample without fallback and preserved glyph count and geometry (Chinese sample subset only; Myanmar full cmap preserved; no assets distributed)');
 }finally{await browser.close()}
