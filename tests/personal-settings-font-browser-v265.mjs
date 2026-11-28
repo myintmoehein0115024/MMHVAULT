@@ -655,6 +655,19 @@ with tempfile.TemporaryDirectory() as temp:
   for(const [name,input] of bundleInputs){const dest=join(sourceRoot,name);mkdirSync(dest);writeFileSync(join(dest,input.file),input.bytes);writeFileSync(join(dest,'OFL.txt'),input.license)}
   const assembled=spawnSync(python,[bundleTool,'--source-root',sourceRoot,'--ui-source',assemblyUI,'--output',assemblyOutput],{maxBuffer:8*1024*1024,timeout:300000});
   assert.ifError(assembled.error);assert.equal(assembled.status,0,assembled.stderr?.toString().slice(-2000));
+  const verifier=fileURLToPath(new URL('../tools/personal-font-verify-v265.mjs',import.meta.url));
+  const reviewedDigest=createHash('sha256').update(readFileSync(join(assemblyOutput,'bundle.json'))).digest('hex');
+  const verify=(digest=reviewedDigest)=>spawnSync(process.execPath,[verifier,assemblyOutput,digest],{timeout:30000,encoding:'utf8'});
+  const verified=verify();assert.ifError(verified.error);assert.equal(verified.status,0,verified.stderr);
+  const verifiedSummary=JSON.parse(verified.stdout);assert.equal(verifiedSummary.families,8);
+  assert.equal(verifiedSummary.manifest_sha256,reviewedDigest);
+  assert.notEqual(verify('0'.repeat(64)).status,0,'incorrect reviewed digest rejected');
+  const extra=join(assemblyOutput,'unexpected.txt');
+  writeFileSync(extra,'unexpected');try{assert.notEqual(verify().status,0,'unexpected resource rejected')}finally{rmSync(extra)}
+  const cssPath=join(assemblyOutput,'fonts.css'),originalCSS=readFileSync(cssPath);
+  try{writeFileSync(cssPath,Buffer.concat([originalCSS,Buffer.from(' ')]));assert.notEqual(verify().status,0,'tampered CSS rejected')}finally{writeFileSync(cssPath,originalCSS)}
+  assert.equal(verify().status,0,'restored bundle verified');
+  console.log('PASS: offline reviewed font resource verification rejects incorrect digest, extra files and altered CSS without regenerating fonts');
   const actualManifest=JSON.parse(readFileSync(join(assemblyOutput,'bundle.json'),'utf8'));
   assert.deepEqual(actualManifest,JSON.parse(assembled.stdout.toString('utf8')));
   assert.equal(actualManifest.candidates.length,8);
