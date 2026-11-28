@@ -240,7 +240,21 @@ function openInstrument(id,kind,watchOrigin){category=kind;selectedInstrument=id
 const back=document.createElement('button');back.type='button';back.className='mv2-back';back.dataset.mv2Text='back';back.addEventListener('click',()=>{const old=category,wasWatch=fromWatch,wasInstrument=!!selectedInstrument;category=wasInstrument&&!wasWatch?old:'all';selectedInstrument=null;fromWatch=false;paint();if(wasWatch)watchTitle.focus();else if(wasInstrument)detailTitle.focus();else grid.querySelector('[data-mv2-category="'+old+'"]')?.focus()});
 const detailTitle=document.createElement('h2');detailTitle.tabIndex=-1;
 const search=document.createElement('input');search.type='search';search.className='mv2-search';search.autocomplete='off';search.addEventListener('input',()=>{detailRows.scrollTop=0;renderDetails()});
+const categoryCards=document.createElement('div');categoryCards.className='mv2-grid mv274-category-cards';
 const detailRows=document.createElement('div');detailRows.className='mv2-detail-rows';
+const categoryExtra=document.createElement('section');categoryExtra.className='mv2-pairs mv274-category-extra';
+const DETAIL_COPY_V274={en:{rates:'Exchange Rates List',international:'International Gold',local:'Myanmar Gold',purity:'Myanmar Gold Prices by Purity',compare:'International vs. Local',coins:'Crypto Prices',fuel:'Fuel Prices',edible:'Edible Oil Prices',trend:'Price trend',compareEnergy:'Price Trend Comparison',buy:'Buy',sell:'Sell',missing:'Data not connected',region:'Myanmar · Regional prices may vary',diesel:'Diesel',palm:'Palm oil',soy:'Soybean oil',sun:'Sunflower oil',kyattha:'1 Kyattha',volume:'Trading volume',sentiment:'Market sentiment'},zh:{rates:'汇率明细',international:'国际黄金',local:'缅甸黄金',purity:'缅甸黄金纯度价格',compare:'国际与本地金价对比',coins:'加密货币行情',fuel:'燃油价格',edible:'食用油价格',trend:'价格走势',compareEnergy:'价格趋势对比',buy:'买入',sell:'卖出',missing:'数据暂未接入',region:'缅甸 · 各地区价格可能不同',diesel:'柴油',palm:'棕榈油',soy:'大豆油',sun:'葵花籽油',kyattha:'1 缅甸甲塔',volume:'成交量',sentiment:'市场情绪'},my:{rates:'ငွေလဲနှုန်းစာရင်း',international:'နိုင်ငံတကာရွှေ',local:'မြန်မာ့ရွှေ',purity:'ရွှေရည်အလိုက် ဈေးနှုန်း',compare:'နိုင်ငံတကာနှင့် ပြည်တွင်းရွှေ',coins:'ခရစ်ပတိုဈေးနှုန်း',fuel:'စက်သုံးဆီဈေး',edible:'စားသုံးဆီဈေး',trend:'ဈေးနှုန်းလမ်းကြောင်း',compareEnergy:'ဈေးနှုန်း နှိုင်းယှဉ်မှု',buy:'ဝယ်',sell:'ရောင်း',missing:'ဒေတာ မချိတ်ဆက်ရသေးပါ',region:'မြန်မာ · ဒေသအလိုက် ဈေးနှုန်းကွာနိုင်ပါသည်',diesel:'ဒီဇယ်',palm:'စားအုန်းဆီ',soy:'ပဲပုပ်ဆီ',sun:'နေကြာဆီ',kyattha:'၁ ကျပ်သား',volume:'အရောင်းအဝယ်ပမာဏ',sentiment:'ဈေးကွက် စိတ်ခံစားမှု'}};
+function renderCategoryCards(all,lang){
+ const c=DETAIL_COPY_V274[lang],h=HISTORY_TEXT[lang];categoryCards.replaceChildren();categoryExtra.replaceChildren();categoryCards.hidden=!!selectedInstrument||category==='all';categoryExtra.hidden=categoryCards.hidden;
+ if(categoryCards.hidden)return;
+ const entries=category==='currency'?['MMK','THB','CNY','SGD'].map(code=>['USD / '+code,'fx:'+code]):category==='gold'?[[c.international,'gold:XAU'],[c.local+' 24K'],[c.local+' 23K'],[c.kyattha]]:category==='crypto'?['BTC','ETH','BNB','SOL'].map(code=>[code,'crypto:'+code]):[['RON 92'],['RON 95'],[c.diesel],[c.palm],[c.soy],[c.sun]];
+ for(const [label,id] of entries){const item=id?all.find(x=>x.id===id):null,card=document.createElement(item?'button':'div');card.className='mv2-card';card.dataset.mv2Category=category;if(item){card.type='button';card.addEventListener('click',()=>openInstrument(item.id,item.category,false))}const title=document.createElement('h3'),v=document.createElement('div'),status=document.createElement('small');title.textContent=label;v.className='mv2-value';v.textContent=item?instrumentPrice(item,lang):'—';status.textContent=item?.q?(item.q.stale?EXTRA[lang].stale:EXTRA[lang].fresh):item?.value!=null?COPY[lang].reference:c.missing;card.append(title,v,status);categoryCards.append(card)}
+ function block(title,rows){const section=document.createElement('section');section.className='mv274-extra-block';const head=document.createElement('h3');head.textContent=title;section.append(head);for(const [label,value] of rows){const row=document.createElement('div');row.className='mv2-detail-row';const a=document.createElement('span'),b=document.createElement('span');a.textContent=label;b.textContent=value;row.append(a,b);section.append(row)}categoryExtra.append(section)}
+ if(category==='gold'){block(c.purity,['24K','23K','22K','21K'].map(k=>[k,c.buy+' — · '+c.sell+' —']));block(c.compare,[[c.international,all.find(x=>x.id==='gold:XAU')?instrumentPrice(all.find(x=>x.id==='gold:XAU'),lang):'—'],[c.local,'—']])}
+ if(category==='crypto'){block(c.sentiment,[[c.missing,'—']]);block(c.volume,[[c.missing,'—']])}
+ if(category==='oil'){block(c.compareEnergy,[[h.noHistory,'—']]);block(c.region,[[c.missing,'—']])}
+ if(category!=='oil')block(c.trend,[[h.noHistory,'—']]);
+}
 const history=document.createElement('section');history.className='mv2-history';history.hidden=true;
 function drawHistory(item,lang,series=null,observations=[]){
  const h=HISTORY_TEXT[lang],now=Date.now();history.replaceChildren();
@@ -261,7 +275,7 @@ function drawHistory(item,lang,series=null,observations=[]){
  for(const p of points){const dot=document.createElementNS(ns,'circle');dot.setAttribute('cx',String(16+608*(p.time-first)/(last-first)));dot.setAttribute('cy',String(high===low?110:204-188*(p.price-low)/(high-low)));dot.setAttribute('r','3');dot.setAttribute('fill','currentColor');const tip=document.createElementNS(ns,'title');tip.textContent=new Date(p.time).toLocaleString(lang)+' · '+watchFmt(p.price,lang)+' '+series.currency+' / '+series.unit;dot.append(tip);svg.append(dot)}
  const legend=document.createElement('p');legend.className='mv2-note';legend.textContent=new Date(first).toLocaleDateString(lang)+' — '+new Date(last).toLocaleDateString(lang)+' · '+watchFmt(low,lang)+' – '+watchFmt(high,lang)+' '+series.currency+' / '+series.unit+' · '+points.length+' '+h.observations;history.append(svg,legend)
 }
-const detailStatus=document.createElement('p');detailStatus.className='mv2-note';detailStatus.setAttribute('role','status');detailStatus.hidden=true;detail.append(back,detailTitle,search,detailStatus,detailRows,history);surface.append(detail);
+const detailStatus=document.createElement('p');detailStatus.className='mv2-note';detailStatus.setAttribute('role','status');detailStatus.hidden=true;detail.append(back,detailTitle,categoryCards,search,detailStatus,detailRows,history,categoryExtra);surface.append(detail);
 let active='market';
 const convertTarget=document.getElementById('mmhExchangeV2StagingRoot');
 const legacy=page.querySelector('.exchange-converter-panel');
@@ -273,9 +287,9 @@ for(const key of sections){
 function select(key){if(key!=='market'){closeWatch();watchEditing=false;category='currency';selectedInstrument=null;fromWatch=false}active=key;page.dataset.marketView=key;paint();window.dispatchEvent(new CustomEvent('mmhvault:market-view-changed',{detail:{view:key}}))}
 function renderDetails(){
  const lang=locale(),c={...COPY[lang],...EXTRA[lang]},h=HISTORY_TEXT[lang],snap=marketSnapshot();
- detailRows.replaceChildren();history.hidden=true;if(category==='all')return;
- const all=instrumentItems(snap,lang),item=selectedInstrument?all.find(x=>x.id===selectedInstrument&&x.category===category):null;
- detailTitle.textContent=item?instrumentIcon(item.id)+' '+item.name:V274_COPY[lang][category];
+ detailRows.replaceChildren();history.hidden=true;const all=instrumentItems(snap,lang);renderCategoryCards(all,lang);if(category==='all')return;
+ const item=selectedInstrument?all.find(x=>x.id===selectedInstrument&&x.category===category):null;
+ detailTitle.textContent=item?instrumentIcon(item.id)+' '+item.name:category==='currency'?DETAIL_COPY_V274[lang].rates:V274_COPY[lang][category];
  back.textContent=fromWatch?wc().back:selectedInstrument?h.category:c.back;
  search.placeholder=c.search;search.setAttribute('aria-label',c.search);search.hidden=!!selectedInstrument||category==='gold'||category==='oil';
  const query=search.hidden?'':search.value.trim().toLocaleLowerCase();
@@ -414,6 +428,11 @@ html body #exchange#exchange[data-market-v2-mounted][data-market-view=market][da
 html body #exchange#exchange[data-market-v2-mounted] .mv274-energy-group{padding:12px 0;border-bottom:1px solid var(--mv74-line)}
 html body #exchange#exchange[data-market-v2-mounted] .mv274-energy-group:last-child{border-bottom:0}
 html body #exchange#exchange[data-market-v2-mounted] .mv274-energy-group h3{margin:0;font-size:15px}
+html body #exchange#exchange[data-market-v2-mounted] .mv274-category-extra{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+html body #exchange#exchange[data-market-v2-mounted] .mv274-extra-block{min-width:0;border:1px solid var(--mv74-line);border-radius:10px;padding:12px}
+html body #exchange#exchange[data-market-v2-mounted] .mv274-extra-block h3{margin:0 0 8px;font-size:14px;overflow-wrap:anywhere}
+html body #exchange#exchange[data-market-v2-mounted] .mv274-category-cards .mv2-card{min-height:100px}
+@media(max-width:600px){html body #exchange#exchange[data-market-v2-mounted] .mv274-category-extra{grid-template-columns:minmax(0,1fr)}}
 html body #exchange#exchange[data-market-v2-mounted] .mv2-surface{color:var(--mv74-text);gap:12px}
 html body #exchange#exchange[data-market-v2-mounted] .mv2-grid{grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
 html body #exchange#exchange[data-market-v2-mounted] .mv2-surface :is(.mv2-card,.mv2-pairs,.mv2-detail-rows,.mv2-history,.mv2-watch-dialog){background:var(--mv74-card)!important;border:1px solid var(--mv74-line)!important;color:var(--mv74-text)!important;box-shadow:none!important;border-radius:14px}
