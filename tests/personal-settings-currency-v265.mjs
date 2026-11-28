@@ -740,7 +740,8 @@ console.log('PASS: 53-code shared display registry, additional FX, missing rates
  const elements=Object.fromEntries(['stPref_fontV265','stFontLabelV265','stFontPreviewV265','stFontNoteV265','stFontStatusV265'].map(id=>[id,{textContent:'',style:{},options:Array.from({length:7},()=>({textContent:''}))}]));
  let owner='a';
  const doc={documentElement:{lang:'en'},body:{setAttribute:(k,v)=>attrs.set(k,v),removeAttribute:k=>attrs.delete(k),style:{setProperty:(k,v)=>styles.set(k,v),removeProperty:k=>styles.delete(k)}}};
- const api=new Function('document','$','prefOwner','lsGet',app.slice(a,b)+'return {fontStylesV265,fontChoiceV265,fontLanguageV265,fontStackV265,fontKeyV265,applyFontV265};')(doc,id=>elements[id],()=>owner,k=>store.get(k)??null);
+ let comboRefreshes=0;const win={mmhRefreshSettingsCombosV272:()=>comboRefreshes++};
+ const api=new Function('document','$','prefOwner','lsGet','window',app.slice(a,b)+'return {fontStylesV265,fontChoiceV265,fontLanguageV265,fontStackV265,fontKeyV265,applyFontV265};')(doc,id=>elements[id],()=>owner,k=>store.get(k)??null,win);
  const attr='data-mmh-personal-font-v265',property='--mmh-personal-font-v265',select=elements.stPref_fontV265;
  assert.equal(api.fontStylesV265.length,7);
  assert.equal(api.fontKeyV265('guest','en'),null);
@@ -750,7 +751,7 @@ console.log('PASS: 53-code shared display registry, additional FX, missing rates
   assert.equal(api.fontStackV265(locale,'system'),'system-ui');
   assert.equal(new Set(api.fontStylesV265.map(v=>api.fontStackV265(locale,v))).size,7);
  }
- api.applyFontV265();assert.equal(select.value,'system');assert.equal(attrs.has(attr),false);
+ api.applyFontV265();assert.equal(select.value,'system');assert.equal(attrs.has(attr),false);assert.equal(comboRefreshes,1,'custom selector refresh after applying font');
  store.set(api.fontKeyV265('a','en'),'elegant');api.applyFontV265();assert.equal(select.value,'elegant');assert.equal(attrs.get(attr),'elegant');assert.match(styles.get(property),/Georgia/);
  doc.documentElement.lang='zh-CN';api.applyFontV265();assert.equal(select.value,'system');assert.equal(attrs.has(attr),false);assert.equal(styles.has(property),false);assert.equal(elements.stFontLabelV265.textContent,'字体样式');
  store.set(api.fontKeyV265('a','zh'),'minimal');api.applyFontV265();assert.equal(select.value,'minimal');assert.match(styles.get(property),/LXGW WenKai/);
@@ -759,6 +760,8 @@ console.log('PASS: 53-code shared display registry, additional FX, missing rates
  owner='b';api.applyFontV265();assert.equal(select.value,'system');assert.equal(attrs.has(attr),false);
  owner='guest';api.applyFontV265();assert.equal(select.disabled,true);
  owner='a';store.set(api.fontKeyV265('a','en'),'invalid');api.applyFontV265();assert.equal(select.value,'system');assert.equal(select.disabled,false);
+ assert.equal(comboRefreshes,9,'each font apply refreshes custom selector');
+ delete win.mmhRefreshSettingsCombosV272;api.applyFontV265();assert.equal(select.value,'system','native fallback without combo hook');
  console.log('PASS: Personal font style mapping, language memory, owner isolation and System reset (mock DOM)');
 }
 
