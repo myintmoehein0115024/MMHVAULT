@@ -1,5 +1,9 @@
 # MMHVAULT Personal handoff — 2026-11-28
 
+## Current checkpoint — V2.0.69 regression correction (2026-11-28)
+- PR #177 exact head 4b1363c4eef1e1ba8860f9332887e159c25eda5d, run 46145641039: synthetic-browser job 140981032228 failed before browser installation on outdated source assertion requiring birthday placement immediately followed by editor removal; WebKit and font jobs still running when checked. Main remains V2.0.68 932e3811b5fec7de19f3ae120119cfb815564d04; mergeable draft, no deployment.
+- Corrected assertion to execute actual profile relocation with and without birthday using mock DOM; additionally expanded isolated browser fixture to cover photo/name order, avatar sizing, external submit association and local submit event without data handlers. Runtime unchanged. New-head CI required; native authenticated visual and full Business runtime remain unverified. No production data/config, paid resources or Business changes.
+
 ## Current checkpoint — V2.0.69 Settings layout alignment (2026-11-28)
 - Main V2.0.68 932e3811b5fec7de19f3ae120119cfb815564d04; owner-approved V2.0.68 release recorded in main commit. V2.0.69 independent branch personal/v2.0.69-settings-layout, code/test head ffc4cbcb7746ea32228eee6bc7cf16c7e9a32a9e, PR #177 draft/open, not merged. Before handoff update branch was 3 commits ahead / 0 behind main; changes confined to app.html and two Personal Settings tests.
 - User-approved UI scope: remove duplicate Settings headline, align four-side margins/detail navigation with V2, integrate General/App icon layout, refine Edit profile and Data & backup responsive layout. Preserve existing account/data handlers and security restrictions. Prior session reported reversible source edits, script syntax and remote readback checks; exact new-head browser CI not yet verified.

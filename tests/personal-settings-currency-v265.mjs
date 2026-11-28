@@ -824,7 +824,20 @@ console.log('PASS: 53-code shared display registry, additional FX, missing rates
  nav.back();assert.equal(general.hidden,false);assert.equal(icon.hidden,true);assert.equal(home.hidden,true);assert.equal(scroll,75);assert.equal(focused,'icon');
  nav.back();assert.equal(home.hidden,false);assert.equal(scroll,20);assert.equal(focused,'home');
  nav.go('icon');nav.back();assert.equal(home.hidden,false,'legacy icon route still returns home');
- assert.match(app,/if\(birthday\)form\.after\(birthday\);editor\.remove\(\);/);
+ // Execute actual profile relocation with and without birthday; keep existing save element.
+ const profileMove=app.split('\n').find(line=>line.startsWith("const editor=top.querySelector('.settings-profile-editor');"));
+ assert.ok(profileMove,'actual profile relocation');
+ for(const hasBirthday of [false,true]){
+  const moved=[],form={id:'mmhProfileFormV1',after(node){moved.push(['form',node])}},birthday=hasBirthday?{after(node){moved.push(['birthday',node])}}:null;
+  const submit={setAttribute(key,value){assert.equal(key,'form');this.formId=value}},result={},actions={append(...nodes){this.nodes=nodes}};
+  let removed=false;const editor={remove(){removed=true}},card={},profileButton={classList:{add(c){assert.equal(c,'st-profile-link')}}};
+  const top={querySelector:s=>s==='.settings-profile-editor'?editor:card};
+  const get=id=>({mmhProfileFormV1:form,mmhProfileSaveV1:submit,mmhProfileResultV1:result})[id];
+  new Function('top','$','register','birthday','document',profileMove)(top,get,(id,title,icon,content,host)=>{assert.equal(id,'profile');assert.equal(content,form);assert.equal(host,card);return profileButton},birthday,{createElement:tag=>{assert.equal(tag,'div');return actions}});
+  assert.equal(removed,true);assert.equal(submit.formId,form.id);
+  assert.deepEqual(actions.nodes,[result,submit]);assert.equal(actions.className,'st-profile-actions-v269');
+  assert.deepEqual(moved,hasBirthday?[['form',birthday],['birthday',actions]]:[['form',actions]]);
+ }
  assert(!app.includes("account.append(disclosure('Personal time'"));
  assert(!app.includes("'Personal time':['personal'"));
  assert.equal((app.match(/id="mmhBirthDateInputV34215"/g)||[]).length,1);

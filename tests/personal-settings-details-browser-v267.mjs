@@ -64,7 +64,7 @@ for(const [selector,key,english] of [
 }
 assert.ok(app.includes("if(lang==='en'&&personalSettingsCopyV268(current,parent,lang)==null)return;"),'initial English fixed copy');
 const content={
- profile:'<form id="mmhProfileFormV1" class="mmh-profile-edit-v1"><label class="mmh-profile-name-v1">Display name<input value="Sample user"></label><div class="mmh-profile-photo-v1"><button type="button" class="mmh-photo-trigger-v1">Change photo</button><input type="file" hidden></div><button type="button" id="mmhProfileSaveV1" class="btn primary">Save changes</button></form><div class="panel" id="mmhBirthdaySettingsV34215"><div class="toolbar"><h2>Birthday</h2></div><div class="mmh-birthday-grid-v34216"><input id="mmhBirthDateInputV34215" type="date"><div class="mmh-birthday-preview-v34216"><div><b>—</b></div></div></div></div>',
+ profile:'<form id="mmhProfileFormV1" class="mmh-profile-edit-v1"><label class="mmh-profile-name-v1"><span>Display name</span><input id="mmhProfileNameV1" value="Sample user" required></label><div class="mmh-profile-photo-v1"><div class="st-profile-avatar-v269" id="mmhProfileAvatarV269" aria-hidden="true">MF</div><span>Profile photo</span><button id="mmhProfilePickV1" type="button" class="mmh-photo-trigger-v1"><span aria-hidden="true">＋</span> Change photo</button><input type="file" hidden><small id="mmhProfileFileNameV1">JPG, PNG or WEBP · up to 2 MB</small></div></form><div class="panel" id="mmhBirthdaySettingsV34215"><div class="toolbar"><h2>Birthday</h2></div><div class="mmh-birthday-grid-v34216"><input id="mmhBirthDateInputV34215" type="date"><div class="mmh-birthday-preview-v34216"><div><b>—</b></div></div></div></div><div class="st-profile-actions-v269"><p id="mmhProfileResultV1" role="status" aria-live="polite"></p><button type="submit" form="mmhProfileFormV1" id="mmhProfileSaveV1" class="btn primary">Save changes</button></div>',
  general:'<div class="st-group"><div class="st-rows"><label class="st-row"><span class="st-icon">＄</span><span>Display currency / 默认显示货币 / ငွေကြေး</span><select><option>USD</option><option>THB</option></select></label><label class="st-row"><span class="st-icon">Aa</span><span>Font style</span><select><option>System</option></select></label></div></div>',
  security:'<div><div class="panel account-security-v379"><div class="account-security-grid-v379"><div class="account-security-card-v379" id="mmhA783SecurityCenter"><h3>Account settings</h3><div class="mmh-a783-section"><div class="mmh-a783-title">Account</div></div><button class="btn" disabled>Unavailable</button><div hidden>Hidden fixture</div></div><div class="account-security-card-v379"><div class="security-password-form-v379"><label>Password<input type="password"></label></div></div><div class="account-security-card-v379" id="mmhEmailResetCardV952"><div class="mmh-email-reset-destination-v952">Sample email</div></div></div></div></div>',
  icon:'<div>'+actualIcon+'</div><button type="button" id="stInstallAppV4" class="btn primary">Add to home screen</button>',
@@ -112,6 +112,17 @@ try{
      assert.equal(r.after,'none',label+' no trailing overlay');
      assert.equal(r.kicker,'none',label+' no untranslated legacy kicker');
      for(const control of r.controls)assert.equal(control.bg,'none',label+' flat '+control.name);
+     if(id==='profile'){
+      const info=await page.evaluate(()=>{
+       const form=document.getElementById('mmhProfileFormV1'),save=document.getElementById('mmhProfileSaveV1'),avatar=document.getElementById('mmhProfileAvatarV269'),photo=document.querySelector('.mmh-profile-photo-v1'),name=document.querySelector('.mmh-profile-name-v1'),birthday=document.getElementById('mmhBirthdaySettingsV34215');
+       const rect=e=>e.getBoundingClientRect();
+       let submits=0;const onSubmit=e=>{e.preventDefault();submits++};form.addEventListener('submit',onSubmit);save.click();form.removeEventListener('submit',onSubmit);
+       return {associated:save.form===form,submits,avatarSize:rect(avatar).width,avatarHeight:rect(avatar).height,photoAbove:rect(photo).bottom<=rect(name).top+1,saveAfter:rect(save).top>=rect(birthday).bottom-1,buttonHeight:rect(save).height,buttonFits:save.scrollWidth-save.clientWidth<=2};
+      });
+      assert.ok(info.associated&&info.submits===1,label+' external save retains form submit');
+      assert.ok(info.avatarSize>=56&&Math.abs(info.avatarSize-info.avatarHeight)<=1,label+' square profile preview');
+      assert.ok(info.photoAbove&&info.saveAfter&&info.buttonHeight>=44&&info.buttonFits,label+' photo, name, birthday and action ordering');
+     }
      if(id==='security')assert.ok(r.securityWidth>=r.securityPanelWidth-44,label+' security grid fills panel');
      if(id==='data'){
       assert.equal(r.restoreBg,r.restoreStatBg,label+' preview matches V2 surface');
@@ -127,5 +138,5 @@ try{
    }
   }
  }
- console.log('PASS: V2.0.68 Settings full linked CSS details '+cases+' '+engine+' isolated fixture combinations');
+ console.log('PASS: V2.0.69 Settings full linked CSS details '+cases+' '+engine+' isolated fixture combinations');
 }finally{await browser.close()}
