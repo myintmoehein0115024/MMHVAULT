@@ -196,7 +196,8 @@ try{
   ['my','notosansmyanmar','NotoSansMyanmar[wdth,wght].ttf','a7af8e405d24076f2930c0840523110b3236560b'],
   ['my','notoserifmyanmar','NotoSerifMyanmar-Regular.ttf','86adf96a587b326f5961b9550d54029608bdc760'],
   ['my','padauk','Padauk-Regular.ttf','a6882fbb2177bec0271a0b10821a33100efe1fc7'],
-  ['my','tharlon','Tharlon-Regular.ttf','d3840f3ccd173b3da87e0ed476d33027ad880490']
+  ['my','tharlon','Tharlon-Regular.ttf','d3840f3ccd173b3da87e0ed476d33027ad880490'],
+  ['zh-CN','lxgwwenkai','LXGWWenKai-Regular.ttf','7f8f031dc5c6c5ba1913d93c36d4667c1e311cea']
  ];
  const samples={'zh-CN':'账户余额与储蓄交易投资设置财务目标汇率预算收入支出','my':'လက်ကျန်ငွေနှင့်စုဆောင်းငွေမြန်မာဘာသာ၀၁၂၃၄၅၆၇၈၉'};
  const results={};
@@ -230,21 +231,23 @@ if sys.argv[1]=="my":
 sys.stdout.buffer.write(data)
 `;
  for(const [locale,folder,file,expected] of candidates){
-  const licenseHashes={"notosanssc":"1c9f43281b8f216c5461fe9ac729afbade7724e4","notoserifsc":"94d1bf7b52481343e2983fb7751e8b7abe1ea07b","zcoolqingkehuangyou":"bd3df5cf6f237a4afaea70106f8243da07cd8cd8","notosansmyanmar":"c94c47416f38b8ddec9f3fbc9e0241998d7823dc","notoserifmyanmar":"94d1bf7b52481343e2983fb7751e8b7abe1ea07b","padauk":"57410e8e9eb58b0cce938440696cf36e2daf8fcf","tharlon":"6ef7b18ea7f5b430f10160034ecdcd0295335954"};
-  const licenseResponse=await fetch('https://raw.githubusercontent.com/google/fonts/'+revision+'/ofl/'+folder+'/OFL.txt',{redirect:'error',signal:AbortSignal.timeout(30000)});
+  const licenseHashes={"notosanssc":"1c9f43281b8f216c5461fe9ac729afbade7724e4","notoserifsc":"94d1bf7b52481343e2983fb7751e8b7abe1ea07b","zcoolqingkehuangyou":"bd3df5cf6f237a4afaea70106f8243da07cd8cd8","notosansmyanmar":"c94c47416f38b8ddec9f3fbc9e0241998d7823dc","notoserifmyanmar":"94d1bf7b52481343e2983fb7751e8b7abe1ea07b","padauk":"57410e8e9eb58b0cce938440696cf36e2daf8fcf","tharlon":"6ef7b18ea7f5b430f10160034ecdcd0295335954","lxgwwenkai":"bb1634cb03ee7202d5c66bf2754705493bd73e1e"};
+  const lxgw=folder==='lxgwwenkai';
+   const root=lxgw?'https://raw.githubusercontent.com/lxgw/LxgwWenKai/f4cc16fa07f7d115135d203065e711d43c3076d3/':'https://raw.githubusercontent.com/google/fonts/'+revision+'/ofl/'+folder+'/';
+   const licenseResponse=await fetch(root+'OFL.txt',{redirect:'error',signal:AbortSignal.timeout(30000)});
   assert(licenseResponse.ok,folder+' license HTTP '+licenseResponse.status);
   const license=Buffer.from(await licenseResponse.arrayBuffer());
   assert(license.length>0&&license.length<=65536,folder+' license size');
   assert.equal(createHash('sha1').update('blob '+license.length+String.fromCharCode(0)).update(license).digest('hex'),licenseHashes[folder],folder+' exact license blob hash');
   assert.match(license.toString('utf8'),/SIL OPEN FONT LICENSE Version 1\.1/i,folder+' OFL notice');
-  const url='https://raw.githubusercontent.com/google/fonts/'+revision+'/ofl/'+folder+'/'+encodeURIComponent(file);
+  const url=root+(lxgw?'fonts/TTF/':'')+encodeURIComponent(file);
   const response=await fetch(url,{redirect:'error',signal:AbortSignal.timeout(45000)});
   assert(response.ok,folder+' pinned asset HTTP '+response.status);
   const bytes=Buffer.from(await response.arrayBuffer());
   assert(bytes.length>0&&bytes.length<=40*1024*1024,folder+' asset size bounds');
   const actual=createHash('sha1').update('blob '+bytes.length+'\0').update(bytes).digest('hex');
   assert.equal(actual,expected,folder+' exact Git blob hash');
-  if(locale==='zh-CN')chinesePackInputs.set(folder,{bytes,license,expected,licenseHash:licenseHashes[folder]});
+  if(locale==='zh-CN'&&!lxgw)chinesePackInputs.set(folder,{bytes,license,expected,licenseHash:licenseHashes[folder]});
   let compressed=null,packManifest=null;
   if(python){
    if(locale==='my'){
@@ -329,9 +332,9 @@ sys.stdout.buffer.write(data)
   assert.equal(new Set(fonts.map(x=>x.pixels)).size,fonts.length,locale+' candidate sample images must differ');
   console.log('FONT-CANDIDATE '+JSON.stringify({locale,fonts}));
  }
- console.log('PASS: seven pinned OFL candidate assets rendered isolated sample text without platform fallback; three Chinese and four Myanmar distinct sample images (not full coverage or application integration)');
+ console.log('PASS: eight pinned OFL candidate assets rendered isolated sample text without platform fallback; four Chinese and four Myanmar distinct sample images (not full coverage or application integration)');
  if(python){
-  console.log('PASS: seven WOFF2 candidates rendered sample without fallback and preserved glyph count and geometry (Chinese sample subset only; Myanmar full cmap preserved; no assets distributed)');
+  console.log('PASS: eight WOFF2 candidates rendered sample without fallback and preserved glyph count and geometry (Chinese sample subset only; Myanmar full cmap preserved; no assets distributed)');
   console.log('PASS: four reproducible Myanmar candidate packs preserve source license, cmap, axes and sample pixels; tampered source/license and overwrite rejected');
   // Same-origin loading prototype; candidates are ephemeral, not deployable assets.
   const origin='https://mmh-font-fixture.invalid';
