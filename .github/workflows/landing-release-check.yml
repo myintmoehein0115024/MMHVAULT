@@ -57,7 +57,7 @@ jobs:
 
   browser-qa:
     name: Public responsive browser QA (no auth)
-    runs-on: ubuntu-latest
+    runs-on: ${{ github.event_name == 'pull_request' && github.head_ref == 'personal/v2.0.71-settings-device-guide' && 'ubuntu-24.04' || 'ubuntu-latest' }}
     timeout-minutes: 12
     steps:
       - uses: actions/checkout@v4
