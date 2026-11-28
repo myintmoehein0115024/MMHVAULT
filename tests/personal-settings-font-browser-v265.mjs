@@ -87,6 +87,13 @@ try{
  const samples={'zh-CN':'账户余额与储蓄交易投资设置财务目标汇率预算收入支出','my':'လက်ကျန်ငွေနှင့်စုဆောင်းငွေမြန်မာဘာသာ၀၁၂၃၄၅၆၇၈၉'};
  const results={};
  for(const [locale,folder,file,expected] of candidates){
+  const licenseHashes={"notosanssc":"1c9f43281b8f216c5461fe9ac729afbade7724e4","notoserifsc":"94d1bf7b52481343e2983fb7751e8b7abe1ea07b","zcoolqingkehuangyou":"bd3df5cf6f237a4afaea70106f8243da07cd8cd8","notosansmyanmar":"c94c47416f38b8ddec9f3fbc9e0241998d7823dc","notoserifmyanmar":"94d1bf7b52481343e2983fb7751e8b7abe1ea07b","padauk":"57410e8e9eb58b0cce938440696cf36e2daf8fcf"};
+  const licenseResponse=await fetch('https://raw.githubusercontent.com/google/fonts/'+revision+'/ofl/'+folder+'/OFL.txt',{redirect:'error',signal:AbortSignal.timeout(30000)});
+  assert(licenseResponse.ok,folder+' license HTTP '+licenseResponse.status);
+  const license=Buffer.from(await licenseResponse.arrayBuffer());
+  assert(license.length>0&&license.length<=65536,folder+' license size');
+  assert.equal(createHash('sha1').update('blob '+license.length+String.fromCharCode(0)).update(license).digest('hex'),licenseHashes[folder],folder+' exact license blob hash');
+  assert.match(license.toString('utf8'),/SIL OPEN FONT LICENSE Version 1\.1/i,folder+' OFL notice');
   const url='https://raw.githubusercontent.com/google/fonts/'+revision+'/ofl/'+folder+'/'+encodeURIComponent(file);
   const response=await fetch(url,{redirect:'error',signal:AbortSignal.timeout(45000)});
   assert(response.ok,folder+' pinned asset HTTP '+response.status);
