@@ -732,3 +732,32 @@ console.log('PASS: 53-code shared display registry, additional FX, missing rates
  mode='year';const year=exportApi.assertExportV265();assert.equal(year.annualToken,7);assert.equal(year.monthlyToken,null);annualToken=8;assert.throws(()=>exportApi.assertExportV265(year));
  console.log('PASS: monthly Report rendered snapshot, refresh, owner/currency/source changes and export cancellation');
 }
+
+{
+ const a=app.indexOf('const fontStylesV265='),b=app.indexOf('function addFontV265(',a);
+ assert(a>=0&&b>a);
+ const attrs=new Map(),styles=new Map(),store=new Map();
+ const elements=Object.fromEntries(['stPref_fontV265','stFontLabelV265','stFontPreviewV265','stFontNoteV265','stFontStatusV265'].map(id=>[id,{textContent:'',style:{},options:Array.from({length:7},()=>({textContent:''}))}]));
+ let owner='a';
+ const doc={documentElement:{lang:'en'},body:{setAttribute:(k,v)=>attrs.set(k,v),removeAttribute:k=>attrs.delete(k),style:{setProperty:(k,v)=>styles.set(k,v),removeProperty:k=>styles.delete(k)}}};
+ const api=new Function('document','$','prefOwner','lsGet',app.slice(a,b)+'return {fontStylesV265,fontChoiceV265,fontLanguageV265,fontStackV265,fontKeyV265,applyFontV265};')(doc,id=>elements[id],()=>owner,k=>store.get(k)??null);
+ const attr='data-mmh-personal-font-v265',property='--mmh-personal-font-v265',select=elements.stPref_fontV265;
+ assert.equal(api.fontStylesV265.length,7);
+ assert.equal(api.fontKeyV265('guest','en'),null);
+ assert.equal(api.fontKeyV265('','en'),null);
+ assert.equal(api.fontChoiceV265('unknown'),'system');
+ for(const locale of ['en','zh','my']){
+  assert.equal(api.fontStackV265(locale,'system'),'system-ui');
+  assert.equal(new Set(api.fontStylesV265.map(v=>api.fontStackV265(locale,v))).size,7);
+ }
+ api.applyFontV265();assert.equal(select.value,'system');assert.equal(attrs.has(attr),false);
+ store.set(api.fontKeyV265('a','en'),'elegant');api.applyFontV265();assert.equal(select.value,'elegant');assert.equal(attrs.get(attr),'elegant');assert.match(styles.get(property),/Georgia/);
+ doc.documentElement.lang='zh-CN';api.applyFontV265();assert.equal(select.value,'system');assert.equal(attrs.has(attr),false);assert.equal(styles.has(property),false);assert.equal(elements.stFontLabelV265.textContent,'字体样式');
+ store.set(api.fontKeyV265('a','zh'),'minimal');api.applyFontV265();assert.equal(select.value,'minimal');assert.match(styles.get(property),/LXGW WenKai/);
+ doc.documentElement.lang='my';store.set(api.fontKeyV265('a','my'),'soft');api.applyFontV265();assert.equal(select.value,'soft');assert.match(styles.get(property),/Myanmar3/);
+ doc.documentElement.lang='en';api.applyFontV265();assert.equal(select.value,'elegant');
+ owner='b';api.applyFontV265();assert.equal(select.value,'system');assert.equal(attrs.has(attr),false);
+ owner='guest';api.applyFontV265();assert.equal(select.disabled,true);
+ owner='a';store.set(api.fontKeyV265('a','en'),'invalid');api.applyFontV265();assert.equal(select.value,'system');assert.equal(select.disabled,false);
+ console.log('PASS: Personal font style mapping, language memory, owner isolation and System reset (mock DOM)');
+}
