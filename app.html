@@ -12482,7 +12482,7 @@ html.mmh-desktop-compact-v11110 body.mmh-workspace-active #moreNavMenu.more-nav-
   const signed=(v,currency)=>(v>0?'+':v<0?'−':'')+cash(Math.abs(v),currency);
   const tone=v=>v>0?'mmh-pl-profit':v<0?'mmh-pl-loss':'mmh-pl-flat';
   const typeTone=type=>String(type).toUpperCase()==='CRYPTO'?'mmh-asset-crypto':String(type).toUpperCase()==='GOLD'?'mmh-asset-gold':'mmh-asset-custom-'+([...String(type).toUpperCase()].reduce((sum,c)=>sum+c.charCodeAt(0),0)%5);
-  const field=(title,value,sub='',kind='')=>'<div class="mmh-overview-field '+kind+'"><small>'+title+'</small><b>'+value+'</b>'+(sub?'<em>'+sub+'</em>':'')+'</div>';
+  const field=(title,value,sub='',kind='',reference='')=>'<div class="mmh-overview-field '+kind+'"><small>'+title+'</small><b>'+value+'</b>'+(reference?'<small class="inv-fx-ref-v265">'+safe(reference)+'</small>':'')+(sub?'<em>'+sub+'</em>':'')+'</div>';
   const valid=v=>v!==null&&v!==undefined&&v!==''&&Number.isFinite(Number(v));
 
   // V2.0.65: presentation-only currency reference for verified native overview metrics.
@@ -12656,19 +12656,21 @@ html.mmh-desktop-compact-v11110 body.mmh-workspace-active #moreNavMenu.more-nav-
     const catalog=window.mmhInvestCatalogTypesV1?.()||[];
     const types=['ALL',...new Set([...active.map(x=>x.type),...(goldActive&&data.gold.quantity>1e-12?['GOLD']:[]),...data.custom.map(x=>String(x.type_name).toUpperCase())])];if(!types.includes(filter))filter='ALL';
     el('mmhUnifiedFiltersV1').innerHTML=types.map(type=>'<button type="button" class="'+(type==='ALL'?'mmh-asset-all':typeTone(type))+'" data-type="'+safe(type)+'" aria-pressed="'+(filter===type)+'">'+(type==='ALL'?L('全部','All'):type==='CRYPTO'?L('加密资产','Crypto'):type==='GOLD'?L('黄金','Gold'):safe(type))+'</button>').join('');
+    const nativeMetrics=native;
     const cards=[...active,...(goldActive&&data.gold.quantity>1e-12?[data.gold]:[])].filter(x=>filter==='ALL'||x.type===filter).map(x=>{
       const gold=x.type==='GOLD',native=gold?'MMK':'USD',known=x.priceKnown,unit=x.unit;
       const weight=(()=>{const ky=Math.floor(x.quantity+1e-12),pf=(x.quantity-ky)*16,pe=Math.floor(pf+1e-12),re=Math.max(0,(pf-pe)*8);return ky+' ကျပ်သား / '+pe+' ပဲ / '+number(re,6)+' ရွေး';})();
       const quantity=gold?weight:number(x.quantity,6)+' '+safe(unit),current=known?x.quantity*x.price:null;
       const pnl=known?current-x.cost:null,returnRate=known&&x.cost>0?pnl/x.cost*100:null,share=complete&&known&&value>0?x.quantity*x.price*toUSD(x)/value*100:null;
+      const holdingRef=(n,metric)=>nativeReady&&nativeMetrics[gold?'Gold':'Crypto'][metric]!==null?invReferenceV265(n,native,owner):'';
       const goldRate=gold&&data.fx>0?L('换算汇率：1 USD = ','Rate: 1 USD = ')+number(data.fx)+' MMK':'';
       return '<article class="mmh-overview-card" data-invest-holding-v144="1" data-invest-type-v144="'+safe(x.type)+'" data-invest-name-v144="'+safe(x.name)+'"><div class="mmh-overview-card-head"><b>'+safe(x.name)+'</b><span class="'+typeTone(x.type)+'">'+(gold?L('黄金','Gold'):L('加密资产','Crypto'))+' · '+native+'</span></div><div class="mmh-overview-fields">'+
         field(L('持有数量','Quantity'),quantity)+field(L('单位平均成本','Average cost'),cash(x.cost/x.quantity,native,6)+' / '+safe(unit))+
-        field(L('持仓成本','Holding cost'),cash(x.cost,native),gold&&data.fx>0?L('约 ','≈ ')+cash(x.cost/data.fx,'USD'):'')+
+        field(L('持仓成本','Holding cost'),cash(x.cost,native),'','',holdingRef(x.cost,'cost'))+
         field(L('估值价格','Valuation price'),known?cash(x.price,native,6)+' / '+safe(unit):L('暂无价格','Price unavailable'),safe(x.priceSource))+
-        field(L('持仓价值','Holding value'),known?cash(current,native):L('暂无法估值','Valuation unavailable'),gold&&known&&data.fx>0?L('约 ','≈ ')+cash(current/data.fx,'USD'):'')+
+        field(L('持仓价值','Holding value'),known?cash(current,native):L('暂无法估值','Valuation unavailable'),'','',holdingRef(current,'value'))+
         field(tr('组合占比','Portfolio share','ပိုင်ဆိုင်မှု အချိုး'),share===null?'—':number(share)+'%')+
-        field(L('未实现盈亏','Unrealized P/L'),known?signed(pnl,native):'—',known&&returnRate!==null?L('回报率 ','Return ')+(returnRate>0?'+':returnRate<0?'−':'')+number(Math.abs(returnRate))+'%':'',known?tone(pnl):'mmh-pl-flat')+
+        field(L('未实现盈亏','Unrealized P/L'),known?signed(pnl,native):'—',known&&returnRate!==null?L('回报率 ','Return ')+(returnRate>0?'+':returnRate<0?'−':'')+number(Math.abs(returnRate))+'%':'',known?tone(pnl):'mmh-pl-flat',holdingRef(pnl,'unreal'))+
         '</div>'+(goldRate?'<div class="mmh-overview-rate">'+goldRate+'</div>':'')+'<div class="mmh-holding-actions-v144"><button type="button" data-invest-holding-action-v144="buy">＋ Buy more</button><button type="button" data-invest-holding-action-v144="sell">↗ Sell / Reduce</button><button type="button" data-invest-holding-action-v144="history">▤ History</button></div></article>';
     });
     const custom=data.custom.filter(x=>filter==='ALL'||String(x.type_name).toUpperCase()===filter).map(x=>{
@@ -12686,7 +12688,7 @@ html.mmh-desktop-compact-v11110 body.mmh-workspace-active #moreNavMenu.more-nav-
   el('mmhUnifiedFiltersV1')?.addEventListener('click',event=>{const b=event.target.closest('button[data-type]');if(b){filter=b.dataset.type;render();}});
   const schedule=()=>{if(el('invest')?.classList.contains('active'))render();};
   ['mmhvault:data-loaded','mmhvault:cache-restored','mmhvault:market-updated','mmhvault:exchange-reference-updated','mmhvault:personal-display-currency-changed','mmhvault-language-change','languagechange'].forEach(name=>window.addEventListener(name,schedule));
-  window.addEventListener('mmhvault:config-owner-changed',()=>{el('mmhUnifiedKpisV1')?.querySelectorAll('.inv-fx-ref-v265').forEach(n=>n.remove());const picker=el('invDisplayPickerV265');if(picker)picker.open=false;bindInvDisplayPickerV265();schedule()});
+  window.addEventListener('mmhvault:config-owner-changed',()=>{el('mmhUnifiedKpisV1')?.querySelectorAll('.inv-fx-ref-v265').forEach(n=>n.remove());el('mmhUnifiedListV1')?.querySelectorAll('.inv-fx-ref-v265').forEach(n=>n.remove());const picker=el('invDisplayPickerV265');if(picker)picker.open=false;bindInvDisplayPickerV265();schedule()});
   document.addEventListener('click',event=>{if(event.target.closest('.language-choice-v3363'))setTimeout(()=>{render();window.renderInvestNavigationHardFixV371?.();},180);});
   window.addEventListener('mmhvault:page-visible',schedule);
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',schedule,{once:true});else schedule();
@@ -30931,7 +30933,7 @@ db.auth.getSession().then(({data})=>owner(data?.session?.user)).catch(()=>{});db
 #invest #invDisplayPickerV265 button[data-ap-currency]{display:grid;grid-template-columns:auto minmax(0,1fr);align-items:center;gap:8px;width:100%;min-height:34px;padding:7px 8px;border-radius:6px;border:1px solid transparent;background:var(--uv-card,Canvas);color:inherit;font-size:12px;text-align:left;cursor:pointer}
 #invest #invDisplayPickerV265 button[data-ap-currency]>span:last-child{text-align:right;font-size:11px;color:var(--uv-muted,inherit);overflow-wrap:anywhere}
 #invest #invDisplayPickerV265 button[data-ap-currency]:is(:hover,[aria-pressed=true]){border-color:var(--uv-line,#80808060)}
-#invest #mmhUnifiedKpisV1 .inv-fx-ref-v265{display:block;font-size:11px;font-weight:400;color:var(--uv-muted,inherit);line-height:1.4;overflow-wrap:anywhere;white-space:normal}
+#invest #mmhUnifiedKpisV1 .inv-fx-ref-v265,#invest #mmhUnifiedListV1 .inv-fx-ref-v265{display:block;font-size:11px;font-weight:400;color:var(--uv-muted,inherit);line-height:1.4;overflow-wrap:anywhere;white-space:normal}
 </style>
 <style id="mmhvault-overview-picker-v265-style">
 #dashboard #mmhPremiumDashboardV500 .pf-display-toolbar-v265{display:flex;justify-content:flex-end;min-width:0;margin:0 0 8px;position:relative;z-index:12}
