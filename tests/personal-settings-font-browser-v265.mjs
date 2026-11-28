@@ -483,6 +483,57 @@ sys.stdout.buffer.write(data)
    assert(fallback.text===samples.my&&fallback.width>0&&fallback.height>0,'Missing font retains visible text layout');
    console.log('PASS: isolated same-origin font loading with actual Settings helper/CSS: System/auth/guest zero requests, selected-only fetch, language/owner memory and missing-asset fallback');
   }finally{await ctx.close()}
+  // English candidate diagnostics only. Preserve the approved device stacks until visual review.
+  const englishCandidates=[
+   ['modern','inter','Inter[opsz,wght].ttf','047c92f6e2212473dc436020afed689527076d44','21f6aff961064c2e429f570995e446bcdd555422'],
+   ['elegant','lora','Lora[wght].ttf','ee1914c3746140523de2940d267ec2215bd85d5b','d0ce7fe062e60eaa92c4af3ee1bebe81c5141b4e'],
+   ['minimal','roboto','Roboto[wdth,wght].ttf','5522a368d9072fd88c299916e61fcff369949061','9c48e05a24fa2267e207ecf17560291b5621c197'],
+   ['digital','jetbrainsmono','JetBrainsMono[wght].ttf','aa310be8b717fe3774f9444dd89d5f4101cc6d10','821a3dac22aff15a1f1c9689a1d79c45bb58ca39'],
+   ['soft','nunito','Nunito[wght].ttf','2ec1f4b0676c83ef33049db87b311171699e9192','c8210f08ca3cece05b4f7baa428afe8e1abe3293'],
+   ['bold','montserrat','Montserrat[wght].ttf','c97aca18592834d8706549c279cb8d5ac5d85f69','fe576a2ee1f96353b05d030c0b7620d525cc53a8']
+  ];
+  const englishResults=[];
+  for(const [style,folder,file,fontBlob,licenseBlob] of englishCandidates){
+   const base='https://raw.githubusercontent.com/google/fonts/'+revision+'/ofl/'+folder+'/';
+   const pinned=async(name,expected,max)=>{
+    const response=await fetch(base+encodeURIComponent(name),{redirect:'error',signal:AbortSignal.timeout(30000)});
+    assert(response.ok,folder+' '+name+' HTTP '+response.status);
+    const bytes=Buffer.from(await response.arrayBuffer());
+    assert(bytes.length>0&&bytes.length<=max,folder+' '+name+' size');
+    assert.equal(createHash('sha1').update('blob '+bytes.length+String.fromCharCode(0)).update(bytes).digest('hex'),expected,folder+' pinned Git blob');
+    return bytes;
+   };
+   const license=await pinned('OFL.txt',licenseBlob,65536);
+   assert.match(license.toString('utf8'),/SIL OPEN FONT LICENSE Version 1\.1/i);
+   const bytes=await pinned(file,fontBlob,4*1024*1024);
+   const enCtx=await browser.newContext({viewport:{width:640,height:240}});
+   try{
+    await enCtx.route('**/*',route=>route.request().url()==='https://english-font-fixture.invalid/candidate.ttf'?route.fulfill({status:200,contentType:'font/ttf',headers:{'Access-Control-Allow-Origin':'*'},body:bytes}):route.abort());
+    const page=await enCtx.newPage();
+    await page.setContent('<html lang="en"><body><div id="sample" style="font-size:28px;line-height:1.5;background:white;color:black"><span id="regular" style="font-weight:400">Balance &amp; savings 1,234.56 USD</span><br><span id="heavy" style="font-weight:700">Transactions +98.76</span></div></body></html>');
+    await page.addStyleTag({content:'@font-face{font-family:EnglishCandidate;src:url(https://english-font-fixture.invalid/candidate.ttf) format("truetype");font-weight:400 700;font-display:block}#sample{font-family:EnglishCandidate,sans-serif}'});
+    await page.evaluate(async()=>{for(const [weight,id] of [[400,'regular'],[700,'heavy']]){const el=document.getElementById(id);const loaded=await document.fonts.load(weight+' 28px EnglishCandidate',el.textContent);if(!loaded.length)throw Error('English font not loaded');el.getBoundingClientRect()}await document.fonts.ready});
+    const session=await enCtx.newCDPSession(page);
+    try{
+     await session.send('DOM.enable');await session.send('CSS.enable');
+     const {root}=await session.send('DOM.getDocument');
+     const rendered=[];
+     for(const id of ['regular','heavy']){
+      const {nodeId}=await session.send('DOM.querySelector',{nodeId:root.nodeId,selector:'#'+id});
+      const {fonts}=await session.send('CSS.getPlatformFontsForNode',{nodeId});
+      const used=fonts.filter(f=>f.glyphCount>0);
+      assert(used.length>0&&used.every(f=>f.isCustomFont),folder+' '+id+' no platform fallback');
+      rendered.push({id,fonts:used.map(f=>({family:f.familyName,postScript:f.postScriptName,glyphs:f.glyphCount}))});
+     }
+     const pixels=createHash('sha256').update(await page.locator('#sample').screenshot({animations:'disabled'})).digest('hex');
+     englishResults.push({style,folder,bytes:bytes.length,pixels,rendered});
+    }finally{await session.detach()}
+   }finally{await enCtx.close()}
+  }
+  assert.equal(englishResults.length,6);
+  assert.equal(new Set(englishResults.map(x=>x.pixels)).size,6,'six English candidate sample images must differ');
+  console.log('FONT-ENGLISH-CANDIDATES '+JSON.stringify(englishResults));
+  console.log('PASS: six pinned English candidate samples at 400/700 rendered distinct images without platform fallback (render-only; approved runtime stacks unchanged)');
   // Partition full Chinese source cmap into common UI glyphs and bounded rare-glyph shards.
   // Prototype only: no generated fonts are distributed or deployed.
   assert.equal(chinesePackInputs.size,4,'all four pinned Chinese candidates required');
