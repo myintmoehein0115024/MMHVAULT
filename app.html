@@ -30144,13 +30144,23 @@ html body.st-overview-compact #dashboard :is(.panel,#dashboardCommandCenterV3421
  window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();installPrompt=e});
  function init(){
   const host=document.getElementById('stPage_icon');if(!host)return;
-  const button=document.createElement('button');button.id='stInstallAppV4';button.type='button';button.className='btn primary';button.textContent='Add to Home Screen';
+  const button=document.createElement('button');button.id='stInstallAppV4';button.type='button';button.className='btn primary';
   const status=document.createElement('p');status.id='stInstallStatusV4';status.className='st-function-status';status.setAttribute('role','status');
-  status.textContent=androidCustomTab()?'Android in-app browser / Custom Tab detected. Open this page in the full Chrome app before installing MMHVAULT.':'This preview is the app’s installation icon. The icon of an installed app is controlled by your browser.';
   const guide=document.createElement('section');guide.id='stInstallGuideV5';guide.hidden=true;guide.setAttribute('aria-live','polite');
   const locale=()=>{try{return localStorage.getItem('mmhvault_language_v3363')||'en'}catch(_){return 'en'}};
   const T=(en,zh,my)=>locale()==='zh'?zh:locale()==='my'?(my||en):en;
-  let selectedDevice=null;
+  let selectedDevice=null,installStatus=androidCustomTab()?'customTab':'preview';
+  const installCopy={
+   preview:['This preview is the app’s installation icon. The icon of an installed app is controlled by your browser.','此处预览应用安装图标。已安装应用的图标由浏览器控制。','ဤသည်မှာ အက်ပ်ထည့်သွင်းရန် အိုင်ကွန်နမူနာ ဖြစ်ပါသည်။ ထည့်သွင်းပြီးသော အက်ပ်၏ အိုင်ကွန်ကို ဘရောက်ဇာက ထိန်းချုပ်ပါသည်။'],
+   customTab:['Android in-app browser / Custom Tab detected. Open this page in the full Chrome app before installing MMHVAULT.','检测到 Android 应用内浏览器或自定义标签页。安装 MMHVAULT 前，请在完整 Chrome 应用中打开此页。','Android အက်ပ်တွင်း ဘရောက်ဇာ သို့မဟုတ် Custom Tab ကို တွေ့ရှိပါသည်။ MMHVAULT မထည့်သွင်းမီ Chrome အက်ပ်တွင် ဤစာမျက်နှာကို ဖွင့်ပါ။'],
+   accepted:['Installation accepted.','已确认安装。','ထည့်သွင်းရန် အတည်ပြုပြီးပါပြီ။'],
+   cancelled:['Installation cancelled. You can still follow the steps above.','已取消安装，仍可按上方步骤操作。','ထည့်သွင်းမှုကို ပယ်ဖျက်လိုက်ပါသည်။ အထက်ပါအဆင့်များအတိုင်း ဆက်လုပ်နိုင်ပါသည်။'],
+   manual:['Follow the manual steps above to add the app.','请按上方步骤手动添加。','အက်ပ်ထည့်ရန် အထက်ပါအဆင့်များအတိုင်း လုပ်ဆောင်ပါ။'],
+   installed:['MMHVAULT has been installed.','MMHVAULT 已安装。','MMHVAULT ကို ထည့်သွင်းပြီးပါပြီ။']
+  };
+  function refreshInstallCopy(){button.textContent=T('Add to Home Screen','添加到主屏幕','ပင်မမျက်နှာပြင်သို့ ထည့်ပါ');status.textContent=T(...installCopy[installStatus])}
+  function setInstallStatus(next){if(installStatus==='installed'&&next!=='installed')return;installStatus=next;refreshInstallCopy()}
+  refreshInstallCopy();
   const captions=()=>T('Illustrations are schematic; your browser may look different.','图片为操作示意，实际浏览器界面可能不同。','ဤပုံများသည် နမူနာပုံများဖြစ်ပြီး ဘရောက်ဇာပုံစံ ကွာခြားနိုင်သည်။');
   function illustration(kind,desktop){
    const sv=document.createElement('span');sv.className='st-install-illustration-v265';sv.setAttribute('aria-hidden','true');
@@ -30195,11 +30205,11 @@ html body.st-overview-compact #dashboard :is(.panel,#dashboardCommandCenterV3421
    }
    const list=document.createElement('ol');for(const [kind,copy] of steps){const item=document.createElement('li');const content=document.createElement('div');content.className='st-install-step-copy-v265';const words=document.createElement('span');words.textContent=copy;content.append(illustration(kind,device==='desktop'),words);item.append(content);list.append(item)}guide.append(list);
    const note=document.createElement('p');note.className='st-install-note';note.textContent=captions();guide.append(note);
-   if(installPrompt&&!androidCustomTab()){const install=document.createElement('button');install.type='button';install.className='btn primary';install.textContent=T('Install now','立即安装');install.onclick=async()=>{if(!installPrompt)return;const prompt=installPrompt;installPrompt=null;install.disabled=true;try{await prompt.prompt();const result=await prompt.userChoice;status.textContent=result.outcome==='accepted'?T('Installation accepted.','已确认安装。'):T('Installation cancelled. You can still follow the steps above.','已取消安装，仍可按上方步骤操作。')}catch(_){status.textContent=T('Follow the manual steps above to add the app.','请按上方步骤手动添加。')}finally{install.remove()}};guide.append(install)}
+   if(installPrompt&&!androidCustomTab()){const install=document.createElement('button');install.type='button';install.className='btn primary';install.textContent=T('Install now','立即安装','ယခု ထည့်သွင်းပါ');install.onclick=async()=>{if(!installPrompt)return;const prompt=installPrompt;installPrompt=null;install.disabled=true;try{await prompt.prompt();const result=await prompt.userChoice;setInstallStatus(result.outcome==='accepted'?'accepted':'cancelled')}catch(_){setInstallStatus('manual')}finally{install.remove()}};guide.append(install)}
   }
   button.onclick=()=>{drawGuide(selectedDevice||detected());guide.scrollIntoView({block:'nearest',behavior:'auto'})};
-  ['mmhvault-language-change','languagechange'].forEach(name=>window.addEventListener(name,()=>{button.textContent=T('Add to Home Screen','添加到主屏幕','ပင်မမျက်နှာပြင်သို့ ထည့်ပါ');if(!guide.hidden)drawGuide(selectedDevice||detected())}));
-  window.addEventListener('appinstalled',()=>{installPrompt=null;status.textContent=T('MMHVAULT has been installed.','MMHVAULT 已安装。');if(!guide.hidden)drawGuide(selectedDevice||detected())});
+  ['mmhvault-language-change','languagechange'].forEach(name=>window.addEventListener(name,()=>{refreshInstallCopy();if(!guide.hidden)drawGuide(selectedDevice||detected())}));
+  window.addEventListener('appinstalled',()=>{installPrompt=null;setInstallStatus('installed');if(!guide.hidden)drawGuide(selectedDevice||detected())});
   host.append(button,status,guide);
   window.addEventListener('mmhvault:config-owner-changed',()=>{for(const id of ['securityCurrentPasswordV379','securityNewPasswordV379','securityConfirmPasswordV379','mmhProfilePhotoV1']){const input=document.getElementById(id);if(input)input.value=''}for(const id of ['securityPasswordResultV379','mmhProfileResultV1']){const el=document.getElementById(id);if(el)el.textContent=''}window.mmhSettingsRefreshDefaultsV4?.()});
  }
