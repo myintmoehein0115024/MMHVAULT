@@ -1,0 +1,75 @@
+// Actual installation-guide script and scoped CSS in isolated Chromium.
+// Synthetic host only: no authenticated app, native installation, or production requests.
+import assert from 'node:assert/strict';
+import {readFileSync} from 'node:fs';
+import {chromium} from 'playwright';
+
+const app=readFileSync(new URL('../app.html',import.meta.url),'utf8');
+const script=app.match(/<script id="mmhvault-settings-control-feedback-v4">([\s\S]*?)<\/script>/)?.[1];
+assert(script,'actual installation script required');
+const ids=new Set(['mmhvault-personal-install-illustrations-v265','mmhvault-install-guide-v5-css','mmhvault-install-guide-layout-v6']);
+const styles=[...app.matchAll(/<style id="([^"]+)">([\s\S]*?)<\/style>/g)].filter(m=>ids.has(m[1]));
+assert.equal(styles.length,ids.size,'all actual guide CSS blocks required');
+const html='<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><style>body{font-family:system-ui;margin:8px}button,select{font:inherit}*,*::before,*::after{box-sizing:border-box}</style>'+styles.map(m=>'<style>'+m[2]+'</style>').join('')+'</head><body><main id="settings"><section id="stPage_icon"><header class="st-page-head">Settings</header><div class="panel">MMHVAULT</div></section></main></body></html>';
+const browser=await chromium.launch({headless:true});
+try{
+ const context=await browser.newContext({viewport:{width:360,height:800}});
+ const origin='https://mmh-settings-install-fixture.invalid';
+ const unexpected=[],errors=[];
+ await context.route('**/*',route=>route.request().url()===origin+'/'?route.fulfill({status:200,contentType:'text/html',body:html}):(unexpected.push(route.request().url()),route.abort()));
+ const page=await context.newPage();
+ page.on('pageerror',e=>errors.push(e.message));
+ await page.goto(origin+'/');
+ await page.addScriptTag({content:script});
+ const guide=page.locator('#stInstallGuideV5'),button=page.locator('#stInstallAppV4');
+ const picker=page.locator('#stInstallDeviceV5');
+ assert.equal(await guide.isVisible(),false);
+ await button.click();
+ assert.equal(await guide.isVisible(),true);
+ const cases=[['ios',4],['ios-other',5],['android-chrome',4],['android-firefox',4],['android-other',5],['desktop',3]];
+ const locale=async lang=>page.evaluate(lang=>{localStorage.setItem('mmhvault_language_v3363',lang);document.documentElement.lang=lang;dispatchEvent(new Event('mmhvault-language-change'))},lang);
+ let count=0;
+ for(const width of [360,1280]){
+  await page.setViewportSize({width,height:800});
+  for(const light of [false,true]){
+   await page.evaluate(light=>document.body.classList.toggle('light',light),light);
+   for(const [lang,label,pattern] of [['en','Add to Home Screen',/[A-Za-z]/],['zh','添加到主屏幕',/[\u4e00-\u9fff]/],['my','ပင်မမျက်နှာပြင်သို့ ထည့်ပါ',/[\u1000-\u109f]/]]){
+    await locale(lang);
+    assert.equal(await button.textContent(),label);
+    for(const [device,n] of cases){
+     await picker.focus();
+     await picker.selectOption(device);
+     assert.equal(await picker.inputValue(),device);
+     assert.equal(await page.evaluate(()=>document.activeElement.id),'stInstallDeviceV5','focus retained on redraw');
+     assert.equal(await guide.locator('li').count(),n);
+     assert.equal(await guide.locator('li svg').count(),n);
+     assert.match(await guide.locator('h3').textContent(),pattern);
+     for(const copy of await guide.locator('.st-install-step-copy-v265>span:last-child').allTextContents())assert.match(copy,pattern);
+     const geometry=await guide.evaluate(el=>{
+      const r=el.getBoundingClientRect();
+      return {width:r.width,inside:r.left>=-1&&r.right<=innerWidth+1,overflow:el.scrollWidth-el.clientWidth,background:getComputedStyle(el).backgroundColor,illustrations:[...el.querySelectorAll('svg')].every(svg=>{const b=svg.getBoundingClientRect();return b.width>0&&b.height>0&&b.left>=r.left-1&&b.right<=r.right+1})};
+     });
+     assert(geometry.width>0&&geometry.inside&&geometry.overflow<=1&&geometry.illustrations,JSON.stringify({width,light,lang,device,geometry}));
+     assert.equal(geometry.background,light?'rgb(237, 244, 249)':'rgb(16, 30, 44)');
+     count++;
+    }
+   }
+  }
+ }
+ await picker.selectOption('ios-other');
+ await locale('zh');assert.equal(await picker.inputValue(),'ios-other');
+ await locale('my');assert.equal(await picker.inputValue(),'ios-other');
+ // Simulated browser prompt events: exercise actual DOM handler, not OS installation.
+ await page.evaluate(()=>{const e=new Event('beforeinstallprompt',{cancelable:true});e.prompt=async()=>{};e.userChoice=Promise.resolve({outcome:'dismissed'});dispatchEvent(e)});
+ await button.click();
+ await guide.getByRole('button').click();
+ await page.waitForFunction(()=>!document.querySelector('#stInstallGuideV5 button'));
+ await locale('en');
+ assert.equal(await page.locator('#stInstallStatusV4').textContent(),'Installation cancelled. You can still follow the steps above.');
+ await page.evaluate(()=>dispatchEvent(new Event('appinstalled')));
+ assert.equal(await page.locator('#stInstallStatusV4').textContent(),'MMHVAULT has been installed.');
+ await locale('zh');assert.match(await page.locator('#stInstallStatusV4').textContent(),/已安装/);
+ assert.deepEqual(errors,[]);assert.deepEqual(unexpected,[]);
+ console.log('PASS: actual Settings guide script/CSS in isolated Chromium, '+count+' locale/device/viewport/theme cases; focus, prompt feedback and no network');
+ await context.close();
+}finally{await browser.close()}
