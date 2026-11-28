@@ -77,6 +77,50 @@ try{
  }finally{await cdp.detach()}
  console.log('PASS: font selector, computed family cascade including legacy account detail and workspace choice menu, language/owner memory, blocked storage, auth isolation and responsive preview (isolated Chromium; glyph availability not verified)');
  await context.close();
+ // Birthday profile: exact markup, original module and scoped theme CSS, no production requests.
+ const bdContext=await browser.newContext({viewport:{width:390,height:844}});
+ try{
+  const bdStart='<div class="panel mmh-birthday-settings-v34216"';
+  const birthday=extract(bdStart,'\n</div>\n\n<div class="mmh-manager-overlay-v1"');
+  const form=extract('<form class="mmh-profile-edit-v1" id="mmhProfileFormV1">','</form>')+'</form>';
+  const originalCss=extract('<style id="mmhvault-v34216-birthday-settings-css">','</style>').split('>').slice(1).join('>');
+  const themeCss=readFileSync(new URL('../css/mmhvault-settings-life-p928.css',import.meta.url),'utf8');
+  const ageCode=extract('<script id="mmhvault-v34216-age-js">','</script>').replace('<script id="mmhvault-v34216-age-js">','');
+  const origin='https://birthday-fixture.invalid/';
+  await bdContext.route('**/*',route=>route.request().url()===origin?route.fulfill({contentType:'text/html',body:'<!doctype html><html lang="en"><head><meta name="viewport" content="width=device-width,initial-scale=1"></head><body class="mmh-workspace-active"><main id="settings" class="page active"><section id="stPage_profile" class="st-page">'+form+birthday+'</section></main></body></html>'}):route.abort());
+  const p=await bdContext.newPage();const errors=[];p.on('pageerror',e=>errors.push(e.message));await p.goto(origin);
+  await p.addStyleTag({content:'*{box-sizing:border-box}body{margin:0;padding:12px;font:14px system-ui,sans-serif;--text:#eef1ff;--muted:#9da6d2}body.light{--text:#17213a;--muted:#5f6f8e}.panel{width:100%;padding:15px}.toolbar h2{margin:0}.mmh-profile-edit-v1{display:grid;grid-template-columns:1fr;gap:8px}.mmh-profile-edit-v1 input{max-width:100%}'+originalCss+'\n'+themeCss});
+  await p.addScriptTag({content:'let currentSessionUser={id:"synthetic-a"};window.birthdayFixture={owner:id=>{currentSessionUser={id};dispatchEvent(new Event("mmhvault:config-owner-changed"))},lang:l=>{document.documentElement.lang=l;dispatchEvent(new Event("mmhvault-language-change"))}};'+ageCode});
+  const input=p.locator('#mmhBirthDateInputV34215'),panel=p.locator('#mmhBirthdaySettingsV34215');
+  assert.equal(await panel.count(),1);assert.equal(await input.inputValue(),'');assert.equal(await input.getAttribute('min'),'1900-01-01');assert.match(await input.getAttribute('max'),/^\d{4}-\d{2}-\d{2}$/);
+  assert(await panel.evaluate(el=>el.previousElementSibling?.id==='mmhProfileFormV1'&&!el.closest('form')));
+  await input.fill('2000-02-20');await input.blur();
+  assert.equal(await p.evaluate(()=>localStorage.getItem('mmhvault_birth_date_v34216_synthetic-a')),'2000-02-20');
+  assert.match(await p.locator('#mmhSettingsAgeValueV34215').textContent(),/years/);
+  assert(await input.evaluate(el=>{const old=el.value;el.value='2999-01-01';const bad=el.validity.rangeOverflow;el.value=old;return bad}));
+  await p.evaluate(()=>birthdayFixture.owner('synthetic-b'));assert.equal(await input.inputValue(),'');assert.equal(await p.locator('#mmhSettingsAgeValueV34215').textContent(),'—');
+  await input.fill('2001-03-04');await input.blur();
+  await p.evaluate(()=>birthdayFixture.owner('guest'));assert(await input.isDisabled());assert.equal(await input.inputValue(),'');
+  await p.evaluate(()=>birthdayFixture.owner('synthetic-a'));assert.equal(await input.inputValue(),'2000-02-20');
+  for(const width of [320,390,768,1280]){
+   await p.setViewportSize({width,height:844});
+   for(const [lang,title,age] of [['en','Birthday','years'],['zh-CN','生日','岁'],['my','မွေးနေ့','နှစ်']]){
+    await p.evaluate(l=>birthdayFixture.lang(l),lang);
+    assert.equal(await panel.locator('h2').textContent(),title);assert((await p.locator('#mmhSettingsAgeValueV34215').textContent()).includes(age));
+    for(const light of [false,true]){
+     await p.evaluate(v=>document.body.classList.toggle('light',v),light);
+     const result=await panel.evaluate(el=>{
+      const input=el.querySelector('input'),r=el.getBoundingClientRect(),ir=input.getBoundingClientRect(),styles=getComputedStyle(el);
+      return {bg:styles.backgroundColor,scheme:styles.colorScheme,overflow:el.scrollWidth>el.clientWidth+1,inputFits:ir.left>=r.left&&ir.right<=r.right&&ir.height>=44,gridFits:[...el.querySelectorAll('.mmh-birthday-preview-v34216>div')].every(x=>x.scrollWidth<=x.clientWidth+1),text:getComputedStyle(el.querySelector('.mmh-birthday-preview-v34216 b')).color,inputColor:getComputedStyle(input).color};
+     });
+     assert.equal(result.bg,light?'rgb(255, 255, 255)':'rgb(28, 37, 49)');assert.equal(result.scheme,light?'light':'dark');assert.equal(result.text,light?'rgb(36, 51, 71)':'rgb(232, 237, 244)');assert.equal(result.inputColor,result.text);assert(!result.overflow&&result.inputFits&&result.gridFits,JSON.stringify({width,lang,light,result}));
+    }
+   }
+  }
+  await input.fill('');await input.blur();assert.equal(await p.evaluate(()=>localStorage.getItem('mmhvault_birth_date_v34216_synthetic-a')),'');
+  assert.deepEqual(errors,[]);
+  console.log('PASS: birthday profile isolated Chromium native date field, owner separation, 24 responsive locale/theme combinations, local storage and clear');
+ }finally{await bdContext.close()}
  // Candidate-only test: pinned upstream assets, hash checked before isolated rendering.
  // No font files are committed, no application runtime requests are introduced.
  const revision='5026800714d07231937d92eb4cceabf06e05d74e';
