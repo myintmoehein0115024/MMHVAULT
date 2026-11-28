@@ -1,0 +1,42 @@
+name: Admin Member Chat Premium V1.1 review
+on:
+  pull_request:
+    paths:
+      - 'admin.html'
+      - 'css/mmhvault-admin-chat-premium-v11.css'
+      - 'tests/admin-member-chat-premium-v11.browser.cjs'
+      - '.github/workflows/admin-member-chat-premium-v11-review.yml'
+  push:
+    branches:
+      - 'feature/admin-member-chat-premium-v11-*'
+permissions:
+  contents: read
+jobs:
+  chat-premium-qa:
+    runs-on: ubuntu-latest
+    timeout-minutes: 18
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Verify chat-only asset and protected ID contract
+        run: |
+          node --check tests/admin-member-chat-premium-v11.browser.cjs
+          node --test tests/admin-feedback-premium-v1.test.mjs tests/admin-premium-workspace-v1.test.mjs tests/app-v11-admin-member-activity.test.mjs
+      - name: Verify analytics isolated permission regression
+        run: node --test analytics-worker/test/*.test.mjs
+      - name: Install browser QA driver
+        run: npm install --no-save --no-package-lock playwright-core@1.56.1
+      - name: Install WebKit and native dependencies
+        run: npx playwright-core install --with-deps webkit
+      - name: Verify chat geometry in Chrome and WebKit
+        run: node tests/admin-member-chat-premium-v11.browser.cjs
+      - name: Upload synthetic desktop/tablet/mobile screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: admin-member-chat-premium-v11-browser
+          path: admin-chat-premium-v11-*.png
+          if-no-files-found: ignore
+          retention-days: 7
