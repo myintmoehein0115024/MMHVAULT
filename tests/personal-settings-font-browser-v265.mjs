@@ -196,11 +196,11 @@ try{
   console.log('PASS: birthday profile isolated Chromium V2 calendar, owner separation, 24 responsive locale/theme combinations, local storage and clear');
  }finally{await bdContext.close()}
 
- // Installation guide: actual DOM/SVG and three scoped styles, simulated browser identity only.
+ // Installation guide: actual approved WebP artwork or fallback SVG, simulated browser identity only.
  const installContext=await browser.newContext({viewport:{width:390,height:844},userAgent:'Mozilla/5.0 (Android 14; Mobile; rv:125.0) Gecko/125.0 Firefox/125.0'});
  try{
   const origin='https://install-fixture.invalid/';
-  await installContext.route('**/*',route=>route.request().url()===origin?route.fulfill({contentType:'text/html; charset=utf-8',body:'<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head><body><main id="settings"><section id="stPage_icon"></section></main></body></html>'}):route.abort());
+  await installContext.route('**/*',route=>{const url=new URL(route.request().url());if(url.href===origin)return route.fulfill({contentType:'text/html; charset=utf-8',body:'<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head><body><main id="settings"><section id="stPage_icon"></section></main></body></html>'});if(url.origin===new URL(origin).origin&&/^\/images\/mmhvault-install-(ios|ipad|android-chrome|desktop)-v271\.webp$/.test(url.pathname))return route.fulfill({contentType:'image/webp',body:readFileSync(new URL('..'+url.pathname,import.meta.url))});return route.abort()});
   await installContext.addInitScript(()=>{Object.defineProperty(document,'referrer',{get:()=> 'android-app://synthetic.fixture'});const original=window.matchMedia.bind(window);window.matchMedia=q=>q==='(display-mode: standalone)'?{matches:!!window.syntheticStandalone}:original(q)});
   const p=await installContext.newPage(),errors=[];p.on('pageerror',e=>errors.push(e.message));await p.goto(origin);
   assert.equal(await p.evaluate(()=>document.characterSet),'UTF-8');
@@ -220,7 +220,8 @@ try{
   assert.match(await guide.locator('li').first().textContent(),/full Chrome/);
   const lang=async l=>p.evaluate(v=>{localStorage.setItem('mmhvault_language_v3363',v);document.documentElement.lang=v;dispatchEvent(new Event('mmhvault-language-change'))},l);
   await lang('zh');assert.equal(await picker.inputValue(),'android-chrome');assert(await picker.evaluate(el=>document.activeElement===el));
-  const devices=['ios','ios-other','android-chrome','android-firefox','android-other','desktop'];
+  const artwork={ios:'ios','ios-other':'ios',ipad:'ipad','ipad-other':'ipad','android-chrome':'android-chrome','android-other':'android-chrome','desktop-chrome':'desktop','desktop-edge':'desktop'};
+  const devices=['ios','ios-other','ipad','ipad-other','android-chrome','android-firefox','android-other','desktop','desktop-chrome','desktop-edge','desktop-safari'];
   const locales=[['en','Your device & browser'],['zh','您的设备与浏览器'],['my','သင့်စက်နှင့် ဘရောက်ဇာ']];
   for(const [l,label] of locales){
    await lang(l);assert((await guide.locator('label').textContent()).includes(label));
@@ -230,9 +231,12 @@ try{
      const svg=li.querySelector('svg'),span=li.querySelector('.st-install-step-copy-v265>span:last-child'),r=svg?.getBoundingClientRect();
      return {text:span?.textContent,svg:svg?.namespaceURI==='http://www.w3.org/2000/svg'&&svg.getAttribute('viewBox')&&svg.querySelector('rect')&&r.width>0&&r.height>0,hidden:svg?.parentElement.getAttribute('aria-hidden')};
     }));
-    assert(result.length>=3&&result.every(x=>x.text&&x.svg&&x.hidden==='true'),JSON.stringify({l,device,result}));
+    const art=artwork[device],picture=guide.locator('.st-install-art-image-v271');
+    assert(result.length>=3&&result.every(x=>x.text&&(art?!x.svg:x.svg&&x.hidden==='true')),JSON.stringify({l,device,result}));
+    assert.equal(await picture.count(),art?1:0);
+    if(art){assert.equal(await picture.getAttribute('src'),'./images/mmhvault-install-'+art+'-v271.webp');assert.deepEqual(await picture.evaluate(async im=>{await im.decode();return [im.naturalWidth,im.naturalHeight]}),[1672,941]);}
     if(l==='my')assert(result.every(x=>/[\u1000-\u109f]/.test(x.text)));
-    assert.equal(await guide.locator('button:not(#stInstallCloseV265)').count(),0,'Custom Tab cannot show native install action');
+    assert.equal(await guide.locator('button:not(#stInstallCloseV265):not(.st-install-art-zoom-v271)').count(),0,'Custom Tab cannot show native install action');
    }
   }
   let cases=0;
@@ -244,13 +248,15 @@ try{
      await p.evaluate(v=>document.body.classList.toggle('light',v),light);
      await picker.selectOption(devices[cases%devices.length]);
      const result=await guide.evaluate(el=>{
-      const r=el.getBoundingClientRect(),select=el.querySelector('select'),sr=select.getBoundingClientRect(),art=el.querySelector('.st-install-illustration-v265'),accent=art.querySelector('.accent')||el.querySelector('.accent');
+      const r=el.getBoundingClientRect(),select=el.querySelector('select'),sr=select.getBoundingClientRect(),art=el.querySelector('.st-install-illustration-v265'),accent=art?.querySelector('.accent')||el.querySelector('.accent'),picture=el.querySelector('.st-install-art-image-v271');
       const inside=x=>{const b=x.getBoundingClientRect();return b.left>=r.left-1&&b.right<=r.right+1&&b.width>0&&b.height>0};
-      return {overflow:el.scrollWidth>el.clientWidth+1,selectFits:inside(select)&&sr.height>=44,artFits:[...el.querySelectorAll('svg')].every(inside),bg:getComputedStyle(art).backgroundColor,stroke:getComputedStyle(accent).stroke,status:getComputedStyle(document.getElementById('stInstallStatusV4')).color};
+      return {overflow:el.scrollWidth>el.clientWidth+1,selectFits:inside(select)&&sr.height>=44,artFits:[...el.querySelectorAll('svg')].every(inside)&&(!picture||inside(picture)),bg:art?getComputedStyle(art).backgroundColor:null,stroke:accent?getComputedStyle(accent).stroke:null,status:getComputedStyle(document.getElementById('stInstallStatusV4')).color};
      });
      assert(!result.overflow&&result.selectFits&&result.artFits,JSON.stringify({width,l,light,result}));
-     assert.equal(result.bg,light?'rgb(237, 243, 247)':'rgb(19, 35, 49)');
-     assert.equal(result.stroke,light?'rgb(20, 123, 98)':'rgb(112, 212, 176)');
+     if(artwork[devices[cases%devices.length]]){assert.equal(result.bg,null);assert.equal(result.stroke,null);}else{
+      assert.equal(result.bg,light?'rgb(237, 243, 247)':'rgb(19, 35, 49)');
+      assert.equal(result.stroke,light?'rgb(20, 123, 98)':'rgb(112, 212, 176)');
+     }
      assert.equal(result.status,light?'rgb(66, 87, 107)':'rgb(150, 174, 197)');cases++;
     }
    }
@@ -258,7 +264,7 @@ try{
   await p.evaluate(()=>{window.syntheticStandalone=true;dispatchEvent(new Event('mmhvault-language-change'))});
   assert.equal(await guide.locator('li').count(),0);assert(await guide.locator('p').isVisible());
   assert.deepEqual(errors,[]);
-  console.log('PASS: installation guide isolated Chromium SVG, 18 device/locale and '+cases+' responsive theme/locale cases, focus, Custom Tab and simulated standalone');
+  console.log('PASS: installation guide isolated Chromium WebP/SVG, 33 device/locale and '+cases+' responsive theme/locale cases, focus, Custom Tab and simulated standalone');
  }finally{await installContext.close()}
  // Candidate-only test: pinned upstream assets, hash checked before isolated rendering.
  // No font files are committed, no application runtime requests are introduced.
