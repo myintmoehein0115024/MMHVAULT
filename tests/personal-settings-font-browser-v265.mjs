@@ -668,6 +668,35 @@ with tempfile.TemporaryDirectory() as temp:
   try{writeFileSync(cssPath,Buffer.concat([originalCSS,Buffer.from(' ')]));assert.notEqual(verify().status,0,'tampered CSS rejected')}finally{writeFileSync(cssPath,originalCSS)}
   assert.equal(verify().status,0,'restored bundle verified');
   console.log('PASS: offline reviewed font resource verification rejects incorrect digest, extra files and altered CSS without regenerating fonts');
+  // Exercise the approved installation helper with the actual verified bundle in a disposable Git checkout.
+  // This is NOT the real repository and no font files are pushed or published.
+  const stageRoot=join(assemblyTemp,'stage-fixture');
+  mkdirSync(join(stageRoot,'tools'),{recursive:true});mkdirSync(join(stageRoot,'assets'));
+  writeFileSync(join(stageRoot,'assets','.gitkeep'),'');
+  for(const name of ['personal-font-stage-v265.mjs','personal-font-verify-v265.mjs']){
+   writeFileSync(join(stageRoot,'tools',name),readFileSync(new URL('../tools/'+name,import.meta.url)));
+  }
+  const git=(...args)=>{const run=spawnSync('git',['-C',stageRoot,...args],{encoding:'utf8',timeout:30000});assert.ifError(run.error);assert.equal(run.status,0,run.stderr);return run.stdout.trim()};
+  const stageBranch='personal/v2.0.65-settings-v2';
+  git('init','-b',stageBranch);git('add','--','tools','assets/.gitkeep');
+  git('-c','user.name=Personal QA','-c','user.email=qa@example.invalid','-c','core.hooksPath=/dev/null','-c','commit.gpgsign=false','commit','-m','isolated stage fixture');
+  const fixtureHead=git('rev-parse','HEAD');
+  const stage=(mode,digest=reviewedDigest)=>spawnSync(process.execPath,[join(stageRoot,'tools','personal-font-stage-v265.mjs'),mode,assemblyOutput,digest],{encoding:'utf8',timeout:60000});
+  const stagedPath=join(stageRoot,'assets','personal-fonts-v265');
+  const plan=stage('--plan');assert.ifError(plan.error);assert.equal(plan.status,0,plan.stderr);
+  assert.equal(JSON.parse(plan.stdout).action,'plan only; nothing installed');assert.equal(git('status','--porcelain'),'');
+  assert.notEqual(stage('--stage-approved-eight','0'.repeat(64)).status,0,'wrong reviewed digest rejected before staging');
+  git('checkout','-b','wrong-branch');assert.notEqual(stage('--stage-approved-eight').status,0,'wrong branch rejected');git('checkout',stageBranch);
+  writeFileSync(join(stageRoot,'dirty.txt'),'dirty');try{assert.notEqual(stage('--stage-approved-eight').status,0,'dirty checkout rejected')}finally{rmSync(join(stageRoot,'dirty.txt'))}
+  const installed=stage('--stage-approved-eight');assert.ifError(installed.error);assert.equal(installed.status,0,installed.stderr);
+  assert.equal(JSON.parse(installed.stdout).action,'staged in local working tree; no commit, push or activation');
+  assert.deepEqual(readFileSync(join(stagedPath,'bundle.json')),readFileSync(join(assemblyOutput,'bundle.json')));
+  const installedVerify=spawnSync(process.execPath,[verifier,stagedPath,reviewedDigest],{encoding:'utf8',timeout:30000});
+  assert.equal(installedVerify.status,0,installedVerify.stderr);assert.deepEqual(JSON.parse(installedVerify.stdout),verifiedSummary);
+  assert.equal(git('rev-parse','HEAD'),fixtureHead);assert.equal(git('status','--porcelain'),'?? assets/personal-fonts-v265/');
+  assert.equal(git('remote'),'');assert.notEqual(stage('--stage-approved-eight').status,0,'overwrite rejected');
+  console.log('FONT-STAGE '+JSON.stringify({manifest_sha256:reviewedDigest,families:verifiedSummary.families,files:verifiedSummary.files,font_bytes:verifiedSummary.font_bytes,fixture_only:true}));
+  console.log('PASS: actual eight-font bundle stages in disposable Personal Git checkout; wrong digest/branch/dirty/overwrite rejected, HEAD unchanged, no remote or activation');
   const actualManifest=JSON.parse(readFileSync(join(assemblyOutput,'bundle.json'),'utf8'));
   assert.deepEqual(actualManifest,JSON.parse(assembled.stdout.toString('utf8')));
   assert.equal(actualManifest.candidates.length,8);
