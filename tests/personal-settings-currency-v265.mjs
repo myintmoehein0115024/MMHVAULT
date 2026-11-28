@@ -857,7 +857,9 @@ console.log('PASS: 53-code shared display registry, additional FX, missing rates
  assert(!app.includes('stLanguage'),'duplicate language control removed');
  assert(app.includes("['Preferences','偏好设置',['general']]"));
  assert(app.includes("['Personal & security','个人与安全',['security','data']]"));
- assert(app.includes("(general.querySelector('.st-rows')||general).append(iconButton)"));
+ assert(app.includes("rows.append(iconRow);iconButton.remove()"));
+ assert(app.includes("logo.onclick=()=>window.mmhOpenInstallGuideV270?.(logo)"));
+ assert(app.includes("preview.hidden=true"));
  assert(app.includes("general:['Currency and font style','币种与字体样式']"));
  assert(app.includes('window.setMMHVAULTLanguage=function(next)'),'shared workspace language switch retained');
  assert(app.includes('css/mmhvault-settings-life-p928.css?v=2.0.65.2'));
@@ -870,7 +872,7 @@ console.log('PASS: 53-code shared display registry, additional FX, missing rates
  new Function(nav);new Function(guide);
  const myCopy=new Function(nav.match(/const myCopy=(\{[^;]+\});/)[0]+'return myCopy')();
  assert.equal(Object.keys(myCopy).length,7);assert(Object.values(myCopy).every(x=>/[\u1000-\u109f]/.test(x)));
- const draw=guide.slice(guide.indexOf('  function drawGuide'),guide.indexOf('  function openGuide'));
+ const draw=guide.slice(guide.indexOf('  function drawGuide'),guide.indexOf('  let activeGuideTrigger=button;'));
  const build=new Function('document','T','matchMedia','navigator','guide','androidCustomTab','illustration','captions','let selectedDevice=null,installPrompt=null;'+draw+'return drawGuide');
  function elem(tag){return {tag,children:[],append(...items){this.children.push(...items)},replaceChildren(){this.children=[]},setAttribute(){},textContent:'',className:'',hidden:false,value:''}}
  for(const lang of [0,1,2])for(const device of ['ios','ios-other','android-chrome','android-firefox','android-other','desktop']){

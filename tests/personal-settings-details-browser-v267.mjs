@@ -39,7 +39,7 @@ const dataStart="<div class=\"settings-panel-v371\" id=\"settingsPanelDataV371\"
 const dataEnd="</section>\n<section class=\"page\" id=\"cashflow-analyze\"";
 const dataIndex=app.indexOf(dataStart),dataLimit=app.indexOf(dataEnd,dataIndex);
 assert.ok(dataIndex>=0&&dataLimit>dataIndex&&app.split(dataStart).length===2,'unique actual data panel');
-const actualData=app.slice(dataIndex,dataLimit).replace(dataStart,'<div id="settingsPanelDataV371" role="tabpanel" style="display:block">');
+const actualData=app.slice(dataIndex,dataLimit).replace(dataStart,'<div id="settingsPanelDataV371" role="tabpanel" style="display:block">').replace('id="backupHistoryListV381"></div>','id="backupHistoryListV381"><div class="backup-history-empty-v381">No backups saved on this device yet.</div></div>').replace('class="restore-preview-v383" id="restorePreviewV383"','class="restore-preview-v383 show" id="restorePreviewV383"').replace('id="restoreFileNameV383">Backup preview','id="restoreFileNameV383">MMHVAULT_Synthetic_Backup_Long_File_Name.json');
 for(const id of ['restoreConfirmV383','excelImportBtn','backupFile','mmhDataHealthV191'])assert.ok(actualData.includes(id),'actual data control '+id);
 // App icon uses the real first appearance panel; install interaction is tested separately.
 const iconStart="<div class=\"settings-panel-v371\" id=\"settingsPanelAppearanceV371\" role=\"tabpanel\" style=\"display:none\">\n",iconEnd="\n<div class=\"panel\"><h2 class=\"mmh-hint-anchor-v195 mmh-context-title-v199\" data-mmh-hint-source=\"next\" tabindex=\"0\">Language</h2>";
@@ -128,6 +128,16 @@ try{
       assert.equal(r.restoreBg,r.restoreStatBg,label+' preview matches V2 surface');
       assert.equal(r.restoreGradient,'none',label+' no restore preview gradient');
       assert.equal(r.importDisabled,true,label+' import remains disabled');
+      const visual=await page.evaluate(()=>{
+       const f=document.getElementById('restoreFileNameV383'),empty=document.querySelector('.backup-history-empty-v381'),s=document.getElementById('backupStatus'),cs=e=>getComputedStyle(e);
+       return {fileBg:cs(f).backgroundImage,fileColor:cs(f).backgroundColor,fileBorder:cs(f).borderTopWidth,fileHeight:f.getBoundingClientRect().height,emptyBg:cs(empty).backgroundImage,emptyColor:cs(empty).backgroundColor,status:cs(s).display};
+      });
+      assert.equal(visual.fileBg,'none',label+' file name has no legacy gradient');
+      assert.equal(visual.fileColor,'rgba(0, 0, 0, 0)',label+' file name is transparent');
+      assert.equal(visual.fileBorder,'0px',label+' file name no old box');
+      assert.equal(visual.emptyBg,'none',label+' backup history flat surface');
+      assert.notEqual(visual.emptyColor,'rgba(0, 0, 0, 0)',label+' backup history V2 surface');
+      assert.equal(visual.status,'none',label+' empty status hidden');
      }
      if(id==='icon')assert.equal(r.iconPresent,true,label+' real icon panel');
      assert.equal(r.panelBg,'none',label+' no legacy gradient');
@@ -138,5 +148,21 @@ try{
    }
   }
  }
- console.log('PASS: V2.0.69 Settings full linked CSS details '+cases+' '+engine+' isolated fixture combinations');
+ const resetStart=app.indexOf('  function ensureResetModal(){'),resetEnd=app.indexOf('  window.resetMyCloudDataV380=async function(){',resetStart);
+ assert.ok(resetStart>=0&&resetEnd>resetStart,'actual reset confirmation functions only');
+ await page.addScriptTag({content:"(()=>{const rootId='mmhResetConfirmV49',isZh=()=>document.documentElement.lang==='zh';"+app.slice(resetStart,resetEnd)+"window.openResetFixtureV270=openResetConfirm;})();"});
+ let resets=0;
+ for(const width of [360,760,1100,1500])for(const light of [false,true]){
+  await page.setViewportSize({width,height:width===360?480:900});
+  await page.evaluate(light=>{document.body.classList.toggle('light',light);window.resetFixtureResultV270=null;window.openResetFixtureV270().then(v=>window.resetFixtureResultV270=v)},light);
+  const reset=page.locator('#mmhResetConfirmV49'),ok=page.locator('#mmhResetConfirmBtnV49'),input=page.locator('#mmhResetInputV49');
+  assert.equal(await reset.isVisible(),true);assert.equal(await ok.isDisabled(),true);
+  assert.ok(await reset.locator('.mmh-reset-card').evaluate(e=>getComputedStyle(e).backgroundImage==='none'&&e.getBoundingClientRect().height<=innerHeight-16&&e.scrollWidth-e.clientWidth<=2));
+  await input.fill('incorrect');assert.equal(await ok.isDisabled(),true);
+  await input.fill('RESET');assert.equal(await ok.isEnabled(),true);
+  await input.fill('');assert.equal(await ok.isDisabled(),true);
+  await page.locator('#mmhResetCancelV49').click();await page.waitForFunction(()=>window.resetFixtureResultV270===false);
+  resets++;
+ }
+ console.log('PASS: V2.0.70 Settings full linked CSS details '+cases+' '+engine+' isolated fixture combinations; reset confirmation-only '+resets+' cases, no data handler');
 }finally{await browser.close()}
