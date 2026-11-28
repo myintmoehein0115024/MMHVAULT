@@ -172,7 +172,11 @@ def build_chinese(candidate, source, license_data, ui, output):
         opts.name_languages = ["*"]
         opts.name_legacy = True
         sub = subset.Subsetter(options=opts)
-        sub.populate(unicodes=group)
+        # FontTools only retains cmap format 14 when the selector itself is
+        # requested. Keep each base and its selectors in the same shard.
+        advertised = set(group)
+        selectors = {selector for base, selector, _ in source_variations if base in advertised}
+        sub.populate(unicodes=advertised | selectors)
         sub.subset(font)
         # Distinct internal derivative identities for each subset, common CSS family.
         shard_family = family + " " + str(i)
@@ -184,9 +188,10 @@ def build_chinese(candidate, source, license_data, ui, output):
         require(data[:4] == b"wOF2" and 0 < len(data) < len(source), "invalid compressed shard")
         check = TTFont(io.BytesIO(data), recalcTimestamp=False)
         require(set(group) <= set(check.getBestCmap()), "shard cmap incomplete")
-        advertised = set(group)
-        preserved_variations.update(pair for pair in variation_sequences(check)
-                                    if pair[0] in advertised and pair in source_variations)
+        expected_variations = {pair for pair in source_variations if pair[0] in advertised}
+        actual_variations = {pair for pair in variation_sequences(check) if pair[0] in advertised}
+        require(actual_variations == expected_variations, "shard variation sequences changed")
+        preserved_variations.update(actual_variations)
         require(axes(check) == original_axes, "variable axes changed")
         require(check["name"].getDebugName(1) == shard_family, "output family mismatch")
         require({k: check["name"].getDebugName(k) for k in preserved} == preserved, "legal notices changed")
@@ -200,6 +205,7 @@ def build_chinese(candidate, source, license_data, ui, output):
                    ';font-style:normal;font-display:swap;unicode-range:' + ranges + '}')
         seen.update(group)
     require(seen == chars, "source cmap coverage incomplete")
+    require(preserved_variations == source_variations, "source variation sequences incomplete")
     manifest = {
         "candidate": candidate, "family": family, "source_revision": REVISION,
         "source_file": filename, "source_git_blob": source_hash, "license_git_blob": license_hash,
