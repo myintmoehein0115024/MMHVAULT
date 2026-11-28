@@ -168,8 +168,8 @@ const converter=document.createElement('button');converter.type='button';convert
 function jump(kind){category=kind;selectedInstrument=null;fromWatch=false;search.value='';select('market')}
 function renderSnapshot(snap,lang){const c=V274_COPY[lang],all=instrumentItems(snap,lang);snapshotTitle.textContent=c.snapshot;snapshotRows.replaceChildren();
  for(const [key,label,ids] of [['currency',c.currency,['fx:MMK','fx:CNY','fx:THB']],['gold',c.localgold,['gold:XAU']],['crypto',c.crypto,['crypto:BTC','crypto:ETH','crypto:BNB']],['oil',c.fuel,[]],['oil',c.edible,[]]]){const b=document.createElement('button');b.type='button';b.className='mv274-snapshot-row';b.dataset.kind=key;const name=document.createElement('strong');name.textContent=icons[key]+' '+label;const values=document.createElement('span');values.className='mv274-snapshot-values';
- for(const id of ids){const item=all.find(x=>x.id===id),line=document.createElement('span');line.textContent=id.split(':')[1]+' · '+(item?instrumentPrice(item,lang):'—');values.append(line)}
- if(!ids.length){const line=document.createElement('span');line.textContent=COPY[lang].pending;values.append(line)}const arrow=document.createElement('span');arrow.textContent='›';arrow.setAttribute('aria-hidden','true');b.append(name,values,arrow);b.addEventListener('click',()=>{jump(key);detailTitle.focus()});snapshotRows.append(b)}
+ for(const id of ids){const item=all.find(x=>x.id===id),line=document.createElement('span');line.textContent=(id==='gold:XAU'?'XAU/USD':id.startsWith('fx:')?'USD/'+id.split(':')[1]:id.split(':')[1])+' · '+(item?instrumentPrice(item,lang):'—');values.append(line)}
+ if(!ids.length||key==='gold'){const line=document.createElement('span');line.textContent=(key==='gold'?c.localgold+' · ':'')+COPY[lang].pending;values.append(line)}const arrow=document.createElement('span');arrow.textContent='›';arrow.setAttribute('aria-hidden','true');b.append(name,values,arrow);b.addEventListener('click',()=>{jump(key);detailTitle.focus()});snapshotRows.append(b)}
 }
 const note=document.createElement('p');note.className='mv2-note';note.dataset.mv2Text='note';surface.append(note);
 const pairs=document.createElement('div');pairs.className='mv2-pairs';const title=document.createElement('h2');title.dataset.mv2Text='pairs';pairs.append(title);
@@ -275,7 +275,7 @@ function renderDetails(){
  const lang=locale(),c={...COPY[lang],...EXTRA[lang]},h=HISTORY_TEXT[lang],snap=marketSnapshot();
  detailRows.replaceChildren();history.hidden=true;if(category==='all')return;
  const all=instrumentItems(snap,lang),item=selectedInstrument?all.find(x=>x.id===selectedInstrument&&x.category===category):null;
- detailTitle.textContent=item?instrumentIcon(item.id)+' '+item.name:c[category]+' · '+c.details;
+ detailTitle.textContent=item?instrumentIcon(item.id)+' '+item.name:V274_COPY[lang][category];
  back.textContent=fromWatch?wc().back:selectedInstrument?h.category:c.back;
  search.placeholder=c.search;search.setAttribute('aria-label',c.search);search.hidden=!!selectedInstrument||category==='gold'||category==='oil';
  const query=search.hidden?'':search.value.trim().toLocaleLowerCase();
@@ -294,7 +294,7 @@ function renderDetails(){
   }
   history.hidden=false;drawHistory(item,lang);return
  }
- if(category==='oil'){const p=document.createElement('p');p.textContent=c.pending;detailRows.append(p);return}
+ if(category==='oil'){for(const [label,products] of [[V274_COPY[lang].fuel,['RON 92','RON 95','Diesel']],[V274_COPY[lang].edible,['Palm oil','Soybean oil','Sunflower oil']]]){const group=document.createElement('section');group.className='mv274-energy-group';const title=document.createElement('h3');title.textContent=label;group.append(title);const p=document.createElement('p');p.className='mv2-note';p.textContent=c.pending;group.append(p);const names={zh:['92号汽油','95号汽油','柴油','棕榈油','大豆油','葵花籽油'],my:['RON 92','RON 95','ဒီဇယ်','စားအုန်းဆီ','ပဲပုပ်ဆီ','နေကြာဆီ']};const base=label===V274_COPY[lang].fuel?0:3;for(const [i,name] of products.entries()){const row=document.createElement('div');row.className='mv2-detail-row';const n=document.createElement('span'),v=document.createElement('span');n.textContent=names[lang]?.[base+i]||name;v.textContent='—';row.append(n,v);group.append(row)}detailRows.append(group)}return}
  for(const x of all.filter(x=>instrumentMatches(x,query,lang,category))){
   const row=document.createElement('div');row.className='mv2-detail-row';
   const open=button('',h.detail+' '+x.name,()=>openInstrument(x.id,x.category,false));open.className='mv2-watch-open';open.dataset.instrumentId=x.id;open.dataset.mv2Focus=rowActionKey(x.id,'detail');
@@ -305,7 +305,7 @@ function renderDetails(){
 }
 function paint(){
  const focused=document.activeElement?.dataset?.mv2Focus,priorOwner=uid,detailScroll=detailRows.scrollTop;syncWatch();if(!page.classList.contains('active')){closeWatch();watchEditing=false}const lang=locale(),c={...COPY[lang],...EXTRA[lang]};for(const n of page.querySelectorAll('[data-mv2-text]'))n.textContent=c[n.dataset.mv2Text];
- const snap=marketSnapshot(),rates=snap.fx;delete page.dataset.mv273;const vc=V274_COPY[lang];nav.setAttribute('aria-label',vc.sections);for(const b of nav.children){const k=b.dataset.mv2Section,on=k===category;b.textContent=vc[k];b.setAttribute('aria-selected',String(on));b.tabIndex=on?0:-1}converter.textContent=active==='convert'?vc.currency:vc.converter;converter.hidden=category!=='currency'&&category!=='all';surface.setAttribute('aria-labelledby','mv2-tab-'+(category==='all'?'market':category));renderSnapshot(snap,lang);
+ const snap=marketSnapshot(),rates=snap.fx;delete page.dataset.mv273;const vc=V274_COPY[lang];nav.setAttribute('aria-label',vc.sections);for(const b of nav.children){const k=b.dataset.mv2Section,on=k===category;b.textContent=vc[k];b.setAttribute('aria-selected',String(on));b.tabIndex=on?0:-1}converter.textContent=active==='convert'?vc.currency:vc.converter;converter.hidden=category!=='currency';surface.setAttribute('aria-labelledby','mv2-tab-'+(category==='all'?'market':category));renderSnapshot(snap,lang);
  const fmt=new Intl.NumberFormat(lang==='my'?'my':lang==='zh'?'zh-CN':'en',{maximumFractionDigits:6});
  for(const n of surface.querySelectorAll('[data-mv2-rate]')){const v=safeRate(rates,n.dataset.mv2Rate);n.textContent=v===null?'—':watchFmt(v,lang);n.title=v===null?c.unavailable:c.reference}
  for(const n of surface.querySelectorAll('[data-mv2-value]')){
@@ -410,6 +410,10 @@ html body #exchange#exchange[data-market-v2-mounted]>.mv2-nav button{min-height:
 html body #exchange#exchange[data-market-v2-mounted]>.mv2-nav button[aria-selected=true]{background:linear-gradient(135deg,#d8b36b,#a97730)!important;color:#17130b!important}
 html body #exchange#exchange[data-market-v2-mounted]>.mv274-convert{grid-row:2!important;grid-column:1/-1;justify-self:end;background:var(--mv74-card)!important;color:var(--mv74-text)!important;border-color:var(--mv74-line)!important}
 html body #exchange#exchange[data-market-v2-mounted]>.mv274-convert[hidden]{display:none!important}
+html body #exchange#exchange[data-market-v2-mounted][data-market-view=market][data-market-detail=category]>#exAsiaSummaryV130{display:none!important}
+html body #exchange#exchange[data-market-v2-mounted] .mv274-energy-group{padding:12px 0;border-bottom:1px solid var(--mv74-line)}
+html body #exchange#exchange[data-market-v2-mounted] .mv274-energy-group:last-child{border-bottom:0}
+html body #exchange#exchange[data-market-v2-mounted] .mv274-energy-group h3{margin:0;font-size:15px}
 html body #exchange#exchange[data-market-v2-mounted] .mv2-surface{color:var(--mv74-text);gap:12px}
 html body #exchange#exchange[data-market-v2-mounted] .mv2-grid{grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
 html body #exchange#exchange[data-market-v2-mounted] .mv2-surface :is(.mv2-card,.mv2-pairs,.mv2-detail-rows,.mv2-history,.mv2-watch-dialog){background:var(--mv74-card)!important;border:1px solid var(--mv74-line)!important;color:var(--mv74-text)!important;box-shadow:none!important;border-radius:14px}
