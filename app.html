@@ -12446,6 +12446,10 @@ html.mmh-desktop-compact-v11110 body.mmh-workspace-active #moreNavMenu.more-nav-
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',render,{once:true});else render();
 })();
 </script>
+<script id="mmhvault-personal-display-currencies-v265">
+// Display preferences only. Match the established Personal Accounts currency list.
+window.MMHPersonalDisplayCurrenciesV265=Object.freeze(["USD","THB","MMK","CNY","AMD","JPY","KRW","KPW","HKD","MOP","TWD","MNT","BND","IDR","KHR","LAK","MYR","PHP","SGD","VND","AFN","BDT","BTN","INR","LKR","MVR","NPR","PKR","KGS","KZT","TJS","TMT","UZS","AZN","GEL","AED","BHD","ILS","IQD","IRR","JOD","KWD","LBP","OMR","QAR","SAR","SYP","TRY","YER","EUR","RUB","EGP","AUD"]);
+</script>
 <script id="mmhvault-unified-invest-v1-js">
 (function(){
   const el=id=>document.getElementById(id),num=x=>Number(x)||0;
@@ -12493,7 +12497,7 @@ html.mmh-desktop-compact-v11110 body.mmh-workspace-active #moreNavMenu.more-nav-
   const valid=v=>v!==null&&v!==undefined&&v!==''&&Number.isFinite(Number(v));
 
   // V2.0.65: presentation-only currency reference for verified native overview metrics.
-  const invDisplayCodesV265=['USD','THB','MMK','CNY'];
+  const invDisplayCodesV265=window.MMHPersonalDisplayCurrenciesV265||['USD','THB','MMK','CNY'];
   const invDisplayOwnerV265=()=>typeof currentSessionUser!=='undefined'&&currentSessionUser?.id===MMHVAULT_CONFIG_OWNER?String(currentSessionUser.id):'';
   function invDisplayChoiceV265(){
     const id=invDisplayOwnerV265();if(!id)return 'GLOBAL';
@@ -12526,6 +12530,7 @@ html.mmh-desktop-compact-v11110 body.mmh-workspace-active #moreNavMenu.more-nav-
     const p=el('invDisplayPickerV265');if(!p)return;
     const summary=p.querySelector('summary'),select=p.querySelector('select'),search=p.querySelector('input'),list=p.querySelector('.ap-currency-list-v2'),group=p.querySelector('.pf-display-menu-v265'),label=p.querySelector('label'),hint=el('invDisplayHintV265'),tr=invDisplayTextV265;
     const sync=()=>{
+      for(const c of invDisplayCodesV265){if(!Array.from(select.options).some(o=>o.value===c)){const o=document.createElement('option');o.value=o.textContent=c;select.append(o)}}
       const choice=invDisplayChoiceV265(),code=invDisplayCurrencyV265(),caption=tr('Reference currency','参考币种','ကိုးကားငွေကြေး');
       select.options[0].textContent=tr('Follow default','跟随默认币种','မူလငွေကြေးအတိုင်း');select.options[1].textContent=tr('Original currency only','仅原始币种','မူရင်းငွေကြေးသာ');select.value=choice;select.setAttribute('aria-label',caption);
       const shared=window.MMHCurrencyPickerV3;
@@ -21985,7 +21990,7 @@ body.mmhvault-scroll-active #invest .invest-top>.panel{box-shadow:inset 0 1px 0 
     return (mark?mark+' ':'')+(typeof fmt==='function'?fmt(n):n.toLocaleString());
   };
   // V2.0.65: a reference display only; original ledger values remain authoritative.
-  const txDisplayCodesV265=['USD','THB','MMK','CNY'];
+  const txDisplayCodesV265=window.MMHPersonalDisplayCurrenciesV265||['USD','THB','MMK','CNY'];
   const txDisplayOwnerV265=()=>typeof currentSessionUser!=='undefined'&&currentSessionUser?.id===MMHVAULT_CONFIG_OWNER?String(currentSessionUser.id):'';
   function txDisplayChoiceV265(){
     const id=txDisplayOwnerV265();if(!id)return 'GLOBAL';
@@ -22025,6 +22030,7 @@ body.mmhvault-scroll-active #invest .invest-top>.panel{box-shadow:inset 0 1px 0 
     const p=$('txDisplayPickerV265');if(!p)return;
     const summary=p.querySelector('summary'),select=p.querySelector('select'),search=p.querySelector('input'),list=p.querySelector('.ap-currency-list-v2'),group=p.querySelector('.pf-display-menu-v265'),label=p.querySelector('label'),hint=$('txDisplayHintV265'),tr=txDisplayTextV265;
     const sync=()=>{
+      for(const c of txDisplayCodesV265){if(!Array.from(select.options).some(o=>o.value===c)){const o=document.createElement('option');o.value=o.textContent=c;select.append(o)}}
       const choice=txDisplayChoiceV265(),code=txDisplayCurrencyV265(),caption=tr('Reference currency','参考币种','ကိုးကားငွေကြေး');
       select.options[0].textContent=tr('Follow default','跟随默认币种','မူလငွေကြေးအတိုင်း');select.options[1].textContent=tr('Original currency only','仅原始币种','မူရင်းငွေကြေးသာ');select.value=choice;select.setAttribute('aria-label',caption);
       const shared=window.MMHCurrencyPickerV3;
@@ -30966,7 +30972,7 @@ let marketTimerV720=0;
 const esc=s=>String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
 const marketMoney=v=>'$'+N(v).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2});
 // Overview presentation only; underlying financial data and market references remain USD.
-const overviewCodesV265=['USD','THB','MMK','CNY'];
+const overviewCodesV265=window.MMHPersonalDisplayCurrenciesV265||['USD','THB','MMK','CNY'];
 function overviewOwnerV265(){return typeof currentSessionUser!=='undefined'?String(currentSessionUser?.id||''):''}
 function overviewChoiceV265(){
  const id=overviewOwnerV265();if(!id)return 'GLOBAL';
@@ -30981,7 +30987,8 @@ function overviewCurrencyV265(){
  const choice=overviewChoiceV265();if(choice!=='GLOBAL')return choice;
  try{const c=JSON.parse(localStorage.getItem('mmhvault_settings_display_v2_'+id)||'{}')?.currency;return overviewCodesV265.includes(c)?c:'USD'}catch(_){return 'USD'}
 }
-function money(v){const code=overviewCurrencyV265();if(!Number.isFinite(v))return '—';if(code==='USD')return marketMoney(v);return window.mmhAccountDisplayTotalV203?.(v,code)||'—'}
+function overviewExtraRateV265(code){try{const r=Number(window.MMHExchangeEffectiveFXV2?.getUsdRate?.(code));return Number.isFinite(r)&&r>0?r:null}catch(_){return null}}
+function money(v){const code=overviewCurrencyV265();if(!Number.isFinite(v))return '—';if(code==='USD')return marketMoney(v);if(['THB','MMK','CNY'].includes(code))return window.mmhAccountDisplayTotalV203?.(v,code)||'—';const r=overviewExtraRateV265(code),converted=r===null?NaN:v*r;return Number.isFinite(converted)?code+' '+converted.toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2}):'—'}
 function signedMoneyV265(v,positive){const value=money(v);return value==='—'?value:(positive?'+':'')+value}
 window.mmhOverviewDisplayMoneyV265=money;
 window.mmhOverviewDisplayCurrencyV265=overviewCurrencyV265;
@@ -31158,7 +31165,7 @@ function fullSignatureV720(){
  const tx=(Array.isArray(window.transactions)?window.transactions:[]).map(t=>[t.id,t.tx_date,t.type,t.category,t.from_account,t.from_amount,t.to_account,t.to_amount].join(':')).join('|');
  const inv=(Array.isArray(window.investments)?window.investments:[]).map(x=>[x.id,x.asset,x.symbol,x.amount,x.buy_price,x.quantity,x.source_account].join(':')).join('|');
  const r=(typeof rates!=='undefined'?rates:window.rates)||{};
- return [trendRange,overviewCurrencyV265(),tx,inv,N(r.usd_mmk),N(r.usd_thb),N(r.usd_cny),overviewChoiceV265(),overviewOwnerV265()].join('§');
+ return [trendRange,overviewCurrencyV265(),tx,inv,N(r.usd_mmk),N(r.usd_thb),N(r.usd_cny),overviewChoiceV265(),overviewOwnerV265(),overviewExtraRateV265(overviewCurrencyV265())].join('§');
 }
 function updateMarketOnlyV720(){
  if(!pageActive())return;const host=ensureDashboardHost();if(!host)return;
@@ -31346,6 +31353,7 @@ window.addEventListener('mmhvault:page-visible',()=>{if(pageActive()&&dashboardD
 window.addEventListener('mmhvault:personal-display-currency-changed',()=>scheduleDashboardRenderV790(0,false));
 window.addEventListener('mmhvault:config-owner-changed',()=>scheduleDashboardRenderV790(0,false));
 window.addEventListener('mmhvault:market-updated',()=>{if(pageActive()){if(fullSignatureV720()!==lastFullSignatureV720)scheduleDashboardRenderV790(0,false);else scheduleMarketOnlyV720()}else dashboardDirtyV159=true});
+window.addEventListener('mmhvault:exchange-reference-updated',()=>{if(pageActive())scheduleDashboardRenderV790(0,false);else dashboardDirtyV159=true});
 /* v1.5.5: CSS handles responsive layout; do not rebuild Dashboard DOM on resize. */
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});else init();
 })();
