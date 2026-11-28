@@ -28703,14 +28703,15 @@ html,body{max-width:100%;overflow-x:clip}
   const $=id=>document.getElementById(id);
   const num=v=>{const x=Number(v);return Number.isFinite(x)?x:0};
   const currencyRate=code=>{const c=String(code||'USD').toUpperCase();if(c==='USD')return 1;const key={THB:'usd_thb',MMK:'usd_mmk',CNY:'usd_cny'}[c];return key?num(rates?.[key]):0};
-  const fx=()=>currencyRate(state.currency);
-  const money=v=>!(fx()>0)?'—':({USD:'$ ',THB:'฿ ',MMK:'K ',CNY:'￥ '}[state.currency]||'$ ')+(window.mmhSettingsNumberV2?window.mmhSettingsNumberV2(num(v)*fx()):(num(v)*fx()).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2}));
+  const displayRateV265=code=>{const c=String(code||'USD').toUpperCase();if(['USD','THB','MMK','CNY'].includes(c))return currencyRate(c);if(!cashflowCurrenciesV918.includes(c)||!currentSessionUser?.id)return 0;try{const n=Number(window.MMHExchangeEffectiveFXV2?.getUsdRate?.(c));return Number.isFinite(n)&&n>0?n:0}catch(_){return 0}};
+  const fx=()=>displayRateV265(state.currency);
+  const money=v=>!(fx()>0)?'—':({USD:'$ ',THB:'฿ ',MMK:'K ',CNY:'￥ '}[state.currency]||state.currency+' ')+(window.mmhSettingsNumberV2?window.mmhSettingsNumberV2(num(v)*fx()):(num(v)*fx()).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2}));
   const safe=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   const monthKey=()=>{const d=new Date();return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`};
   const state={mode:'month',month:monthKey(),year:new Date().getFullYear(),currency:'USD',budget:null,budgetKey:'',budgetLoading:false,budgetRequest:0};
   // P9.18: Analyze currency is durable per signed-in account, independent of boot order.
   // RMB is represented by its ISO currency code CNY throughout the existing app.
-  const cashflowCurrenciesV918=['USD','THB','MMK','CNY'];
+  const cashflowCurrenciesV918=(typeof window!=='undefined'&&window.MMHPersonalDisplayCurrenciesV265)||['USD','THB','MMK','CNY'];
   const currencyOwnerV918=()=>currentSessionUser?.id||'guest';
   const analyzeCurrencyKeyV918=()=> 'mmhvault_analyze_currency_v918_'+currencyOwnerV918();
   const settingsCurrencyKeyV918=()=> 'mmhvault_settings_display_v2_'+currencyOwnerV918();
@@ -28892,6 +28893,7 @@ html,body{max-width:100%;overflow-x:clip}
     const year=$('cfaYear'),now=new Date().getFullYear();
     year.innerHTML=Array.from({length:Math.max(7,now-2019+2)},(_,i)=>`<option value="${now+1-i}">${now+1-i}</option>`).join('');
     $('cfaMonth').value=state.month;year.value=String(state.year);
+    const currencySelect=$('cfaCurrency');for(const code of cashflowCurrenciesV918){if(!Array.from(currencySelect.options).some(o=>o.value===code)){const o=document.createElement('option');o.value=o.textContent=code;currencySelect.append(o)}}
     restoreCurrencyV918();
     $('cfaCurrency').addEventListener('change',e=>{saveCurrencyV918(e.target.value);render()});
     // Authentication can finish after DOMContentLoaded: restore the new account's choice.
@@ -28902,7 +28904,7 @@ html,body{max-width:100%;overflow-x:clip}
     $('cfaOpenBudgetV112')?.addEventListener('click',openBudget);
     const visibleActive=()=>!document.hidden&&page.classList.contains('active');
     const refreshVisible=()=>{if(!visibleActive())return;render();if(state.budgetKey!==budgetContextKey())void loadBudget()};
-    ['mmhvault:data-loaded','mmhvault:data-change','mmhvault:cache-restored','mmhvault:market-updated','mmhvault:category-config-changed','mmhvault:page-visible'].forEach(ev=>window.addEventListener(ev,refreshVisible,{passive:true}));
+    ['mmhvault:data-loaded','mmhvault:data-change','mmhvault:cache-restored','mmhvault:market-updated','mmhvault:exchange-fx-updated','mmhvault:asia-rates-updated','mmhvault:account-reference-fx-updated','mmhvault:category-config-changed','mmhvault:page-visible'].forEach(ev=>window.addEventListener(ev,refreshVisible,{passive:true}));
     window.addEventListener('mmhvault:budget-changed',()=>{state.budgetKey='';state.budget=null;if(visibleActive())periodChanged()},{passive:true});
     document.addEventListener('visibilitychange',()=>{if(!document.hidden)refreshVisible()},{passive:true});
     render();if(!document.hidden)void loadBudget();
