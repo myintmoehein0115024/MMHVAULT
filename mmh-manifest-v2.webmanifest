@@ -20,13 +20,13 @@
   "prefer_related_applications": false,
   "icons": [
     {
-      "src": "./images/icon-192.png?v=pwa26-20261029",
+      "src": "./images/mmhvault-personal-v2-icon-192.png",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "./images/icon-512.png?v=pwa26-20261029",
+      "src": "./images/mmhvault-personal-v2-icon-512.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any"

@@ -203,37 +203,39 @@ try{
  }finally{await instance.close()}
 }
 
-// Temporary offline export of Personal-only PNG derivatives for review.
-// Original approved WebP; no third-party artwork and no deployment.
-// Public asset bytes only; numbered chunks enable exact PNG transfer.
-if(engine==='chromium'){
+// Verify committed Personal-only icons, manifest identity and actual browser decoding.
+// No network or native install; legacy shared/Business resources are retained.
+{
  const {createHash}=await import('node:crypto');
  const source=readFileSync(new URL('../images/mmhvault-v2-auth-mark.webp',import.meta.url));
- assert.equal(createHash('sha1').update('blob '+source.length+'\0').update(source).digest('hex'),'140fe9415437ae9560600c6a69cee20d3c30c758','approved source blob');
- const instance=await chromium.launch({headless:true});
+ assert.equal(createHash('sha1').update('blob '+source.length+'\0').update(source).digest('hex'),'140fe9415437ae9560600c6a69cee20d3c30c758','approved original mark');
+ const expected={
+  180:'dc28dfa0fec9680c2bebdfcd6f7a4ea58a76b260ef280ef2dc822bb1f7392a4f',
+  192:'9f1721ac61220d16ba0a4917900a743bdbe7e6e7b07d5f2aac9b000db4939b2a',
+  512:'12fd1f8aadf2302461c5e47cecf30478025be7f4a1b76be9e02897cecd31733d'
+ };
+ const manifest=JSON.parse(readFileSync(new URL('../mmh-manifest-v2.webmanifest',import.meta.url),'utf8'));
+ assert.equal(manifest.id,'./mmhvault-personal-v2');
+ assert.equal(manifest.start_url,'./login.html?source=pwa&install=v2');
+ assert.equal(manifest.scope,'./');
+ assert.deepEqual(manifest.icons,[192,512].map(size=>({src:'./images/mmhvault-personal-v2-icon-'+size+'.png',sizes:size+'x'+size,type:'image/png',purpose:'any'})));
+ for(const path of ['app.html','login.html','index.html']){
+  const page=readFileSync(new URL('../'+path,import.meta.url),'utf8');
+  assert.ok(page.includes('href="/images/mmhvault-personal-v2-icon-180.png"'),path+' touch icon');
+  assert.ok(page.includes('href="./mmh-manifest-v2.webmanifest?v=personal-v271"'),path+' refreshed Personal manifest');
+  assert.ok(!/apple-touch-icon\.png\?v=pwa2[45]-20261029/.test(page),path+' no old touch icon reset');
+ }
+ const instance=await browserType.launch({headless:true});
  try{
-  const page=await instance.newPage();
-  await page.route('**/*',route=>route.abort());
-  const images=await page.evaluate(async source=>{
-   const image=new Image();image.src=source;await image.decode();
-   if(image.naturalWidth!==96||image.naturalHeight!==96)throw Error('Unexpected original mark dimensions');
-   return [180,192,512].map(size=>{
-    const canvas=document.createElement('canvas');canvas.width=canvas.height=size;
-    const ctx=canvas.getContext('2d',{alpha:false});ctx.fillStyle='#06111f';ctx.fillRect(0,0,size,size);
-    const inset=Math.round(size*0.08);
-    ctx.imageSmoothingEnabled=true;ctx.imageSmoothingQuality='high';
-    ctx.drawImage(image,inset,inset,size-2*inset,size-2*inset);
-    return {size,base64:canvas.toDataURL('image/png').split(',')[1]};
-   });
-  },'data:image/webp;base64,'+source.toString('base64'));
-  for(const {size,base64} of images){
-   const png=Buffer.from(base64,'base64');
+  const page=await instance.newPage();await page.route('**/*',route=>route.abort());
+  for(const size of [180,192,512]){
+   const png=readFileSync(new URL('../images/mmhvault-personal-v2-icon-'+size+'.png',import.meta.url));
+   assert.equal(createHash('sha256').update(png).digest('hex'),expected[size]);
    assert.equal(png.subarray(0,8).toString('hex'),'89504e470d0a1a0a');
    assert.equal(png.readUInt32BE(16),size);assert.equal(png.readUInt32BE(20),size);
-   const chunks=base64.match(/.{1,1800}/g);
-   console.log('MMH_PERSONAL_ICON_META '+size+' '+chunks.length+' '+createHash('sha256').update(png).digest('hex'));
-   for(const [i,chunk] of chunks.entries())console.log('MMH_PERSONAL_ICON_CHUNK '+size+' '+i+' '+chunk);
+   const dimensions=await page.evaluate(async src=>{const image=new Image();image.src=src;await image.decode();return [image.naturalWidth,image.naturalHeight];},'data:image/png;base64,'+png.toString('base64'));
+   assert.deepEqual(dimensions,[size,size]);
   }
-  console.log('PASS: three Personal V2 icon PNG derivatives from approved original, isolated Chromium canvas');
+  console.log('PASS: committed approved Personal V2 PNG icons, exact hashes, manifest identity, HTML links and '+engine+' decode');
  }finally{await instance.close();}
 }

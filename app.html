@@ -91,10 +91,10 @@ html.mmh-p960-quiet-loading body #dataLoadOverlayV384.show .data-load-sub-v384{f
 
 <meta content="width=device-width,initial-scale=1,viewport-fit=cover" name="viewport"/>
 <link href="images/mmhvault-v2-auth-mark.webp" rel="icon" type="image/webp"/>
-<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png?v=pwa25-20261029"/>
+<link rel="apple-touch-icon" sizes="180x180" href="/images/mmhvault-personal-v2-icon-180.png"/>
 
 <meta content="#06111f" name="theme-color"/>
-<link rel="manifest" href="./mmh-manifest-v2.webmanifest?v=pwa25-20261029"/>
+<link rel="manifest" href="./mmh-manifest-v2.webmanifest?v=personal-v271"/>
 <meta name="application-name" content="MMHVAULT"/>
 <meta name="mobile-web-app-capable" content="yes"/>
 <meta name="apple-mobile-web-app-capable" content="yes"/>
@@ -31082,7 +31082,7 @@ for(const img of document.querySelectorAll('img[data-mmh-brand-v11]')){
   img.before(wrap);wrap.append(img);img.src=art;observer?.observe(wrap);
 }
 for(const link of document.querySelectorAll('link[rel="icon"],link[rel="apple-touch-icon"]')){
-  const touch=link.relList?.contains('apple-touch-icon');link.href=touch?'/apple-touch-icon.png?v=pwa25-20261029':'./images/mmhvault-v2-auth-mark.webp';
+  const touch=link.relList?.contains('apple-touch-icon');link.href=touch?'/images/mmhvault-personal-v2-icon-180.png':'./images/mmhvault-v2-auth-mark.webp';
   link.type=touch?'image/png':'image/webp';
 }
 const visibility=()=>document.documentElement.classList.toggle('mmh-brand-hidden-v11',document.hidden);
