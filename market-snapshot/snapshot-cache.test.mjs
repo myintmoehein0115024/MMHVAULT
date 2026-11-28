@@ -4,7 +4,7 @@ import {SNAPSHOT_INTERVAL_MS} from './currency-snapshot.mjs';
 const now=Date.parse('2026-01-02T12:00:00Z');
 const state=new Map();let tail=Promise.resolve();
 const store={transaction(fn){const p=tail.then(()=>fn({get:async k=>state.get(k),put:async(k,v)=>state.set(k,v)}));tail=p.catch(()=>{});return p}};
-const payload=time=>({result:1,data:{as_of:new Date(time).toISOString(),currencies:[{series:{kind:'currency',code:'USD',unit:'unit',quote_type:'two_way',quote_currency:'MMK'},quote:{recorded_at:new Date(time).toISOString(),buy:'100',sell:'110',buy_change:'2',sell_change:'3'},stale:false}]}});
+const payload=time=>({result:1,data:[{series:{kind:'currency',code:'USD',unit:'unit',quote_type:'two_way',quote_currency:'MMK'},quote:{recorded_at:new Date(time).toISOString(),buy:'100',sell:'110',buy_change:'2',sell_change:'3'},stale:false}]});
 let calls=0;
 const fetchMarket=async()=>{calls++;return payload(now)};
 assert.equal(await readMarketSnapshot({store,now}),null);
