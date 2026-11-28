@@ -275,6 +275,7 @@ try{
  const mountedMarket=readFileSync(new URL('../js/mmhvault-market-workspace-v2.js',import.meta.url),'utf8');
  await page.setContent('<!doctype html><html lang="en"><head>'+css+marketStyle+'</head><body class="mmh-workspace-active"><section id="exchange" class="page active">'+marketMarkup+'<div class="ex-template-head">Legacy hero</div><div id="exCurrencyCardsV7" class="ex-currency-cards">Existing rates</div><div id="mmhExchangeV2StagingRoot" hidden>Existing V2</div><div class="panel exchange-converter-panel">Converter</div><div class="panel ex-rate-editor">Editor</div><section id="exAsiaSummaryV130">Asia</section><section id="exAsiaV10" hidden>Asia detail</section></section></body></html>');
  await page.addScriptTag({content:marketScript});
+ await page.evaluate(()=>{if(typeof currentSessionUser==='undefined')window.currentSessionUser={id:'fixture-market-a'};else currentSessionUser={id:'fixture-market-a'};localStorage.setItem('mmhvault_settings_display_v2_fixture-market-a',JSON.stringify({currency:'MMK'}));localStorage.removeItem('mmhvault_market_base_v276_fixture-market-a')});
  await page.addScriptTag({content:mountedMarket});
  await page.addStyleTag({content:fxCss});
  await page.locator('#exchange[data-market-v2-mounted=yes]').waitFor();
@@ -300,9 +301,17 @@ try{
     assert.deepEqual(await board.locator('tbody tr').evaluateAll(rs=>rs.slice(0,21).map(r=>r.dataset.fxCode)),['USD','THB','CNY','EUR','SGD','MYR','JPY','GBP','KRW','AED','TWD','AUD','NZD','CAD','HKD','INR','MOP','PHP','KHR','VND','LAK']);
     assert.ok((await board.locator('tbody td').allTextContents()).every(x=>x==='—'));
     const fits=await board.evaluate(e=>{const r=e.getBoundingClientRect();return r.left>=-1&&r.right<=innerWidth+1});assert.ok(fits,JSON.stringify({width,light,lang}));
-    await ticker.locator('button').click();assert.equal(await ticker.getAttribute('data-paused'),'true');
-    await ticker.locator('button').click();assert.equal(await ticker.getAttribute('data-paused'),'false');
-    const trend=board.locator('[data-fx-trend=USD]');await trend.click();assert.ok(await dialog.isVisible());
+    assert.equal(await ticker.locator('button').count(),1);assert.equal(await ticker.locator('button.mv274-convert').count(),1);
+    assert.equal(await ticker.locator('.mv275-track').evaluate(e=>getComputedStyle(e).animationPlayState),'running');
+    const base=board.locator('.mv276-base');assert.equal(await base.inputValue(),'GLOBAL');assert.equal(await board.getAttribute('data-fx-base'),'MMK');
+    assert.ok(await base.locator('option[value=KPW]').count());assert.ok(await base.locator('option[value=THB]').count());
+    await base.selectOption('THB');assert.equal(await board.getAttribute('data-fx-base'),'THB');assert.equal(await board.locator('tr[data-fx-code=THB]').count(),0);assert.equal(await board.locator('tr[data-fx-code=MMK]').count(),1);
+    await page.evaluate(()=>{localStorage.setItem('mmhvault_settings_display_v2_fixture-market-a',JSON.stringify({currency:'JPY'}));dispatchEvent(new Event('mmhvault:data-loaded'))});assert.equal(await board.getAttribute('data-fx-base'),'THB');assert.equal(await base.inputValue(),'THB');
+    await page.evaluate(()=>{currentSessionUser={id:'fixture-market-b'};localStorage.setItem('mmhvault_settings_display_v2_fixture-market-b',JSON.stringify({currency:'SGD'}));dispatchEvent(new Event('mmhvault:config-owner-changed'))});assert.equal(await board.getAttribute('data-fx-base'),'SGD');assert.equal(await base.inputValue(),'GLOBAL');
+    await page.evaluate(()=>{currentSessionUser={id:'fixture-market-a'};dispatchEvent(new Event('mmhvault:config-owner-changed'))});assert.equal(await base.inputValue(),'THB');
+    await base.selectOption('GLOBAL');assert.equal(await board.getAttribute('data-fx-base'),'JPY');
+    await page.evaluate(()=>{localStorage.setItem('mmhvault_settings_display_v2_fixture-market-a',JSON.stringify({currency:'MMK'}));dispatchEvent(new Event('mmhvault:data-loaded'))});assert.equal(await board.getAttribute('data-fx-base'),'MMK');
+    const trend=board.locator('[data-fx-trend=USD]');assert.equal(await trend.locator('svg').count(),1);await trend.click();assert.ok(await dialog.isVisible());
     assert.equal(await dialog.locator('svg,canvas').count(),0);
     assert.equal(await dialog.locator('tbody tr').count(),1);
     const d=await dialog.evaluate(e=>{const r=e.getBoundingClientRect();return r.left>=-1&&r.right<=innerWidth+1&&r.height<=innerHeight});assert.ok(d);
@@ -336,5 +345,5 @@ try{
   assert.ok(await panel.locator('.mv2-history').isVisible());
   mountedCases++;
  }
- console.log('PASS: V2.0.75 mounted Market, FX ordered board, ticker controls, search and native empty history dialog, responsive sections, converter roundtrip, empty Energy and history; '+mountedCases+' '+engine+' isolated cases');
+ console.log('PASS: V2.0.76 mounted Market, ordered board, continuous ticker, Settings base currency, owner-scoped overrides and reset, search, history dialog, responsive sections and converter; '+mountedCases+' '+engine+' isolated cases');
 }finally{await browser.close()}
