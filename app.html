@@ -12245,9 +12245,15 @@ html.mmh-desktop-compact-v11110 body.mmh-workspace-active #moreNavMenu.more-nav-
   function ledgerLine(date,name,account,type,amount){
     return '<span class="iw226-ledger-line"><time class="iw226-record-date">'+date+'</time><span class="iw226-record-description"><strong class="iw226-record-name">'+name+'</strong></span><span class="iw226-record-account">'+account+'</span><span class="iw226-record-type">'+type+'</span><span class="iw226-record-amount">'+amount+'</span><span class="iw226-record-chevron" aria-hidden="true">›</span></span>';
   }
+  function recordReferenceV265(x){
+    if(x?.kind!=='standard'||!['Crypto','Gold'].includes(x.type)||!numeric(x.amount)||!x.user_id||x.user_id!==currentSessionUser?.id||x.currency!==(x.type==='Gold'?'MMK':'USD'))return '';
+    const value=(x.side==='Sell'?-1:1)*Math.abs(Number(x.amount));
+    const ref=window.mmhInvestmentReferenceV265?.(value,x.currency,x.user_id);
+    return ref?'<small class="iw224-record-qty inv-fx-ref-v265" title="'+esc(recordText('Current FX reference, not trade-date FX','当前汇率参考，非成交日汇率','လက်ရှိငွေလဲနှုန်း ကိုးကားချက်၊ အရောင်းအဝယ်ရက်နှုန်း မဟုတ်ပါ'))+'">'+esc(ref)+'</small>':'';
+  }
   function rowHTML(x){
     const v=display(x),field=(label,value)=>'<div class="mmh-history-detail"><small>'+label+'</small><b>'+value+'</b></div>',fee=v=>numeric(v)&&Number(v)!==0?esc(currencyMark(x.currency))+' '+esc(moneyDigits(v)):'—';
-    return '<article class="iw226-ledger-record iw226-trade-record" tabindex="0" role="button" aria-label="'+esc(recordText('View investment details','查看投资详情','ရင်းနှီးမြှုပ်နှံမှု အသေးစိတ်ကြည့်ရန်'))+'" data-investment-id="'+esc(x.id)+'" data-investment-kind="'+esc(x.kind)+'">'+ledgerLine(esc(x.date||'—'),esc(x.name||'—'),v.account,v.type+' '+v.side,'<span class="iw224-record-money">'+v.amount+'</span><small class="iw224-record-qty">'+v.qty+'</small>')+'<div hidden style="display:none!important"><div class="mmh-history-grid">'+
+    return '<article class="iw226-ledger-record iw226-trade-record" tabindex="0" role="button" aria-label="'+esc(recordText('View investment details','查看投资详情','ရင်းနှီးမြှုပ်နှံမှု အသေးစိတ်ကြည့်ရန်'))+'" data-investment-id="'+esc(x.id)+'" data-investment-kind="'+esc(x.kind)+'">'+ledgerLine(esc(x.date||'—'),esc(x.name||'—'),v.account,v.type+' '+v.side,'<span class="iw224-record-money">'+v.amount+'</span><small class="iw224-record-qty">'+v.qty+'</small>'+recordReferenceV265(x))+'<div hidden style="display:none!important"><div class="mmh-history-grid">'+
       field(recordText('Source account','来源账户','မူရင်းအကောင့်'),v.account)+field(recordText('Trade amount','交易金额','အရောင်းအဝယ် ပမာဏ'),v.amount)+field(recordText('Trade price','成交价格','အရောင်းအဝယ် ဈေးနှုန်း'),v.price)+field(recordText('Trade quantity','交易数量','အရေအတွက်'),v.qty)+
       field(recordText('Fee','手续费','ဝန်ဆောင်ခ'),fee(x.fee))+field(recordText('Other costs','其他费用','အခြား ကုန်ကျစရိတ်'),fee(x.other_cost))+field(recordText('Realized P/L','已实现盈亏','ရရှိပြီး အမြတ်/အရှုံး'),v.pl)+
       field(recordText('Note','备注','မှတ်ချက်'),esc(x.note||'—'))+'</div><div class="mmh-history-actions">'+(x.receipt?v.receipt+' ':'')+v.actions+'</div></div></article>';
@@ -12314,6 +12320,7 @@ html.mmh-desktop-compact-v11110 body.mmh-workspace-active #moreNavMenu.more-nav-
   document.addEventListener('click',e=>{if(e.target.closest('#iw222-reset')){window.mmhSetUnifiedRecordFilterV222();el('iw222-reset')?.focus({preventScroll:true});return;}const b=e.target.closest('#mmhHistoryRowsV1 [data-iw222-wallet-id]');if(!b)return;const row=walletEntries222().find(r=>String(r.x.id)===b.dataset.iw222WalletId);if(row)window.mmhOpenWalletMovementDetailV177?.(row.x.id);});
   window.addEventListener('languagechange',render);
   window.addEventListener('mmhvault-language-change',render);
+  ['mmhvault:personal-display-currency-changed','mmhvault:exchange-reference-updated','mmhvault:market-updated','mmhvault:page-visible'].forEach(name=>window.addEventListener(name,()=>{if(el('invest')?.classList.contains('active'))render()}));
   window.addEventListener('mmhvault:config-owner-changed',()=>{filter='ALL';sideFilter='ALL';categoryFilter='ALL';resetRecordScroll=true;recordOwner=null;recordPage=0;recordPageKey='';renderedFilters=null;renderedLedger=null;el('mmhHistoryRowsV1')?.replaceChildren();el('mmhHistoryFiltersV1')?.replaceChildren();setTimeout(()=>{try{render();}catch(e){console.warn('[MMHVAULT] investment history owner repaint failed',e);}},0);});
 
   window.mmhRenderInvestHistoryV1=render;
@@ -12513,6 +12520,7 @@ html.mmh-desktop-compact-v11110 body.mmh-workspace-active #moreNavMenu.more-nav-
       return Number.isFinite(result)?'≈ '+target+' '+result.toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2}):missing;
     }catch(_){return missing}
   }
+  window.mmhInvestmentReferenceV265=invReferenceV265;
   function invDisplayTextV265(en,zh,my){const l=String(window.getMMHVAULTLanguage?.()||document.documentElement.lang||'en').toLowerCase();return l.startsWith('zh')?zh:/^(my|mm|bur)/.test(l)?my:en}
   function bindInvDisplayPickerV265(){
     const p=el('invDisplayPickerV265');if(!p)return;
@@ -12529,7 +12537,7 @@ html.mmh-desktop-compact-v11110 body.mmh-workspace-active #moreNavMenu.more-nav-
     };
     if(!p.__mmhInvDisplayV265){
       p.__mmhInvDisplayV265=true;
-      const choose=c=>{if(!invSaveDisplayV265(c)){sync();return}p.open=false;sync();summary.focus({preventScroll:true});render()};
+      const choose=c=>{if(!invSaveDisplayV265(c)){sync();return}p.open=false;sync();summary.focus({preventScroll:true});render();window.mmhRenderInvestHistoryV1?.()};
       select.addEventListener('change',()=>choose(select.value));
       p.addEventListener('click',e=>{const b=e.target.closest('[data-ap-currency]');if(b){e.preventDefault();choose(b.dataset.apCurrency)}});
       p.addEventListener('toggle',()=>{if(p.open){search.value='';sync();list.scrollTop=0}});
