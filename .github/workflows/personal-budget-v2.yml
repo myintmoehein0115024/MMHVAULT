@@ -5,6 +5,9 @@ on:
     paths: ['app.html','css/mmhvault-liquid-budget-p910.css','css/mmhvault-forecast-v1.css','js/mmhvault-forecast-v1.js','tests/personal-budget-v2.mjs','tests/personal-planning-nav-v263.mjs','tests/personal-goals-v263.mjs','css/mmhvault-liquid-goals-p911.css','css/mmhvault-liquid-recurring-p912.css','tests/personal-recurring-v264.mjs','tests/personal-settings-currency-v265.mjs','tests/personal-report-export-browser-v265.mjs','tools/personal-font-stage-v265.mjs','tests/personal-settings-font-browser-v265.mjs','tools/personal-font-pack-v265.py','tools/personal-font-bundle-v265.py','tools/personal-font-verify-v265.mjs','css/mmhvault-settings-life-p928.css','.github/workflows/personal-budget-v2.yml']
 permissions:
   contents: read
+concurrency:
+  group: personal-budget-qa-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
 jobs:
   synthetic-browser:
     runs-on: ubuntu-24.04
@@ -26,6 +29,18 @@ jobs:
       - run: node tests/personal-goals-v263.mjs
       - run: node tests/personal-recurring-v264.mjs
       - run: node --check tests/personal-report-export-browser-v265.mjs && node tests/personal-report-export-browser-v265.mjs
+  font-browser:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: npm install --no-save --package-lock=false --ignore-scripts playwright@1.51.1
+      - run: npx playwright install --with-deps chromium
       - name: Prepare isolated font compression QA
         run: |
           python3 -m venv "$RUNNER_TEMP/mmh-fontqa"
