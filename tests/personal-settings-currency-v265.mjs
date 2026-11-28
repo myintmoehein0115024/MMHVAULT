@@ -844,7 +844,7 @@ console.log('PASS: 53-code shared display registry, additional FX, missing rates
  assert(!app.includes('stLanguage'),'duplicate language control removed');
  assert(app.includes("['Preferences','偏好设置',['general']]"));
  assert(app.includes("['Personal & security','个人与安全',['security','data']]"));
- assert(app.includes("general.append(iconButton)"));
+ assert(app.includes("(general.querySelector('.st-rows')||general).append(iconButton)"));
  assert(app.includes("general:['Currency and font style','币种与字体样式']"));
  assert(app.includes('window.setMMHVAULTLanguage=function(next)'),'shared workspace language switch retained');
  assert(app.includes('css/mmhvault-settings-life-p928.css?v=2.0.65.2'));
