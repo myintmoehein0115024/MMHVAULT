@@ -26061,7 +26061,7 @@ window.MMHBalanceBridgeV202=Object.freeze({current,kind,movements});
 <script id="mmhvault-monthly-report-v115-js">
 (function(){
   if(window.__MMHVAULT_REPORT_V115)return;window.__MMHVAULT_REPORT_V115=true;
-  const byId=id=>document.getElementById(id), num=v=>{const x=Number(v);return Number.isFinite(x)?x:0}, symbols={USD:'</script>,THB:'฿',MMK:'K',CNY:'￥'};
+  const byId=id=>document.getElementById(id), num=v=>{const x=Number(v);return Number.isFinite(x)?x:0}, symbols={USD:'$',THB:'฿',MMK:'K',CNY:'￥'};
   // Safe text inside report HTML and data-* attributes without changing user-entered names.
   const safeTextV927=v=>String(v??'').replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
   const trV927=(en,cn)=>{try{return localStorage.getItem('mmhvault_language_v3363')==='zh'?cn:en}catch(_){return en}};
