@@ -149,3 +149,23 @@ assert(ovScript.includes('trendRange,overviewCurrencyV265(),tx,inv'));
 assert(ovScript.includes("x.p?marketMoney(x.p):'—'"));
 assert(ovScript.includes("window.addEventListener('mmhvault:personal-display-currency-changed'"));
 console.log('PASS: active Overview default currency, missing FX, owner isolation and USD market-reference preservation (synthetic formatter)');
+
+
+const sigStart=app.indexOf('<script id="mmhvault-v150-financial-signals">'),sigEnd=app.indexOf('</script>',sigStart);
+assert(sigStart>=0&&sigEnd>sigStart);
+const sigScript=app.slice(sigStart,sigEnd);
+new Function(sigScript.slice(sigScript.indexOf('>')+1));
+const sigA=sigScript.indexOf('  function fmtOverviewV265('),sigB=sigScript.indexOf('  function fx(',sigA);
+assert(sigA>=0&&sigB>sigA);
+const signalFormatter=new Function('window',sigScript.slice(sigA,sigB)+';return fmtOverviewV265;');
+assert.equal(signalFormatter({mmhOverviewDisplayMoneyV265:ovAPI.money})(10),ovAPI.money(10));
+assert.equal(signalFormatter({mmhOverviewDisplayMoneyV265:v=>'THB '+v*35})(10),'THB 350');
+assert.equal(signalFormatter({mmhOverviewDisplayMoneyV265:()=>{throw Error('FX')}})(10),'—');
+assert.equal(signalFormatter({})(10),'—');
+assert.equal(signalFormatter({mmhOverviewDisplayMoneyV265:()=>'—'})(10),'—');
+assert.equal(signalFormatter({mmhOverviewDisplayMoneyV265:()=>'$10.00'})(NaN),'—');
+const sigDash=sigScript.slice(sigScript.indexOf('  function renderDashboard(){'),sigScript.indexOf('  function reportInsightCard('));
+assert.equal((sigDash.match(/fmtOverviewV265\(/g)||[]).length,6);
+assert(!sigDash.includes('fmtUSD('));
+assert(sigScript.includes("['mmhvault:personal-display-currency-changed','mmhvault:config-owner-changed','mmhvault:market-updated']"));
+console.log('PASS: Overview Financial Signals uses shared display formatter and fails closed (synthetic formatter and source checks)');
