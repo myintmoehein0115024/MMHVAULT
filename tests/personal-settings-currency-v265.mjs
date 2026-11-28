@@ -658,7 +658,7 @@ console.log('PASS: 53-code shared display registry, additional FX, missing rates
 
 
 {
- const i=app.indexOf('  function monthlyInvestmentRecordedV265(key){'),j=app.indexOf('  function investmentSnapshot(key)',i);
+ const i=app.indexOf('  function monthlyInvestmentRecordedV265(key){'),j=app.indexOf('  function monthlyInvestmentValuationReadyV265()',i);
  assert(i>=0&&j>i);
  const factory=new Function('window','reportOwnerV265','rates','displayRateReportV265',app.slice(i,j)+'return monthlyInvestmentRecordedV265;');
  const base={user_id:'u',inv_date:'2026-11-02',asset:'Crypto',side:'BUY',quantity:1,amount:100,fee:2,other_cost:3,currency:'USD'};
@@ -670,4 +670,26 @@ console.log('PASS: 53-code shared display registry, additional FX, missing rates
  check([{...base,amount:''}],null);check([{...base,fee:true}],null);check([{...base,quantity:-1}],null);check([{...base,side:'SELL',quantity:-1}],0);check([{...base,currency:'THB'}],null);
  check([{...base,inv_date:'2026-10-02'}],0);check([{...base,inv_date:'bad'}],null);check([{...base,amount:0,fee:0,other_cost:0}],0);check([base],null,{key:'2026-13'});check(null,null);check([{...base,amount:1e308,fee:1e308}],null);
  console.log('PASS: monthly Report recorded investment amount, owner gate, source rates, Gold weight and valid zero');
+}
+
+{
+ const i=app.indexOf('  function monthlyInvestmentValuationReadyV265(){'),j=app.indexOf('  function goalSnapshot()',i);
+ assert(i>=0&&j>i);
+ const evaluate=new Function('window','reportOwnerV265','monthlyInvestmentRecordedV265','mmhvaultInvestmentCostUSD','displayRateReportV265','goldHoldingQty',app.slice(i,j)+"return investmentSnapshot('2026-11');");
+ const row={user_id:'u',asset:'Crypto',symbol:'BTC',side:'BUY',quantity:1,amount:10,fee:0,other_cost:0};
+ const gold={...row,asset:'Gold',currency:'MMK'};
+ const base={mmhWalletDataOwnerV191:'u',investments:[row],mmhDashboardHeldInvestmentUSD:()=>20,livePrices:{BTC:{price:20}},rates:{usd_mmk:4000}};
+ const run=(w=base,basis=()=>10,fx=()=>4000,owner='u')=>evaluate(w,()=>owner,()=>5,basis,fx,x=>x.quantity);
+ const unavailable=(...args)=>assert.deepEqual(run(...args),{monthly:5,value:null,basis:null,pl:null,returnPct:null});
+ assert.deepEqual(run(),{monthly:5,value:20,basis:10,pl:10,returnPct:100});
+ unavailable({...base,livePrices:{}});unavailable({...base,livePrices:{BTC:{price:-1}}});
+ assert.equal(run({...base,livePrices:{},investments:[{...row,market_price:20}]}).value,20);
+ unavailable({...base,mmhWalletDataOwnerV191:'other'});unavailable({...base,investments:[{...row,user_id:'other'}]});unavailable(base,()=>10,()=>4000,'');
+ unavailable({...base,mmhDashboardHeldInvestmentUSD:undefined});unavailable({...base,mmhDashboardHeldInvestmentUSD:()=>NaN});unavailable(base,()=>undefined);unavailable(base,()=>-1);
+ unavailable({...base,investments:[{...row,quantity:''}]});unavailable({...base,investments:[{...row,fee:true}]});
+ assert.deepEqual(run({...base,investments:[],mmhDashboardHeldInvestmentUSD:()=>0},()=>0),{monthly:5,value:0,basis:0,pl:0,returnPct:null});
+ const g={...base,investments:[gold],mmhGoldAuthorityV376:()=>({priceMMK:100})};
+ assert.equal(run(g).value,20);unavailable(g,()=>10,()=>null);unavailable(g,()=>10,()=>5000);unavailable({...g,mmhGoldAuthorityV376:()=>({priceMMK:0})});
+ assert.equal(run(base,()=>0).returnPct,null);
+ console.log('PASS: monthly Report valuation readiness, owner, quote and rate absence, invalid helper results and undefined ROI');
 }
