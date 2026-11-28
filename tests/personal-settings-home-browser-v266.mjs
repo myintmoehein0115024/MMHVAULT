@@ -166,4 +166,32 @@ try{
   }
  }
  console.log('PASS: V2.0.72 actual centered identity, avatar routing hook, searchable shared currency menu, font menu and existing change event bridge; '+comboCases+' '+engine+' cases (synthetic profile/preferences)');
+ // Actual welcome markup, scoped CSS and existing handlers, isolated from authenticated data.
+ const welcome=app.match(/<div aria-hidden="true" class="getting-started-backdrop" id="gettingStarted">[\s\S]*?(?=<main class="wrap">)/)?.[0];
+ const welcomeHandlers=app.match(/let gettingStartedStep=0;[\s\S]*?window\.myFinanceGsBack=gsBack;/)?.[0];
+ assert.ok(welcome&&welcomeHandlers&&app.includes('id="mmh-personal-welcome-v273"'));
+ const safeArea=readFileSync(new URL('../css/mmhvault-dialog-safe-area-p959.css',import.meta.url),'utf8');
+ await page.setContent('<!doctype html><html lang="en"><head>'+css+'<style>'+safeArea+'</style>'+app.match(/<style id="mmh-personal-welcome-v273">[\s\S]*?<\/style>/)[0]+'</head><body class="mmh-workspace-active">'+welcome+'</body></html>');
+ await page.addScriptTag({content:'const $=id=>document.getElementById(id);let currentSessionUser={id:"fixture-welcome"};'+welcomeHandlers+'window.fixtureWelcomeOpen=()=>openGettingStarted(currentSessionUser);'});
+ let welcomeCases=0;
+ for(const [width,height] of [[320,480],[390,844],[768,500],[1440,900]])for(const light of [false,true]){
+  await page.setViewportSize({width,height});
+  await page.evaluate(light=>{document.body.classList.toggle('light',light);localStorage.removeItem('myfinance_getting_started_done_fixture-welcome');window.fixtureWelcomeOpen()},light);
+  const root=page.locator('#gettingStarted'),card=root.locator('.getting-started-card');
+  assert.equal(await root.locator('button').filter({hasText:'Skip'}).count(),1);
+  for(let step=0;step<3;step++){
+   assert.equal(await root.locator('.gs-step.active').getAttribute('data-gs-step'),String(step));
+   assert.equal(await root.locator('.gs-dot.active').count(),step+1);
+   const geometry=await card.evaluate(e=>{const r=e.getBoundingClientRect();return {fits:r.left>=0&&r.right<=innerWidth+1&&r.top>=0&&r.bottom<=innerHeight+1,bg:getComputedStyle(e).backgroundColor}});
+   assert.ok(geometry.fits,JSON.stringify({width,height,light,step,geometry}));assert.equal(geometry.bg,light?'rgb(255, 255, 255)':'rgb(17, 17, 18)');
+   if(step===1){await root.locator('#gsBackBtn').click();assert.equal(await root.locator('.gs-step.active').getAttribute('data-gs-step'),'0');await root.locator('#gsNextBtn').click();}
+   await root.locator('#gsNextBtn').click();
+  }
+  assert.equal(await root.isVisible(),false);
+  await page.evaluate(()=>window.fixtureWelcomeOpen());assert.equal(await root.isVisible(),false);
+  await page.evaluate(()=>{localStorage.removeItem('myfinance_getting_started_done_fixture-welcome');window.fixtureWelcomeOpen()});
+  await root.locator('button').filter({hasText:'Skip'}).click();assert.equal(await root.isVisible(),false);
+  welcomeCases++;
+ }
+ console.log('PASS: V2.0.73 welcome actual markup/CSS and existing step handlers; '+welcomeCases+' '+engine+' cases (synthetic owner, no production)');
 }finally{await browser.close()}
