@@ -348,7 +348,7 @@ try{
  const converterModule=readFileSync(new URL('../exchange-v2/exchange-v2-ui-v1.mjs',import.meta.url),'utf8').replace(/^import .*$/gm,'').replaceAll('export function ','function ');
  const mockConverter=`const ASIA_CURRENCIES_V1=[{code:'USD',en:'US Dollar',zh:'美元',flag:'🇺🇸'},{code:'MMK',en:'Myanmar Kyat',zh:'缅元',flag:'🇲🇲'},{code:'THB',en:'Thai Baht',zh:'泰铢',flag:'🇹🇭'},{code:'JPY',en:'Japanese Yen',zh:'日元',flag:'🇯🇵'}];const canonicalPairV1=x=>x;const createExchangeV2SessionV1=()=>({state:()=>({status:'ready',user_id:'fixture-converter',pairs:[]}),quote:()=>({available:false,reason:'missing'}),refresh:async()=>{},clear:()=>{}});`;
  await page.addScriptTag({content:mockConverter+converterModule+";window.mountFixtureConverter=mountExchangeV2V1;"});
- await page.evaluate(()=>{const root=document.getElementById('mmhExchangeV2StagingRoot');root.replaceChildren();delete root.dataset.exchangeV2Mounted;window.fixtureConverter=window.mountFixtureConverter({root,db:{},integrated:true})});
+ await page.evaluate(()=>{const root=document.getElementById('mmhExchangeV2StagingRoot');root.replaceChildren();delete root.dataset.exchangeV2Mounted;window.fixtureConverter=window.mountFixtureConverter({root,db:{},integrated:true});root.hidden=false});
  for(const width of [320,390,768,1440])for(const light of [false,true])for(const lang of ['en','zh','my']){
   await page.setViewportSize({width,height:800});
   await page.evaluate(([light,lang])=>{document.body.classList.toggle('light',light);document.documentElement.lang=lang;localStorage.setItem('mmhvault_language_v3363',lang);dispatchEvent(new Event('mmhvault-language-change'))},[light,lang]);
