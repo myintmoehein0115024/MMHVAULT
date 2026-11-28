@@ -298,3 +298,70 @@ try{
   console.log('PASS: committed approved Personal V2 PNG icons, exact hashes, manifest identity, HTML links and '+engine+' decode');
  }finally{await instance.close();}
 }
+
+
+// Real V2 public homepage, with offline baseline/candidate replay on identical assets.
+// This is not a replacement for the legacy shared Landing gate or a live-site test.
+{
+ const candidate=readFileSync(new URL('../index.html',import.meta.url),'utf8');
+ const baseline=candidate.replace('/images/mmhvault-personal-v2-icon-180.png','/apple-touch-icon.png?v=pwa24-20261029').replace('./mmh-manifest-v2.webmanifest?v=personal-v271','./mmh-manifest-v2.webmanifest');
+ const {createHash}=await import('node:crypto');
+ const bytes=Buffer.from(baseline);
+ assert.equal(createHash('sha1').update('blob '+bytes.length+'\0').update(bytes).digest('hex'),'b33125d3c107319506347b8dcdedb76813a61a76','exact released V2.0.70 homepage');
+ const instance=await browserType.launch({headless:true});
+ const origin='https://mmh-public-v271.invalid';
+ const assets={'/images/mmhvault-v2-auth-mark.webp':'image/webp','/favicon.png':'image/png','/apple-touch-icon.png':'image/png','/images/mmhvault-personal-v2-icon-180.png':'image/png','/mmh-manifest-v2.webmanifest':'application/manifest+json'};
+ try{
+  for(const width of [360,390,768,1024,1280,1440]){
+   const samples=[];
+   for(const [label,html] of [['baseline',baseline],['candidate',candidate]]){
+    const context=await instance.newContext({viewport:{width,height:900},reducedMotion:'reduce',colorScheme:'light'});
+    const unexpected=[],errors=[];
+    await context.route('**/*',route=>{
+     const url=new URL(route.request().url());
+     if(url.origin===origin&&url.pathname==='/')return route.fulfill({status:200,contentType:'text/html; charset=utf-8',body:html});
+     if(url.origin===origin&&assets[url.pathname]){
+      let body=readFileSync(new URL('..'+url.pathname,import.meta.url));
+      if(label==='baseline'&&url.pathname==='/mmh-manifest-v2.webmanifest')body=Buffer.from(body.toString().replace('./images/mmhvault-personal-v2-icon-192.png','./images/icon-192.png?v=pwa26-20261029').replace('./images/mmhvault-personal-v2-icon-512.png','./images/icon-512.png?v=pwa26-20261029'));
+      return route.fulfill({status:200,contentType:assets[url.pathname],body});
+     }
+     if(url.href==='https://static.cloudflareinsights.com/beacon.min.js')return route.fulfill({status:200,contentType:'application/javascript',body:''});
+     unexpected.push(url.href);return route.abort();
+    });
+    const page=await context.newPage();page.on('pageerror',e=>errors.push(e.message));
+    await page.goto(origin+'/');await page.locator('header .brand img').evaluate(img=>img.decode());
+    assert.equal(await page.locator('link[rel=canonical]').getAttribute('href'),'https://mmhvault.com/');
+    assert.equal(await page.locator('main h1').count(),1);
+    assert.ok(await page.locator('a[href="/login.html"]').count()>0);
+    assert.ok(await page.locator('a[href="/register/"]').count()>0);
+    const metrics=[];
+    for(const lang of ['en','zh','my']){
+     await page.locator('#langToggle').click();await page.locator('[data-lang-choice="'+lang+'"]').click();
+     assert.equal(await page.locator('html').getAttribute('lang'),lang==='zh'?'zh-CN':lang);
+     for(const theme of ['light','dark']){
+      await page.locator('#themeToggle').click();await page.locator('[data-theme-choice="'+theme+'"]').click();
+      assert.equal(await page.locator('html').getAttribute('data-theme'),theme);
+      const result=await page.evaluate(()=>{
+       const root=document.documentElement;
+       const measure=selector=>{const r=document.querySelector(selector).getBoundingClientRect();return [r.x,r.y,r.width,r.height].map(v=>Math.round(v*100)/100)};
+       return {overflow:Math.max(0,root.scrollWidth-root.clientWidth),header:measure('header'),hero:measure('#landing-hero'),features:measure('#features')};
+      });
+      metrics.push({lang,theme,...result});
+     }
+    }
+    if(width<=1100){
+     const menu=page.locator('#menuToggle');await menu.click();
+     assert.equal(await menu.getAttribute('aria-expanded'),'true');await page.keyboard.press('Escape');
+     assert.equal(await menu.getAttribute('aria-expanded'),'false');
+    }
+    await page.evaluate(()=>window.scrollTo(0,document.documentElement.scrollHeight));
+    assert.ok(await page.evaluate(()=>scrollY>0),'homepage scroll');
+    assert.deepEqual(errors,[],label+' page errors');
+    assert.deepEqual(unexpected,[],label+' unexpected requests');
+    samples.push(metrics);await context.close();
+   }
+   assert.deepEqual(samples[1],samples[0],engine+' '+width+' baseline/candidate visual geometry');
+   console.log('PASS: '+engine+' V2 public '+width+'px six locale/theme baseline parity; overflow px '+samples[0].map(x=>x.overflow).join(','));
+  }
+ }finally{await instance.close()}
+}
