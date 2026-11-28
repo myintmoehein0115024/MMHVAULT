@@ -209,6 +209,65 @@ try{
  const {createHash}=await import('node:crypto');
  const source=readFileSync(new URL('../images/mmhvault-v2-auth-mark.webp',import.meta.url));
  assert.equal(createHash('sha1').update('blob '+source.length+'\0').update(source).digest('hex'),'140fe9415437ae9560600c6a69cee20d3c30c758','approved original mark');
+ // Compare against the exact released V2.0.70 Git blobs, not the obsolete L1.70 Landing template.
+ // Revert only two approved PWA references per file; everything else must be byte-identical.
+ const gitBlobHash=bytes=>createHash('sha1').update('blob '+bytes.length+'\0').update(bytes).digest('hex');
+ const baseline=[
+   [
+     "index.html",
+     "b33125d3c107319506347b8dcdedb76813a61a76",
+     [
+       [
+         "/images/mmhvault-personal-v2-icon-180.png",
+         "/apple-touch-icon.png?v=pwa24-20261029"
+       ],
+       [
+         "./mmh-manifest-v2.webmanifest?v=personal-v271",
+         "./mmh-manifest-v2.webmanifest"
+       ]
+     ]
+   ],
+   [
+     "login.html",
+     "8ec382edfa3241d394cb5ec92e41011ea22bfba8",
+     [
+       [
+         "/images/mmhvault-personal-v2-icon-180.png",
+         "/apple-touch-icon.png?v=pwa24-20261029"
+       ],
+       [
+         "./mmh-manifest-v2.webmanifest?v=personal-v271",
+         "./mmh-manifest-v2.webmanifest"
+       ]
+     ]
+   ],
+   [
+     "mmh-manifest-v2.webmanifest",
+     "3e62a0760a3e69e69526b6fe37908d316557a149",
+     [
+       [
+         "./images/mmhvault-personal-v2-icon-192.png",
+         "./images/icon-192.png?v=pwa26-20261029"
+       ],
+       [
+         "./images/mmhvault-personal-v2-icon-512.png",
+         "./images/icon-512.png?v=pwa26-20261029"
+       ]
+     ]
+   ]
+ ];
+ for(const [path,sha,replacements] of baseline){
+  let restored=readFileSync(new URL('../'+path,import.meta.url),'utf8');
+  for(const [newValue,oldValue] of replacements){
+   assert.equal(restored.split(newValue).length,2,path+' exact reference count: '+newValue);
+   restored=restored.replace(newValue,oldValue);
+  }
+  assert.equal(gitBlobHash(Buffer.from(restored,'utf8')),sha,path+' only approved PWA changes');
+ }
+ for(const [path,sha] of Object.entries({'apple-touch-icon.png':'efe60c939e353d7109371f7d1c855509e25de166','images/icon-192.png':'1ee0967345dedfffd56dd6920196dc46f282060e','images/icon-512.png':'2e430d0b863c32eeec88b9ad50089448eda88365'})){
+  assert.equal(gitBlobHash(readFileSync(new URL('../'+path,import.meta.url))),sha,path+' original shared icon unchanged');
+ }
+ console.log('PASS: exact released Landing/Login/manifest preservation apart from Personal PWA references; shared icons unchanged');
  const expected={
   180:'dc28dfa0fec9680c2bebdfcd6f7a4ea58a76b260ef280ef2dc822bb1f7392a4f',
   192:'9f1721ac61220d16ba0a4917900a743bdbe7e6e7b07d5f2aac9b000db4939b2a',
