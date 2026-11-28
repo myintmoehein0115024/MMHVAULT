@@ -270,4 +270,48 @@ try{
   marketCases++;
  }
  console.log('PASS: V2.0.73 Market layout, five views, three languages, preserved FX fixture, native reference details and no synthetic prices; '+marketCases+' '+engine+' cases (isolated DOM)');
+
+ // V2.0.74: mount the actual production Market presentation module alongside the older template.
+ const mountedMarket=readFileSync(new URL('../js/mmhvault-market-workspace-v2.js',import.meta.url),'utf8');
+ await page.setContent('<!doctype html><html lang="en"><head>'+css+marketStyle+'</head><body class="mmh-workspace-active"><section id="exchange" class="page active">'+marketMarkup+'<div class="ex-template-head">Legacy hero</div><div id="exCurrencyCardsV7" class="ex-currency-cards">Existing rates</div><div id="mmhExchangeV2StagingRoot" hidden>Existing V2</div><div class="panel exchange-converter-panel">Converter</div><div class="panel ex-rate-editor">Editor</div><section id="exAsiaSummaryV130">Asia</section><section id="exAsiaV10" hidden>Asia detail</section></section></body></html>');
+ await page.addScriptTag({content:marketScript});
+ await page.addScriptTag({content:mountedMarket});
+ await page.addStyleTag({content:fxCss});
+ await page.locator('#exchange[data-market-v2-mounted=yes]').waitFor();
+ let mountedCases=0;
+ for(const width of [320,390,430,768,1024,1440])for(const light of [false,true])for(const lang of ['en','zh','my']){
+  await page.setViewportSize({width,height:800});
+  await page.evaluate(([light,lang])=>{document.body.classList.toggle('light',light);document.documentElement.lang=lang;localStorage.setItem('mmhvault_language_v3363',lang);dispatchEvent(new Event('mmhvault-language-change'))},[light,lang]);
+  const root=page.locator('#exchange'),nav=root.locator('.mv2-nav'),panel=root.locator('.mv2-surface');
+  assert.equal(await nav.locator('button').count(),5);
+  assert.equal(await root.locator('.ex-template-head').isVisible(),false);
+  assert.equal(await root.locator('#mmhMarketShellV273').isVisible(),false);
+  for(const [kind,count] of [['all',4],['currency',4],['gold',4],['crypto',4],['oil',6]]){
+   await nav.locator('[data-mv2-section="'+kind+'"]').click();
+   assert.equal(await nav.locator('[aria-selected=true]').count(),1);
+   assert.equal(await root.getAttribute('data-market-view'),'market');
+   assert.equal(await root.locator('.exchange-converter-panel').isVisible(),false);
+   const cards=kind==='all'?panel.locator(':scope > .mv2-grid'):panel.locator('.mv274-category-cards');
+   assert.equal(await cards.locator('.mv2-card').count(),count);
+   const dims=await cards.evaluate(e=>{const r=e.getBoundingClientRect();return {fits:r.left>=-1&&r.right<=innerWidth+1,columns:getComputedStyle(e).gridTemplateColumns.split(' ').length}});
+   assert.ok(dims.fits,JSON.stringify({width,light,lang,kind,dims}));
+   assert.equal(dims.columns,width<=850?2:4);
+   if(kind==='all')assert.equal(await panel.locator('.mv274-snapshot-row').count(),5);
+   if(kind==='oil'){assert.equal(await panel.locator('.mv274-energy-group').count(),2);assert.deepEqual(await cards.locator('.mv2-value').allTextContents(),Array(6).fill('—'))}
+  }
+  await nav.locator('[data-mv2-section="currency"]').click();
+  await root.locator('.mv274-convert').click();
+  assert.equal(await root.getAttribute('data-market-view'),'convert');
+  assert.equal(await panel.isVisible(),false);
+  assert.equal(await root.locator('.exchange-converter-panel').isVisible(),true);
+  await root.locator('.mv274-convert').click();
+  assert.equal(await panel.isVisible(),true);
+  await nav.locator('[data-mv2-section="gold"]').click();
+  await panel.locator('.mv274-category-cards button').first().click();
+  assert.equal(await root.getAttribute('data-market-detail'),'instrument');
+  assert.equal(await panel.locator('.mv2-history svg').count(),0);
+  assert.ok(await panel.locator('.mv2-history').isVisible());
+  mountedCases++;
+ }
+ console.log('PASS: V2.0.74 actual mounted Market, five sections, responsive columns, duplicate hero/shell hidden, converter roundtrip, empty Energy and history; '+mountedCases+' '+engine+' isolated cases');
 }finally{await browser.close()}
