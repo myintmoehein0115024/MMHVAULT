@@ -11218,14 +11218,23 @@ html.mmh-desktop-compact-v11110 body.mmh-workspace-active #moreNavMenu.more-nav-
 (function(){
   if(window.__mmhAgeV34215Installed)return; window.__mmhAgeV34215Installed=true;
   const KEY='mmhvault_birth_date_v34216';
-  const DEFAULT='2002-03-21';
-  function scopedKey(){const owner=typeof currentSessionUser!=='undefined'?currentSessionUser?.id:null;const key=KEY+'_'+(owner||'guest');if(owner&&!localStorage.getItem(key)){const legacy=localStorage.getItem(KEY),claimed=localStorage.getItem(KEY+'_legacy_owner');if(legacy&&(!claimed||claimed===owner)){localStorage.setItem(key,legacy);localStorage.setItem(KEY+'_legacy_owner',owner);}}return key;}
-  const getBirth=()=>{const raw=localStorage.getItem(scopedKey())||DEFAULT; const m=/^(\d{4})-(\d{2})-(\d{2})$/.exec(raw); if(!m)return new Date(2002,2,21,0,0,0); const d=new Date(Number(m[1]),Number(m[2])-1,Number(m[3]),0,0,0); return Number.isNaN(d.getTime())?new Date(2002,2,21,0,0,0):d;};
-  const getBirthISO=()=>{const raw=localStorage.getItem(scopedKey())||DEFAULT; return /^\d{4}-\d{2}-\d{2}$/.test(raw)?raw:DEFAULT;};
+  let renderedKey=null, editingKey=null;
+  function scopedKey(){const owner=typeof currentSessionUser!=='undefined'?currentSessionUser?.id:null;return typeof owner==='string'&&owner&&owner!=='guest'?KEY+'_'+owner:null;}
+  function validBirth(raw,now=new Date()){
+    const m=/^(\d{4})-(\d{2})-(\d{2})$/.exec(raw||'');if(!m)return null;
+    const y=Number(m[1]),mo=Number(m[2]),day=Number(m[3]),d=new Date(y,mo-1,day,0,0,0);
+    const today=new Date(now);today.setHours(0,0,0,0);
+    return y>=1900&&d.getFullYear()===y&&d.getMonth()===mo-1&&d.getDate()===day&&d<=today?d:null;
+  }
+  function getBirthISO(){
+    const key=scopedKey();if(!key)return '';
+    try{let raw=localStorage.getItem(key);if(raw===null&&localStorage.getItem(KEY+'_legacy_owner')===key.slice(KEY.length+1))raw=localStorage.getItem(KEY);return validBirth(raw)?raw:'';}catch(_){return '';}
+  }
+  const getBirth=()=>validBirth(getBirthISO());
   const TLocal=(en,zh)=>typeof T==='function'?T(en,zh):(document.documentElement.lang==='zh-CN'?zh:en);
   const pad=n=>String(n).padStart(2,'0');
   function parts(now){
-    const birth=getBirth();
+    const birth=getBirth();if(!birth)return null;
     let years=now.getFullYear()-birth.getFullYear();
     let anchor=new Date(birth); anchor.setFullYear(birth.getFullYear()+years);
     if(now<anchor){years--; anchor=new Date(birth); anchor.setFullYear(birth.getFullYear()+years);}
@@ -11237,21 +11246,24 @@ html.mmh-desktop-compact-v11110 body.mmh-workspace-active #moreNavMenu.more-nav-
     return {years,months,days};
   }
   function nextBirthday(now){
-    const birth=getBirth();
+    const birth=getBirth();if(!birth)return null;
     let y=now.getFullYear(); let d=new Date(y,birth.getMonth(),birth.getDate(),0,0,0); if(d<=now)d=new Date(y+1,birth.getMonth(),birth.getDate(),0,0,0); return d;
   }
   function render(){
     const v=document.getElementById('mmhSettingsAgeValueV34215'), n=document.getElementById('mmhSettingsBirthdayValueV34215'), c=document.getElementById('mmhSettingsBirthdayCountdownV34215');
     const input=document.getElementById('mmhBirthDateInputV34215');
-    const now=new Date(), a=parts(now), nb=nextBirthday(now), diff=Math.max(0,nb-now), days=Math.floor(diff/86400000), hrs=Math.floor((diff%86400000)/3600000), mins=Math.floor((diff%3600000)/60000), secs=Math.floor((diff%60000)/1000);
+    const key=scopedKey(),iso=getBirthISO(),changed=renderedKey!==key;renderedKey=key;
+    if(input){input.disabled=!key;if(changed){editingKey=null;input.setCustomValidity('');}if(changed||document.activeElement!==input){if(input.value!==iso)input.value=iso;}}
+    const now=new Date(),a=parts(now),nb=nextBirthday(now);
+    if(!a||!nb){for(const el of [v,n,c])if(el)el.textContent='—';return;}
+    const diff=Math.max(0,nb-now),days=Math.floor(diff/86400000),hrs=Math.floor((diff%86400000)/3600000),mins=Math.floor((diff%3600000)/60000),secs=Math.floor((diff%60000)/1000);
     const zh=document.documentElement.lang==='zh-CN';
-    if(input && input.value!==getBirthISO()) input.value=getBirthISO();
     if(v) v.textContent=zh?`${a.years}岁 ${a.months}个月 ${a.days}天`:`${a.years} years, ${a.months} months, ${a.days} days`;
     if(n) n.textContent=`${nb.getFullYear()}-${pad(nb.getMonth()+1)}-${pad(nb.getDate())}`;
     if(c) c.textContent=zh?`${days}天 ${hrs}小时 ${mins}分 ${secs}秒`:`${days}d ${hrs}h ${mins}m ${secs}s`;
   }
   let lastAgeKey='';
-  function ageKey(now=new Date()){const a=parts(now);return `${a.years}|${a.months}|${a.days}`}
+  function ageKey(now=new Date()){const a=parts(now);return a?`${a.years}|${a.months}|${a.days}`:''}
   function dispatchAgeDayIfChanged(force=false){
     const key=ageKey();
     if(force||key!==lastAgeKey){
@@ -11262,7 +11274,18 @@ html.mmh-desktop-compact-v11110 body.mmh-workspace-active #moreNavMenu.more-nav-
   function tickSettings(){render();dispatchAgeDayIfChanged(false);}
   const bind=()=>{
     const input=document.getElementById('mmhBirthDateInputV34215');
-    if(input&&!input.__v34216){ input.__v34216=true; input.value=getBirthISO(); input.addEventListener('change',()=>{const v=input.value;const date=new Date(v+'T00:00:00');const today=new Date();today.setHours(0,0,0,0);if(!/^\d{4}-\d{2}-\d{2}$/.test(v)||!Number.isFinite(date.getTime())||date>today||date.getFullYear()<1900){input.setCustomValidity('Choose a valid past birth date, from 1900 onward.');input.reportValidity();input.value=getBirthISO();return;}input.setCustomValidity('');if(/^\d{4}-\d{2}-\d{2}$/.test(v)){localStorage.setItem(scopedKey(),v); render(); window.dispatchEvent(new CustomEvent('mmhvault-birthday-change'));}}); }
+    if(input&&!input.__v34216){
+      input.__v34216=true;input.addEventListener('focus',()=>{editingKey=scopedKey();});
+      input.addEventListener('blur',()=>{editingKey=null;render();});
+      input.addEventListener('change',()=>{
+        const key=scopedKey(),raw=input.value;
+        if(!key||key!==renderedKey||(editingKey!==null&&editingKey!==key)){input.value=getBirthISO();render();return;}
+        if(raw!==''&&!validBirth(raw)){input.setCustomValidity('Choose a valid past birth date, from 1900 onward.');input.reportValidity();input.value=getBirthISO();return;}
+        input.setCustomValidity('');
+        try{localStorage.setItem(key,raw);}catch(_){input.value=getBirthISO();render();return;}
+        render();window.dispatchEvent(new CustomEvent('mmhvault-birthday-change'));
+      });
+    }
     render();
   };
   function startAgeTickerV3435(){
@@ -12852,7 +12875,7 @@ window.MMHPersonalDisplayCurrenciesV265=Object.freeze(["USD","THB","MMK","CNY","
 <div class="panel mmh-birthday-settings-v34216" id="mmhBirthdaySettingsV34215">
 <div class="toolbar"><div><h2 data-i18n-en="Personal Time" data-i18n-zh="个人时间" class="mmh-hint-anchor-v195 mmh-context-title-v199" data-mmh-hint-source="next" tabindex="0">Personal Time</h2><div class="small mmh-context-desc-v199" data-i18n-en="Set your birth date to calculate your age and next birthday in real time." data-i18n-zh="设置出生日期，系统会实时计算您的年龄和下次生日。">Set your birth date to calculate your age and next birthday in real time.</div></div><span class="pill" data-i18n-en="Live calculation" data-i18n-zh="实时计算">Live calculation</span></div>
 <div class="mmh-birthday-grid-v34216">
-<label class="mmh-birthday-field-v34216"><span data-i18n-en="Birth Date" data-i18n-zh="出生日期">Birth Date</span><input id="mmhBirthDateInputV34215" type="date" value="2002-03-21"/></label>
+<label class="mmh-birthday-field-v34216"><span data-i18n-en="Birth Date" data-i18n-zh="出生日期">Birth Date</span><input id="mmhBirthDateInputV34215" type="date" value=""/></label>
 <div class="mmh-birthday-preview-v34216"><div><span class="k" data-i18n-en="Current Age" data-i18n-zh="当前年龄">Current Age</span><b id="mmhSettingsAgeValueV34215">—</b></div><div><span class="k" data-i18n-en="Next Birthday" data-i18n-zh="下次生日">Next Birthday</span><b id="mmhSettingsBirthdayValueV34215">—</b></div><div class="mmh-birthday-countdown-v34216"><span class="k" data-i18n-en="Countdown" data-i18n-zh="倒计时">Countdown</span><b id="mmhSettingsBirthdayCountdownV34215">—</b></div></div>
 </div>
 </div>
