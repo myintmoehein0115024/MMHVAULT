@@ -519,6 +519,48 @@ console.log('PASS: 53-code shared display registry, additional FX, missing rates
  assert(annual.includes('rateText=F(0)'));assert(annual.includes('rate=fx(c)'));
  assert(annual.includes("'mmhvault:personal-display-currency-changed','mmhvault:exchange-reference-updated'"));
  assert(annual.includes("reportCurrencyV115')?.addEventListener('change',rerender)"));
- assert(app.includes('js/mmhvault-report-period-v201.js?v=2.0.65.1'));
+ assert(app.includes('js/mmhvault-report-period-v201.js?v=2.0.65.2'));
  console.log('PASS: annual legacy Report shared display FX, unavailable values, refresh and unchanged budget source rate');
+}
+
+{
+ const annual=readFileSync(new URL('../js/mmhvault-report-period-v201.js',import.meta.url),'utf8');
+ const decl=annual.slice(annual.indexOf('  let viewReady='),annual.indexOf('  function loadPrefs'));
+ const budget=annual.slice(annual.indexOf('  async function renderBudget'),annual.indexOf('  function init'));
+ let uid='a',code='USD',rate=1,active=true,host={hidden:false},mount=makeMount();
+ function makeMount(){return {innerHTML:'',textContent:'',querySelector(){return this.innerHTML.includes('report-annual-budget-metrics-v201')?{}:null}}}
+ const requests=[];
+ const db={from(){return {select(){return this},eq(_k,u){this.uid=u;return this},gte(_k,y){this.year=y;return this},lt(){return new Promise(resolve=>requests.push({uid:this.uid,year:this.year,resolve}))}}}};
+ const root={classList:{contains:()=>active}};
+ const get=id=>id==='reports'?root:id==='reportAnnualViewV201'?host:id==='reportAnnualBudgetBodyV201'?mount:null;
+ const api=new Function('$','owner','currency','db','fx','F','collectYear','tr','text','n','console',
+ "const rootId='reports',state={mode:'year',year:'2025'};"+decl+budget+
+ ";return {renderBudget,annualExportTokenV265,resetAnnualBudgetV265,state,rerender(){annualRenderEpochV265++;annualReadyV265=null},pending(){return budgetCache.pending}};")
+ (get,()=>uid,()=>code,db,()=>rate,v=>code+' '+v,()=>({individual:50}),s=>s,String,Number,{warn(){}});
+ function rerender(){mount=makeMount();api.rerender();return api.renderBudget()}
+ function change(u,y){uid=u;api.state.year=y;api.resetAnnualBudgetV265();return rerender()}
+ function finish(i,value){requests[i].resolve({data:value})}
+ const a=change('a','2025'),other=change('b','2025'),again=change('a','2025');
+ assert.equal(requests.length,3);assert.equal(requests[1].uid,'b');
+ finish(0,[{currency:'USD',monthly_amount:900}]);await a;
+ assert.equal(api.annualExportTokenV265(),null);assert.equal(api.pending(),true);
+ finish(1,[{currency:'USD',monthly_amount:800}]);await other;
+ assert.equal(api.annualExportTokenV265(),null);assert.equal(api.pending(),true);
+ finish(2,[{currency:'USD',monthly_amount:100}]);await again;
+ assert(mount.innerHTML.includes('USD 100'));assert(!mount.innerHTML.includes('USD 900'));
+ const first=api.annualExportTokenV265();assert(Number.isSafeInteger(first));
+ await rerender();assert(api.annualExportTokenV265()>first);assert.equal(requests.length,3);
+ const y1=change('a','2026'),y2=change('a','2025'),y3=change('a','2026');
+ finish(3,[{currency:'USD',monthly_amount:999}]);await y1;
+ finish(4,[]);await y2;assert.equal(api.annualExportTokenV265(),null);assert.equal(api.pending(),true);
+ finish(5,[{currency:'USD',monthly_amount:200}]);await y3;assert(mount.innerHTML.includes('USD 200'));
+ const reload=change('a','2026');assert.equal(api.annualExportTokenV265(),null);
+ finish(6,null);await reload;assert.equal(api.annualExportTokenV265(),null);
+ const missing=change('a','2026');rate=0;finish(7,[{currency:'USD',monthly_amount:200}]);await missing;assert.equal(api.annualExportTokenV265(),null);
+ rate=1;await rerender();assert(Number.isSafeInteger(api.annualExportTokenV265()));
+ code='JPY';assert.equal(api.annualExportTokenV265(),null);
+ code='USD';active=false;assert.equal(api.annualExportTokenV265(),null);
+ assert(app.includes('annualToken=period.mode==='));
+ assert(app.includes('epoch:exportEpochV265,annualToken'));
+ console.log('PASS: annual Report request identity, owner/year ABA, invalid response, missing rate and render-bound export token');
 }
