@@ -610,3 +610,33 @@ console.log('PASS: 53-code shared display registry, additional FX, missing rates
  assert(settings.includes("mmhvault:personal-display-preferences-restored"));
  console.log('PASS: global Settings currency registry, account isolation, validation and non-overwriting backup display preference');
 }
+
+{
+ const annual=readFileSync(new URL('../js/mmhvault-report-period-v201.js',import.meta.url),'utf8');
+ const ms=app.indexOf('  function amountUSD(account,amount)',app.indexOf('<script id="mmhvault-monthly-report-v115-js">')),me=app.indexOf('  function monthlySourceNoticeV265()',ms);
+ const ys=annual.indexOf('  const amountUSD='),ye=annual.indexOf('  const sourceNoticeV265=',ys);
+ assert(ms>=0&&me>ms&&ys>=0&&ye>ys);
+ let uid='a',records=[],rate=2;
+ const w={get transactions(){return records}},state={month:'2026-01',year:'2026'};
+ const convert=(account,amount)=>account==='missing'?0:amount*rate;
+ const meta=account=>({id:account==='unknown'?'legacy_unknown':account});
+ const linked=t=>!!t.linked,num=v=>Number.isFinite(Number(v))?Number(v):0;
+ const shift=(key,delta)=>{const [y,m]=key.split('-').map(Number);return new Date(Date.UTC(y,m-1+delta,1)).toISOString().slice(0,7)};
+ const month=new Function('window','state','reportOwnerV265','mmhvaultAmountUSD','mmhVaultAccountMeta','isLinkedInvestmentTx','num','shiftMonth',app.slice(ms,me)+';return {amount:reportSourceAmountReadyV265,ready:monthlySourcesReadyV265};')(w,state,()=>uid,convert,meta,linked,num,shift);
+ const year=new Function('window','state','owner','rows','mmhvaultAmountUSD','mmhVaultAccountMeta','isLinkedInvestmentTx','n','text','validMonth',annual.slice(ys,ye)+';return {amount:sourceAmountReadyV265,ready:annualSourcesReadyV265};')(w,state,()=>uid,()=>records,convert,meta,linked,num,v=>String(v??''),v=>/^\d{4}-(0[1-9]|1[0-2])$/.test(v));
+ for(const api of [month,year]){
+  rate=2;assert(api.amount('known',4));assert(api.amount('known',-4));assert(api.amount(null,0));
+  for(const v of [null,undefined,'',' ',NaN,Infinity,'bad'])assert(!api.amount('known',v));
+  assert(!api.amount('missing',4));assert(!api.amount('unknown',4));assert(!api.amount(null,4));
+  rate=-2;assert(!api.amount('known',4));rate=0;assert(!api.amount('known',4));rate=2;
+  const tx=(date,type,category,account,amount,extra={})=>({tx_date:date,type,category,to_account:account,to_amount:amount,from_account:account,from_amount:amount,...extra});
+  records=[tx('2026-01-01','Income','Salary','known',20),tx('2025-12-01','Expense','Food','known',5)];assert(api.ready());
+  records.push(tx('2025-12-02','Expense','Food','missing',5));assert(!api.ready());records.pop();
+  records.push(tx('2026-01-02','Income','Salary','unknown',2));assert(!api.ready());records.pop();
+  records.push(tx('2026-01-03','Expense','Investment','missing',5),tx('2026-01-04','Transfer','Transfer','missing',5),tx('2026-01-05','Expense','Food','missing',5,{linked:true}));assert(api.ready());
+  records.push(tx('2026-01-06','Expense','Food','missing',0));assert(api.ready());
+  records.push(tx('2024-01-01','Income','Salary','missing',50));assert(api.ready());
+  uid='';assert(!api.ready());uid='a';assert(api.ready());
+ }
+ console.log('PASS: actual monthly and annual Report source FX guards, signed amounts, comparison period, exclusions and owner gate');
+}
