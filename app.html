@@ -20184,7 +20184,7 @@ function investCopyProtectedV236(el){
 function investCopyOwnedV236(el){return !!el?.closest?.('#mmhInvestCoachV234,#mmhInvestEntryTopV231,#mmhInvestGuideV231,#mmhHistoryRowsV1,#mmhHistoryFiltersV1');}
 function translateAttributes(root){
   const applyAttrs=el=>{
-    if(!el?.getAttribute||el.closest?.('.fc-planning-nav-v263,#apCurrencyPickerV2,#apRowCurrencyPickerV2,#mmhNotifyPopoverV560,.wv-choice-menu-v2,.mmh-notification-dialog-v149,#wvThemeToggle,.wv-flag-wrap,#dataLoadOverlayV384,#mmhP947AccountGuard'))return;
+    if(!el?.getAttribute||el.closest?.('[data-mmh-font-copy-v265],.fc-planning-nav-v263,#apCurrencyPickerV2,#apRowCurrencyPickerV2,#mmhNotifyPopoverV560,.wv-choice-menu-v2,.mmh-notification-dialog-v149,#wvThemeToggle,.wv-flag-wrap,#dataLoadOverlayV384,#mmhP947AccountGuard'))return;
     (investCopySurfaceV236(el)?['placeholder','title','aria-label','data-mmh-hint']:['placeholder','title','aria-label']).forEach(a=>{
       const v=el.getAttribute(a); if(!v)return;
       if(investCopySurfaceV236(el)){if(investCopyProtectedV236(el)||investCopyOwnedV236(el))return;let map=investCopyAttrStateV236.get(el);if(!map){map=new Map();investCopyAttrStateV236.set(el,map);}const translated=investCopyStableV236(map,a,v);if(translated!=null){if(v!==translated)el.setAttribute(a,translated);return;}if(a==='data-mmh-hint')return;}
@@ -20674,6 +20674,7 @@ function translateTextNode(n){
   const current=n.nodeValue.trim();if(!current||!n.parentElement||n.parentElement.closest('script,style,textarea,[contenteditable="true"]'))return;
 
   const parent=n.parentElement;
+  if(parent.closest('[data-mmh-font-copy-v265]')){mmhI18nTextStateV135.delete(n);return;}
   if(recurringCopySurfaceV264(parent)&&recurringCopyProtectedV264(parent)){mmhI18nTextStateV135.delete(n);return;}
   if(goalCopySurfaceV263(parent)&&parent.closest('[data-goal-user-copy-v263],.goal-card-title-v113 h3,.mmh-goal-dialog-v149 #mmhVaultDialogTitleV449,.mmh-shared-trigger-v217')){mmhI18nTextStateV135.delete(n);return;}
   if(investCopySurfaceV236(parent)){if(investCopyProtectedV236(parent)||investCopyOwnedV236(parent))return;const translated=investCopyStableV236(investCopyNodeStateV236,n,current);if(translated!=null){if(current!==translated){const raw=n.nodeValue;n.nodeValue=(raw.match(/^\s*/)?.[0]||'')+translated+(raw.match(/\s*$/)?.[0]||'');}return;}}
@@ -29205,8 +29206,8 @@ function applyFontV265(){const lang=activeFontLanguageV265(),key=fontKeyV265(pre
  $('stFontPreviewV265').textContent=copy[8];$('stFontPreviewV265').style.fontFamily=stack;
  $('stFontNoteV265').textContent=copy[9];$('stFontStatusV265').textContent='';
 }
-function addFontV265(r){const holder=row('Aa','Font style','stPref_fontV265',fontStylesV265.map((v,i)=>[v,fontCopyV265.en[i+1]]),'system');holder.id='stFontRowV265';holder.children[1].id='stFontLabelV265';r.append(holder);
- const preview=document.createElement('div');preview.id='stFontPreviewV265';preview.className='st-font-preview-v265';const note=document.createElement('p');note.id='stFontNoteV265';note.className='st-note';const status=document.createElement('p');status.id='stFontStatusV265';status.className='st-note';status.setAttribute('role','status');r.append(preview,note,status);
+function addFontV265(r){const holder=row('Aa','Font style','stPref_fontV265',fontStylesV265.map((v,i)=>[v,fontCopyV265.en[i+1]]),'system');holder.id='stFontRowV265';holder.setAttribute('data-mmh-font-copy-v265','');holder.children[1].id='stFontLabelV265';r.append(holder);
+ const preview=document.createElement('div');preview.id='stFontPreviewV265';preview.setAttribute('data-mmh-font-copy-v265','');preview.className='st-font-preview-v265';const note=document.createElement('p');note.id='stFontNoteV265';note.setAttribute('data-mmh-font-copy-v265','');note.className='st-note';const status=document.createElement('p');status.id='stFontStatusV265';status.setAttribute('data-mmh-font-copy-v265','');status.className='st-note';status.setAttribute('role','status');r.append(preview,note,status);
  $('stPref_fontV265').addEventListener('change',e=>{const lang=activeFontLanguageV265(),key=fontKeyV265(prefOwner(),lang),choice=e.target.value,ok=key&&fontStylesV265.includes(choice)&&lsSet(key,choice);applyFontV265();if(!ok)$('stFontStatusV265').textContent=fontCopyV265[lang][10]});
  window.addEventListener('mmhvault-language-change',applyFontV265);window.addEventListener('mmhvault:config-owner-changed',applyFontV265);window.addEventListener('mmhvault:personal-display-preferences-restored',applyFontV265);applyFontV265();
 }
@@ -29259,6 +29260,10 @@ html body.mmh-workspace-active:not(.auth-page-active)[data-mmh-personal-font-v26
  font-family:var(--mmh-personal-font-v265)!important;
 }
 html body.mmh-workspace-active:not(.auth-page-active)[data-mmh-personal-font-v265] :is(.page,#header,#bottomNav,dialog){font-family:var(--mmh-personal-font-v265)!important}
+/* Override known text families, never icon-only glyphs or SVG/chart rendering. */
+html body.mmh-workspace-active:not(.auth-page-active)[data-mmh-personal-font-v265] :is(#bottomNav#bottomNav#bottomNav,#moreNavMenu#moreNavMenu#moreNavMenu){--rail-font:var(--mmh-personal-font-v265)!important}
+html body.mmh-workspace-active:not(.auth-page-active)[data-mmh-personal-font-v265] #mmhNotifyPopoverV560{--np-font:var(--mmh-personal-font-v265)!important}
+html body.mmh-workspace-active:not(.auth-page-active)[data-mmh-personal-font-v265] :is(.page,#header,#bottomNav,#moreNavMenu,dialog) :is(h1,h2,h3,h4,p,label,th,td,input:not([type=file]),select,option,textarea,.title,.value,.kpi,.metric,.page-title,.nav-title,.sub,.meta,.small,.pill,.btn):not(.icon):not([aria-hidden=true]){font-family:var(--mmh-personal-font-v265)!important}
 #settings #stFontRowV265 select{min-width:0;max-width:100%;min-height:44px}
 #settings #stFontPreviewV265{padding:12px 10px;text-align:center;line-height:1.65;overflow-wrap:anywhere;font-size:16px;border:1px solid var(--wv-border, #64748b66);border-radius:8px}
 #settings #stFontNoteV265,#settings #stFontStatusV265{margin:0;padding:4px 8px;line-height:1.55;overflow-wrap:anywhere}
