@@ -148,7 +148,18 @@ try{
   const owner=async id=>page.evaluate(id=>{currentSessionUser=id?{id}:null;dispatchEvent(new Event('mmhvault:config-owner-changed'))},id);
   const locale=async lang=>page.evaluate(lang=>{document.documentElement.lang=lang;dispatchEvent(new Event('mmhvault-language-change'))},lang);
   const stored=async id=>page.evaluate(id=>localStorage.getItem('mmhvault_birth_date_v34216_'+id),id);
-  const open=async()=>{await input.click();assert(await picker.isVisible());};
+  // Native dialog top-layer visibility may settle asynchronously in WebKit.
+  // Keep one real click per opening; never retry the click or force the dialog open.
+  const open=async()=>{
+   await picker.waitFor({state:'hidden',timeout:5000});
+   await input.click();
+   try{await picker.waitFor({state:'visible',timeout:5000});}
+   catch(error){
+    const diagnostic=await picker.evaluate(el=>({open:el.open,display:getComputedStyle(el).display,visibility:getComputedStyle(el).visibility,active:document.activeElement?.id,triggerDisabled:document.getElementById('mmhBirthOpenV271').disabled,lang:document.documentElement.lang,width:innerWidth}));
+    throw new Error('Birthday picker did not become visible after one click: '+JSON.stringify(diagnostic),{cause:error});
+   }
+   assert.equal(await picker.evaluate(el=>el.open),true);
+  };
   const choose=async(y,m,d)=>{await page.locator('#mmhBirthYearV271').selectOption(String(y));await page.locator('#mmhBirthMonthV271').selectOption(String(m-1));await page.locator('#mmhBirthDaysV271 button').filter({hasText:new RegExp('^'+d+'$')}).click();};
   const confirm=()=>page.locator('#mmhBirthConfirmV271').click();
   await blank();await open();await choose(2000,11,29);await confirm();
