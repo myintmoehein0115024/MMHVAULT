@@ -775,16 +775,16 @@ console.log('PASS: 53-code shared display registry, additional FX, missing rates
  const win={addEventListener:(n,fn)=>windowEvents[n]=fn,dispatchEvent:e=>windowEvents[e.type]?.(e)};
  const storage={getItem:k=>{if(blocked)throw Error('blocked');return data.has(k)?data.get(k):null},setItem:(k,v)=>{if(blocked)throw Error('blocked');data.set(k,String(v))}};
  new Function('localStorage','document','window','CustomEvent','setTimeout','clearTimeout','currentSessionUser',code)(storage,doc,win,function(t){this.type=t},()=>0,()=>{},owner);
- const key='mmhvault_birth_date_v34216',change=v=>{input.value=v;input.handlers.change()},switchOwner=id=>{owner.id=id;windowEvents['mmhvault:config-owner-changed']()},blank=()=>input.value===''&&outputs.every(id=>nodes[id].textContent==='—');
+ const key='mmhvault_birth_date_v34216',change=v=>{input.value=v;input.handlers.change()},switchOwner=id=>{owner.id=id;windowEvents['mmhvault:config-owner-changed']()},blank=()=>input.value===''&&outputs.every(id=>nodes[id].textContent==='0');
  domEvents.DOMContentLoaded();
- assert(blank(),'unset birthday must remain unavailable');
+ assert(blank(),'unset birthday displays zero without inventing a date');
  data.set(key,'1990-02-12');switchOwner('a');assert(blank()&&!data.has(key+'_a'),'unclaimed legacy not migrated');
  data.set(key+'_legacy_owner','a');switchOwner('a');assert(input.value==='1990-02-12'&&!data.has(key+'_a'),'claimed legacy read only');
  change('1992-02-30');assert(!data.has(key+'_a'),'invalid calendar date rejected');
  change('2999-01-01');assert(!data.has(key+'_a'),'future date rejected');
  change('1992-02-29');assert(data.get(key+'_a')==='1992-02-29','valid leap date saved to current owner');
  assert.equal(input.min,'1900-01-01');assert.match(input.max,/^\d{4}-\d{2}-\d{2}$/);
- for(const [lang,title,age,countdown] of [['my','မွေးနေ့','နှစ်','စက္ကန့်'],['zh-CN','生日','岁','秒'],['en','Birthday','years','s']]){
+ for(const [lang,title,age,countdown] of [['my','မွေးနေ့','နှစ်','ရက်'],['zh-CN','生日','岁','天'],['en','Birthday','years','days']]){
   doc.documentElement.lang=lang;windowEvents['mmhvault-language-change']();assert.equal(labels[0].textContent,title);assert(nodes[outputs[0]].textContent.includes(age));assert(nodes[outputs[2]].textContent.includes(countdown));
  }
  doc.documentElement.lang='my';change('2999-01-01');assert(input.validity.includes('မွေးသက္ကရာဇ်'));assert.equal(data.get(key+'_a'),'1992-02-29');
