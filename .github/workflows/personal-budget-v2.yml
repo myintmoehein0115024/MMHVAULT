@@ -30,6 +30,21 @@ jobs:
       - run: node tests/personal-recurring-v264.mjs
       - run: node --check tests/personal-report-export-browser-v265.mjs && node tests/personal-report-export-browser-v265.mjs
       - run: node --check tests/personal-settings-install-browser-v265.mjs && node tests/personal-settings-install-browser-v265.mjs
+  settings-webkit:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: npm install --no-save --package-lock=false --ignore-scripts playwright@1.51.1
+      - run: npx playwright install --with-deps webkit
+      - run: node tests/personal-settings-install-browser-v265.mjs
+        env:
+          MMH_SETTINGS_BROWSER: webkit
   font-browser:
     runs-on: ubuntu-24.04
     timeout-minutes: 10

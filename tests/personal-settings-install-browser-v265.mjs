@@ -1,8 +1,11 @@
-// Actual installation-guide script and scoped CSS in isolated Chromium.
+// Actual installation-guide script and scoped CSS in isolated Chromium or WebKit.
 // Synthetic host only: no authenticated app, native installation, or production requests.
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
-import {chromium} from 'playwright';
+import {chromium,webkit} from 'playwright';
+const engine=process.env.MMH_SETTINGS_BROWSER||'chromium';
+assert(['chromium','webkit'].includes(engine),'supported Settings fixture engine');
+const browserType=engine==='webkit'?webkit:chromium;
 
 const app=readFileSync(new URL('../app.html',import.meta.url),'utf8');
 const script=app.match(/<script id="mmhvault-settings-control-feedback-v4">([\s\S]*?)<\/script>/)?.[1];
@@ -11,7 +14,7 @@ const ids=new Set(['mmhvault-personal-install-illustrations-v265','mmhvault-inst
 const styles=[...app.matchAll(/<style id="([^"]+)">([\s\S]*?)<\/style>/g)].filter(m=>ids.has(m[1]));
 assert.equal(styles.length,ids.size,'all actual guide CSS blocks required');
 const html='<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><style>body{font-family:system-ui;margin:8px}button,select{font:inherit}*,*::before,*::after{box-sizing:border-box}</style>'+styles.map(m=>'<style>'+m[2]+'</style>').join('')+'</head><body><main id="settings"><section id="stPage_icon"><header class="st-page-head">Settings</header><div class="panel">MMHVAULT</div></section></main></body></html>';
-const browser=await chromium.launch({headless:true});
+const browser=await browserType.launch({headless:true});
 try{
  const context=await browser.newContext({viewport:{width:360,height:800}});
  const origin='https://mmh-settings-install-fixture.invalid';
@@ -70,7 +73,7 @@ try{
  assert.equal(await page.locator('#stInstallStatusV4').textContent(),'MMHVAULT has been installed.');
  await locale('zh');assert.match(await page.locator('#stInstallStatusV4').textContent(),/已安装/);
  assert.deepEqual(errors,[]);assert.deepEqual(unexpected,[]);
- console.log('PASS: actual Settings guide script/CSS in isolated Chromium, '+count+' locale/device/viewport/theme cases; focus, prompt feedback and no network');
+ console.log('PASS: actual Settings guide script/CSS in isolated '+engine+', '+count+' locale/device/viewport/theme cases; focus, prompt feedback and no network');
  await context.close();
 }finally{await browser.close()}
 
@@ -82,7 +85,7 @@ try{
  const css=app.match(/<style id="mmhvault-v34216-birthday-settings-css">([\s\S]*?)<\/style>/)?.[1];
  const v2=readFileSync(new URL('../css/mmhvault-settings-life-p928.css',import.meta.url),'utf8');
  assert(birthday&&code&&css,'actual birthday markup/runtime/CSS required');
- const instance=await chromium.launch({headless:true});
+ const instance=await browserType.launch({headless:true});
  try{
   const context=await instance.newContext({viewport:{width:360,height:800},timezoneId:'UTC'});
   const origin='https://mmh-settings-birthday-fixture.invalid',unexpected=[],errors=[];
@@ -131,7 +134,7 @@ try{
   await input.fill('2027-01-01');assert.equal(await stored('fixture-a'),'2000-11-29');assert.equal(await input.inputValue(),'2000-11-29');
   await owner(null);await blank();assert.equal(await input.isDisabled(),true);
   assert.deepEqual(errors,[]);assert.deepEqual(unexpected,[]);
-  console.log('PASS: actual birthday markup/script/scoped CSS, '+cases+' locale/viewport/theme cases; local date, clear, stale edit and owner isolation');
+  console.log('PASS: actual birthday markup/script/scoped CSS in isolated '+engine+', '+cases+' locale/viewport/theme cases; local date, clear, stale edit and owner isolation');
   await context.close();
  }finally{await instance.close()}
 }
