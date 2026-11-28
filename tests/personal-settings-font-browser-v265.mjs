@@ -203,15 +203,16 @@ try{
  const results={};
  const lazyCandidates=new Map();
  const chinesePackInputs=new Map();
+ const renderOnlyCandidates=new Map();
  const python=process.env.MMH_FONTQA_PYTHON;
  if(process.env.CI)assert(python,'CI must provide isolated font compression interpreter');
  // Inspect official release archives in memory only; no installation or extracted files.
- // Smiley's release metadata does not provide a digest, so its computed hash is
- // diagnostic until independently pinned. Zhuque's archive digest is published.
+ // Smiley's digest is pinned from the previous exact-head QA observation,
+ // not an upstream published checksum. Zhuque's archive digest is published.
  if(python){
   const releaseArchives=[
-   {folder:'smileysans',url:'https://github.com/atelier-anchor/smiley-sans/releases/download/v2.0.1/smiley-sans-v2.0.1.zip',size:5781344,sha256:null,licenseUrl:'https://raw.githubusercontent.com/atelier-anchor/smiley-sans/v2.0.1/LICENSE',licenseHash:'d4511630b94994b2b3eb0c99cec1a11cac804004'},
-   {folder:'zhuquefangsong',url:'https://github.com/TrionesType/zhuque/releases/download/v0.212/ZhuqueFangsong-v0.212.zip',size:5743932,sha256:'bb8b661a7643d2296a72d9d10530a00949419c4e527fb61783f73c2ba1a8c062',licenseUrl:'https://raw.githubusercontent.com/TrionesType/zhuque/v0.212/LICENSE.txt',licenseHash:'1091c8f8b724daaa25b0c941ae3115217744c6c6'}
+   {folder:'smileysans',url:'https://github.com/atelier-anchor/smiley-sans/releases/download/v2.0.1/smiley-sans-v2.0.1.zip',size:5781344,sha256:'299c0be6c960ae37361762eca76f7d0cd516615435bb96c0d4b98a1e70178a07',publishedDigest:false,member:'SmileySans-Oblique.ttf',memberSha256:'b447d7e781f08bc95c4c9f23ba71ed2b8ebb639aa7184485c71c4ca5afcd25c4',licenseUrl:'https://raw.githubusercontent.com/atelier-anchor/smiley-sans/v2.0.1/LICENSE',licenseHash:'d4511630b94994b2b3eb0c99cec1a11cac804004'},
+   {folder:'zhuquefangsong',url:'https://github.com/TrionesType/zhuque/releases/download/v0.212/ZhuqueFangsong-v0.212.zip',size:5743932,sha256:'bb8b661a7643d2296a72d9d10530a00949419c4e527fb61783f73c2ba1a8c062',publishedDigest:true,member:'ZhuqueFangsong-Regular.ttf',memberSha256:'558c62730844fe54ba220146ed62f859d4e2880188d92d985f8921c6e3743bc4',licenseUrl:'https://raw.githubusercontent.com/TrionesType/zhuque/v0.212/LICENSE.txt',licenseHash:'1091c8f8b724daaa25b0c941ae3115217744c6c6'}
   ];
   const archiveInspector=String.raw`
 import hashlib, io, json, pathlib, sys, zipfile
@@ -255,12 +256,18 @@ with zipfile.ZipFile(io.BytesIO(source)) as archive:
    const bytes=Buffer.from(await response.arrayBuffer());
    assert.equal(bytes.length,spec.size,spec.folder+' release archive size');
    const sha256=createHash('sha256').update(bytes).digest('hex');
-   if(spec.sha256)assert.equal(sha256,spec.sha256,spec.folder+' published archive digest');
+   assert.equal(sha256,spec.sha256,spec.folder+' pinned archive digest');
    const audit=spawnSync(python,['-c',archiveInspector,samples['zh-CN']],{input:bytes,maxBuffer:1024*1024,timeout:45000});
    assert.ifError(audit.error);
    assert.equal(audit.status,0,spec.folder+' release inspection: '+audit.stderr?.toString().slice(-2000));
    const inspected=JSON.parse(audit.stdout.toString());
-   console.log('FONT-RELEASE-AUDIT '+JSON.stringify({folder:spec.folder,archiveSha256:sha256,publishedDigestVerified:!!spec.sha256,upstreamLicenseGitBlob:spec.licenseHash,...inspected}));
+   const member=inspected.fonts.find(x=>x.path===spec.member);
+   assert(member&&member.sha256===spec.memberSha256&&member.missingSample.length===0,spec.folder+' exact render member');
+   const extracted=spawnSync(python,['-c','import io,sys,zipfile;sys.stdout.buffer.write(zipfile.ZipFile(io.BytesIO(sys.stdin.buffer.read())).read(sys.argv[1]))',spec.member],{input:bytes,maxBuffer:40*1024*1024,timeout:15000});
+   assert.ifError(extracted.error);assert.equal(extracted.status,0,extracted.stderr?.toString());
+   assert.equal(createHash('sha256').update(extracted.stdout).digest('hex'),spec.memberSha256);
+   renderOnlyCandidates.set(spec.folder,extracted.stdout);candidates.push(['zh-CN',spec.folder,spec.member,null]);
+   console.log('FONT-RELEASE-AUDIT '+JSON.stringify({folder:spec.folder,archiveSha256:sha256,publishedDigestVerified:spec.publishedDigest,upstreamLicenseGitBlob:spec.licenseHash,...inspected}));
   }
   console.log('PASS: two Chinese release archives inspected in memory (metadata and coverage diagnostics only; no production assets)');
  }
@@ -293,6 +300,7 @@ with TTFont(io.BytesIO(sys.stdin.buffer.read())) as font:
    if(spec.license==='OFL-1.1')assert.match(metadata.licenseText,/SIL Open Font License, Version 1\.1/i);
    else assert.match(metadata.licenseText,/GNU Lesser General Public License[\s\S]*version 2\.1[\s\S]*later version/i);
    console.log('FONT-MYANMAR-LICENSE-AUDIT '+JSON.stringify({folder:spec.folder,declaredLicense:spec.license,sourceBlob:spec.blob,...metadata}));
+   if(spec.folder!=='pyidaungsu-bold'){assert.equal(metadata.missingSample.length,0,spec.folder+' render sample coverage');renderOnlyCandidates.set(spec.folder,data);candidates.push(['my',spec.folder,spec.folder+'.ttf',spec.blob]);}
   }
   console.log('PASS: pinned Myanmar font embedded license metadata inspected (not redistribution approval or rendering validation)');
  }
@@ -322,25 +330,29 @@ if sys.argv[1]=="my":
 sys.stdout.buffer.write(data)
 `;
  for(const [locale,folder,file,expected] of candidates){
+  const renderOnly=renderOnlyCandidates.has(folder);
+  let bytes=renderOnlyCandidates.get(folder),license=null;
   const licenseHashes={"notosanssc":"1c9f43281b8f216c5461fe9ac729afbade7724e4","notoserifsc":"94d1bf7b52481343e2983fb7751e8b7abe1ea07b","zcoolqingkehuangyou":"bd3df5cf6f237a4afaea70106f8243da07cd8cd8","notosansmyanmar":"c94c47416f38b8ddec9f3fbc9e0241998d7823dc","notoserifmyanmar":"94d1bf7b52481343e2983fb7751e8b7abe1ea07b","padauk":"57410e8e9eb58b0cce938440696cf36e2daf8fcf","tharlon":"6ef7b18ea7f5b430f10160034ecdcd0295335954","lxgwwenkai":"bb1634cb03ee7202d5c66bf2754705493bd73e1e"};
+  if(!renderOnly){
   const lxgw=folder==='lxgwwenkai';
    const root=lxgw?'https://raw.githubusercontent.com/lxgw/LxgwWenKai/f4cc16fa07f7d115135d203065e711d43c3076d3/':'https://raw.githubusercontent.com/google/fonts/'+revision+'/ofl/'+folder+'/';
    const licenseResponse=await fetch(root+'OFL.txt',{redirect:'error',signal:AbortSignal.timeout(30000)});
   assert(licenseResponse.ok,folder+' license HTTP '+licenseResponse.status);
-  const license=Buffer.from(await licenseResponse.arrayBuffer());
+  license=Buffer.from(await licenseResponse.arrayBuffer());
   assert(license.length>0&&license.length<=65536,folder+' license size');
   assert.equal(createHash('sha1').update('blob '+license.length+String.fromCharCode(0)).update(license).digest('hex'),licenseHashes[folder],folder+' exact license blob hash');
   assert.match(license.toString('utf8'),/SIL OPEN FONT LICENSE Version 1\.1/i,folder+' OFL notice');
   const url=root+(lxgw?'fonts/TTF/':'')+encodeURIComponent(file);
   const response=await fetch(url,{redirect:'error',signal:AbortSignal.timeout(45000)});
   assert(response.ok,folder+' pinned asset HTTP '+response.status);
-  const bytes=Buffer.from(await response.arrayBuffer());
+  bytes=Buffer.from(await response.arrayBuffer());
   assert(bytes.length>0&&bytes.length<=40*1024*1024,folder+' asset size bounds');
   const actual=createHash('sha1').update('blob '+bytes.length+'\0').update(bytes).digest('hex');
   assert.equal(actual,expected,folder+' exact Git blob hash');
   if(locale==='zh-CN')chinesePackInputs.set(folder,{bytes,license,expected,licenseHash:licenseHashes[folder]});
+  }
   let compressed=null,packManifest=null;
-  if(python){
+  if(python&&!renderOnly){
    if(locale==='my'){
     const temp=mkdtempSync(join(tmpdir(),'mmh-font-pack-'));
     try{
@@ -423,7 +435,8 @@ sys.stdout.buffer.write(data)
   assert.equal(new Set(fonts.map(x=>x.pixels)).size,fonts.length,locale+' candidate sample images must differ');
   console.log('FONT-CANDIDATE '+JSON.stringify({locale,fonts}));
  }
- console.log('PASS: eight pinned OFL candidate assets rendered isolated sample text without platform fallback; four Chinese and four Myanmar distinct sample images (not full coverage or application integration)');
+ if(python){assert.equal(results['zh-CN'].length,6);assert.equal(results.my.length,6)}
+ console.log('PASS: '+candidates.length+' pinned candidate assets rendered isolated sample text without platform fallback; distinct sample images per locale (not redistribution approval, full coverage or application integration)');
  if(python){
   console.log('PASS: eight WOFF2 candidates rendered sample without fallback and preserved glyph count and geometry (Chinese sample subset only; Myanmar full cmap preserved; no assets distributed)');
   console.log('PASS: four reproducible Myanmar candidate packs preserve source license, cmap, axes and sample pixels; tampered source/license and overwrite rejected');
