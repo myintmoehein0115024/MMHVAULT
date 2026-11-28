@@ -346,3 +346,32 @@ assert(invScript265.includes("el('mmhUnifiedListV1')?.querySelectorAll('.inv-fx-
 assert(invScript265.includes("cash(x.cost/x.quantity,native,6)+' / '+safe(unit)"));
 assert(invScript265.includes("cash(x.price,native,6)+' / '+safe(unit)"));
 console.log('PASS: Investment holding-card reference guards, native unit retention and owner-switch clearing');
+
+/* Standard trade records: current FX is a display reference, not a trade-date conversion. */
+const histStart265=app.indexOf('<script id="mmhvault-invest-history-v1-js">'),histEnd265=app.indexOf('</script>',histStart265);
+assert(histStart265>=0&&histEnd265>histStart265);
+const histScript265=app.slice(histStart265,histEnd265);
+new Function(histScript265.slice(histScript265.indexOf('>')+1));
+const histA265=histScript265.indexOf('  function recordReferenceV265(x){'),histB265=histScript265.indexOf('  function rowHTML(x){',histA265);
+assert(histA265>=0&&histB265>histA265);
+const histCalls265=[],histSession265={id:'inv-a'};
+const histNumeric265=v=>v!==null&&v!==undefined&&v!==''&&typeof v!=='boolean'&&Number.isFinite(Number(v));
+const histWin265={mmhInvestmentReferenceV265:(v,c,o)=>{histCalls265.push([v,c,o]);return '≈ THB '+v}};
+const histRef265=new Function('numeric','window','currentSessionUser','recordText','esc',histScript265.slice(histA265,histB265)+';return recordReferenceV265')(histNumeric265,histWin265,histSession265,en=>en,String);
+const trade265={kind:'standard',type:'Crypto',amount:10,currency:'USD',user_id:'inv-a',side:'Buy'};
+assert(histRef265(trade265).includes('≈ THB 10'));
+assert(histRef265({...trade265,side:'Sell'}).includes('≈ THB -10'));
+assert(histRef265({...trade265,amount:0}).includes('≈ THB 0'));
+assert.equal(histRef265({...trade265,user_id:'inv-b'}),'');
+assert.equal(histRef265({...trade265,kind:'custom'}),'');
+assert.equal(histRef265({...trade265,type:'Gold'}),'');
+assert.equal(histRef265({...trade265,amount:null}),'');
+assert(histRef265({...trade265,type:'Gold',currency:'MMK'}).includes('≈ THB 10'));
+assert.deepEqual(histCalls265,[[10,'USD','inv-a'],[-10,'USD','inv-a'],[0,'USD','inv-a'],[10,'MMK','inv-a']]);
+histWin265.mmhInvestmentReferenceV265=()=>'';assert.equal(histRef265(trade265),'');
+histWin265.mmhInvestmentReferenceV265=()=>'≈ THB —';assert(histRef265(trade265).includes('≈ THB —'));
+histSession265.id='inv-b';assert.equal(histRef265(trade265),'');
+assert(histScript265.includes("'+recordReferenceV265(x)")||histScript265.includes("+recordReferenceV265(x))"));
+assert(invScript265.includes('window.mmhInvestmentReferenceV265=invReferenceV265'));
+assert(histScript265.includes('Current FX reference, not trade-date FX'));
+console.log('PASS: standard investment record reference, signs, original currency, owner isolation and unavailable FX');
