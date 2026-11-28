@@ -134,7 +134,7 @@ assert(ovA>=0&&ovB>ovA);
 let ovOwner='overview-a';
 global(ovOwner,'THB');global('overview-b','MMK');
 const ovWin={mmhAccountDisplayTotalV203:(v,c)=>c==='THB'?'THB '+v*35:c==='CNY'?'CNY '+v*7:'—'};
-const ovAPI=new Function('window','localStorage','currentSessionUser','N',ovScript.slice(ovA,ovB)+';return {money,overviewCurrencyV265,signedMoneyV265,marketMoney};')(ovWin,storage,{get id(){return ovOwner}},Number);
+const ovAPI=new Function('window','localStorage','currentSessionUser','N',ovScript.slice(ovA,ovB)+';return {money,overviewCurrencyV265,signedMoneyV265,marketMoney,overviewChoiceV265,saveOverviewChoiceV265};')(ovWin,storage,{get id(){return ovOwner}},Number);
 assert.equal(ovAPI.money(10),'THB 350');
 assert.equal(ovAPI.signedMoneyV265(10,true),'+THB 350');
 assert.equal(ovAPI.money(NaN),'—');
@@ -150,6 +150,30 @@ assert(ovScript.includes("x.p?marketMoney(x.p):'—'"));
 assert(ovScript.includes("window.addEventListener('mmhvault:personal-display-currency-changed'"));
 console.log('PASS: active Overview default currency, missing FX, owner isolation and USD market-reference preservation (synthetic formatter)');
 
+
+
+global('overview-a','THB');ovOwner='overview-a';
+const oaKey='mmhvault_overview_display_currency_v265_overview-a';
+const oaGlobal=data.get(globalKey(ovOwner));
+assert.equal(ovAPI.overviewChoiceV265(),'GLOBAL');
+assert(ovAPI.saveOverviewChoiceV265('THB'));
+assert.equal(data.get(oaKey),'THB');
+assert.equal(data.get(globalKey(ovOwner)),oaGlobal);
+global(ovOwner,'CNY');assert.equal(ovAPI.overviewCurrencyV265(),'THB');
+assert(ovAPI.saveOverviewChoiceV265('USD'));assert.equal(ovAPI.money(10),'$10.00');
+ovOwner='overview-b';assert.equal(ovAPI.overviewChoiceV265(),'GLOBAL');assert.equal(ovAPI.money(10),'—');
+assert(!ovAPI.saveOverviewChoiceV265('ZZZ'));assert.equal(ovAPI.overviewCurrencyV265(),'MMK');
+ovOwner='overview-a';assert.equal(ovAPI.overviewCurrencyV265(),'USD');
+assert(ovAPI.saveOverviewChoiceV265('GLOBAL'));assert(!data.has(oaKey));assert.equal(ovAPI.money(10),'CNY 70');
+ovOwner='';assert(!ovAPI.saveOverviewChoiceV265('THB'));assert.equal(ovAPI.overviewChoiceV265(),'GLOBAL');
+assert(ovScript.includes('overviewChoiceV265(),overviewOwnerV265()'));
+assert(ovScript.includes("window.dispatchEvent(new CustomEvent('mmhvault:overview-display-currency-changed'))"));
+const overviewPickerStart=ovScript.indexOf('function overviewPickerHTMLV265(){'),overviewPickerEnd=ovScript.indexOf('function bindOverviewPickerV265(',overviewPickerStart);
+assert(overviewPickerStart>=0&&overviewPickerEnd>overviewPickerStart);
+const overviewMarkup=new Function('overviewCodesV265',ovScript.slice(overviewPickerStart,overviewPickerEnd)+';return overviewPickerHTMLV265()')(['USD','THB','MMK','CNY']);
+assert(overviewMarkup.includes('value="GLOBAL"'));assert(overviewMarkup.includes('pfDisplaySearchV265'));
+assert(overviewMarkup.includes('value="THB"'));assert(overviewMarkup.includes('ap-currency-list-v2'));
+console.log('PASS: independent Overview selection, explicit same-default, owner isolation, reset and picker template');
 
 const sigStart=app.indexOf('<script id="mmhvault-v150-financial-signals">'),sigEnd=app.indexOf('</script>',sigStart);
 assert(sigStart>=0&&sigEnd>sigStart);
