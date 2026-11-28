@@ -19,7 +19,7 @@ const browser=await (engine==='webkit'?webkit:chromium).launch({headless:true});
 try{
  const context=await browser.newContext({viewport:{width:1500,height:900}});
  const origin='https://mmh-settings-layout.invalid';
- await context.route('**/*',route=>route.request().url()===origin+'/'?route.fulfill({status:200,contentType:'text/html',body:html}):route.request().url()===origin+'/images/icon-192.png?v=pwa26-20261029'?route.fulfill({status:200,contentType:'image/png',body:readFileSync(new URL('../images/icon-192.png',import.meta.url))}):route.abort());
+ await context.route('**/*',route=>route.request().url()===origin+'/'?route.fulfill({status:200,contentType:'text/html',body:html}):route.request().url()===origin+'/images/mmhvault-v2-auth-mark.webp'?route.fulfill({status:200,contentType:'image/webp',body:readFileSync(new URL('../images/mmhvault-v2-auth-mark.webp',import.meta.url))}):route.abort());
  const page=await context.newPage();
  await page.goto(origin+'/');
  await page.addScriptTag({content:install});
@@ -66,9 +66,11 @@ try{
     assert.equal(await page.locator('#stPage_general .st-rows>.st-row').count(),3,label+' exactly three rows');
     assert.equal(await page.locator('#stFontNoteV265').evaluate(e=>e.parentElement.classList.contains('st-group')),true,label+' font note outside rows');
     const logo=page.locator('#stAppIconGuideV270'),guide=page.locator('#stInstallGuideV5');
-    assert.equal(await logo.locator('img').getAttribute('src'),'./images/icon-192.png?v=pwa26-20261029');
+    assert.equal(await logo.locator('img').getAttribute('src'),'./images/mmhvault-v2-auth-mark.webp');
     await logo.click();assert.equal(await guide.evaluate(e=>e.open),true,label+' opens guide directly');
     assert.equal(await page.locator('#stPage_general').isVisible(),true,label+' General remains active');
+    assert.equal(await guide.locator('#stInstallDeviceV5').isVisible(),false,label+' no device list in direct guide');
+    assert.equal(await guide.locator('.st-install-brand-v271').getAttribute('src'),'./images/mmhvault-v2-auth-mark.webp');
     assert.equal(await page.locator('#stPage_icon').isVisible(),false,label+' no legacy icon navigation');
     await page.locator('#stInstallCloseV265').click();await page.waitForFunction(()=>document.activeElement?.id==='stAppIconGuideV270');
     await page.evaluate(()=>{document.getElementById('stPage_general').hidden=true;document.getElementById('settings').classList.remove('st-in-subpage');document.getElementById('stSettingsHomeV3').hidden=false});
@@ -76,6 +78,20 @@ try{
    }
   }
  }
+ await page.evaluate(()=>{document.getElementById('stSettingsHomeV3').hidden=true;document.getElementById('settings').classList.add('st-in-subpage');document.getElementById('stPage_general').hidden=false;localStorage.setItem('mmhvault_language_v3363','en')});
+ const deviceCases=[['Mozilla iPhone Safari/605.1',1,'ios'],['Mozilla iPad Safari/605.1',5,'ipad'],['Mozilla Macintosh Safari/605.1',5,'ipad'],['Mozilla Macintosh Safari/605.1',0,'desktop-safari'],['Mozilla Windows Chrome/130.0 Safari/537.36',0,'desktop-chrome'],['Mozilla Windows Chrome/130.0 Safari/537.36 Edg/130.0',0,'desktop-edge'],['Mozilla Android Chrome/130.0 Safari/537.36',5,'android-chrome'],['Mozilla Android Firefox/130.0',5,'android-firefox']];
+ for(const [ua,touch,device] of deviceCases){
+  await page.evaluate(([ua,touch])=>{Object.defineProperty(navigator,'userAgent',{configurable:true,value:ua});Object.defineProperty(navigator,'maxTouchPoints',{configurable:true,value:touch})},[ua,touch]);
+  await page.locator('#stAppIconGuideV270').click();
+  const g=page.locator('#stInstallGuideV5');
+  assert.equal(await g.locator('#stInstallDeviceV5').inputValue(),device,'detected '+device);
+  assert.equal(await g.locator('#stInstallDeviceV5').isVisible(),false);
+  assert.equal(await g.locator('.st-detected-device-v271').count(),1);
+  if(device==='desktop-safari')assert.match(await g.locator('ol').innerText(),/Add to Dock/);
+  await g.locator('#stInstallCloseV265').click();await page.waitForFunction(()=>document.activeElement?.id==='stAppIconGuideV270');
+ }
+ console.log('PASS: V2.0.71 direct guide automatic device detection, '+deviceCases.length+' simulated UA cases');
+ await page.evaluate(()=>document.getElementById('stPage_general').hidden=true);
  await page.evaluate(()=>document.getElementById('stSettingsHomeV3').hidden=true);
  assert.equal(await page.locator('#stSettingsHomeV3').isVisible(),false,'detail navigation must keep overview hidden');
  console.log('PASS: V2.0.70 Settings overview and direct logo guide, '+cases+' '+engine+' cases, synthetic profile, duplicate entries hidden, compact grid and translations');
