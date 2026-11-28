@@ -21,7 +21,7 @@ jobs:
           node-version: '22'
       - run: node --check tests/personal-budget-v2.mjs && node --check tests/personal-planning-nav-v263.mjs && node --check tests/personal-goals-v263.mjs && node --check js/mmhvault-forecast-v1.js && node --check tests/personal-recurring-v264.mjs
       - run: node tests/personal-settings-currency-v265.mjs
-      - run: npm install --no-save --package-lock=false --ignore-scripts playwright@1.51.1
+      - run: npm install --no-save --package-lock=false --ignore-scripts playwright@1.51.1 html2canvas@1.4.1 jspdf@2.5.1
       - run: npx playwright install --with-deps chromium
       - run: node tests/personal-budget-v2.mjs
       - run: node tests/personal-planning-nav-v263.mjs
