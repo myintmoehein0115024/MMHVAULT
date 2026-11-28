@@ -78,7 +78,9 @@ try{
  console.log('PASS: font selector, computed family cascade including legacy account detail and workspace choice menu, language/owner memory, blocked storage, auth isolation and responsive preview (isolated Chromium; glyph availability not verified)');
  await context.close();
  {
-  // Render the exact checked-in resources, without regenerating or activating them in the app.
+  // Render the exact checked-in resources with the actual app approval marker.
+  const approvalMarker=app.slice(0,app.indexOf('</head>')).match(/<meta name="mmh-personal-font-bundle-v265" content="approved">/g);
+  assert.equal(approvalMarker?.length,1,'exactly one actual app approval marker');
   const assetRoot=new URL('../assets/personal-fonts-v265/',import.meta.url);
   const manifest=JSON.parse(readFileSync(new URL('bundle.json',assetRoot),'utf8'));
   const allowed=new Set(manifest.candidates.flatMap(c=>c.files.map(f=>c.candidate+'/'+f.file)));
@@ -92,7 +94,7 @@ try{
    await allCtx.route('**/*',route=>{
     const url=new URL(route.request().url());
     if(url.origin!==combinedOrigin)return route.abort();
-    if(url.pathname==='/')return route.fulfill({status:200,contentType:'text/html',body:'<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="mmh-personal-font-bundle-v265" content="approved"></head><body class="mmh-workspace-active"><main id="settings" class="page active"><div id="rows"></div><p id="sample"></p></main></body></html>'});
+    if(url.pathname==='/')return route.fulfill({status:200,contentType:'text/html',body:'<!doctype html><html lang="zh-CN"><head><meta charset="utf-8">'+approvalMarker[0]+'</head><body class="mmh-workspace-active"><main id="settings" class="page active"><div id="rows"></div><p id="sample"></p></main></body></html>'});
     if(url.pathname==='/assets/personal-fonts-v265/fonts.css'){stylesheetRequests.push(url.pathname);return route.fulfill({status:200,contentType:'text/css',body:combinedCSS});}
     const match=/^\/assets\/personal-fonts-v265\/([a-z]+)\/(font|part-\d+)\.woff2$/.exec(url.pathname);
     const key=match&&match[1]+'/'+match[2]+'.woff2';
@@ -109,6 +111,9 @@ try{
    const settle=async()=>{await page.waitForFunction(()=>{const link=document.getElementById('mmhPersonalFontBundleV265');return !link||!!link.sheet});await page.evaluate(async()=>{document.querySelector('#sample').getBoundingClientRect();await document.fonts.ready;await new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r)))})};
    const setText=async locale=>{await page.evaluate(l=>fontFixture.lang(l),locale);await page.locator('#sample').evaluate((el,s)=>{el.textContent=s},samples[locale]);await settle()};
    await setText('zh-CN');assert.equal(await picker.inputValue(),'system');assert.deepEqual(allRequests,[]);assert.deepEqual(stylesheetRequests,[]);
+   assert.match(await page.locator('#stFontNoteV265').textContent(),/内置字体按需加载/);
+   await setText('my');assert.match(await page.locator('#stFontNoteV265').textContent(),/ပါဝင်သောဖောင့်များ/);
+   await setText('zh-CN');
    await page.evaluate(()=>document.body.classList.add('auth-page-active'));await picker.selectOption('modern');await settle();assert.deepEqual(stylesheetRequests,[],'auth state must not request bundle CSS');
    await picker.selectOption('system');await page.evaluate(()=>document.body.classList.remove('auth-page-active'));await settle();assert.deepEqual(stylesheetRequests,[]);
    await page.evaluate(()=>document.querySelector('meta[name="mmh-personal-font-bundle-v265"]').remove());await picker.selectOption('modern');await settle();assert.deepEqual(stylesheetRequests,[],'missing approval marker must not request bundle CSS');

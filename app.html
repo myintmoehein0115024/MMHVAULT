@@ -29232,8 +29232,12 @@ const fontCopyV265={
  zh:['字体样式','系统默认','现代','优雅','简约','数字','柔和','醒目','账户余额 · 收入 · 支出','每种语言在此设备独立保存。字体效果取决于设备已安装字体。','无法保存字体设置。'],
  my:['ဖောင့်ပုံစံ','စနစ်မူလ','ခေတ်မီ','တင့်တယ်','ရိုးရှင်း','ဒစ်ဂျစ်တယ်','နူးညံ့','ထင်ရှား','လက်ကျန်ငွေ · ဝင်ငွေ · ထွက်ငွေ','ဘာသာစကားတစ်ခုစီအတွက် ဤစက်တွင် သီးသန့်သိမ်းဆည်းသည်။ ရရှိနိုင်သောဖောင့်သည် စက်ပေါ်မူတည်သည်။','ဖောင့်ဆက်တင်ကို မသိမ်းဆည်းနိုင်ပါ။']
 };
+const fontBundleCopyV265=Object.freeze({
+ zh:'每种语言在此设备独立保存。内置字体按需加载；其他样式使用设备可用字体。',
+ my:'ဘာသာစကားတစ်ခုစီအတွက် ဤစက်တွင် သီးသန့်သိမ်းဆည်းသည်။ ပါဝင်သောဖောင့်များကို ရွေးချယ်မှသာ ရယူပြီး အခြားပုံစံများအတွက် စက်ရှိဖောင့်များကို အသုံးပြုသည်။'
+});
 function activeFontLanguageV265(){return fontLanguageV265(document.documentElement.lang||lsGet('mmhvault_language_v3363'))}
-// Resource activation is intentionally absent until a reviewed bundle is installed.
+// Resource loading requires the static approval marker and a signed-in Personal workspace.
 function fontBundleEnabledV265(){return !!document.querySelector?.('meta[name="mmh-personal-font-bundle-v265"][content="approved"]')}
 function ensureFontBundleV265(lang,choice,key){
  if(!key||choice==='system'||!fontStackV265(lang,choice).includes('"MMH Personal ')||!fontBundleEnabledV265())return;
@@ -29249,7 +29253,7 @@ function applyFontV265(){const lang=activeFontLanguageV265(),key=fontKeyV265(pre
  const select=$('stPref_fontV265'),copy=fontCopyV265[lang];if(!select)return;
  $('stFontLabelV265').textContent=copy[0];for(let i=0;i<fontStylesV265.length;i++)select.options[i].textContent=copy[i+1];select.value=choice;select.disabled=!key;
  $('stFontPreviewV265').textContent=copy[8];
- $('stFontNoteV265').textContent=copy[9];$('stFontStatusV265').textContent='';
+ $('stFontNoteV265').textContent=fontBundleEnabledV265()&&fontBundleCopyV265[lang]?fontBundleCopyV265[lang]:copy[9];$('stFontStatusV265').textContent='';
 }
 function addFontV265(r){const holder=row('Aa','Font style','stPref_fontV265',fontStylesV265.map((v,i)=>[v,fontCopyV265.en[i+1]]),'system');holder.id='stFontRowV265';holder.setAttribute('data-mmh-font-copy-v265','');holder.children[1].id='stFontLabelV265';r.append(holder);
  const preview=document.createElement('div');preview.id='stFontPreviewV265';preview.setAttribute('data-mmh-font-copy-v265','');preview.className='st-font-preview-v265';const note=document.createElement('p');note.id='stFontNoteV265';note.setAttribute('data-mmh-font-copy-v265','');note.className='st-note';const status=document.createElement('p');status.id='stFontStatusV265';status.setAttribute('data-mmh-font-copy-v265','');status.className='st-note';status.setAttribute('role','status');r.append(preview,note,status);
