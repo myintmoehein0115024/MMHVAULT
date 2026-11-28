@@ -83,7 +83,7 @@ try{
   }
  }
  await page.evaluate(()=>{document.getElementById('stSettingsHomeV3').hidden=true;document.getElementById('settings').classList.add('st-in-subpage');document.getElementById('stPage_general').hidden=false;localStorage.setItem('mmhvault_language_v3363','en')});
- const deviceCases=[['Mozilla iPhone Safari/605.1',1,'ios'],['Mozilla iPad Safari/605.1',5,'ipad'],['Mozilla Macintosh Safari/605.1',5,'ipad'],['Mozilla Macintosh Safari/605.1',0,'desktop-safari'],['Mozilla Windows Chrome/130.0 Safari/537.36',0,'desktop-chrome'],['Mozilla Windows Chrome/130.0 Safari/537.36 Edg/130.0',0,'desktop-edge'],['Mozilla Android Chrome/130.0 Safari/537.36',5,'android-chrome'],['Mozilla Android Firefox/130.0',5,'android-firefox']];
+ const deviceCases=[["Mozilla iPhone Safari/605.1",1,"ios"],["Mozilla iPhone CriOS/130 Safari/605.1",1,"ios-other"],["Mozilla iPad Safari/605.1",5,"ipad"],["Mozilla Macintosh Safari/605.1",5,"ipad"],["Mozilla iPad CriOS/130 Safari/605.1",5,"ipad-other"],["Mozilla Macintosh Safari/605.1",0,"desktop-safari"],["Mozilla Windows Chrome/130.0 Safari/537.36",0,"desktop-chrome"],["Mozilla Windows Chrome/130.0 Safari/537.36 Edg/130.0",0,"desktop-edge"],["Mozilla Windows Firefox/130.0",0,"desktop"],["Mozilla Android Mobile Chrome/130.0 Safari/537.36",5,"android-chrome"],["Mozilla Android Mobile Firefox/130.0",5,"android-firefox"],["Mozilla Android Mobile SamsungBrowser/26 Chrome/130",5,"android-other"],["Mozilla Android Chrome/130.0 Safari/537.36",5,"android-tablet-chrome"],["Mozilla Android Tablet Firefox/130.0",5,"android-tablet-firefox"],["Mozilla Android Tablet SamsungBrowser/26 Chrome/130",5,"android-tablet-other"],["Mozilla Tablet Firefox/130",5,"tablet-other"]];
  for(const [ua,touch,device] of deviceCases){
   await page.evaluate(([ua,touch])=>{Object.defineProperty(navigator,'userAgent',{configurable:true,value:ua});Object.defineProperty(navigator,'maxTouchPoints',{configurable:true,value:touch})},[ua,touch]);
   await page.locator('#stAppIconGuideV270').click();
@@ -91,11 +91,13 @@ try{
   assert.equal(await g.locator('#stInstallDeviceV5').inputValue(),device,'detected '+device);
   assert.equal(await g.locator('#stInstallDeviceV5').isVisible(),false);
   assert.equal(await g.locator('.st-detected-device-v271').count(),1);
-  const art=({ios:'ios',ipad:'ipad','android-chrome':'android-chrome','desktop-chrome':'desktop','desktop-edge':'desktop'})[device];
+  const art=({"ios":"ios","ios-other":"ios","ipad":"ipad","ipad-other":"ipad","android-chrome":"android-chrome","android-firefox":"android-chrome","android-other":"android-chrome","android-tablet-chrome":"ipad","android-tablet-firefox":"ipad","android-tablet-other":"ipad","tablet-other":"ipad","desktop":"desktop","desktop-chrome":"desktop","desktop-edge":"desktop","desktop-safari":"desktop"})[device];
   const picture=g.locator('.st-install-art-image-v271');
   assert.equal(await picture.count(),art?1:0,'only device-appropriate artwork');
   if(art){assert.equal(await picture.getAttribute('src'),'./images/mmhvault-install-'+art+'-v271.webp');await picture.evaluate(img=>img.decode())}
   if(device==='desktop-safari')assert.match(await g.locator('ol').innerText(),/Add to Dock/);
+  if(device==='android-tablet-firefox'||device==='android-firefox')assert.match(await g.locator('ol').innerText(),/Choose Install or Add to Home screen/);
+  if(device.startsWith('android-tablet-'))assert.doesNotMatch(await g.locator('ol').innerText(),/Share icon|Safari/);
   await g.locator('#stInstallCloseV265').click();await page.waitForFunction(()=>document.activeElement?.id==='stAppIconGuideV270');
  }
  console.log('PASS: V2.0.71 direct guide automatic device detection, '+deviceCases.length+' simulated UA cases');
