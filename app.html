@@ -29264,6 +29264,8 @@ html body.mmh-workspace-active:not(.auth-page-active)[data-mmh-personal-font-v26
 html body.mmh-workspace-active:not(.auth-page-active)[data-mmh-personal-font-v265] :is(#bottomNav#bottomNav#bottomNav,#moreNavMenu#moreNavMenu#moreNavMenu){--rail-font:var(--mmh-personal-font-v265)!important}
 html body.mmh-workspace-active:not(.auth-page-active)[data-mmh-personal-font-v265] #mmhNotifyPopoverV560{--np-font:var(--mmh-personal-font-v265)!important}
 html body.mmh-workspace-active:not(.auth-page-active)[data-mmh-personal-font-v265] :is(.page,#header,#bottomNav,#moreNavMenu,dialog) :is(h1,h2,h3,h4,p,label,th,td,input:not([type=file]),select,option,textarea,.title,.value,.kpi,.metric,.page-title,.nav-title,.sub,.meta,.small,.pill,.btn):not(.icon):not([aria-hidden=true]){font-family:var(--mmh-personal-font-v265)!important}
+/* Personal workspace choice menus are attached to body, outside page containers. */
+html body.mmh-workspace-active:not(.auth-page-active)[data-mmh-personal-font-v265] .wv-choice-menu-v2{font-family:var(--mmh-personal-font-v265)!important}
 /* Account detail legacy rule hardcodes system-ui; override only while a Personal font is selected. */
 html body.mmh-workspace-active:not(.auth-page-active)[data-mmh-personal-font-v265] #mmhVaultDialogV449#mmhVaultDialogV449 .mmh-account-detail-v148 :is(.mmh-tx-detail-amount-v800,.mmh-tx-detail-hero-v800 h2,.mmh-account-balance-card-v149 b){font-family:var(--mmh-personal-font-v265)!important}
 #settings #stFontRowV265 select{min-width:0;max-width:100%;min-height:44px}
