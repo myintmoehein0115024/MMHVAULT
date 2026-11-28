@@ -33,12 +33,20 @@ assert.equal(copy('Sample user',label,'my'),null);
 assert.equal(copy('USD',label,'zh'),null);
 assert.ok(app.includes('const desired=personalSettingsCopyV268(rec.base,parent,lang)??('),'helper is wired into existing language-switch state');
 const ids=['profile','general','security','icon','data'];
+// Mirror the actual Settings register() movement of the Data & backup panel.
+// Original data handlers are never invoked; fixture blocks network.
+const dataStart="<div class=\"settings-panel-v371\" id=\"settingsPanelDataV371\" role=\"tabpanel\" style=\"display:none\">";
+const dataEnd="</section>\n<section class=\"page\" id=\"cashflow-analyze\"";
+const dataIndex=app.indexOf(dataStart),dataLimit=app.indexOf(dataEnd,dataIndex);
+assert.ok(dataIndex>=0&&dataLimit>dataIndex&&app.split(dataStart).length===2,'unique actual data panel');
+const actualData=app.slice(dataIndex,dataLimit).replace(dataStart,'<div id="settingsPanelDataV371" role="tabpanel" style="display:block">');
+for(const id of ['restoreConfirmV383','excelImportBtn','backupFile','mmhDataHealthV191'])assert.ok(actualData.includes(id),'actual data control '+id);
 const content={
  profile:'<form id="mmhProfileFormV1" class="mmh-profile-edit-v1"><label class="mmh-profile-name-v1">Display name<input value="Sample user"></label><div class="mmh-profile-photo-v1"><button type="button" class="mmh-photo-trigger-v1">Change photo</button><input type="file" hidden></div><button type="button" id="mmhProfileSaveV1" class="btn primary">Save changes</button></form><div class="panel" id="mmhBirthdaySettingsV34215"><div class="toolbar"><h2>Birthday</h2></div><div class="mmh-birthday-grid-v34216"><input id="mmhBirthDateInputV34215" type="date"><div class="mmh-birthday-preview-v34216"><div><b>—</b></div></div></div></div>',
  general:'<div class="st-group"><div class="st-rows"><label class="st-row"><span class="st-icon">＄</span><span>Display currency / 默认显示货币 / ငွေကြေး</span><select><option>USD</option><option>THB</option></select></label><label class="st-row"><span class="st-icon">Aa</span><span>Font style</span><select><option>System</option></select></label></div></div>',
  security:'<div><div class="panel account-security-v379"><div class="account-security-grid-v379"><div class="account-security-card-v379" id="mmhA783SecurityCenter"><h3>Account settings</h3><div class="mmh-a783-section"><div class="mmh-a783-title">Account</div></div><button class="btn" disabled>Unavailable</button><div hidden>Hidden fixture</div></div><div class="account-security-card-v379"><div class="security-password-form-v379"><label>Password<input type="password"></label></div></div><div class="account-security-card-v379" id="mmhEmailResetCardV952"><div class="mmh-email-reset-destination-v952">Sample email</div></div></div></div></div>',
  icon:'<div><div class="panel"><div class="pwa-row"><div>MMHVAULT</div></div><button class="btn primary">Add to home screen</button></div></div>',
- data:'<div><div class="panel"><div class="data-center-grid-v380"><div class="data-center-stat-v380"><div class="label">Transactions</div><div class="value">0</div></div><div class="data-center-stat-v380"><div class="label">Last backup</div><div class="value">Never</div></div></div><button class="btn">Export</button></div></div>'
+ data:'<div>'+actualData+'</div>'
 };
 const pages=ids.map(id=>'<section class="st-page" id="stPage_'+id+'" hidden><div class="st-page-head"><button class="st-back">Back</button><h2>Settings</h2></div>'+content[id]+'</section>').join('');
 const html='<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">'+css+'</head><body class="mmh-workspace-active"><main class="wrap"><section id="settings" class="page active"><div class="mmh-pf-kicker-v510">PRIVATE FINANCE CONTROL</div><div id="stSettingsHomeV3" class="st-home">Settings home</div>'+pages+'</section></main></body></html>';
