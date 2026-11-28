@@ -301,15 +301,14 @@ try{
     assert.deepEqual(await board.locator('tbody tr').evaluateAll(rs=>rs.slice(0,21).map(r=>r.dataset.fxCode)),['USD','THB','CNY','EUR','SGD','MYR','JPY','GBP','KRW','AED','TWD','AUD','NZD','CAD','HKD','INR','MOP','PHP','KHR','VND','LAK']);
     assert.ok((await board.locator('tbody td').allTextContents()).every(x=>x==='—'));
     const fits=await board.evaluate(e=>{const r=e.getBoundingClientRect();return r.left>=-1&&r.right<=innerWidth+1});assert.ok(fits,JSON.stringify({width,light,lang}));
-    assert.equal(await ticker.locator('button').count(),1);assert.equal(await ticker.locator('button.mv274-convert').count(),1);
+    assert.equal(await ticker.locator('button').count(),0);assert.equal(await ticker.locator('.mv275-ticker-head').count(),0);assert.equal(await panel.locator('.mv277-toolbar .mv274-convert').count(),1);
     assert.equal(await ticker.locator('.mv275-track').evaluate(e=>getComputedStyle(e).animationPlayState),'running');
-    const base=board.locator('.mv276-base');assert.equal(await base.inputValue(),'GLOBAL');assert.equal(await board.getAttribute('data-fx-base'),'MMK');
-    assert.ok(await base.locator('option[value=KPW]').count());assert.ok(await base.locator('option[value=THB]').count());
-    await base.selectOption('THB');assert.equal(await board.getAttribute('data-fx-base'),'THB');assert.equal(await board.locator('tr[data-fx-code=THB]').count(),0);assert.equal(await board.locator('tr[data-fx-code=MMK]').count(),1);
-    await page.evaluate(()=>{localStorage.setItem('mmhvault_settings_display_v2_fixture-market-a',JSON.stringify({currency:'JPY'}));dispatchEvent(new Event('mmhvault:data-loaded'))});assert.equal(await board.getAttribute('data-fx-base'),'THB');assert.equal(await base.inputValue(),'THB');
-    await page.evaluate(()=>{currentSessionUser={id:'fixture-market-b'};localStorage.setItem('mmhvault_settings_display_v2_fixture-market-b',JSON.stringify({currency:'SGD'}));dispatchEvent(new Event('mmhvault:config-owner-changed'))});assert.equal(await board.getAttribute('data-fx-base'),'SGD');assert.equal(await base.inputValue(),'GLOBAL');
-    await page.evaluate(()=>{currentSessionUser={id:'fixture-market-a'};dispatchEvent(new Event('mmhvault:config-owner-changed'))});assert.equal(await base.inputValue(),'THB');
-    await base.selectOption('GLOBAL');assert.equal(await board.getAttribute('data-fx-base'),'JPY');
+    const base=panel.locator('.mv277-base-trigger'),picker=panel.locator('.mv277-picker');assert.equal(await board.getAttribute('data-fx-choice'),'GLOBAL');assert.equal(await board.getAttribute('data-fx-base'),'MMK');
+    assert.equal(await panel.locator('.mv2-detail .mv2-search').isVisible(),false);await base.click();await picker.waitFor({state:'visible'});assert.equal(await picker.locator('[data-base-choice=KPW]').count(),1);await picker.locator('input').fill('THB');assert.equal(await picker.locator('[data-base-choice=THB]').count(),1);await picker.locator('[data-base-choice=THB]').click();await picker.waitFor({state:'hidden'});assert.equal(await board.getAttribute('data-fx-base'),'THB');assert.equal(await board.locator('tr[data-fx-code=THB]').count(),0);assert.equal(await board.locator('tr[data-fx-code=MMK]').count(),1);
+    await page.evaluate(()=>{localStorage.setItem('mmhvault_settings_display_v2_fixture-market-a',JSON.stringify({currency:'JPY'}));dispatchEvent(new Event('mmhvault:data-loaded'))});assert.equal(await board.getAttribute('data-fx-base'),'THB');assert.equal(await board.getAttribute('data-fx-choice'),'THB');
+    await page.evaluate(()=>{currentSessionUser={id:'fixture-market-b'};localStorage.setItem('mmhvault_settings_display_v2_fixture-market-b',JSON.stringify({currency:'SGD'}));dispatchEvent(new Event('mmhvault:config-owner-changed'))});assert.equal(await board.getAttribute('data-fx-base'),'SGD');assert.equal(await board.getAttribute('data-fx-choice'),'GLOBAL');
+    await page.evaluate(()=>{currentSessionUser={id:'fixture-market-a'};dispatchEvent(new Event('mmhvault:config-owner-changed'))});assert.equal(await board.getAttribute('data-fx-choice'),'THB');
+    await base.click();await picker.waitFor({state:'visible'});await picker.locator('[data-base-choice=GLOBAL]').click();await picker.waitFor({state:'hidden'});assert.equal(await board.getAttribute('data-fx-base'),'JPY');
     await page.evaluate(()=>{localStorage.setItem('mmhvault_settings_display_v2_fixture-market-a',JSON.stringify({currency:'MMK'}));dispatchEvent(new Event('mmhvault:data-loaded'))});assert.equal(await board.getAttribute('data-fx-base'),'MMK');
     const trend=board.locator('[data-fx-trend=USD]');assert.equal(await trend.locator('svg').count(),1);await trend.click();assert.ok(await dialog.isVisible());
     assert.equal(await dialog.locator('svg,canvas').count(),0);
@@ -320,7 +319,7 @@ try{
     await board.locator('[data-fx-trend=THB]').click();await dialog.waitFor({state:'visible'});await page.keyboard.press('Escape');await dialog.waitFor({state:'hidden'});
     await page.waitForFunction(()=>document.activeElement?.dataset.fxTrend==='THB');
     await board.locator('[data-fx-trend=CNY]').click();await dialog.waitFor({state:'visible'});await page.evaluate(()=>dispatchEvent(new Event('mmhvault:config-owner-changed')));await dialog.waitFor({state:'hidden'});
-    const search=panel.locator('.mv2-detail .mv2-search');await search.fill('THB');assert.deepEqual(await board.locator('tbody tr').evaluateAll(rs=>rs.map(r=>r.dataset.fxCode)),['THB']);await search.fill('');
+    const search=panel.locator('.mv2-detail .mv2-search');await panel.locator('.mv277-toolbar .mv277-icon').click();await search.waitFor({state:'visible'});await search.fill('THB');assert.deepEqual(await board.locator('tbody tr').evaluateAll(rs=>rs.map(r=>r.dataset.fxCode)),['THB']);await search.press('Escape');assert.equal(await search.isVisible(),false);await base.click();await picker.waitFor({state:'visible'});await page.keyboard.press('Escape');await picker.waitFor({state:'hidden'});
     continue;
    }
    const cards=kind==='all'?panel.locator(':scope > .mv2-grid'):panel.locator('.mv274-category-cards');
@@ -345,5 +344,5 @@ try{
   assert.ok(await panel.locator('.mv2-history').isVisible());
   mountedCases++;
  }
- console.log('PASS: V2.0.76 mounted Market, ordered board, continuous ticker, Settings base currency, owner-scoped overrides and reset, search, history dialog, responsive sections and converter; '+mountedCases+' '+engine+' isolated cases');
+ console.log('PASS: V2.0.77 mounted Market, compact ticker, inline toolbar, searchable V2 currency dialog, owner-scoped overrides and reset, collapsible search, history dialog, responsive sections and converter; '+mountedCases+' '+engine+' isolated cases');
 }finally{await browser.close()}
