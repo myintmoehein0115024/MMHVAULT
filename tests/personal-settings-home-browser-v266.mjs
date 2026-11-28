@@ -166,4 +166,108 @@ try{
   }
  }
  console.log('PASS: V2.0.72 actual centered identity, avatar routing hook, searchable shared currency menu, font menu and existing change event bridge; '+comboCases+' '+engine+' cases (synthetic profile/preferences)');
+ // Actual welcome markup, scoped CSS and existing handlers, isolated from authenticated data.
+ const welcome=app.match(/<div aria-hidden="true" class="getting-started-backdrop" id="gettingStarted">[\s\S]*?(?=<main class="wrap">)/)?.[0];
+ const welcomeHandlers=app.match(/let gettingStartedStep=0;[\s\S]*?window\.myFinanceGsBack=gsBack;/)?.[0];
+ assert.ok(welcome&&welcomeHandlers&&app.includes('id="mmh-personal-welcome-v273"'));
+ const safeArea=readFileSync(new URL('../css/mmhvault-dialog-safe-area-p959.css',import.meta.url),'utf8');
+ await page.setContent('<!doctype html><html lang="en"><head>'+css+'<style>'+safeArea+'</style>'+app.match(/<style id="mmh-personal-welcome-v273">[\s\S]*?<\/style>/)[0]+'</head><body class="mmh-workspace-active">'+welcome+'</body></html>');
+ await page.addScriptTag({content:'const $=id=>document.getElementById(id);let currentSessionUser={id:"fixture-welcome"};'+welcomeHandlers+'window.fixtureWelcomeOpen=()=>openGettingStarted(currentSessionUser);'});
+ const welcomeLogo=readFileSync(new URL('../images/mmhvault-v2-auth-mark.webp',import.meta.url));
+ assert.equal(await page.locator('#gettingStarted .gs-logo-img').getAttribute('src'),'images/mmhvault-v2-auth-mark.webp');
+ await page.locator('#gettingStarted .gs-logo-img').evaluate(async(e,base64)=>{e.src='data:image/webp;base64,'+base64;await e.decode()},welcomeLogo.toString('base64'));
+ let welcomeCases=0;
+ for(const [width,height] of [[320,480],[390,844],[768,500],[1440,900]])for(const light of [false,true])for(const lang of ['en','zh','my']){
+  await page.setViewportSize({width,height});
+  await page.evaluate(([light,lang])=>{document.body.classList.toggle('light',light);document.documentElement.lang=lang;localStorage.setItem('mmhvault_language_v3363',lang);localStorage.removeItem('myfinance_getting_started_done_fixture-welcome');window.fixtureWelcomeOpen()},[light,lang]);
+  const root=page.locator('#gettingStarted'),card=root.locator('.getting-started-card');
+  const words={en:['Welcome to MMHVAULT','Skip','Next','Get Started'],zh:['欢迎使用 MMHVAULT','跳过','下一步','开始使用'],my:['MMHVAULT မှ ကြိုဆိုပါသည်','ကျော်ရန်','ရှေ့သို့','စတင်ရန်']}[lang];
+  const skip=root.locator('.gs-actions .right button:not(.primary)');
+  assert.equal(await skip.count(),1);assert.equal(await skip.innerText(),words[1]);
+  assert.equal(await root.locator('#gsTitle').innerText(),words[0]);
+  assert.ok(await root.locator('.gs-logo-img').evaluate(e=>e.complete&&e.naturalWidth>0&&e.naturalHeight>0));
+  assert.equal(await root.locator('[data-gs-copy-v273]').count(),18);
+  for(let step=0;step<3;step++){
+   assert.equal(await root.locator('.gs-step.active').getAttribute('data-gs-step'),String(step));
+   assert.equal(await root.locator('.gs-dot.active').count(),step+1);
+   assert.equal(await root.locator('#gsNextBtn').innerText(),words[step===2?3:2]);
+   const checkLayout=await root.locator('.gs-step.active .gs-check [data-gs-copy-v273]').evaluateAll(es=>es.every(e=>e.clientWidth>40&&e.scrollWidth<=e.clientWidth+1&&getComputedStyle(e).flexGrow==='1'));
+   assert.ok(checkLayout,JSON.stringify({width,light,lang,step}));
+   const geometry=await card.evaluate(e=>{const r=e.getBoundingClientRect();return {fits:r.left>=0&&r.right<=innerWidth+1&&r.top>=0&&r.bottom<=innerHeight+1,bg:getComputedStyle(e).backgroundColor}});
+   assert.ok(geometry.fits,JSON.stringify({width,height,light,step,geometry}));assert.equal(geometry.bg,light?'rgb(255, 255, 255)':'rgb(17, 17, 18)');
+   if(step===1){await root.locator('#gsBackBtn').click();assert.equal(await root.locator('.gs-step.active').getAttribute('data-gs-step'),'0');await root.locator('#gsNextBtn').click();}
+   await root.locator('#gsNextBtn').click();
+  }
+  assert.equal(await root.isVisible(),false);
+  await page.evaluate(()=>window.fixtureWelcomeOpen());assert.equal(await root.isVisible(),false);
+  await page.evaluate(()=>{localStorage.removeItem('myfinance_getting_started_done_fixture-welcome');window.fixtureWelcomeOpen()});
+  await skip.click();assert.equal(await root.isVisible(),false);
+  welcomeCases++;
+ }
+ console.log('PASS: V2.0.73 welcome actual markup/CSS and existing step handlers; '+welcomeCases+' '+engine+' cases (synthetic owner, no production)');
+
+ // Market UI only: actual new markup, style and script; existing FX controls are isolated fixture nodes.
+ const marketMarkup=app.match(/<div id="mmhMarketShellV273"[\s\S]*?(?=<div class="ex-template-head">)/)?.[0];
+ const marketStyle=app.match(/<style id="mmh-personal-market-v273">[\s\S]*?<\/style>/)?.[0];
+ const marketScript=app.match(/<script id="mmh-personal-market-v273-js">([\s\S]*?)<\/script>/)?.[1];
+ assert.ok(marketMarkup&&marketStyle&&marketScript);
+ assert.doesNotMatch(marketScript,/\b(?:fetch|XMLHttpRequest|setInterval|supabase)\b/);
+ await page.setContent('<!doctype html><html lang="en"><head>'+css+marketStyle+'</head><body class="mmh-workspace-active"><section id="exchange" class="page active">'+marketMarkup+'<div class="ex-template-head">Legacy</div><div id="exCurrencyCardsV7">Existing rates</div><div id="mmhExchangeV2StagingRoot" hidden>Existing V2</div><div class="panel exchange-converter-panel">Converter</div><div class="panel ex-rate-editor">Editor</div><section id="exAsiaSummaryV130">Asia</section><section id="exAsiaV10" hidden>Asia detail</section></section></body></html>');
+ // Mount the actual module's style after the shell, matching runtime injection order.
+ const fxModule=readFileSync(new URL('../exchange-v2/exchange-v2-ui-v1.mjs',import.meta.url),'utf8');
+ const fxCss=fxModule.match(/const CSS=`([\s\S]*?)`;/)?.[1];assert.ok(fxCss);
+ await page.addStyleTag({content:fxCss});
+ await page.addScriptTag({content:marketScript});
+ let marketCases=0;
+ for(const width of [320,390,768,1440])for(const light of [false,true])for(const lang of ['en','zh','my']){
+  await page.setViewportSize({width,height:800});
+  await page.evaluate(([light,lang])=>{document.body.classList.toggle('light',light);document.documentElement.lang=lang;localStorage.setItem('mmhvault_language_v3363',lang);dispatchEvent(new Event('mmhvault-language-change'))},[light,lang]);
+  const root=page.locator('#exchange'),shell=root.locator('#mmhMarketShellV273'),nav=shell.locator('nav');
+  const expected={en:'Market',zh:'市场',my:'ဈေးကွက်'}[lang];
+  assert.equal(await shell.locator('h1').innerText(),expected);
+  for(const view of ['overview','exchange','gold','crypto','oil']){
+   await nav.locator('[data-mv-view="'+view+'"]').click();
+   assert.equal(await root.getAttribute('data-mv273'),view);
+   assert.equal(await nav.locator('[aria-pressed=true]').count(),1);
+   assert.equal(await root.locator('.exchange-converter-panel').isVisible(),view==='exchange');
+   assert.equal(await root.locator('.ex-rate-editor').isVisible(),view==='exchange');
+   const fx=root.locator('#mmhExchangeV2StagingRoot');
+   assert.equal(await fx.getAttribute('hidden'),'');
+   // Existing production loader can explicitly force its mounted root visible.
+   await fx.evaluate(e=>{e.hidden=false;e.dataset.exchangeV2Mounted='yes';e.dataset.unifiedAccounting='yes';e.classList.add('fxv2')});
+   assert.equal(await fx.isVisible(),view==='exchange');
+   await fx.evaluate(e=>{e.hidden=true;delete e.dataset.exchangeV2Mounted;delete e.dataset.unifiedAccounting;e.classList.remove('fxv2')});
+   for(const name of ['overview','gold','crypto','oil'])assert.equal(await shell.locator('[data-mv-panel="'+name+'"]').isVisible(),view===name);
+   const dims=await shell.evaluate(e=>{const r=e.getBoundingClientRect();return {left:r.left,right:r.right,width:innerWidth,overflow:[...e.querySelectorAll('.mv273-card')].filter(n=>n.getClientRects().length).some(n=>n.scrollWidth>n.clientWidth+1)}});
+   assert.ok(dims.left>=-1&&dims.right<=dims.width+1&&!dims.overflow,JSON.stringify({width,light,lang,view,dims}));
+  }
+  await nav.locator('[data-mv-view="overview"]').click();
+  await shell.locator('[data-mv-panel="overview"] button[data-mv-view="gold"]').click();
+  assert.equal(await root.getAttribute('data-mv273'),'gold');
+  assert.equal(await shell.locator('[data-mv-panel="gold"] .mv273-quote b').allTextContents().then(xs=>xs.every(x=>x==='—')),true);
+  // Actual native detail dialogs; rotate coverage across all nine reference instruments.
+  const detail=shell.locator('#mmhMarketDetailV273');
+  const detailCopy={en:['Price history','Historical data is not available in this view.','Close'],zh:['历史价格','此界面暂未接入历史行情。','关闭'],my:['ဈေးနှုန်းမှတ်တမ်း','ဤမြင်ကွင်းတွင် သမိုင်းဝင်ဈေးနှုန်းဒေတာ မရရှိသေးပါ။','ပိတ်ရန်']}[lang];
+  for(const [view,keys] of [['gold',['xau','localgold']],['crypto',['btc','eth','sol']],['oil',['ron92','ron95','diesel','edible']]]){
+   await nav.locator('[data-mv-view="'+view+'"]').click();
+   const key=keys[marketCases%keys.length],trigger=shell.locator('[data-mv-detail="'+key+'"]');
+   await trigger.click();await detail.waitFor({state:'visible'});
+   assert.equal(await detail.evaluate(e=>e.open),true);
+   assert.equal(await detail.locator('[data-mv-copy="history"]').innerText(),detailCopy[0]);
+   assert.equal(await detail.locator('[data-mv-copy="nohistory"]').innerText(),detailCopy[1]);
+   assert.equal(await detail.locator('.mv273-detail-current strong').innerText(),'—');
+   assert.equal(await detail.locator('.mv273-detail-head button').getAttribute('aria-label'),detailCopy[2]);
+   assert.ok((await detail.locator('h2').innerText()).length>0);
+   assert.equal(await detail.locator('canvas,svg').count(),0);
+   const bounds=await detail.evaluate(e=>{const r=e.getBoundingClientRect();return {fits:r.left>=-1&&r.right<=innerWidth+1&&r.top>=-1&&r.bottom<=innerHeight+1,overflow:e.scrollWidth>e.clientWidth+1}});
+   assert.ok(bounds.fits&&!bounds.overflow,JSON.stringify({width,lang,view,bounds}));
+   if(view==='gold')await page.keyboard.press('Escape');
+   else if(view==='crypto')await detail.locator('.mv273-detail-foot button').click();
+   else await page.evaluate(()=>window.dispatchEvent(new Event('mmhvault:config-owner-changed')));
+   await detail.waitFor({state:'hidden'});
+   await page.waitForFunction(key=>document.activeElement?.dataset.mvDetail===key,key);
+  }
+  marketCases++;
+ }
+ console.log('PASS: V2.0.73 Market layout, five views, three languages, preserved FX fixture, native reference details and no synthetic prices; '+marketCases+' '+engine+' cases (isolated DOM)');
 }finally{await browser.close()}
