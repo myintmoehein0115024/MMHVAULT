@@ -519,7 +519,7 @@ console.log('PASS: 53-code shared display registry, additional FX, missing rates
  assert(annual.includes('rateText=F(0)'));assert(annual.includes('rate=fx(c)'));
  assert(annual.includes("'mmhvault:personal-display-currency-changed','mmhvault:exchange-reference-updated'"));
  assert(annual.includes("reportCurrencyV115')?.addEventListener('change',rerender)"));
- assert(app.includes('js/mmhvault-report-period-v201.js?v=2.0.65.2'));
+ assert(app.includes('js/mmhvault-report-period-v201.js?v=2.0.65.3'));
  console.log('PASS: annual legacy Report shared display FX, unavailable values, refresh and unchanged budget source rate');
 }
 
@@ -581,7 +581,7 @@ console.log('PASS: 53-code shared display registry, additional FX, missing rates
  const state={month:'2026-01',currency:'USD',request:0,loading:false,cloudDirty:true,loadTimer:0,pendingLoad:false,lastCloudKey:'',lastCloudAt:0,loadKey:'',budget:null,goals:[],recurring:[]};
  const db={from(table){return{select(){return this},eq(k,v){this[k]=v;return this},maybeSingle(){return this.run()},order(){return this.run()},run(){return new Promise(resolve=>requests.push({table,owner:this.user_id,month:this.budget_month,resolve}))}}}};
  const api=new Function('state','reportOwnerV265','currentSessionUser','db','window','document','byId','render','setTimeout','clearTimeout','console','monthlySourcesReadyV265',piece+';return {load,scheduleCloudLoad,invalidateCloudV265,cloudDataReadyV265};')(state,()=>uid,{get id(){return uid}},db,w,{documentElement:{lang:'en'}},id=>({value:id==='reportMonthV115'?state.month:state.currency}),()=>{},fn=>{jobs.set(++timer,fn);return timer},id=>jobs.delete(id),{warn(){}},()=>sourcesReady);
- function finish(i,month,value){requests[i].resolve({data:{budget_month:month+'-01',monthly_amount:value}});requests[i+1].resolve({data:[]});requests[i+2].resolve({data:[]})}
+ function finish(i,month,value){requests[i].resolve({data:{budget_month:month+'-01',currency:'USD',monthly_amount:value}});requests[i+1].resolve({data:[]});requests[i+2].resolve({data:[]})}
  const a=api.load(true);state.month='2026-02';api.scheduleCloudLoad(true,0);assert(!api.cloudDataReadyV265());assert.equal(state.budget,null);jobs.delete(state.loadTimer);state.loadTimer=0;
  const b=api.load(true);state.month='2026-01';api.scheduleCloudLoad(true,0);jobs.delete(state.loadTimer);state.loadTimer=0;const c=api.load(true);
  assert.equal(requests.length,9);assert.equal(requests[3].month,'2026-02-01');
@@ -592,6 +592,14 @@ console.log('PASS: 53-code shared display registry, additional FX, missing rates
  const bad=api.load(true);finish(15,'2026-02',300);await bad;assert(!api.cloudDataReadyV265());assert.equal(state.budget,null);
  const empty=api.load(true);requests[18].resolve({data:null});requests[19].resolve({data:[]});requests[20].resolve({data:[]});await empty;assert(w.mmhLegacyReportReadyV265());assert.equal(state.budget,null);
  const refresh=api.load(true);api.scheduleCloudLoad(true,0);finish(21,'2026-01',500);await refresh;assert(!api.cloudDataReadyV265());assert.equal(state.budget,null);
+ jobs.delete(state.loadTimer);state.loadTimer=0;state.pendingLoad=false;
+ const valid={budget_month:'2026-01-01',currency:'USD',monthly_amount:100};
+ for(const row of [{...valid,currency:null},{...valid,currency:''},{...valid,currency:'US'},{...valid,monthly_amount:null},{...valid,monthly_amount:''},{...valid,monthly_amount:' '},{...valid,monthly_amount:-1},{...valid,monthly_amount:'bad'},{...valid,monthly_amount:Infinity},{...valid,monthly_amount:true}]){
+  const pending=api.load(true),i=requests.length-3;requests[i].resolve({data:row});requests[i+1].resolve({data:[]});requests[i+2].resolve({data:[]});await pending;assert(!w.mmhLegacyReportReadyV265());assert.equal(state.budget,null);
+ }
+ for(const amount of [0,'0',100,'100']){
+  const pending=api.load(true),i=requests.length-3;requests[i].resolve({data:{...valid,monthly_amount:amount}});requests[i+1].resolve({data:[]});requests[i+2].resolve({data:[]});await pending;assert(w.mmhLegacyReportReadyV265());assert.equal(state.budget.monthly_amount,amount);
+ }
  assert(script.includes("if(!cloudReady)for(const id of ['reportBudgetV115','reportGoalsV115','reportRecurringV115'])"));
  console.log('PASS: monthly Report owner/month ABA, refresh invalidation, mismatched response, valid empty budget and unavailable state');
 }
