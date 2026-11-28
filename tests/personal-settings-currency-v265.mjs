@@ -941,7 +941,9 @@ console.log('PASS: 53-code shared display registry, additional FX, missing rates
   'landing-assets/landing-browser-check.cjs':'12a1200c4891bb060f2fee6337c76c415884aa86',
   'landing-assets/landing-webkit-check.cjs':'1af0ce4402e673bb7edb605d41552af098fe9d19',
   'landing-assets/landing-release-check.cjs':'f8b6af9a4adfb882a126a1f5599f07ede9dfd856',
-  '.github/workflows/landing-release-check.yml':'2f77774a179b78a445af1b79bd7cd34472aba2b9'
+  '.github/workflows/landing-release-check.yml':'4599e0557678435cd9121a1e8b19f33290bbef02',
+  'landing-assets/personal-v271-release-scope.cjs':'554baaa11e0a429a4a6c6f1d2bf3e4c88731de19',
+  'landing-assets/personal-v271-public-browser.cjs':'b57f9b1e5f0afcb6d0f78f9bf2bd3e23820d63fa'
  };
  const bytes=path=>readFileSync(new URL('../'+path,import.meta.url));
  const gitHash=buf=>createHash('sha1').update('blob '+buf.length+'\0').update(buf).digest('hex');
@@ -957,5 +959,5 @@ console.log('PASS: 53-code shared display registry, additional FX, missing rates
  assert(!noindex(landing),'public home indexable');
  assert.equal((head(landing).match(/<link\b[^>]*\brel\s*=\s*["']canonical["'][^>]*>/gi)||[]).length,1,'unique public canonical');
  assert.match(head(landing),/<link\b[^>]*\brel\s*=\s*["']canonical["'][^>]*\bhref\s*=\s*["']https:\/\/mmhvault\.com\/["'][^>]*>/i);
- console.log('PASS: V2.0.71 Personal scope guard: 14 protected public/Business/gate blobs, private noindex and public canonical');
+ console.log('PASS: V2.0.71 Personal scope guard: 16 protected public/Business/gate blobs, private noindex and public canonical');
 }
