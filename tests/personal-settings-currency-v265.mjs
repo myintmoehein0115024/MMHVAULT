@@ -818,3 +818,21 @@ console.log('PASS: 53-code shared display registry, additional FX, missing rates
  assert.equal((app.match(/id="mmhBirthDateInputV34215"/g)||[]).length,1);
  console.log('PASS: Personal birthday profile sibling placement, legacy route alias and separate navigation (source/mock DOM)');
 }
+
+{
+ const source=app.split('\n').find(line=>line.startsWith("for(const [i,g] of [...main.querySelectorAll('.st-group')"));
+ assert(source,'settings navigation construction');
+ const removed=[],registered=[],groups=['Appearance','General','Transactions'].map(title=>({querySelector:()=>({textContent:title})}));
+ let mainRemoved=false;
+ const main={querySelectorAll:()=>groups,remove:()=>{mainRemoved=true}};
+ new Function('main','register',source)(main,(id,title,icon,content)=>{registered.push({id,title,content});return {remove:()=>removed.push(id)}});
+ assert.deepEqual(registered.map(x=>x.id),['appearance','general','transactions']);
+ assert.deepEqual(removed,['appearance','transactions']);
+ assert.equal(registered[1].content,groups[1]);assert(mainRemoved);
+ assert(!app.includes('stLanguage'),'duplicate language control removed');
+ assert(app.includes("['Preferences','偏好设置',['general']]"));
+ assert(app.includes("general:['Currency and font style','币种与字体样式']"));
+ assert(app.includes('window.setMMHVAULTLanguage=function(next)'),'shared workspace language switch retained');
+ assert(app.includes('css/mmhvault-settings-life-p928.css?v=2.0.65.2'));
+ console.log('PASS: Settings redundant navigation removed, legacy pages and global language function retained (source/mock DOM)');
+}
