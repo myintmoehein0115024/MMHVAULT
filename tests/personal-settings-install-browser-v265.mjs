@@ -72,6 +72,32 @@ try{
    }
   }
  }
+ // Real wheel scrolling in compact portrait and landscape, with the close control pinned.
+ let scrollCases=0;
+ for(const viewport of [{width:320,height:480},{width:667,height:320}]){
+  await page.setViewportSize(viewport);
+  for(const light of [false,true]){
+   await page.evaluate(light=>document.body.classList.toggle('light',light),light);
+   for(const lang of ['en','zh','my']){
+    await locale(lang);await picker.selectOption('ios-other');
+    await guide.evaluate(el=>{el.scrollTop=0});
+    const bounds=await guide.boundingBox();
+    const metrics=await guide.evaluate(el=>({height:el.clientHeight,full:el.scrollHeight,touch:getComputedStyle(el).touchAction}));
+    assert(metrics.full>metrics.height,'short viewport must expose a scrollable guide');
+    assert(metrics.touch.includes('pan-y'),'vertical touch pan must be permitted');
+    await page.mouse.move(bounds.x+bounds.width/2,bounds.y+bounds.height-18);
+    await page.mouse.wheel(0,2400);
+    await page.waitForFunction(()=>{const el=document.querySelector('#stInstallGuideV5');return el.scrollTop>0&&el.scrollTop+el.clientHeight>=el.scrollHeight-2});
+    const end=await guide.evaluate(el=>{const r=el.getBoundingClientRect(),n=el.querySelector('.st-install-note').getBoundingClientRect(),c=el.querySelector('#stInstallCloseV265').getBoundingClientRect();return {bottom:n.bottom<=r.bottom+1,close:c.top>=r.top-1&&c.bottom<=r.bottom+1}});
+    assert(end.bottom&&end.close,JSON.stringify({viewport,light,lang,end}));
+    await page.mouse.wheel(0,-2400);
+    await page.waitForFunction(()=>document.querySelector('#stInstallGuideV5').scrollTop<=1);
+    scrollCases++;
+   }
+  }
+ }
+ console.log('PASS: real wheel scrolling, final note and pinned close button in '+engine+', '+scrollCases+' compact portrait/landscape cases');
+ await page.setViewportSize({width:1280,height:800});
  await picker.selectOption('ios-other');
  await locale('zh');assert.equal(await picker.inputValue(),'ios-other');
  await locale('my');assert.equal(await picker.inputValue(),'ios-other');
