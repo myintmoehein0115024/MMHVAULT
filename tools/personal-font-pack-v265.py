@@ -135,6 +135,14 @@ def unicode_ranges(codes):
     ranges.append(f"U+{start:X}" + (f"-{end:X}" if end != start else ""))
     return ",".join(ranges)
 
+def variation_sequences(font):
+    # Format 14 pairs are separate from the base Unicode cmap. Record whether
+    # the source uses the default glyph or an explicit alternate glyph.
+    return {(base, selector, glyph is not None)
+            for table in font["cmap"].tables if table.format == 14
+            for selector, pairs in table.uvsDict.items()
+            for base, glyph in pairs}
+
 def build_chinese(candidate, source, license_data, ui, output):
     filename, source_hash, license_hash, family = CHINESE[candidate]
     require(not output.exists(), "output already exists")
@@ -146,6 +154,9 @@ def build_chinese(candidate, source, license_data, ui, output):
     original = TTFont(io.BytesIO(source), recalcTimestamp=False)
     chars = set(original.getBestCmap())
     require(set(map(ord, CHINESE_SAMPLE)) <= chars, "Chinese sample coverage missing")
+    missing_ui_han = sorted({ord(ch) for ch in ui if han(ord(ch))} - chars)
+    source_variations = variation_sequences(original)
+    preserved_variations = set()
     original_axes = axes(original)
     preserved = {i: original["name"].getDebugName(i) for i in (0, 7, 13, 14)}
     weights = next((f"{a[1]:g} {a[3]:g}" for a in original_axes if a[0] == "wght"), "400")
@@ -173,6 +184,9 @@ def build_chinese(candidate, source, license_data, ui, output):
         require(data[:4] == b"wOF2" and 0 < len(data) < len(source), "invalid compressed shard")
         check = TTFont(io.BytesIO(data), recalcTimestamp=False)
         require(set(group) <= set(check.getBestCmap()), "shard cmap incomplete")
+        advertised = set(group)
+        preserved_variations.update(pair for pair in variation_sequences(check)
+                                    if pair[0] in advertised and pair in source_variations)
         require(axes(check) == original_axes, "variable axes changed")
         require(check["name"].getDebugName(1) == shard_family, "output family mismatch")
         require({k: check["name"].getDebugName(k) for k in preserved} == preserved, "legal notices changed")
@@ -191,7 +205,12 @@ def build_chinese(candidate, source, license_data, ui, output):
         "source_file": filename, "source_git_blob": source_hash, "license_git_blob": license_hash,
         "license": "OFL-1.1", "source_bytes": len(source), "sourceCount": len(chars),
         "weight": weights, "axes": original_axes, "groups": entries,
-        "status": "candidate-only; variation sequences, shaping, visual and redistribution review required",
+        "missing_ui_han_count": len(missing_ui_han),
+        "missing_ui_han": missing_ui_han,
+        "source_uvs_count": len(source_variations),
+        "preserved_uvs_count": len(preserved_variations),
+        "missing_uvs_count": len(source_variations - preserved_variations),
+        "status": "candidate-only; variation sequence browser selection, shaping, visual and redistribution review required",
     }
     output.mkdir(parents=True, exist_ok=False)
     for name, data in payloads:
