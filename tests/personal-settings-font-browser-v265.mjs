@@ -47,6 +47,29 @@ try{
    assert(await select.evaluate(el=>el.getBoundingClientRect().height>=44));
   }
  }
+ // Inspect actual platform fonts rather than assuming a computed CSS stack is installed.
+ const cdp=await context.newCDPSession(page);
+ try{
+  await cdp.send('DOM.enable');await cdp.send('CSS.enable');
+  const {root}=await cdp.send('DOM.getDocument');
+  const {nodeId}=await cdp.send('DOM.querySelector',{nodeId:root.nodeId,selector:'#sample'});
+  assert(nodeId>0);
+  for(const [locale,sample] of [['en','Balance and savings'],['zh-CN','账户余额与储蓄'],['my','လက်ကျန်ငွေနှင့် စုဆောင်းငွေ']]){
+   await page.evaluate(l=>fontFixture.lang(l),locale);
+   await page.locator('#sample').evaluate((el,s)=>{el.textContent=s},sample);
+   const styles={};
+   for(const style of ['system','modern','elegant','minimal','digital','soft','bold']){
+    await select.selectOption(style);
+    await page.evaluate(async()=>{await document.fonts.ready;document.querySelector('#sample').getBoundingClientRect()});
+    const {fonts}=await cdp.send('CSS.getPlatformFontsForNode',{nodeId});
+    assert(Array.isArray(fonts)&&fonts.some(f=>f.glyphCount>0),locale+' '+style+' has rendered glyphs');
+    styles[style]=fonts.filter(f=>f.glyphCount>0).map(f=>({family:f.familyName,postScript:f.postScriptName,glyphs:f.glyphCount,custom:f.isCustomFont}));
+   }
+   const distinct=new Set(Object.values(styles).map(fonts=>JSON.stringify(fonts.map(f=>[f.family,f.postScript]).sort()))).size;
+   console.log('FONT-DIAGNOSTIC '+JSON.stringify({locale,distinctRenderedFontSets:distinct,styles}));
+   if(distinct<7)console.log('FONT-LIMITATION '+locale+': some styles share actual platform fonts; do not infer glyph differentiation from CSS.');
+  }
+ }finally{await cdp.detach()}
  console.log('PASS: font selector, computed family cascade including legacy account detail and workspace choice menu, language/owner memory, blocked storage, auth isolation and responsive preview (isolated Chromium; glyph availability not verified)');
  await context.close();
 }finally{await browser.close()}
