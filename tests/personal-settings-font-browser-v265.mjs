@@ -247,7 +247,7 @@ sys.stdout.buffer.write(data)
   assert(bytes.length>0&&bytes.length<=40*1024*1024,folder+' asset size bounds');
   const actual=createHash('sha1').update('blob '+bytes.length+'\0').update(bytes).digest('hex');
   assert.equal(actual,expected,folder+' exact Git blob hash');
-  if(locale==='zh-CN'&&!lxgw)chinesePackInputs.set(folder,{bytes,license,expected,licenseHash:licenseHashes[folder]});
+  if(locale==='zh-CN')chinesePackInputs.set(folder,{bytes,license,expected,licenseHash:licenseHashes[folder]});
   let compressed=null,packManifest=null;
   if(python){
    if(locale==='my'){
@@ -380,7 +380,7 @@ sys.stdout.buffer.write(data)
   }finally{await ctx.close()}
   // Partition full Chinese source cmap into common UI glyphs and bounded rare-glyph shards.
   // Prototype only: no generated fonts are distributed or deployed.
-  assert.equal(chinesePackInputs.size,3,'all three pinned Chinese candidates required');
+  assert.equal(chinesePackInputs.size,4,'all four pinned Chinese candidates required');
   for(const [folder,input] of chinesePackInputs){
   const chinesePartitionSource=input.bytes,chinesePartitionLicense=input.license;
   const partitionTemp=mkdtempSync(join(tmpdir(),'mmh-chinese-pack-'));
@@ -396,7 +396,11 @@ sys.stdout.buffer.write(data)
    assert.equal(bundle.source_git_blob,input.expected);
    assert.equal(bundle.license_git_blob,input.licenseHash);
    assert.deepEqual(readFileSync(join(output,'OFL.txt')),chinesePartitionLicense);
-   assert.equal(bundle.family,({notosanssc:'MMH Personal Chinese A',notoserifsc:'MMH Personal Chinese B',zcoolqingkehuangyou:'MMH Personal Chinese C'})[folder]);
+   assert.equal(bundle.family,({notosanssc:'MMH Personal Chinese A',notoserifsc:'MMH Personal Chinese B',zcoolqingkehuangyou:'MMH Personal Chinese C',lxgwwenkai:'MMH Personal Chinese D'})[folder]);
+   const isWenKai=folder==='lxgwwenkai';
+   assert.equal(bundle.source_repository,isWenKai?'lxgw/LxgwWenKai':'google/fonts');
+   assert.equal(bundle.source_revision,isWenKai?'f4cc16fa07f7d115135d203065e711d43c3076d3':revision);
+   assert.equal(bundle.source_path,(isWenKai?'fonts/TTF/':'ofl/'+folder+'/')+bundle.source_file);
    if(folder==='notosanssc')assert.equal(bundle.sourceCount,30890);
    assert.equal(bundle.missing_ui_han_count,bundle.missing_ui_han.length);
    assert.equal(bundle.source_uvs_count,bundle.preserved_uvs_count+bundle.missing_uvs_count);
