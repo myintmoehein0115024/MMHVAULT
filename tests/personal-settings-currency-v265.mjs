@@ -410,3 +410,26 @@ assert(regInv265.invSaveDisplayV265('SGD'));assert.equal(regInv265.invReferenceV
 assert.equal(regTx265.txDisplayCurrencyV265(),'KPW');assert.equal(regOv265.overviewCurrencyV265(),'JPY');assert.equal(JSON.parse(registryStorage265.get('mmhvault_settings_display_v2_registry-a')).currency,'JPY');
 assert(!regInv265.invSaveDisplayV265('ZZZ'));assert(regInv265.invSaveDisplayV265('KPW'));assert.equal(regInv265.invReferenceV265(2,'USD','registry-a'),'≈ KPW —');
 console.log('PASS: 53-code shared display registry, additional FX, missing rates, owner and per-view isolation');
+
+{
+ const start=app.indexOf('  const cashflowCurrenciesV918='),end=app.indexOf('  window.mmhRestoreAnalyzeCurrencyV918=restoreCurrencyV918;',start);
+ const codes=JSON.parse(app.match(/MMHPersonalDisplayCurrenciesV265=Object\.freeze\((\[[^\]]+\])\)/)[1]);
+ let owner='ana-a',renders=0;const data=new Map(),state={currency:'USD'},select={value:''};
+ const storage={getItem:k=>data.get(k)??null,setItem:(k,v)=>data.set(k,v),removeItem:k=>data.delete(k)};
+ const win={MMHPersonalDisplayCurrenciesV265:codes,MMHExchangeEffectiveFXV2:{getUsdRate:c=>({JPY:150,SGD:1.3,KRW:-1,AUD:Infinity})[c]}};
+ const prefs=new Function('window','localStorage','state','$','render','getOwner','const currentSessionUser={get id(){return getOwner()}};'+app.slice(start,end)+';return {restoreCurrencyV918,saveCurrencyV918};')(win,storage,state,id=>id==='cfaCurrency'?select:{},()=>renders++,()=>owner);
+ const setDefault=(id,currency)=>data.set('mmhvault_settings_display_v2_'+id,JSON.stringify({currency}));
+ setDefault(owner,'JPY');prefs.restoreCurrencyV918();assert.equal(state.currency,'JPY');assert.equal(select.value,'GLOBAL');
+ prefs.saveCurrencyV918('SGD');assert.equal(state.currency,'SGD');assert.equal(JSON.parse(data.get('mmhvault_settings_display_v2_ana-a')).currency,'JPY');
+ owner='ana-b';setDefault(owner,'KPW');prefs.restoreCurrencyV918();assert.equal(state.currency,'KPW');prefs.saveCurrencyV918('ZZZ');assert.equal(state.currency,'KPW');
+ owner='ana-a';prefs.restoreCurrencyV918();assert.equal(state.currency,'SGD');prefs.saveCurrencyV918('GLOBAL');assert.equal(state.currency,'JPY');
+ const script=app.match(/<script id="mmhvault-cashflow-analyze-v1-js">([\s\S]*?)<\/script>/)[1];
+ const defs=script.slice(script.indexOf('  const num='),script.indexOf('  const safe='));
+ const calc=new Function('window','rates','state','currentSessionUser','cashflowCurrenciesV918',defs+';return {displayRateV265,currencyRate,money};')(win,{usd_thb:35},state,{get id(){return owner}},codes);
+ assert.equal(calc.displayRateV265('JPY'),150);assert.equal(calc.displayRateV265('SGD'),1.3);assert.equal(calc.displayRateV265('KRW'),0);assert.equal(calc.displayRateV265('AUD'),0);assert.equal(calc.displayRateV265('ZZZ'),0);
+ assert.equal(calc.currencyRate('JPY'),0);assert.equal(calc.currencyRate('THB'),35);
+ assert.equal(calc.money(2),'JPY '+(300).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2}));
+ state.currency='KPW';assert.equal(calc.money(2),'—');owner='';assert.equal(calc.displayRateV265('JPY'),0);
+ assert(script.includes('const rate=currencyRate(row?.currency)'));assert(script.includes("'mmhvault:exchange-reference-updated'"));new Function(script);
+ console.log('PASS: Analyze 53-code display, owner preference, unchanged budget conversion and unavailable FX');
+}
