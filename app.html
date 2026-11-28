@@ -11345,6 +11345,7 @@ html.mmh-desktop-compact-v11110 body.mmh-workspace-active #moreNavMenu.more-nav-
 <label>Category<select id="txFilterCategory"><option value="">All</option></select></label>
 <label>Account<select id="txFilterAccount"><option value="">All</option></select></label>
 </div><div class="actions" style="margin-top:0;justify-content:flex-end;gap:8px"><button class="btn" onclick="clearTxFilters()" type="button">↺ Clear Filters</button><button class="btn" onclick="exportTransactionsCSV()" type="button">Export CSV</button></div>
+<div class="tx-display-toolbar-v265"><small id="txDisplayHintV265"></small><details id="txDisplayPickerV265"><summary><span></span><span aria-hidden="true">⌄</span></summary><div class="pf-display-menu-v265" role="group"><label for="txDisplaySearchV265"></label><input id="txDisplaySearchV265" type="search" autocomplete="off" spellcheck="false"><div class="ap-currency-list-v2"></div><select aria-label="Reference currency"><option value="GLOBAL">Follow default</option><option value="NATIVE">Original currency only</option><option>USD</option><option>THB</option><option>MMK</option><option>CNY</option></select></div></details></div>
 <div class="scroll" id="txList"></div>
 </div></div>
 </section>
@@ -21918,6 +21919,67 @@ body.mmhvault-scroll-active #invest .invest-top>.panel{box-shadow:inset 0 1px 0 
     const mark=txCurrencyMarkV720(txCurrencyV720(account));
     return (mark?mark+' ':'')+(typeof fmt==='function'?fmt(n):n.toLocaleString());
   };
+  // V2.0.65: a reference display only; original ledger values remain authoritative.
+  const txDisplayCodesV265=['USD','THB','MMK','CNY'];
+  const txDisplayOwnerV265=()=>typeof currentSessionUser!=='undefined'&&currentSessionUser?.id===MMHVAULT_CONFIG_OWNER?String(currentSessionUser.id):'';
+  function txDisplayChoiceV265(){
+    const id=txDisplayOwnerV265();if(!id)return 'GLOBAL';
+    try{const c=localStorage.getItem('mmhvault_tx_display_currency_v265_'+id);return c==='NATIVE'||txDisplayCodesV265.includes(c)?c:'GLOBAL'}catch(_){return 'GLOBAL'}
+  }
+  function txDisplayCurrencyV265(){
+    const id=txDisplayOwnerV265(),c=txDisplayChoiceV265();if(c!=='GLOBAL')return c;
+    try{const v=id&&JSON.parse(localStorage.getItem('mmhvault_settings_display_v2_'+id)||'{}')?.currency;return txDisplayCodesV265.includes(v)?v:'USD'}catch(_){return 'USD'}
+  }
+  function txSaveDisplayV265(c){
+    const id=txDisplayOwnerV265();if(!id||!(c==='GLOBAL'||c==='NATIVE'||txDisplayCodesV265.includes(c)))return false;
+    try{const key='mmhvault_tx_display_currency_v265_'+id;if(c==='GLOBAL')localStorage.removeItem(key);else localStorage.setItem(key,c);return true}catch(_){return false}
+  }
+  function txReferenceV265(t,amount,account){
+    const id=txDisplayOwnerV265(),target=txDisplayCurrencyV265();
+    if(!id||String(t?.user_id||'')!==id||target==='NATIVE'||!account||amount===null||amount===''||!Number.isFinite(Number(amount)))return '';
+    const missing='≈ '+target+' —';
+    try{
+      const meta=mmhVaultAccountMeta(account);
+      if(!meta?.currency||String(meta.id||'').startsWith('legacy_'))return missing;
+      const source=String(meta.currency).toUpperCase().replace(/^RMB$/,'CNY');
+      if(source===target)return '';
+      // Never use legacy boot placeholder rates. The effective Exchange provider is owner-scoped.
+      const rate=c=>c==='USD'?1:Number(window.MMHExchangeEffectiveFXV2?.getUsdRate?.(c));
+      const from=rate(source),to=rate(target);
+      if(!(from>0&&to>0&&Number.isFinite(from)&&Number.isFinite(to)))return missing;
+      const result=Number(amount)/from*to;
+      return Number.isFinite(result)?'≈ '+target+' '+result.toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2}):missing;
+    }catch(_){return missing}
+  }
+  function txDisplayMoneyV265(t,amount,account){
+    const native=txMoneyV720(amount,account),ref=txReferenceV265(t,amount,account);
+    return ref?native+'\n'+ref:native;
+  }
+  function txDisplayTextV265(en,zh,my){const l=String(document.documentElement.lang||'en').toLowerCase();return l.startsWith('zh')?zh:l.startsWith('my')||l.startsWith('bur')?my:en}
+  function bindTxDisplayPickerV265(){
+    const p=$('txDisplayPickerV265');if(!p)return;
+    const summary=p.querySelector('summary'),select=p.querySelector('select'),search=p.querySelector('input'),list=p.querySelector('.ap-currency-list-v2'),group=p.querySelector('.pf-display-menu-v265'),label=p.querySelector('label'),hint=$('txDisplayHintV265'),tr=txDisplayTextV265;
+    const sync=()=>{
+      const choice=txDisplayChoiceV265(),code=txDisplayCurrencyV265(),caption=tr('Reference currency','参考币种','ကိုးကားငွေကြေး');
+      select.options[0].textContent=tr('Follow default','跟随默认币种','မူလငွေကြေးအတိုင်း');select.options[1].textContent=tr('Original currency only','仅原始币种','မူရင်းငွေကြေးသာ');select.value=choice;select.setAttribute('aria-label',caption);
+      const shared=window.MMHCurrencyPickerV3;
+      summary.querySelector('span').textContent=code==='NATIVE'?select.options[1].textContent:(shared?.flag?.(code)||'')+code+(choice==='GLOBAL'?' · '+tr('Default','默认','မူလ'):'');
+      summary.setAttribute('aria-label',caption+': '+summary.textContent);
+      hint.textContent=tr('Original amounts · ≈ current FX reference','原始金额 · ≈ 当前汇率参考','မူရင်းပမာဏ · ≈ လက်ရှိငွေလဲနှုန်း ကိုးကားချက်');
+      let ready=false;try{if(shared?.render){shared.render({select,search,list,group,label:caption,includeNative:true});ready=true}}catch(_){}
+      label.hidden=search.hidden=list.hidden=!ready;select.hidden=ready;
+    };
+    if(!p.__mmhTxDisplayV265){
+      p.__mmhTxDisplayV265=true;
+      const choose=c=>{if(!txSaveDisplayV265(c)){sync();return}p.open=false;sync();summary.focus({preventScroll:true});if($('transactions')?.classList.contains('active'))window.mmhvaultScheduleTransactionRenderV34241?.()};
+      select.addEventListener('change',()=>choose(select.value));
+      p.addEventListener('click',e=>{const b=e.target.closest('[data-ap-currency]');if(b){e.preventDefault();choose(b.dataset.apCurrency)}});
+      p.addEventListener('toggle',()=>{if(p.open){search.value='';sync();list.scrollTop=0}});
+      p.addEventListener('keydown',e=>{if(e.key==='Escape'){p.open=false;summary.focus({preventScroll:true})}});
+    }
+    // Do not reset an open search during a background update.
+    if(!p.open)sync();
+  }
   const txPrimaryV720=t=>{
     const useTo=Number(t?.to_amount)>0;
     return {amount:useTo?t?.to_amount:t?.from_amount,account:useTo?t?.to_account:t?.from_account};
@@ -21925,7 +21987,7 @@ body.mmhvault-scroll-active #invest .invest-top>.panel{box-shadow:inset 0 1px 0 
   const rowKey=t=>String(t?.id??'');
   const dataKey=t=>JSON.stringify([
     t?.tx_date,t?.type,transactionGroupFor(t),t?.category,t?.from_account,t?.from_amount,
-    t?.to_account,t?.to_amount,t?.note,txCurrencyV720(t?.from_account),txCurrencyV720(t?.to_account),receiptHas(t)
+    t?.to_account,t?.to_amount,t?.note,txCurrencyV720(t?.from_account),txCurrencyV720(t?.to_account),receiptHas(t),txDisplayMoneyV265(t,t?.from_amount,t?.from_account),txDisplayMoneyV265(t,t?.to_amount,t?.to_account)
   ]);
   const currentFilterKey=()=>['txSearch','txFilterType','txFilterGroup','txFilterCategory','txFilterAccount'].map(id=>String($(id)?.value||'')).concat(window.mmhHistoryCalendarContextV1?.()||'').join('\x1f');
   const rows=()=>{
@@ -21952,9 +22014,9 @@ body.mmhvault-scroll-active #invest .invest-top>.panel{box-shadow:inset 0 1px 0 
     setCell(row,2,transactionGroupFor(t)||'');
     setCell(row,3,t.category||'');
     setCell(row,4,t.from_account||'—');
-    setCell(row,5,t.from_amount?txMoneyV720(t.from_amount,t.from_account):'—');
+    setCell(row,5,t.from_amount?txDisplayMoneyV265(t,t.from_amount,t.from_account):'—');
     setCell(row,6,t.to_account||'—');
-    setCell(row,7,t.to_amount?txMoneyV720(t.to_amount,t.to_account):'—');
+    setCell(row,7,t.to_amount?txDisplayMoneyV265(t,t.to_amount,t.to_account):'—');
     setCell(row,8,t.note||'');
     const receiptCell=row.cells?.[9];
     if(receiptCell){
@@ -21974,7 +22036,7 @@ body.mmhvault-scroll-active #invest .invest-top>.panel{box-shadow:inset 0 1px 0 
   }
 
   function buildDesktop(list,rs){
-    list.innerHTML=`<table><tr><th>Date</th><th>Type</th><th>Transaction</th><th>Category</th><th>From</th><th>From Amount</th><th>To</th><th>To Amount</th><th>Note</th><th>Receipt</th><th></th></tr>${rs.map(t=>`<tr data-mmh-tx-id="${esc(String(t.id))}"><td>${esc(t.tx_date||'')}</td><td>${esc(t.type||'')}</td><td>${esc(transactionGroupFor(t)||'')}</td><td>${esc(t.category||'')}</td><td>${esc(t.from_account||'—')}</td><td>${t.from_amount?esc(txMoneyV720(t.from_amount,t.from_account)):'—'}</td><td>${esc(t.to_account||'—')}</td><td>${t.to_amount?esc(txMoneyV720(t.to_amount,t.to_account)):'—'}</td><td>${esc(t.note||'')}</td><td>${receiptHas(t)?`<button class="btn" type="button" onclick="openTransactionReceiptV396(${Number(t.id)})">👁 View</button>`:''}</td><td class="icon-actions"><button class="btn" type="button" data-action="edit-tx" data-id="${esc(String(t.id))}">Edit</button><button class="btn danger" type="button">×</button></td></tr>`).join('')}</table>`;
+    list.innerHTML=`<table><tr><th>Date</th><th>Type</th><th>Transaction</th><th>Category</th><th>From</th><th>From Amount</th><th>To</th><th>To Amount</th><th>Note</th><th>Receipt</th><th></th></tr>${rs.map(t=>`<tr data-mmh-tx-id="${esc(String(t.id))}"><td>${esc(t.tx_date||'')}</td><td>${esc(t.type||'')}</td><td>${esc(transactionGroupFor(t)||'')}</td><td>${esc(t.category||'')}</td><td>${esc(t.from_account||'—')}</td><td>${t.from_amount?esc(txDisplayMoneyV265(t,t.from_amount,t.from_account)):'—'}</td><td>${esc(t.to_account||'—')}</td><td>${t.to_amount?esc(txDisplayMoneyV265(t,t.to_amount,t.to_account)):'—'}</td><td>${esc(t.note||'')}</td><td>${receiptHas(t)?`<button class="btn" type="button" onclick="openTransactionReceiptV396(${Number(t.id)})">👁 View</button>`:''}</td><td class="icon-actions"><button class="btn" type="button" data-action="edit-tx" data-id="${esc(String(t.id))}">Edit</button><button class="btn danger" type="button">×</button></td></tr>`).join('')}</table>`;
     rs.forEach(t=>{
       const row=list.querySelector(`tr[data-mmh-tx-id="${CSS.escape(String(t.id))}"]`);
       if(!row)return;
@@ -21991,7 +22053,7 @@ body.mmhvault-scroll-active #invest .invest-top>.panel{box-shadow:inset 0 1px 0 
     const from=t.from_account||'—',to=t.to_account||'—';
     const fromAmt=t.from_amount?txMoneyV720(t.from_amount,t.from_account):'—',toAmt=t.to_amount?txMoneyV720(t.to_amount,t.to_account):'—';
     const note=t.note||'—',primary=txPrimaryV720(t);
-    return `<div class="tx-mobile-top-v371"><div class="tx-mobile-main-v371"><div class="tx-mobile-date-v371">${esc(t.tx_date||'—')}</div><div class="tx-mobile-title-v371">${esc(t.category||'—')}</div><div class="tx-mobile-sub-v371">${esc(t.type||'—')} · ${esc(transactionGroupFor(t)||'—')}</div></div><div class="tx-mobile-amount-v371">${esc(txMoneyV720(primary.amount,primary.account))}</div><div class="tx-mobile-chevron-v371">▼</div></div><div class="tx-mobile-details-v371"><div class="tx-mobile-detail-v371"><div class="tx-mobile-detail-label-v371">From</div><div class="tx-mobile-detail-value-v371">${esc(from)}</div></div><div class="tx-mobile-detail-v371"><div class="tx-mobile-detail-label-v371">From Amount</div><div class="tx-mobile-detail-value-v371">${fromAmt}</div></div><div class="tx-mobile-detail-v371"><div class="tx-mobile-detail-label-v371">To</div><div class="tx-mobile-detail-value-v371">${esc(to)}</div></div><div class="tx-mobile-detail-v371"><div class="tx-mobile-detail-label-v371">To Amount</div><div class="tx-mobile-detail-value-v371">${toAmt}</div></div><div class="tx-mobile-detail-v371" style="grid-column:1/-1"><div class="tx-mobile-detail-label-v371">Note</div><div class="tx-mobile-detail-value-v371">${esc(note)}</div></div><div class="tx-mobile-actions-v371" style="grid-column:1/-1">${receiptHas(t)?`<button class="btn" type="button" data-role="receipt">👁 Receipt</button>`:''}<button class="btn" type="button" data-role="edit">Edit</button><button class="btn danger" type="button" data-role="delete">Delete</button></div></div>`;
+    return `<div class="tx-mobile-top-v371"><div class="tx-mobile-main-v371"><div class="tx-mobile-date-v371">${esc(t.tx_date||'—')}</div><div class="tx-mobile-title-v371">${esc(t.category||'—')}</div><div class="tx-mobile-sub-v371">${esc(t.type||'—')} · ${esc(transactionGroupFor(t)||'—')}</div></div><div class="tx-mobile-amount-v371">${esc(txDisplayMoneyV265(t,primary.amount,primary.account))}</div><div class="tx-mobile-chevron-v371">▼</div></div><div class="tx-mobile-details-v371"><div class="tx-mobile-detail-v371"><div class="tx-mobile-detail-label-v371">From</div><div class="tx-mobile-detail-value-v371">${esc(from)}</div></div><div class="tx-mobile-detail-v371"><div class="tx-mobile-detail-label-v371">From Amount</div><div class="tx-mobile-detail-value-v371">${fromAmt}</div></div><div class="tx-mobile-detail-v371"><div class="tx-mobile-detail-label-v371">To</div><div class="tx-mobile-detail-value-v371">${esc(to)}</div></div><div class="tx-mobile-detail-v371"><div class="tx-mobile-detail-label-v371">To Amount</div><div class="tx-mobile-detail-value-v371">${toAmt}</div></div><div class="tx-mobile-detail-v371" style="grid-column:1/-1"><div class="tx-mobile-detail-label-v371">Note</div><div class="tx-mobile-detail-value-v371">${esc(note)}</div></div><div class="tx-mobile-actions-v371" style="grid-column:1/-1">${receiptHas(t)?`<button class="btn" type="button" data-role="receipt">👁 Receipt</button>`:''}<button class="btn" type="button" data-role="edit">Edit</button><button class="btn danger" type="button" data-role="delete">Delete</button></div></div>`;
   }
   function updateMobileCard(card,t){
     const key=dataKey(t);
@@ -22029,6 +22091,7 @@ body.mmhvault-scroll-active #invest .invest-top>.panel{box-shadow:inset 0 1px 0 
   }
 
   function renderPartial(){
+    bindTxDisplayPickerV265();
     refreshTxFilters();
     const rs=rows(), list=$('txList');
     if(!$('txResultCount')||!list)return;
@@ -22057,6 +22120,10 @@ body.mmhvault-scroll-active #invest .invest-top>.panel{box-shadow:inset 0 1px 0 
   window.renderTransactionsV28=window.renderTransactions;
   window.mmhvaultInvalidateTransactionRenderV34241=function(){lastOrderKey=null;lastRowsKey=null;};
   window.mmhvaultScheduleTransactionRenderV34241=function(){if(queued)return;queued=true;const cb=()=>{queued=false;try{renderPartial();publishTransactionListRenderedV1534('scheduled-render');}catch(e){console.warn('[MMHVAULT] tx partial render',e);}};requestAnimationFrame?requestAnimationFrame(cb):setTimeout(cb,0);};
+  for(const event of ['mmhvault:personal-display-currency-changed','mmhvault:config-owner-changed','mmhvault:exchange-reference-updated','mmhvault:account-reference-fx-updated','mmhvault-language-change','mmhvault:page-visible'])window.addEventListener(event,()=>{
+    const picker=$('txDisplayPickerV265');if(event==='mmhvault:config-owner-changed'||event==='mmhvault-language-change'){if(picker)picker.open=false;}
+    if($('transactions')?.classList.contains('active'))window.mmhvaultScheduleTransactionRenderV34241?.();
+  });
   window.MM_HVAULT_PERFORMANCE_V34241={version:'3.42.41',partialTransactionDOM:true,keyedMobileCards:true,desktopRowPatch:true};
 })();
 </script>
@@ -30778,6 +30845,22 @@ db.auth.getSession().then(({data})=>owner(data?.session?.user)).catch(()=>{});db
 @media(prefers-reduced-motion:reduce){
   #mmhPremiumDashboardV500 *{transition:none!important;animation:none!important}
 }
+</style>
+<style id="mmhvault-tx-display-picker-v265-style">
+#transactions .tx-display-toolbar-v265{display:flex;align-items:center;justify-content:flex-end;flex-wrap:wrap;gap:6px 10px;margin:0 0 8px;position:relative;z-index:12;min-width:0}
+#transactions #txDisplayHintV265{font-size:11px;color:var(--uv-muted,inherit);overflow-wrap:anywhere}
+#transactions #txList tr[data-mmh-tx-id] td:is(:nth-child(6),:nth-child(8)),#transactions #txList .tx-mobile-amount-v371{white-space:pre-line!important;overflow-wrap:anywhere}
+#transactions #txDisplayPickerV265{position:relative;min-width:0;max-width:100%;color:var(--uv-text,inherit)}
+#transactions #txDisplayPickerV265 summary{display:flex;align-items:center;justify-content:space-between;gap:8px;box-sizing:border-box;min-height:44px;min-width:128px;padding:7px 10px;border:1px solid var(--uv-line,#80808060);border-radius:8px;background:var(--uv-card,transparent);font-size:12px;cursor:pointer;list-style:none}
+#transactions #txDisplayPickerV265 summary::-webkit-details-marker{display:none}
+#transactions #txDisplayPickerV265 .pf-display-menu-v265{position:absolute;top:calc(100% + 5px);right:0;box-sizing:border-box;width:min(310px,calc(100vw - 36px));padding:8px;display:flex;flex-direction:column;gap:4px;border:1px solid var(--uv-line,#80808060);border-radius:8px;background:var(--uv-raised,Canvas);color:var(--uv-text,CanvasText);box-shadow:0 8px 22px #0002}
+#transactions #txDisplayPickerV265:not([open]) .pf-display-menu-v265,#transactions #txDisplayPickerV265 [hidden]{display:none!important}
+#transactions #txDisplayPickerV265 label,#transactions #txDisplayPickerV265 .ap-currency-section-v2{font-size:11px;color:var(--uv-muted,inherit);padding:4px}
+#transactions #txDisplayPickerV265 :is(input,select){box-sizing:border-box;width:100%;min-height:34px;border:1px solid var(--uv-line,#80808060);border-radius:7px;padding:7px 9px;background:var(--uv-card,Canvas);color:inherit;font-size:12px}
+#transactions #txDisplayPickerV265 .ap-currency-list-v2{display:grid;gap:2px;max-height:min(280px,40dvh);overflow:auto;overscroll-behavior:contain}
+#transactions #txDisplayPickerV265 button[data-ap-currency]{display:grid;grid-template-columns:auto minmax(0,1fr);align-items:center;gap:8px;width:100%;min-height:34px;padding:7px 8px;border-radius:6px;border:1px solid transparent;background:var(--uv-card,Canvas);color:inherit;font-size:12px;text-align:left;cursor:pointer}
+#transactions #txDisplayPickerV265 button[data-ap-currency]>span:last-child{text-align:right;font-size:11px;color:var(--uv-muted,inherit);overflow-wrap:anywhere}
+#transactions #txDisplayPickerV265 button[data-ap-currency]:is(:hover,[aria-pressed=true]){border-color:var(--uv-line,#80808060)}
 </style>
 <style id="mmhvault-overview-picker-v265-style">
 #dashboard #mmhPremiumDashboardV500 .pf-display-toolbar-v265{display:flex;justify-content:flex-end;min-width:0;margin:0 0 8px;position:relative;z-index:12}
