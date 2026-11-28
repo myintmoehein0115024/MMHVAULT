@@ -42,7 +42,7 @@ try{
  await button.click();await close.click();await guide.waitFor({state:'hidden'});
  await button.click();await page.mouse.click(2,2);await guide.waitFor({state:'hidden'});
  await button.click();
- const cases=[['ios',4,'ios'],['ios-other',5,'ios'],['ipad',4,'ipad'],['ipad-other',5,'ipad'],['android-chrome',4,'android-chrome'],['android-firefox',4,null],['android-other',5,'android-chrome'],['desktop',3,null],['desktop-chrome',3,'desktop'],['desktop-edge',3,'desktop'],['desktop-safari',3,null]];
+ const cases=[["ios",4,"ios"],["ios-other",5,"ios"],["ipad",4,"ipad"],["ipad-other",5,"ipad"],["android-chrome",4,"android-chrome"],["android-firefox",4,"android-chrome"],["android-other",5,"android-chrome"],["android-tablet-chrome",4,"ipad"],["android-tablet-firefox",4,"ipad"],["android-tablet-other",5,"ipad"],["tablet-other",3,"ipad"],["desktop",3,"desktop"],["desktop-chrome",3,"desktop"],["desktop-edge",3,"desktop"],["desktop-safari",3,"desktop"]];
  const locale=async lang=>page.evaluate(lang=>{localStorage.setItem('mmhvault_language_v3363',lang);document.documentElement.lang=lang;dispatchEvent(new Event('mmhvault-language-change'))},lang);
  let count=0;
  for(const width of [360,1280]){
