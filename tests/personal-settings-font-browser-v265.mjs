@@ -201,7 +201,7 @@ try{
  const samples={'zh-CN':'账户余额与储蓄交易投资设置财务目标汇率预算收入支出','my':'လက်ကျန်ငွေနှင့်စုဆောင်းငွေမြန်မာဘာသာ၀၁၂၃၄၅၆၇၈၉'};
  const results={};
  const lazyCandidates=new Map();
- let chinesePartitionSource=null,chinesePartitionLicense=null;
+ const chinesePackInputs=new Map();
  const python=process.env.MMH_FONTQA_PYTHON;
  if(process.env.CI)assert(python,'CI must provide isolated font compression interpreter');
  const compressionScript=`
@@ -244,7 +244,7 @@ sys.stdout.buffer.write(data)
   assert(bytes.length>0&&bytes.length<=40*1024*1024,folder+' asset size bounds');
   const actual=createHash('sha1').update('blob '+bytes.length+'\0').update(bytes).digest('hex');
   assert.equal(actual,expected,folder+' exact Git blob hash');
-  if(folder==='notosanssc'){chinesePartitionSource=bytes;chinesePartitionLicense=license}
+  if(locale==='zh-CN')chinesePackInputs.set(folder,{bytes,license,expected,licenseHash:licenseHashes[folder]});
   let compressed=null,packManifest=null;
   if(python){
    if(locale==='my'){
@@ -377,22 +377,27 @@ sys.stdout.buffer.write(data)
   }finally{await ctx.close()}
   // Partition full Chinese source cmap into common UI glyphs and bounded rare-glyph shards.
   // Prototype only: no generated fonts are distributed or deployed.
-  assert(chinesePartitionSource&&chinesePartitionLicense,'pinned Chinese source and license required');
+  assert.equal(chinesePackInputs.size,3,'all three pinned Chinese candidates required');
+  for(const [folder,input] of chinesePackInputs){
+  const chinesePartitionSource=input.bytes,chinesePartitionLicense=input.license;
   const partitionTemp=mkdtempSync(join(tmpdir(),'mmh-chinese-pack-'));
   let bundle,partitionCss;
   try{
    const sourcePath=join(partitionTemp,'source.ttf'),licensePath=join(partitionTemp,'OFL-source.txt'),uiPath=join(partitionTemp,'ui.html'),output=join(partitionTemp,'candidate');
    writeFileSync(sourcePath,chinesePartitionSource);writeFileSync(licensePath,chinesePartitionLicense);writeFileSync(uiPath,app);
    const script=fileURLToPath(new URL('../tools/personal-font-pack-v265.py',import.meta.url));
-   const build=(source,lic,dest)=>spawnSync(python,[script,'notosanssc','--source',source,'--license',lic,'--ui-source',uiPath,'--output',dest],{maxBuffer:8*1024*1024,timeout:180000});
+   const build=(source,lic,dest)=>spawnSync(python,[script,folder,'--source',source,'--license',lic,'--ui-source',uiPath,'--output',dest],{maxBuffer:8*1024*1024,timeout:180000});
    const generated=build(sourcePath,licensePath,output);
    assert.ifError(generated.error);assert.equal(generated.status,0,generated.stderr?.toString().slice(-2000));
    bundle=JSON.parse(readFileSync(join(output,'manifest.json'),'utf8'));
-   assert.equal(bundle.source_git_blob,'fb0637bafbcd804fe32152370a1225990745b4bc');
-   assert.equal(bundle.license_git_blob,'1c9f43281b8f216c5461fe9ac729afbade7724e4');
+   assert.equal(bundle.source_git_blob,input.expected);
+   assert.equal(bundle.license_git_blob,input.licenseHash);
    assert.deepEqual(readFileSync(join(output,'OFL.txt')),chinesePartitionLicense);
-   assert.equal(bundle.family,'MMH Personal Chinese A');
-   assert.equal(bundle.sourceCount,30890);
+   assert.equal(bundle.family,({notosanssc:'MMH Personal Chinese A',notoserifsc:'MMH Personal Chinese B',zcoolqingkehuangyou:'MMH Personal Chinese C'})[folder]);
+   if(folder==='notosanssc')assert.equal(bundle.sourceCount,30890);
+   assert.equal(bundle.missing_ui_han_count,bundle.missing_ui_han.length);
+   assert.equal(bundle.source_uvs_count,bundle.preserved_uvs_count+bundle.missing_uvs_count);
+   for(const n of [bundle.source_uvs_count,bundle.preserved_uvs_count,bundle.missing_uvs_count,bundle.missing_ui_han_count])assert(Number.isSafeInteger(n)&&n>=0);
    assert(bundle.groups.length>1&&bundle.groups[0].codes.length>0);
    partitionCss=readFileSync(join(output,'font.css'),'utf8');
    assert.equal((partitionCss.match(/@font-face/g)||[]).length,bundle.groups.length);
@@ -413,6 +418,7 @@ sys.stdout.buffer.write(data)
    for(const cp of g.codes){assert(!lookup.has(cp),'disjoint CSS ranges');lookup.set(cp,g.id)}
   }
   assert.equal(lookup.size,bundle.sourceCount);
+  for(const cp of bundle.missing_ui_han)assert(!lookup.has(cp),'unsupported UI Han is not advertised');
   const rare=bundle.groups[1].codes.find(cp=>cp>=0x4e00&&cp<=0x9fff)??bundle.groups[1].codes[0];
   const splitCtx=await browser.newContext(),splitRequests=[];
   try{
@@ -434,8 +440,9 @@ sys.stdout.buffer.write(data)
    await set(mixed);assert.deepEqual([...new Set(splitRequests)].sort((a,b)=>a-b),[0,lookup.get(rare)].sort((a,b)=>a-b),'rare character requests only matching shard');
    const session=await splitCtx.newCDPSession(p);
    try{await session.send('DOM.enable');await session.send('CSS.enable');const {root}=await session.send('DOM.getDocument');const {nodeId}=await session.send('DOM.querySelector',{nodeId:root.nodeId,selector:'#sample'});const {fonts}=await session.send('CSS.getPlatformFontsForNode',{nodeId});assert(fonts.some(x=>x.glyphCount>0)&&fonts.filter(x=>x.glyphCount>0).every(x=>x.isCustomFont),'mixed sample renders without platform fallback')}finally{await session.detach()}
-   console.log('FONT-PARTITION '+JSON.stringify({sourceCount:bundle.sourceCount,shards:bundle.groups.length,coreBytes:bundle.groups[0].bytes,totalBytes:bundle.groups.reduce((n,g)=>n+g.bytes,0),largestBytes:Math.max(...bundle.groups.map(g=>g.bytes)),requests:splitRequests}));
-   console.log('PASS: pinned Chinese offline pack, full source cmap partition, original license, shard hashes, tampered license/overwrite rejection, generated CSS and mixed sample rendering (isolated Noto Sans SC candidate)');
+   console.log('FONT-PARTITION '+JSON.stringify({folder,missingUiHan:bundle.missing_ui_han_count,sourceUvs:bundle.source_uvs_count,preservedUvs:bundle.preserved_uvs_count,missingUvs:bundle.missing_uvs_count,sourceCount:bundle.sourceCount,shards:bundle.groups.length,coreBytes:bundle.groups[0].bytes,totalBytes:bundle.groups.reduce((n,g)=>n+g.bytes,0),largestBytes:Math.max(...bundle.groups.map(g=>g.bytes)),requests:splitRequests}));
+   console.log('PASS: pinned Chinese offline pack, source cmap partition, original license, shard hashes, coverage diagnostics, tampered license/overwrite rejection, generated CSS and mixed sample rendering (isolated '+folder+' candidate)');
   }finally{await splitCtx.close()}
+  }
  }
 }finally{await browser.close()}
