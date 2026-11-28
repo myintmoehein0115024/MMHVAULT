@@ -41,11 +41,33 @@ const dataIndex=app.indexOf(dataStart),dataLimit=app.indexOf(dataEnd,dataIndex);
 assert.ok(dataIndex>=0&&dataLimit>dataIndex&&app.split(dataStart).length===2,'unique actual data panel');
 const actualData=app.slice(dataIndex,dataLimit).replace(dataStart,'<div id="settingsPanelDataV371" role="tabpanel" style="display:block">');
 for(const id of ['restoreConfirmV383','excelImportBtn','backupFile','mmhDataHealthV191'])assert.ok(actualData.includes(id),'actual data control '+id);
+// App icon uses the real first appearance panel; install interaction is tested separately.
+const iconStart="<div class=\"settings-panel-v371\" id=\"settingsPanelAppearanceV371\" role=\"tabpanel\" style=\"display:none\">\n",iconEnd="\n<div class=\"panel\"><h2 class=\"mmh-hint-anchor-v195 mmh-context-title-v199\" data-mmh-hint-source=\"next\" tabindex=\"0\">Language</h2>";
+const iconIndex=app.indexOf(iconStart),iconLimit=app.indexOf(iconEnd,iconIndex);
+assert.ok(iconIndex>=0&&iconLimit>iconIndex,'actual icon panel');
+const actualIcon=app.slice(iconIndex+iconStart.length,iconLimit);
+assert.ok(actualIcon.includes('app-icon-preview'),'actual app icon image');
+for(const [selector,key,english] of [
+ ['#settings #mmhDataHealthV191 h2','Data Health / 数据健康检查','Data Health'],
+ ['#settings #mmhDataHealthV191 .small','Read only · 仅检查，不自动修改数据','Read only · No automatic data changes'],
+ ['#settings #mmhDataHealthRunV191','Check / 检查','Check'],
+ ['#settings #mmhDataHealthStatusV191','Not checked / 尚未检查','Not checked'],
+ ['#settings #selectBackupBtnV433','📥 Select Backup / Import JSON','📥 Select Backup / Import JSON'],
+ ['#settings #stPage_icon .pwa-row .small','PWA icon · 192×192 / 512×512','PWA icon · 192×192 / 512×512'],
+ ['#settings #stPage_icon .mmh-context-desc-v199','Used when you add MMHVAULT to your phone home screen.','Used when you add MMHVAULT to your phone home screen.']
+]){
+ const el={matches:s=>s===selector};
+ assert.equal(copy(key,el,'en'),english);
+ assert.match(copy(key,el,'zh'),/[\u4e00-\u9fff]/);
+ assert.match(copy(key,el,'my'),/[\u1000-\u109f]/);
+ assert.equal(copy(key,unrelated,'en'),null);
+}
+assert.ok(app.includes("if(lang==='en'&&personalSettingsCopyV268(current,parent,lang)==null)return;"),'initial English fixed copy');
 const content={
  profile:'<form id="mmhProfileFormV1" class="mmh-profile-edit-v1"><label class="mmh-profile-name-v1">Display name<input value="Sample user"></label><div class="mmh-profile-photo-v1"><button type="button" class="mmh-photo-trigger-v1">Change photo</button><input type="file" hidden></div><button type="button" id="mmhProfileSaveV1" class="btn primary">Save changes</button></form><div class="panel" id="mmhBirthdaySettingsV34215"><div class="toolbar"><h2>Birthday</h2></div><div class="mmh-birthday-grid-v34216"><input id="mmhBirthDateInputV34215" type="date"><div class="mmh-birthday-preview-v34216"><div><b>—</b></div></div></div></div>',
  general:'<div class="st-group"><div class="st-rows"><label class="st-row"><span class="st-icon">＄</span><span>Display currency / 默认显示货币 / ငွေကြေး</span><select><option>USD</option><option>THB</option></select></label><label class="st-row"><span class="st-icon">Aa</span><span>Font style</span><select><option>System</option></select></label></div></div>',
  security:'<div><div class="panel account-security-v379"><div class="account-security-grid-v379"><div class="account-security-card-v379" id="mmhA783SecurityCenter"><h3>Account settings</h3><div class="mmh-a783-section"><div class="mmh-a783-title">Account</div></div><button class="btn" disabled>Unavailable</button><div hidden>Hidden fixture</div></div><div class="account-security-card-v379"><div class="security-password-form-v379"><label>Password<input type="password"></label></div></div><div class="account-security-card-v379" id="mmhEmailResetCardV952"><div class="mmh-email-reset-destination-v952">Sample email</div></div></div></div></div>',
- icon:'<div><div class="panel"><div class="pwa-row"><div>MMHVAULT</div></div><button class="btn primary">Add to home screen</button></div></div>',
+ icon:'<div>'+actualIcon+'</div><button type="button" id="stInstallAppV4" class="btn primary">Add to home screen</button>',
  data:'<div>'+actualData+'</div>'
 };
 const pages=ids.map(id=>'<section class="st-page" id="stPage_'+id+'" hidden><div class="st-page-head"><button class="st-back">Back</button><h2>Settings</h2></div>'+content[id]+'</section>').join('');
@@ -72,9 +94,15 @@ try{
       const p=document.getElementById('stPage_'+id),h=p.querySelector('.st-page-head');h.querySelector('h2').textContent=title;
       const panel=p.querySelector('.panel,.st-rows,.mmh-profile-edit-v1');
       const controls=[...p.querySelectorAll("input:not([type=file]):not([type=hidden]),select,.mmh-photo-trigger-v1,.st-group,.mmh-email-reset-destination-v952")];
+      const restore=p.querySelector('#restorePreviewV383'),restoreStat=p.querySelector('.restore-stat-v383');
+      const restoreBg=restore?getComputedStyle(restore).backgroundColor:null;
+      const restoreStatBg=restoreStat?getComputedStyle(restoreStat).backgroundColor:null;
+      const restoreGradient=restore?getComputedStyle(restore).backgroundImage:null;
+      const importDisabled=p.querySelector('#excelImportBtn')?.disabled??null;
+      const iconImg=p.querySelector('.app-icon-preview');
       const security=p.querySelector(".account-security-grid-v379");
       const main=document.querySelector('main.wrap'),a=p.getBoundingClientRect(),b=h.getBoundingClientRect();
-      return {pseudo:getComputedStyle(h,"::before").content,after:getComputedStyle(h,"::after").content,kicker:getComputedStyle(root.querySelector(".mmh-pf-kicker-v510")).display,controls:controls.map(c=>({name:c.id||c.className||c.tagName,bg:getComputedStyle(c).backgroundImage})),securityWidth:security?.getBoundingClientRect().width??0,securityPanelWidth:security?.parentElement.clientWidth??0,width:a.width,headWidth:b.width,headHeight:b.height,headBg:getComputedStyle(h).backgroundImage,panelBg:getComputedStyle(panel).backgroundImage,canvas:getComputedStyle(main).backgroundColor,body:getComputedStyle(document.body).backgroundColor,overflow:p.scrollWidth-p.clientWidth};
+      return {restoreBg,restoreStatBg,restoreGradient,importDisabled,iconPresent:!!iconImg,pseudo:getComputedStyle(h,"::before").content,after:getComputedStyle(h,"::after").content,kicker:getComputedStyle(root.querySelector(".mmh-pf-kicker-v510")).display,controls:controls.map(c=>({name:c.id||c.className||c.tagName,bg:getComputedStyle(c).backgroundImage})),securityWidth:security?.getBoundingClientRect().width??0,securityPanelWidth:security?.parentElement.clientWidth??0,width:a.width,headWidth:b.width,headHeight:b.height,headBg:getComputedStyle(h).backgroundImage,panelBg:getComputedStyle(panel).backgroundImage,canvas:getComputedStyle(main).backgroundColor,body:getComputedStyle(document.body).backgroundColor,overflow:p.scrollWidth-p.clientWidth};
      },{id,lang,title:titles[lang][i]});
      const label=[width,light,lang,id].join('/');
      assert.ok(r.width>0&&r.headHeight>=40,label+' visible header');
@@ -85,6 +113,12 @@ try{
      assert.equal(r.kicker,'none',label+' no untranslated legacy kicker');
      for(const control of r.controls)assert.equal(control.bg,'none',label+' flat '+control.name);
      if(id==='security')assert.ok(r.securityWidth>=r.securityPanelWidth-44,label+' security grid fills panel');
+     if(id==='data'){
+      assert.equal(r.restoreBg,r.restoreStatBg,label+' preview matches V2 surface');
+      assert.equal(r.restoreGradient,'none',label+' no restore preview gradient');
+      assert.equal(r.importDisabled,true,label+' import remains disabled');
+     }
+     if(id==='icon')assert.equal(r.iconPresent,true,label+' real icon panel');
      assert.equal(r.panelBg,'none',label+' no legacy gradient');
      assert.equal(r.canvas,r.body,label+' continuous canvas');
      assert.ok(r.overflow<=3,label+' no horizontal overflow');
