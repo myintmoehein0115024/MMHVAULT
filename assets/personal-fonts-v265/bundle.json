@@ -1,0 +1,675 @@
+{
+  "candidates": [
+    {
+      "candidate": "lxgwwenkai",
+      "derivative": "neutral family rename; WOFF2 conversion and Unicode partitioning",
+      "family": "MMH Personal Chinese D",
+      "files": [
+        {
+          "bytes": 828480,
+          "file": "part-0.woff2",
+          "sha256": "a280560e2f1e9e2adcfa1a3a5354d3ef074f1b57342bc4a04026b4904db779f1"
+        },
+        {
+          "bytes": 292444,
+          "file": "part-1.woff2",
+          "sha256": "e8796081d6d637804c5c7836d382eed64b4fb153e67bebd24e9da4d673c89cb2"
+        },
+        {
+          "bytes": 313640,
+          "file": "part-2.woff2",
+          "sha256": "bb719de18417e59edfce0a66116e72da4a061543d5542bec17d32fe39e153c80"
+        },
+        {
+          "bytes": 328288,
+          "file": "part-3.woff2",
+          "sha256": "4fc4de79fbeb87ae11ca36aa5d4cf60515c781aa87807da58bb2ff180fb3c997"
+        },
+        {
+          "bytes": 325840,
+          "file": "part-4.woff2",
+          "sha256": "10f3532dc05c70b30c87846beefab8bc56f726c43777188a41ecc3eaaa72aafb"
+        },
+        {
+          "bytes": 342484,
+          "file": "part-5.woff2",
+          "sha256": "ca3058159dad597955b4e4cf13ef93838fbeb60a0c47fd9b2f31ebcce6682480"
+        },
+        {
+          "bytes": 365708,
+          "file": "part-6.woff2",
+          "sha256": "2cab57dd810c3e46e21ee304109e9a2f3c647f30af407c3bb4451491d35f5898"
+        },
+        {
+          "bytes": 302516,
+          "file": "part-7.woff2",
+          "sha256": "09aea91c0aadc684bf93eb2fddba45615547fbe5749bf2a2b58ca52cea47a9e3"
+        },
+        {
+          "bytes": 248084,
+          "file": "part-8.woff2",
+          "sha256": "9f30eaff3e793465fdcb3b6b91b8a99924b33e7117ba44fca9219d83cf3bb57f"
+        },
+        {
+          "bytes": 277992,
+          "file": "part-9.woff2",
+          "sha256": "8d881a25bb22f9cf0e400b285b9e5a6d22da9774374561ab65f896dc68fbc155"
+        },
+        {
+          "bytes": 271504,
+          "file": "part-10.woff2",
+          "sha256": "419dce07905874232e4569cfdcf9256c11a77533d7480923cfde72f4fde03e67"
+        },
+        {
+          "bytes": 277984,
+          "file": "part-11.woff2",
+          "sha256": "39d01799f153d3911d81b45864be028ef6b4ad12b5952451f76ea7b31526f1f6"
+        },
+        {
+          "bytes": 308216,
+          "file": "part-12.woff2",
+          "sha256": "358ad484f70ea4f86ec027fff3bbef703d7fd320e3e28ec978870820353d59d5"
+        },
+        {
+          "bytes": 263852,
+          "file": "part-13.woff2",
+          "sha256": "d6bd44fd2e9bc7e43c034042d28dc25086c0c331e44b16005f2aae7d1770f2cf"
+        },
+        {
+          "bytes": 293712,
+          "file": "part-14.woff2",
+          "sha256": "3a5b6122d6d86e0a99b0072dae11662ca565ff8f83d495cb66855108ae154d2d"
+        },
+        {
+          "bytes": 322160,
+          "file": "part-15.woff2",
+          "sha256": "9c926dc457145c89958820681d6f109c21311187bb6668316168a71b35fc6c3d"
+        },
+        {
+          "bytes": 278652,
+          "file": "part-16.woff2",
+          "sha256": "4a3a678ee50c62e65479a1a34848b39618b3a0836c709abce65bcc991c5ba065"
+        },
+        {
+          "bytes": 272444,
+          "file": "part-17.woff2",
+          "sha256": "3b37444b0c98901aa9c771541c4e2dd6304bd40c4a6028bb551c0cecaccf09fa"
+        },
+        {
+          "bytes": 330304,
+          "file": "part-18.woff2",
+          "sha256": "17507102344e3ab60018eb317c4a03a741bf961aac91ad81c2d41ff05e511bc8"
+        },
+        {
+          "bytes": 278528,
+          "file": "part-19.woff2",
+          "sha256": "f8e920403944458f309453e1577ed305bfebc787de62aabae40905bff8c2f9c1"
+        },
+        {
+          "bytes": 298744,
+          "file": "part-20.woff2",
+          "sha256": "be858cea6633445d102c7843a7cb39d180e6428dac9c0d112abc0b483d4731b2"
+        },
+        {
+          "bytes": 307312,
+          "file": "part-21.woff2",
+          "sha256": "077f7b5b6c52a442ec71a1a3a2399f560f74919686d37b257dbbb7a6b335e4a7"
+        },
+        {
+          "bytes": 299272,
+          "file": "part-22.woff2",
+          "sha256": "6051cb7ad72879299d2d6014a28fc7ca914d0d618b73e81eca0d34313747be57"
+        },
+        {
+          "bytes": 288980,
+          "file": "part-23.woff2",
+          "sha256": "020772cd65f4ae1295a750c70a6496c1b16e00ba7411bb58645567e78defc57b"
+        },
+        {
+          "bytes": 315392,
+          "file": "part-24.woff2",
+          "sha256": "3f37768f750e0b4d1f380e9b904fa3ddc28d790014eb2f3d9282f7904ad18210"
+        },
+        {
+          "bytes": 324084,
+          "file": "part-25.woff2",
+          "sha256": "832092c68ecf34af727f3b9b94f7a8a30c728fd523214cf17f66bca48e4e357e"
+        },
+        {
+          "bytes": 338780,
+          "file": "part-26.woff2",
+          "sha256": "5d73c796a3f54f0d785898c454d14cb326b6f6fb140a0e704374f3b9ab0682a0"
+        },
+        {
+          "bytes": 320804,
+          "file": "part-27.woff2",
+          "sha256": "5640d3a1ab657f8137114f68e8ec849f8f012031305b2c6c688cb6aab8b94b86"
+        },
+        {
+          "bytes": 365092,
+          "file": "part-28.woff2",
+          "sha256": "493953c4af44535c90f7b2473a0910d04033bb1bb5f5ec83ff4023bf1d49337b"
+        },
+        {
+          "bytes": 345628,
+          "file": "part-29.woff2",
+          "sha256": "720bcd4209e1083d3e1ddd0120e719f4b33018220ff976d18ae9f4c96531177f"
+        },
+        {
+          "bytes": 106724,
+          "file": "part-30.woff2",
+          "sha256": "0ba67a5ac79c210ff68e55550a29b98079fa540f7358ccf70cc9f40c4d4e3f08"
+        }
+      ],
+      "license": "lxgwwenkai/OFL.txt",
+      "license_git_blob": "bb1634cb03ee7202d5c66bf2754705493bd73e1e",
+      "license_id": "OFL-1.1",
+      "manifest": "lxgwwenkai/manifest.json",
+      "manifest_sha256": "d39683db22de65ae0c97b5fbf1e4f518d6bc1f1eb8c8d06ce76e3b77f342df59",
+      "reserved_source_names": [
+        "\u971e\u9e5c",
+        "\u971e\u9da9",
+        "\u843d\u971e\u5b64\u9e5c",
+        "\u843d\u971e\u5b64\u9da9",
+        "LXGW"
+      ],
+      "source_git_blob": "7f8f031dc5c6c5ba1913d93c36d4667c1e311cea",
+      "source_license_path": "OFL.txt",
+      "source_path": "fonts/TTF/LXGWWenKai-Regular.ttf",
+      "source_repository": "lxgw/LxgwWenKai",
+      "source_revision": "f4cc16fa07f7d115135d203065e711d43c3076d3"
+    },
+    {
+      "candidate": "notosansmyanmar",
+      "derivative": "neutral family rename; WOFF2 conversion",
+      "family": "MMH Personal Myanmar A",
+      "files": [
+        {
+          "bytes": 359472,
+          "file": "font.woff2",
+          "sha256": "87b499fc7d9f87d6c0a59ee7ece560d17584d525c50cf177d20b0941c670283b"
+        }
+      ],
+      "license": "notosansmyanmar/OFL.txt",
+      "license_git_blob": "c94c47416f38b8ddec9f3fbc9e0241998d7823dc",
+      "license_id": "OFL-1.1",
+      "manifest": "notosansmyanmar/manifest.json",
+      "manifest_sha256": "b2ac2086d5c960f2fa96815527660e793d8d43f03eca1a72cd5bfdf49ac5d63b",
+      "reserved_source_names": [],
+      "source_git_blob": "a7af8e405d24076f2930c0840523110b3236560b",
+      "source_license_path": "ofl/notosansmyanmar/OFL.txt",
+      "source_path": "ofl/notosansmyanmar/NotoSansMyanmar[wdth,wght].ttf",
+      "source_repository": "google/fonts",
+      "source_revision": "5026800714d07231937d92eb4cceabf06e05d74e"
+    },
+    {
+      "candidate": "notosanssc",
+      "derivative": "neutral family rename; WOFF2 conversion and Unicode partitioning",
+      "family": "MMH Personal Chinese A",
+      "files": [
+        {
+          "bytes": 655564,
+          "file": "part-0.woff2",
+          "sha256": "37770ed95369b573f5e677d9275592a1c1306e7eef6a03c70db5054cb92faa96"
+        },
+        {
+          "bytes": 308432,
+          "file": "part-1.woff2",
+          "sha256": "6efc629a5925a21990027cbd77ff119d894540a7fc34bd280f3d43226fd55404"
+        },
+        {
+          "bytes": 331380,
+          "file": "part-2.woff2",
+          "sha256": "90ca94814bec27044841c872c00175d8b752aee6e24acee983332916fa35b9e3"
+        },
+        {
+          "bytes": 357784,
+          "file": "part-3.woff2",
+          "sha256": "87113f8621cc8ffc929cc0da902e2e4fd2ced55d9a229f7557d6f0abaf432a61"
+        },
+        {
+          "bytes": 350220,
+          "file": "part-4.woff2",
+          "sha256": "5dccfd3193976c511a97c53fe6226d2b4cabf9f028d6f6a08725b37ab6e97f99"
+        },
+        {
+          "bytes": 344364,
+          "file": "part-5.woff2",
+          "sha256": "5638fec5ab101af093975601eae2095e5db10e26ba9668b83ca6c804a80892c1"
+        },
+        {
+          "bytes": 354756,
+          "file": "part-6.woff2",
+          "sha256": "b0e25d17eb873237d6cd34ea94d4f4afe21f5b957b36c3cd1c42cfbd09f5f291"
+        },
+        {
+          "bytes": 320628,
+          "file": "part-7.woff2",
+          "sha256": "bcba0069a8583616594355d10fad88e68033d74ce6f524160a9b20710b82c6ad"
+        },
+        {
+          "bytes": 281656,
+          "file": "part-8.woff2",
+          "sha256": "8cacaa68c9280ac0d16d8c318e9fe41dcbecc9277701bfa4c6d94fda85e70446"
+        },
+        {
+          "bytes": 285408,
+          "file": "part-9.woff2",
+          "sha256": "3a14ae143d975b8acb45d0d0ed73eed69d24d42bf000389705991c7e8ef0d4b1"
+        },
+        {
+          "bytes": 302080,
+          "file": "part-10.woff2",
+          "sha256": "e794bce176b6e3785e80d6f5daf99352ba79dd8404d35d3f5d671b5cb7e980b3"
+        },
+        {
+          "bytes": 314044,
+          "file": "part-11.woff2",
+          "sha256": "e8027d8c27418150ecafa7689d655cb785bddecf1393ea89933be3dfc4365cb3"
+        },
+        {
+          "bytes": 331652,
+          "file": "part-12.woff2",
+          "sha256": "a337de5523321a4f34471c0591777a1330fee85428f239aa4f30c58afddfcd19"
+        },
+        {
+          "bytes": 285188,
+          "file": "part-13.woff2",
+          "sha256": "4ced2489cf53474a7086b0e47201dce626a1587f06f01d09e81b986e19256bd1"
+        },
+        {
+          "bytes": 330600,
+          "file": "part-14.woff2",
+          "sha256": "647d576c58856236473d6a68131aec9ccc3c43d8fc04feff40c11e1c67e05c33"
+        },
+        {
+          "bytes": 367288,
+          "file": "part-15.woff2",
+          "sha256": "3e3cdbbcf098a029edafd21a9103bbf0a4cdf6ee06016e608f55b6afc5f8422e"
+        },
+        {
+          "bytes": 319380,
+          "file": "part-16.woff2",
+          "sha256": "29d985fd57f144541203d10a0946c141807a65046ebcb09d3c7c16174e69df60"
+        },
+        {
+          "bytes": 296792,
+          "file": "part-17.woff2",
+          "sha256": "1b6243c00ff35877a6602ff6556f38541a8ac4d7b7140bab649da64445556e82"
+        },
+        {
+          "bytes": 386308,
+          "file": "part-18.woff2",
+          "sha256": "91046aafa2a450fb7291b262d52e515477340f84dadc62de60cdbef9e7968f06"
+        },
+        {
+          "bytes": 319976,
+          "file": "part-19.woff2",
+          "sha256": "0383a0ed2fdf57da1d38dc9a2652a40a66ebac578ed2a64c58465926651baaed"
+        },
+        {
+          "bytes": 313308,
+          "file": "part-20.woff2",
+          "sha256": "04f3e75779ce9c12adfd0c817452afdbe597c17c7f133b29520340039bbfedb5"
+        },
+        {
+          "bytes": 334052,
+          "file": "part-21.woff2",
+          "sha256": "e302081dd12110f81d76530b28311bd75a8c3dc5b18c5783f83d46802880623b"
+        },
+        {
+          "bytes": 321740,
+          "file": "part-22.woff2",
+          "sha256": "4c5edc3edfd421c0cdd679fae7fdcb5b0dd73e724efd1387be6adf032a926b32"
+        },
+        {
+          "bytes": 312728,
+          "file": "part-23.woff2",
+          "sha256": "92826a30f839f036cf05307841e62c72c816594b82fc507010314771f1bc76e2"
+        },
+        {
+          "bytes": 340852,
+          "file": "part-24.woff2",
+          "sha256": "e372181a55c28f933aa1727518afe6caa104d7dd8c58204ba76c2d299f5fe642"
+        },
+        {
+          "bytes": 361184,
+          "file": "part-25.woff2",
+          "sha256": "6406193557137a83995673a42fea936d15b582ec92befad808d573881296bc3b"
+        },
+        {
+          "bytes": 383636,
+          "file": "part-26.woff2",
+          "sha256": "742da6eafd2496830b3d6174dfe9c71bb487b39062e21ddc5e978286a1f69791"
+        },
+        {
+          "bytes": 154976,
+          "file": "part-27.woff2",
+          "sha256": "5b2200577eea95990364d3da997c939ea104985b85739d6310421442734ae474"
+        }
+      ],
+      "license": "notosanssc/OFL.txt",
+      "license_git_blob": "1c9f43281b8f216c5461fe9ac729afbade7724e4",
+      "license_id": "OFL-1.1",
+      "manifest": "notosanssc/manifest.json",
+      "manifest_sha256": "299757bfb60ec1447bd9941385997c0c3d02beede7e944558da3d029d1de1cfb",
+      "reserved_source_names": [
+        "Source"
+      ],
+      "source_git_blob": "fb0637bafbcd804fe32152370a1225990745b4bc",
+      "source_license_path": "ofl/notosanssc/OFL.txt",
+      "source_path": "ofl/notosanssc/NotoSansSC[wght].ttf",
+      "source_repository": "google/fonts",
+      "source_revision": "5026800714d07231937d92eb4cceabf06e05d74e"
+    },
+    {
+      "candidate": "notoserifmyanmar",
+      "derivative": "neutral family rename; WOFF2 conversion",
+      "family": "MMH Personal Myanmar B",
+      "files": [
+        {
+          "bytes": 73972,
+          "file": "font.woff2",
+          "sha256": "883142e6294a1483eb62f3cf7828f0cd1b7aba2a34d81f52c536ac0b9c9462b4"
+        }
+      ],
+      "license": "notoserifmyanmar/OFL.txt",
+      "license_git_blob": "94d1bf7b52481343e2983fb7751e8b7abe1ea07b",
+      "license_id": "OFL-1.1",
+      "manifest": "notoserifmyanmar/manifest.json",
+      "manifest_sha256": "5f85dfc4a473070aeece48e5a5f11116f28255ddc8931759752cde0a522cdf7a",
+      "reserved_source_names": [],
+      "source_git_blob": "86adf96a587b326f5961b9550d54029608bdc760",
+      "source_license_path": "ofl/notoserifmyanmar/OFL.txt",
+      "source_path": "ofl/notoserifmyanmar/NotoSerifMyanmar-Regular.ttf",
+      "source_repository": "google/fonts",
+      "source_revision": "5026800714d07231937d92eb4cceabf06e05d74e"
+    },
+    {
+      "candidate": "notoserifsc",
+      "derivative": "neutral family rename; WOFF2 conversion and Unicode partitioning",
+      "family": "MMH Personal Chinese B",
+      "files": [
+        {
+          "bytes": 893860,
+          "file": "part-0.woff2",
+          "sha256": "2213af518a20e6c52d846922d08f21926cbeed2394adb9e0a81c450de34b2942"
+        },
+        {
+          "bytes": 399592,
+          "file": "part-1.woff2",
+          "sha256": "20376c461b03f9b797984a23176b51fdea806dbf4aed10ab30ee6b2d2c4da9c1"
+        },
+        {
+          "bytes": 415784,
+          "file": "part-2.woff2",
+          "sha256": "600c900a777c675f1723ba1487a3523b929997302f090354d96c2c430393a2af"
+        },
+        {
+          "bytes": 453972,
+          "file": "part-3.woff2",
+          "sha256": "a8b05cf0943bd77f16d72b2c0386a6ad05b825e6e77ee36cd6d10a0fc94e3cb4"
+        },
+        {
+          "bytes": 429644,
+          "file": "part-4.woff2",
+          "sha256": "30005be0d062038ca3427ca66f2cfe585ac94dbec2108720666e6b565f87aba3"
+        },
+        {
+          "bytes": 440832,
+          "file": "part-5.woff2",
+          "sha256": "894f600cf7b123a4345394773942c4ec7ad1d024a69c360ebc91a13dc8756b90"
+        },
+        {
+          "bytes": 456524,
+          "file": "part-6.woff2",
+          "sha256": "3b23f9b29523141f746d436fb9fea5f4d5868a411213bc9e662428c145aa781e"
+        },
+        {
+          "bytes": 406104,
+          "file": "part-7.woff2",
+          "sha256": "5732d8c79af936acdaf2ab74e6bcf5e57fb1c3eb23b4b2f02377edd22b40bd43"
+        },
+        {
+          "bytes": 376292,
+          "file": "part-8.woff2",
+          "sha256": "4a1deb52282c28d77f4b22733f3a62f56da568de4d6f0763b9b3b82ed92cbfbc"
+        },
+        {
+          "bytes": 413544,
+          "file": "part-9.woff2",
+          "sha256": "049b41c3905f105b0fd7a6a72a7ce1f12a7d42d4dbaa4d2413641674e6536757"
+        },
+        {
+          "bytes": 410912,
+          "file": "part-10.woff2",
+          "sha256": "7964cd448a98a2faa69bb74da7499efec0bc57647da7d86f3a9d3b44bf31f908"
+        },
+        {
+          "bytes": 415396,
+          "file": "part-11.woff2",
+          "sha256": "26ee5648266d705bdda229cf800b4325c46abf9d6b27a13c4b5bf1e273524264"
+        },
+        {
+          "bytes": 441376,
+          "file": "part-12.woff2",
+          "sha256": "b1f7aaec3dddf6c2e7f617d47600ffb6c6f18b6536f6efe43466a9df4255a622"
+        },
+        {
+          "bytes": 379836,
+          "file": "part-13.woff2",
+          "sha256": "dd84d9ee9d79de9eb13500a4a748ef05a484567b327d279557dd59252f52d14f"
+        },
+        {
+          "bytes": 455572,
+          "file": "part-14.woff2",
+          "sha256": "60aec28ca08e595a180168b07c375893cc3da3a5d73d1f1e40db326f45a13dde"
+        },
+        {
+          "bytes": 505616,
+          "file": "part-15.woff2",
+          "sha256": "dc5ba3b21576c5f436db60144e27298a7f200feafa6696121de96f62bf352e4f"
+        },
+        {
+          "bytes": 415520,
+          "file": "part-16.woff2",
+          "sha256": "c9cc41e7a4437256ee030f9f2791c17e3d77d2b73ccc7141f9ec50c1d3c0da7a"
+        },
+        {
+          "bytes": 424548,
+          "file": "part-17.woff2",
+          "sha256": "d20bbd932fb9fc2b8bdced1b85bfcffcdcb53c2571f7c66da2c264f4775e4fbb"
+        },
+        {
+          "bytes": 520956,
+          "file": "part-18.woff2",
+          "sha256": "e54234e3c7933de207a6dd27e6d25320843997bcbeeb84a0d0c9a0db9b325f65"
+        },
+        {
+          "bytes": 432204,
+          "file": "part-19.woff2",
+          "sha256": "dec60f964fcf7351496795a8dc6639c28f898e6ba884cf6c8e6734a57388c5b1"
+        },
+        {
+          "bytes": 437516,
+          "file": "part-20.woff2",
+          "sha256": "54eb256f532e27bafddbb83c34f2cf792c09a6973264b9dc1d921ede54435b6c"
+        },
+        {
+          "bytes": 451864,
+          "file": "part-21.woff2",
+          "sha256": "5d7a09ee40d9f8eaa51de22b7333b3f6627841f6e3bbfdba7db92059d459ee44"
+        },
+        {
+          "bytes": 441772,
+          "file": "part-22.woff2",
+          "sha256": "3bf4e4f79931e7d77b0fee4b14e11f6a827a7ebee9fc54fd76790315319bb5df"
+        },
+        {
+          "bytes": 427424,
+          "file": "part-23.woff2",
+          "sha256": "6d2185cf9f7fb5ff31a3030c63f89fe9e489951e4529dada2cf19469bc97954f"
+        },
+        {
+          "bytes": 476620,
+          "file": "part-24.woff2",
+          "sha256": "09f5636fa84371976cb25b611a4e402afdf65abfaf2675b4ff4990a5d670d84b"
+        },
+        {
+          "bytes": 512872,
+          "file": "part-25.woff2",
+          "sha256": "0e704316a27c4577614b4e6fc53429eb9a423c3f6ee49eb669665ab37a5994f5"
+        },
+        {
+          "bytes": 524996,
+          "file": "part-26.woff2",
+          "sha256": "51d92d39e972c133308c61408c52c6879a88e83426dd1a3a557c83cd9eb006ee"
+        },
+        {
+          "bytes": 224820,
+          "file": "part-27.woff2",
+          "sha256": "03dac33619287d57a1f879395127b965442b566a812912b7b2edb30d3dd1c066"
+        }
+      ],
+      "license": "notoserifsc/OFL.txt",
+      "license_git_blob": "94d1bf7b52481343e2983fb7751e8b7abe1ea07b",
+      "license_id": "OFL-1.1",
+      "manifest": "notoserifsc/manifest.json",
+      "manifest_sha256": "96a6d37ae2b707293b5946405fb200eadd80c45618a0ce7b4a2810cc07420959",
+      "reserved_source_names": [],
+      "source_git_blob": "eab063faf229160a52d3760f5555150e4eb9e5bf",
+      "source_license_path": "ofl/notoserifsc/OFL.txt",
+      "source_path": "ofl/notoserifsc/NotoSerifSC[wght].ttf",
+      "source_repository": "google/fonts",
+      "source_revision": "5026800714d07231937d92eb4cceabf06e05d74e"
+    },
+    {
+      "candidate": "padauk",
+      "derivative": "neutral family rename; WOFF2 conversion",
+      "family": "MMH Personal Myanmar C",
+      "files": [
+        {
+          "bytes": 95220,
+          "file": "font.woff2",
+          "sha256": "40771947d079136681e6d07e89745137a26d34bd75947c13ac26ce19ddd2b589"
+        }
+      ],
+      "license": "padauk/OFL.txt",
+      "license_git_blob": "57410e8e9eb58b0cce938440696cf36e2daf8fcf",
+      "license_id": "OFL-1.1",
+      "manifest": "padauk/manifest.json",
+      "manifest_sha256": "dcafde29952b9842889dd91667c92606f56a2777e958ea9c60aca7065811479b",
+      "reserved_source_names": [
+        "Padauk",
+        "Namkio",
+        "Deemawso"
+      ],
+      "source_git_blob": "a6882fbb2177bec0271a0b10821a33100efe1fc7",
+      "source_license_path": "ofl/padauk/OFL.txt",
+      "source_path": "ofl/padauk/Padauk-Regular.ttf",
+      "source_repository": "google/fonts",
+      "source_revision": "5026800714d07231937d92eb4cceabf06e05d74e"
+    },
+    {
+      "candidate": "tharlon",
+      "derivative": "neutral family rename; WOFF2 conversion",
+      "family": "MMH Personal Myanmar D",
+      "files": [
+        {
+          "bytes": 85420,
+          "file": "font.woff2",
+          "sha256": "b62f22c72deebb8fbf879e6162bef1df8e047a3969e57a7068a96bcc7ac7fbe8"
+        }
+      ],
+      "license": "tharlon/OFL.txt",
+      "license_git_blob": "6ef7b18ea7f5b430f10160034ecdcd0295335954",
+      "license_id": "OFL-1.1",
+      "manifest": "tharlon/manifest.json",
+      "manifest_sha256": "9fa4e877870feb58d60d938298a7b5b182f17e4655f6eb511880591be00d13f0",
+      "reserved_source_names": [
+        "Yunghkio",
+        "Arimo",
+        "TharLon"
+      ],
+      "source_git_blob": "d3840f3ccd173b3da87e0ed476d33027ad880490",
+      "source_license_path": "ofl/tharlon/OFL.txt",
+      "source_path": "ofl/tharlon/Tharlon-Regular.ttf",
+      "source_repository": "google/fonts",
+      "source_revision": "5026800714d07231937d92eb4cceabf06e05d74e"
+    },
+    {
+      "candidate": "zcoolqingkehuangyou",
+      "derivative": "neutral family rename; WOFF2 conversion and Unicode partitioning",
+      "family": "MMH Personal Chinese C",
+      "files": [
+        {
+          "bytes": 203768,
+          "file": "part-0.woff2",
+          "sha256": "64f4014cfd03489e3d397fddaf2fac05df071f06db1a9a7078b616add54ff1d9"
+        },
+        {
+          "bytes": 244980,
+          "file": "part-1.woff2",
+          "sha256": "11a33ed2207f11fad709a0b5fcaec45dec9e11dd590607431aad2df72bb3cbbb"
+        },
+        {
+          "bytes": 296904,
+          "file": "part-2.woff2",
+          "sha256": "0f5e58381a19888a1f5b35362bd351ca09d6823616806c73adc436bf2523ca33"
+        },
+        {
+          "bytes": 291920,
+          "file": "part-3.woff2",
+          "sha256": "0833fb502b17fbf0960781edc02abf7a034922832c4e334751b716a45e9afcbb"
+        },
+        {
+          "bytes": 319468,
+          "file": "part-4.woff2",
+          "sha256": "2d5973e1f97edd8d2e86eb807bfed5d6bd1e1d5f57ff514bed90e9a660ff4d34"
+        },
+        {
+          "bytes": 315512,
+          "file": "part-5.woff2",
+          "sha256": "ac567ff217edeaec9a01191abadaf37cfd87422b3ec14a86d06540bce82f883f"
+        },
+        {
+          "bytes": 316540,
+          "file": "part-6.woff2",
+          "sha256": "d0fc26c9d4aa228a591fc055395df382613a8a06b622c668d8a323c64d112da4"
+        },
+        {
+          "bytes": 313032,
+          "file": "part-7.woff2",
+          "sha256": "958f1b481008d899bc1a54b5cd48bd9de25b4d318a7dcc0ec2b8de061743b0ba"
+        },
+        {
+          "bytes": 330312,
+          "file": "part-8.woff2",
+          "sha256": "49a8c66cdb72f53b6d632807d877b730b9eb6884394831bac38a1a8d3759f60a"
+        },
+        {
+          "bytes": 68228,
+          "file": "part-9.woff2",
+          "sha256": "eb8df5b1bb66f6332022ca3c11efc88816a18bced3c94fb2db64608649c7bec5"
+        }
+      ],
+      "license": "zcoolqingkehuangyou/OFL.txt",
+      "license_git_blob": "bd3df5cf6f237a4afaea70106f8243da07cd8cd8",
+      "license_id": "OFL-1.1",
+      "manifest": "zcoolqingkehuangyou/manifest.json",
+      "manifest_sha256": "527485d75aa490889fea2c32ca1c53a612d9abc4a4e7fcdf4474f217f4724320",
+      "reserved_source_names": [],
+      "source_git_blob": "982a3b80143268592f573feb196791fbc2330e17",
+      "source_license_path": "ofl/zcoolqingkehuangyou/OFL.txt",
+      "source_path": "ofl/zcoolqingkehuangyou/ZCOOLQingKeHuangYou-Regular.ttf",
+      "source_repository": "google/fonts",
+      "source_revision": "5026800714d07231937d92eb4cceabf06e05d74e"
+    }
+  ],
+  "notices": "FONT-NOTICES.txt",
+  "notices_sha256": "d8d8294a7102352cd6d38c881014b2db2a32a425c65c5c9ef53d3d6e1ca52a8d",
+  "static_ui_sha256": "f84bcc2cd7776ca49649e387f68337896104e03e0d0a76e1a749a5fe9d754ecc",
+  "status": "isolated QA only; not approved for distribution",
+  "stylesheet": "fonts.css",
+  "stylesheet_sha256": "abf8abf41b38c4285f87687e130dd65ceddaa6b8add6c1128a61b1fec75af9da"
+}
