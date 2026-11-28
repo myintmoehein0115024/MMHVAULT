@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="robots" content="noindex,nofollow,noarchive">
+<meta name="referrer" content="no-referrer">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' https://challenges.cloudflare.com; style-src 'self'; img-src 'self' data:; frame-src https://challenges.cloudflare.com; connect-src https://ldivswlhtgmznzwhzsoi.supabase.co https://challenges.cloudflare.com; base-uri 'none'; object-src 'none'; form-action 'none'">
+<meta name="theme-color" content="#080f1d">
+<title>MMHVAULT · N10 C/D Username Staging QA</title>
+<link rel="stylesheet" href="../signup.css">
+<script defer src="https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit"></script>
+<script defer src="../cd-signup.js"></script>
+</head>
+<body>
+<div class="ambient" aria-hidden="true"></div>
+<main class="container">
+  <header class="top">
+    <div class="brand"><span class="mark">M</span><span>MMHVAULT<small>PERSONAL FINANCE & WEALTH</small></span></div>
+    <nav class="lang" aria-label="Language"><button data-lang="en" type="button">EN</button><button data-lang="zh" type="button">中文</button><button data-lang="my" type="button">မြန်မာ</button></nav>
+  </header>
+  <section class="intro">
+    <div class="eyebrow">N10 / PRIVATE STAGING QA</div>
+    <h1 data-i18n="title">用户名注册 · 真实连接验收</h1>
+    <p data-i18n="intro">仅连接隔离的 Staging 测试环境。当前页面是真实接口连接测试，不是模拟注册。</p>
+  </section>
+  <section class="glass status" aria-labelledby="statusTitle">
+    <div class="status-head"><div><div class="section-tag" data-i18n="statusTag">服务连接状态</div><h2 id="statusTitle" data-i18n="statusTitle">注册安全开关</h2></div><span id="statusDot" class="dot"></span></div>
+    <p id="serverStatus" role="status" aria-live="polite" data-i18n="checking">正在检查 Staging 注册接口…</p>
+    <button id="refresh" class="outline" type="button" data-i18n="refresh">重新检查服务</button>
+  </section>
+  <section id="signupCard" class="glass signup is-locked" aria-labelledby="signupTitle" aria-disabled="true">
+    <div class="section-tag">01 / STAGING ENROLLMENT</div>
+    <h2 id="signupTitle" data-i18n="signupTitle">建立测试用户名账户</h2>
+    <p class="small" data-i18n="qaOnly">仅限事先允许的两个 n10qa_ 测试用户名，不影响正式用户。</p>
+    <label for="username" data-i18n="username">测试用户名</label>
+    <input id="username" type="text" autocomplete="off" autocapitalize="none" spellcheck="false" maxlength="20" placeholder="n10qa_..." disabled>
+    <label for="password" data-i18n="password">测试密码</label>
+    <input id="password" type="password" autocomplete="new-password" minlength="6" maxlength="20" disabled>
+    <div class="verification"><div id="turnstile"></div><p class="small" data-i18n="captchaNote">验证成功后，才允许生成本次注册的十词恢复密钥。</p></div>
+    <button id="prepare" class="primary" type="button" disabled data-i18n="prepare">生成并核对固定十词</button>
+    <p class="small" data-i18n="privacy">页面不保存密码、恢复词或会话到本地，也不会发送到正式数据库。</p>
+  </section>
+  <div class="foot" data-i18n="foot">仅限隔离环境安全验收 · 正式登录和财务数据保持不变</div>
+</main>
+<div id="modal" class="modal" hidden role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+  <div class="dialog">
+    <div class="dialog-top"><div class="eyebrow">RECOVERY KEY / ORIGINAL WORDS</div><button id="closeModal" type="button" class="close" aria-label="Close">×</button></div>
+    <h2 id="modalTitle" data-i18n="modalTitle">安全保存这 10 个固定恢复词</h2>
+    <p class="small" data-i18n="modalNote">这是新账户的原始恢复词，注册成功前系统会先加密保存并读回核对。关闭窗口将清除当前敏感信息。</p>
+    <div id="words" class="words" aria-live="off"></div>
+    <p id="countdown" class="timer" role="status" aria-live="off"></p>
+    <button id="confirm" class="primary" type="button" data-i18n="confirm">已安全保存，完成注册</button>
+  </div>
+</div>
+</body>
+</html>

@@ -1,0 +1,58 @@
+name: N10 Staging Vault QA UI (ISOLATED / NO DEPLOY)
+on:
+  pull_request:
+    paths:
+      - 'security/n10-vault-qa-staging-site/**'
+      - 'security/n10-vault-qa-staging-edge/**'
+      - '.github/workflows/n10-staging-vault-qa-ui.yml'
+  push:
+    branches:
+      - 'feature/n10-staging-vault-qa-ui-*'
+    paths:
+      - 'security/n10-vault-qa-staging-site/**'
+      - '.github/workflows/n10-staging-vault-qa-ui.yml'
+permissions:
+  contents: read
+jobs:
+  static-security-review:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check JavaScript syntax
+        run: |
+          node --check security/n10-vault-qa-staging-site/app.js
+          node --check security/n10-vault-qa-staging-site/signup.js
+          node --check security/n10-vault-qa-staging-site/mfa.js
+          node --check security/n10-vault-qa-staging-site/test-username-vault-ui.mjs
+          node --check security/n10-vault-qa-staging-edge/test-username-vault.mjs
+      - name: Strict username Vault owner-binding and read-only negative checks
+        run: |
+          node --test security/n10-vault-qa-staging-edge/test-username-vault.mjs
+          node --test security/n10-vault-qa-staging-site/test-username-vault-ui.mjs
+      - name: Deno check independent hard-OFF username Vault Edge
+        uses: denoland/setup-deno@v2
+        with:
+          deno-version: v2.x
+      - name: Compile username Vault QA only, never deploy
+        run: deno check security/n10-vault-qa-staging-edge/username-vault-review-only.ts
+      - name: New username MFA A/B QA isolation, challenge and AAL2 regressions
+        run: node --test security/n10-vault-qa-staging-site/test-mfa-qa.mjs
+      - name: Connected signup QA isolation, privacy and responsive tests
+        run: node --test security/n10-vault-qa-staging-site/test-signup-qa.mjs
+      - name: C/D-only isolated UI contract (offline, no secrets)
+        run: node --test security/n10-vault-qa-staging-site/test-cd-isolation.mjs
+      - name: Live C/D isolated preflight and A/B-denial smoke (no credentials)
+        run: node --test security/n10-vault-qa-staging-site/test-cd-live-readonly.mjs
+      - name: Live deployed Staging signup page GET smoke (no credentials)
+        run: node --test security/n10-vault-qa-staging-site/test-deployed-signup-page.mjs
+      - name: Offline isolated safety tests
+        run: node security/n10-vault-qa-staging-site/test-client.mjs
+      - name: Visual preview isolation, language and auto-hide smoke tests
+        run: node security/n10-vault-qa-staging-site/test-preview.mjs
+      - name: Run server-clock countdown and expiry tests
+        run: node security/n10-vault-qa-staging-site/test-window-clock.mjs
+      - name: Verify exact scoped Stage Edge origin, status and MFA hard-OFF diff
+        run: node security/n10-vault-qa-staging-edge/test-edge-origin.mjs
+      - name: Offline synthetic cross-owner and AAL2 negative checks
+        run: node security/n10-vault-qa-staging-edge/test-negative-authorization.mjs

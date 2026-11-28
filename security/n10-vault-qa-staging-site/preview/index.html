@@ -1,0 +1,132 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="robots" content="noindex,nofollow,noarchive">
+<meta name="referrer" content="no-referrer">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'; script-src 'unsafe-inline'; img-src data:; base-uri 'none'; form-action 'none'; connect-src 'none'; frame-ancestors 'none'">
+<meta name="theme-color" content="#08111e">
+<title>MMHVAULT · N10 Recovery Key UI Preview</title>
+<style>
+:root{color-scheme:dark;--bg:#070d18;--panel:#122135;--panel2:#101c2e;--text:#f4f4ee;--muted:#9daec2;--gold:#d4b176;--line:rgba(221,192,136,.22);--whiteLine:rgba(218,226,239,.11)}
+*{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;font-family:Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",system-ui,sans-serif;color:var(--text);background:radial-gradient(ellipse 63% 52% at 89% -6%,rgba(184,132,65,.19),transparent 75%),radial-gradient(ellipse 42% 40% at -15% 48%,rgba(35,91,128,.22),transparent),var(--bg);min-height:100vh}
+body:before{content:"";position:fixed;inset:0;pointer-events:none;background:linear-gradient(130deg,transparent 25%,rgba(255,255,255,.012) 45%,transparent 67%);z-index:-1}
+button{font:inherit;cursor:pointer}button:focus-visible{outline:2px solid #f3d6a0;outline-offset:4px}button:disabled{opacity:.55;cursor:not-allowed}a{color:inherit;text-decoration:none}
+.shell{max-width:1390px;min-height:100vh;margin:auto;display:grid;grid-template-columns:248px minmax(0,1fr)}
+aside{border-right:1px solid var(--whiteLine);padding:29px 19px;background:linear-gradient(155deg,rgba(22,36,55,.82),rgba(8,14,25,.64));display:flex;flex-direction:column;gap:29px}
+.brand{display:flex;gap:12px;align-items:center;padding:5px 7px}.brand-icon{width:40px;height:40px;display:grid;place-items:center;border-radius:13px;color:#0c1422;background:linear-gradient(145deg,#f3d89d,#ae844d);font-size:21px;font-family:Georgia,serif;box-shadow:0 5px 27px rgba(204,158,83,.18)}.brand-name{font-size:16px;font-weight:770;letter-spacing:.09em}.brand-sub{font-size:10px;color:var(--muted);letter-spacing:.14em;margin-top:2px}
+.nav-label{padding:0 15px;color:#7890a7;text-transform:uppercase;letter-spacing:.18em;font-size:10px;font-weight:750;margin-bottom:11px}.nav-card{display:flex;align-items:center;gap:12px;padding:14px;border-radius:12px;color:#9cabc0;font-size:13px}.nav-card.on{color:#f2dfb9;background:linear-gradient(90deg,rgba(191,145,78,.18),rgba(191,145,78,.035));border:1px solid rgba(205,161,96,.22)}.nav-icon{font-size:17px;width:22px;text-align:center}.side-foot{margin-top:auto;padding:18px 15px;border-top:1px solid var(--whiteLine);color:#9fb0c1;font-size:11px;line-height:1.65}
+main{padding:28px clamp(20px,5.5vw,78px) 70px;min-width:0}.topbar{display:flex;justify-content:space-between;align-items:center;gap:15px}.breadcrumb{font-size:12px;letter-spacing:.05em;color:#91a6ba}.breadcrumb b{color:#d5e1ee;font-weight:550}.lang{display:flex;gap:3px;background:rgba(21,35,53,.85);border:1px solid var(--whiteLine);padding:4px;border-radius:12px}.lang button{background:transparent;border:0;color:#a9bbce;font-size:12px;padding:8px 12px;border-radius:8px;min-width:38px}.lang button.active{background:linear-gradient(130deg,rgba(222,185,119,.25),rgba(132,91,43,.14));color:#ffdfaa;box-shadow:inset 0 0 0 1px rgba(228,183,115,.2)}
+.notice{margin-top:37px;border-radius:15px;padding:13px 17px;border:1px solid rgba(233,174,96,.37);background:rgba(146,94,43,.105);display:flex;align-items:flex-start;gap:12px;color:#efd7ae;font-size:12px;line-height:1.65}.notice .dot{width:8px;height:8px;margin-top:6px;flex:none;border-radius:50%;background:#ddad66;box-shadow:0 0 16px #dea85d}
+.headline{margin:34px 0 31px}.eyebrow{color:#d0a775;font-size:11px;font-weight:750;letter-spacing:.2em;text-transform:uppercase}.headline h1{font-size:clamp(30px,4vw,50px);font-weight:650;letter-spacing:-.05em;line-height:1.12;margin:13px 0 13px}.headline p{font-size:14px;color:#9eb1c5;line-height:1.7;margin:0;max-width:630px}
+.grid{display:grid;grid-template-columns:minmax(0,1.42fr) minmax(230px,.8fr);gap:20px}.glass{background:linear-gradient(135deg,rgba(25,43,65,.93),rgba(12,25,43,.87));border:1px solid rgba(182,203,225,.13);box-shadow:0 22px 58px rgba(0,0,0,.16),inset 0 1px rgba(255,255,255,.04);backdrop-filter:blur(16px);border-radius:23px}.large{padding:28px 31px 31px;min-height:415px}.card-hd{display:flex;gap:13px;align-items:center}.icon-frame{display:grid;place-items:center;width:47px;height:47px;border:1px solid rgba(216,173,102,.37);border-radius:15px;background:linear-gradient(135deg,rgba(231,179,87,.17),rgba(202,166,112,.04));color:#e3be84;font-size:22px}.card-hd h2{font-size:19px;letter-spacing:-.02em;margin:0 0 5px}.card-hd small{color:#91a7bd;font-size:12px}.split{border-top:1px solid var(--whiteLine);margin:24px 0}.status-row{display:flex;align-items:center;justify-content:space-between;gap:12px}.label{font-size:13px;color:#dce7f1}.subtext{margin-top:7px;color:#8ea4b8;font-size:12px;line-height:1.6}.tag{font-size:11px;color:#d5cbab;background:rgba(150,130,91,.14);border:1px solid rgba(195,167,110,.2);border-radius:999px;padding:7px 11px;white-space:nowrap}.key-preview{border:1px dashed rgba(211,170,106,.28);border-radius:14px;margin:23px 0;padding:15px 18px;display:flex;align-items:center;justify-content:space-between;color:#adbccc;background:rgba(8,15,27,.34);font-size:13px}.masked{letter-spacing:5px;color:#e5d0ad;font-size:15px}.gold-btn{border:1px solid rgba(243,204,146,.62);border-radius:12px;background:linear-gradient(135deg,#eed5a0,#be9158 88%);color:#19202a;font-weight:750;padding:14px 19px;font-size:13px;display:inline-flex;align-items:center;justify-content:center;gap:10px;transition:transform .2s,filter .2s;box-shadow:0 12px 31px rgba(170,122,53,.16)}.gold-btn:hover{transform:translateY(-2px);filter:brightness(1.08)}.under-btn{font-size:11px;color:#8da4ba;margin-top:14px;line-height:1.55}
+.sidecol{display:flex;flex-direction:column;gap:20px}.small-card{padding:24px}.small-eyebrow{color:#aabbd0;font-size:11px;letter-spacing:.14em;text-transform:uppercase}.small-card h3{font-size:18px;margin:12px 0 12px;letter-spacing:-.025em}.small-card p{font-size:12px;line-height:1.8;color:#a0b1c4;margin:0}.shield{display:grid;place-items:center;width:58px;height:58px;border-radius:17px;background:linear-gradient(145deg,rgba(213,171,112,.21),rgba(112,128,142,.06));border:1px solid rgba(218,187,134,.3);font-size:28px;margin-bottom:20px}.account-rows{margin-top:20px;display:grid;gap:14px}.account-row{display:flex;justify-content:space-between;gap:8px;font-size:12px;border-bottom:1px solid rgba(230,239,255,.07);padding-bottom:13px}.account-row:last-child{border:0;padding:0}.account-row span{color:#9dafc1}.account-row b{font-size:12px;font-weight:650;color:#d5e3e8}.below{margin-top:22px;padding:22px 25px;display:flex;gap:16px;align-items:center}.below-icon{font-size:22px}.below strong{font-size:13px}.below p{font-size:12px;color:#91a9bb;line-height:1.55;margin:5px 0 0}
+.modal[hidden]{display:none!important}.modal{position:fixed;inset:0;z-index:100;background:rgba(3,8,16,.85);backdrop-filter:blur(15px);-webkit-backdrop-filter:blur(15px);display:flex;align-items:center;justify-content:center;padding:max(18px,env(safe-area-inset-top)) max(15px,env(safe-area-inset-right)) max(18px,env(safe-area-inset-bottom)) max(15px,env(safe-area-inset-left));animation:fadein .24s ease}.dialog{position:relative;width:min(520px,100%);max-height:min(90dvh,820px);overflow:auto;border-radius:25px;background:linear-gradient(150deg,rgba(26,48,72,.98),rgba(7,21,38,.98));border:1px solid rgba(224,186,116,.35);box-shadow:0 35px 140px rgba(0,0,0,.7),inset 0 1px rgba(255,255,255,.1);padding:27px;animation:rise .32s cubic-bezier(.22,.85,.3,1)}.modal-top{display:flex;align-items:flex-start;justify-content:space-between;gap:16px}.modal-icon{display:grid;place-items:center;color:#e7c28b;width:53px;height:53px;border:1px solid rgba(238,200,142,.38);background:rgba(203,159,82,.12);border-radius:17px;font-size:26px}.close-btn{border:1px solid var(--whiteLine);background:rgba(255,255,255,.045);color:#e3e8eb;font-size:23px;line-height:1;border-radius:10px;padding:7px 11px}.dialog h2{font-size:24px;letter-spacing:-.03em;margin:23px 0 8px}.dialog .desc{color:#a9bdca;font-size:13px;line-height:1.78;margin:0}.info-line{margin:21px 0;padding:14px;border:1px solid rgba(208,176,120,.22);background:rgba(225,168,93,.07);border-radius:12px;color:#d5c29e;font-size:12px;line-height:1.7}.dialog .gold-btn{width:100%;margin-top:16px}.secondary{border:1px solid rgba(236,213,179,.3);background:rgba(207,163,93,.09);border-radius:12px;padding:13px 17px;color:#e6d7bb;font-size:13px;margin-top:11px;width:100%}.word-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px;margin-top:20px}.word{border:1px solid rgba(210,186,143,.23);background:rgba(8,17,30,.54);padding:11px 13px;border-radius:11px;font-size:13px;color:#eae5d8}.word i{font-style:normal;font-variant-numeric:tabular-nums;color:#ad885b;margin-right:10px;font-size:11px}.countdown{color:#d7bd8e;margin-top:17px;font-size:12px;text-align:center}.demo-tag{color:#f1d4ab;font-size:10px;text-transform:uppercase;letter-spacing:.13em;font-weight:800}.warn{color:#9fb1c4;line-height:1.55;font-size:11px;margin-top:15px;text-align:center}
+@keyframes fadein{from{opacity:0}to{opacity:1}}@keyframes rise{from{opacity:0;transform:translateY(15px) scale(.98)}to{opacity:1;transform:translateY(0) scale(1)}}
+@media(max-width:980px){.shell{grid-template-columns:1fr}aside{padding:17px 23px;flex-direction:row;align-items:center;gap:15px;border-right:0;border-bottom:1px solid var(--whiteLine)}aside .side-foot,aside .nav-wrap{display:none}main{padding:24px 30px 60px}.grid{grid-template-columns:minmax(0,1.3fr) minmax(215px,.85fr)}}
+@media(max-width:680px){main{padding:20px 17px 54px}.topbar{align-items:flex-start}.breadcrumb{line-height:1.7}.lang button{padding:8px 9px}.notice{margin-top:25px}.headline{margin:28px 0}.headline h1{font-size:34px}.grid{grid-template-columns:1fr}.large{min-height:auto;padding:24px 21px}.sidecol{display:grid;grid-template-columns:1fr 1fr;gap:12px}.small-card{padding:17px}.small-card h3{font-size:15px}.shield{width:45px;height:45px;font-size:20px;margin-bottom:12px}.below{padding:18px 19px}.dialog{padding:22px 18px;border-radius:19px}.modal{align-items:center}.word{padding:10px 9px}.word i{margin-right:5px}}
+@media(max-width:400px){.sidecol{grid-template-columns:1fr}.brand{padding:0}.status-row{align-items:flex-start;flex-direction:column}}
+@media(prefers-reduced-motion:reduce){*,*:before,*:after{animation:none!important;transition:none!important;scroll-behavior:auto!important}}
+</style>
+</head>
+<body>
+<div class="shell">
+<aside>
+ <div class="brand"><div class="brand-icon" aria-hidden="true">M</div><div><div class="brand-name">MMHVAULT</div><div class="brand-sub">PERSONAL WEALTH</div></div></div>
+ <div class="nav-wrap"><div class="nav-label" data-t="workspace"></div><div class="nav-card on"><span class="nav-icon">✧</span><span data-t="sideSecurity"></span></div><div class="nav-card"><span class="nav-icon">◇</span><span data-t="sidePassword"></span></div><div class="nav-card"><span class="nav-icon">⌘</span><span data-t="sideRecovery"></span></div></div>
+ <div class="side-foot" data-t="asideNote"></div>
+</aside>
+<main id="main">
+ <div class="topbar"><div class="breadcrumb"><span data-t="crumbSettings"></span> &nbsp; / &nbsp; <b data-t="crumbPage"></b></div><div class="lang" role="group" aria-label="Language"><button type="button" data-lang="en">EN</button><button type="button" data-lang="zh">中文</button><button type="button" data-lang="my">မြန်မာ</button></div></div>
+ <div class="notice" role="status"><span class="dot"></span><div><strong data-t="noticeTitle"></strong><div data-t="noticeBody"></div></div></div>
+ <div class="headline"><div class="eyebrow">ACCOUNT SECURITY / N10</div><h1 data-t="pageTitle"></h1><p data-t="pageSub"></p></div>
+ <div class="grid">
+  <section class="glass large" aria-labelledby="cardTitle">
+   <div class="card-hd"><div class="icon-frame" aria-hidden="true">✧</div><div><h2 id="cardTitle" data-t="keyTitle"></h2><small data-t="keySubtitle"></small></div></div>
+   <div class="split"></div>
+   <div class="status-row"><div><div class="label" data-t="keyStatusTitle"></div><div class="subtext" data-t="keyStatusSub"></div></div><div class="tag" data-t="keyStatusPill"></div></div>
+   <div class="key-preview" aria-hidden="true"><span data-t="maskedTitle"></span><span class="masked">•••• ••••</span></div>
+   <button id="openDialog" type="button" class="gold-btn"><span aria-hidden="true">✦</span><span data-t="open"></span></button>
+   <div class="under-btn" data-t="openNote"></div>
+  </section>
+  <div class="sidecol">
+   <section class="glass small-card"><div class="shield" aria-hidden="true">♢</div><div class="small-eyebrow" data-t="protection"></div><h3 data-t="mfaTitle"></h3><p data-t="mfaDescription"></p></section>
+   <section class="glass small-card"><div class="small-eyebrow" data-t="demoProfile"></div><h3 data-t="profileTitle"></h3><div class="account-rows"><div class="account-row"><span data-t="modeTitle"></span><b data-t="modeValue"></b></div><div class="account-row"><span data-t="backupTitle"></span><b data-t="backupValue"></b></div></div></section>
+  </div>
+ </div>
+ <div class="glass below"><div class="below-icon" aria-hidden="true">◎</div><div><strong data-t="belowTitle"></strong><p data-t="belowDescription"></p></div></div>
+</main>
+</div>
+<div id="modal" class="modal" hidden role="presentation">
+ <section class="dialog" role="dialog" aria-modal="true" aria-labelledby="dialogTitle" aria-describedby="dialogDesc">
+  <div class="modal-top"><div class="modal-icon" aria-hidden="true">✧</div><button type="button" id="close" class="close-btn" aria-label="Close">×</button></div>
+  <h2 id="dialogTitle" data-t="modalTitle"></h2>
+  <p id="dialogDesc" class="desc" data-t="modalDesc"></p>
+  <div id="preReveal">
+    <div class="info-line"><span class="demo-tag" data-t="demoStatus"></span><div data-t="modalInfo"></div></div>
+    <button id="reveal" type="button" class="gold-btn"><span data-t="simulate"></span></button>
+    <div class="warn" data-t="noPassword"></div>
+  </div>
+  <div id="revealed" hidden>
+    <div class="info-line"><span class="demo-tag" data-t="fakeData"></span><div data-t="revealedInfo"></div></div>
+    <div class="word-grid" id="words" aria-label="Example recovery words"></div>
+    <div id="countdown" class="countdown" role="status" aria-live="off"></div>
+    <button id="hide" type="button" class="secondary" data-t="hide"></button>
+    <div class="warn" data-t="showWarning"></div>
+  </div>
+ </section>
+</div>
+<script>
+(()=>{
+'use strict';
+const langData={
+ en:{workspace:'WORKSPACE',sideSecurity:'Account security',sidePassword:'Password & Devices',sideRecovery:'Recovery Key',asideNote:'MMHVAULT N10 visual design preview. No account, password or recovery key is connected.',crumbSettings:'Settings',crumbPage:'Password & Devices',noticeTitle:'VISUAL PREVIEW — NOT THE LIVE SERVICE',noticeBody:'Everything here uses sample data. No real credentials are needed or accepted.',pageTitle:'Your security. Your control.',pageSub:'Manage how you sign in, protect your account and access your original Recovery Key in one private space.',keyTitle:'Permanent Recovery Key',keySubtitle:'Your original 10-word recovery phrase',keyStatusTitle:'Recovery Vault',keyStatusSub:'Sample encrypted backup for this design preview',keyStatusPill:'Sample backup available',maskedTitle:'Fixed original key',open:'View Recovery Key',openNote:'Preview the secure glass modal and the 45-second auto-hide behavior.',protection:'ACCOUNT PROTECTION',mfaTitle:'Two-step verification',mfaDescription:'The real service requires your signed-in session, current password and verified authenticator where applicable.',demoProfile:'SAMPLE ACCOUNT',profileTitle:'Design preview only',modeTitle:'Account type',modeValue:'Username',backupTitle:'Backup status',backupValue:'Simulated',belowTitle:'A single, secure workflow',belowDescription:'The original ten words never change. A backup is created at registration and viewing never generates a replacement.',modalTitle:'View original Recovery Key',modalDesc:'In the real service, you confirm your current password and MFA to view your original ten words.',demoStatus:'SIMULATION ONLY',modalInfo:'Try the visual flow with an example phrase. No password field is shown in this public demo.',simulate:'Simulate successful verification',noPassword:'Never enter real passwords or recovery words into a preview.',fakeData:'EXAMPLE WORDS — NOT A REAL KEY',revealedInfo:'These are public sample words for showing the layout, not a working recovery key.',hide:'Hide recovery words now',showWarning:'In the real service these words are private and must never be shared.',seconds:'Automatically hides in {s} seconds.'},
+ zh:{workspace:'个人工作空间',sideSecurity:'账户安全',sidePassword:'密码与设备',sideRecovery:'恢复密钥',asideNote:'这是 MMHVAULT N10 视觉预览，不连接真实账户、密码或恢复密钥。',crumbSettings:'设置',crumbPage:'密码与设备',noticeTitle:'界面预览 · 尚未正式开放',noticeBody:'本页面全部使用模拟数据，不需要也不接收任何真实密码。',pageTitle:'让账户安全尽在掌握。',pageSub:'在私密空间管理登录方式、账户保护与永久恢复密钥。',keyTitle:'永久恢复密钥',keySubtitle:'注册时生成的原始十个单词',keyStatusTitle:'Recovery Vault 加密保险库',keyStatusSub:'此处展示模拟的加密备份状态',keyStatusPill:'模拟备份已保存',maskedTitle:'固定原始密钥',open:'查看恢复密钥',openNote:'体验高级玻璃弹窗，以及恢复词显示 45 秒后自动隐藏的流程。',protection:'账户安全保护',mfaTitle:'双重身份验证',mfaDescription:'正式功能会验证登录状态、当前密码，以及已启用的身份验证器。',demoProfile:'模拟账户',profileTitle:'仅供界面体验',modeTitle:'账户类型',modeValue:'用户名',backupTitle:'备份状态',backupValue:'模拟数据',belowTitle:'一套完整的安全流程',belowDescription:'原始十词永久不变。注册时加密备份，后续查看不会重新生成或替换密钥。',modalTitle:'查看原始恢复密钥',modalDesc:'正式使用时需要先验证当前登录密码，以及账户已启用的二级验证。',demoStatus:'仅供模拟演示',modalInfo:'可体验查看恢复词的外观和流程，公开预览中不设置真实密码输入框。',simulate:'模拟验证成功并查看',noPassword:'请勿在预览页面输入或分享真实密码与恢复词。',fakeData:'示例单词 · 非真实恢复密钥',revealedInfo:'这组公开示例单词仅用于演示布局，不能用于任何账户恢复。',hide:'立即隐藏恢复词',showWarning:'正式功能中的恢复词属于高度私密信息，请妥善保存。',seconds:'将在 {s} 秒后自动隐藏。'},
+ my:{workspace:'ကိုယ်ပိုင်အလုပ်ခွင်',sideSecurity:'အကောင့်လုံခြုံရေး',sidePassword:'စကားဝှက်နှင့် စက်များ',sideRecovery:'ပြန်လည်ရယူရေးသော့',asideNote:'MMHVAULT N10 ဒီဇိုင်းနမူနာဖြစ်သည်။ အကောင့် သို့မဟုတ် စကားဝှက်အစစ် မချိတ်ဆက်ထားပါ။',crumbSettings:'ဆက်တင်များ',crumbPage:'စကားဝှက်နှင့် စက်များ',noticeTitle:'ဒီဇိုင်း နမူနာ — တကယ့်ဝန်ဆောင်မှု မဟုတ်ပါ',noticeBody:'ဤစာမျက်နှာတွင် နမူနာဒေတာသာ အသုံးပြုထားပြီး စကားဝှက်အစစ် မလိုအပ်ပါ။',pageTitle:'သင့်အကောင့်လုံခြုံရေးကို စီမံပါ။',pageSub:'ဝင်ရောက်မှုနည်းလမ်း၊ အကောင့်ကာကွယ်မှုနှင့် မူရင်းပြန်လည်ရယူရေးသော့ကို တစ်နေရာတည်းတွင် စီမံပါ။',keyTitle:'အမြဲတမ်း ပြန်လည်ရယူရေးသော့',keySubtitle:'မူရင်း စကားလုံး ၁၀ လုံး',keyStatusTitle:'ကုဒ်ဝှက်ထားသော Recovery Vault',keyStatusSub:'ဒီဇိုင်းအတွက် နမူနာ အရန်သိမ်းဆည်းမှု',keyStatusPill:'နမူနာ သိမ်းဆည်းပြီး',maskedTitle:'မူရင်း အမြဲတမ်းသော့',open:'ပြန်လည်ရယူရေးသော့ကို ကြည့်ရန်',openNote:'Glass ပုံစံပြတင်းပေါက်နှင့် ၄၅ စက္ကန့် အလိုအလျောက်ဖျောက်ခြင်းကို စမ်းကြည့်ပါ။',protection:'အကောင့်ကာကွယ်မှု',mfaTitle:'နှစ်ဆင့် အတည်ပြုခြင်း',mfaDescription:'တကယ့်ဝန်ဆောင်မှုတွင် လက်ရှိစကားဝှက်နှင့် လိုအပ်သော အတည်ပြုကုဒ်ကို စစ်ဆေးရပါမည်။',demoProfile:'နမူနာအကောင့်',profileTitle:'ဒီဇိုင်းပြသရန်သာ',modeTitle:'အကောင့်အမျိုးအစား',modeValue:'အသုံးပြုသူအမည်',backupTitle:'အရန်သိမ်းဆည်းမှု',backupValue:'နမူနာဒေတာ',belowTitle:'လုံခြုံသော လုပ်ငန်းစဉ်တစ်ခု',belowDescription:'မူရင်း စကားလုံး ၁၀ လုံး မပြောင်းလဲပါ။ စာရင်းသွင်းစဉ် ကုဒ်ဝှက်သိမ်းဆည်းပြီး နောက်ပိုင်းကြည့်ရှုခြင်းက သော့အသစ် မထုတ်ပါ။',modalTitle:'မူရင်း ပြန်လည်ရယူရေးသော့ကို ကြည့်ရန်',modalDesc:'တကယ့်ဝန်ဆောင်မှုတွင် လက်ရှိစကားဝှက်နှင့် ဒုတိယအဆင့် အတည်ပြုမှု လိုအပ်ပါသည်။',demoStatus:'စမ်းသပ်ပြသမှုသာ',modalInfo:'နမူနာစကားလုံးများဖြင့် ဒီဇိုင်းကို စမ်းနိုင်ပါသည်။ စကားဝှက်အစစ် မထည့်ပါနှင့်။',simulate:'နမူနာအတည်ပြုမှုကို စမ်းရန်',noPassword:'ဤစာမျက်နှာတွင် စကားဝှက်နှင့် ပြန်လည်ရယူရေးသော့အစစ်ကို မထည့်ပါနှင့်။',fakeData:'နမူနာ စကားလုံးများသာ',revealedInfo:'ဤစကားလုံးများသည် ဒီဇိုင်းနမူနာသာဖြစ်ပြီး အကောင့်ပြန်လည်ရယူရန် မသုံးနိုင်ပါ။',hide:'စကားလုံးများကို ဖျောက်ရန်',showWarning:'တကယ့်ပြန်လည်ရယူရေးသော့ကို အခြားသူများနှင့် မမျှဝေပါနှင့်။',seconds:'{s} စက္ကန့်အကြာတွင် အလိုအလျောက် ဖျောက်ပါမည်။'}
+};
+const $=id=>document.getElementById(id);
+let current='zh',interval=null,closeTime=0,lastFocus=null;
+const modal=$('modal'),words=$('words');
+function translate(lang){
+ current=Object.prototype.hasOwnProperty.call(langData,lang)?lang:'zh';
+ document.documentElement.lang=current==='my'?'my':current==='zh'?'zh-CN':'en';
+ document.querySelectorAll('[data-t]').forEach(el=>{el.textContent=langData[current][el.dataset.t]||''});
+ document.querySelectorAll('[data-lang]').forEach(el=>{el.classList.toggle('active',el.dataset.lang===current);el.setAttribute('aria-pressed',String(el.dataset.lang===current))});
+ if(!$('revealed').hidden)showCount();
+}
+function showCount(){
+ const left=Math.max(0,Math.ceil((closeTime-Date.now())/1000));
+ $('countdown').textContent=langData[current].seconds.replace('{s}',String(left));
+ if(left<=0)hideWords();
+}
+function hideWords(){
+ if(interval!==null){clearInterval(interval);interval=null}
+ closeTime=0;words.replaceChildren();$('revealed').hidden=true;$('preReveal').hidden=false;
+}
+function open(){
+ lastFocus=document.activeElement;hideWords();modal.hidden=false;document.body.style.overflow='hidden';$('close').focus();
+}
+function close(){
+ hideWords();modal.hidden=true;document.body.style.overflow='';if(lastFocus&&typeof lastFocus.focus==='function')lastFocus.focus();
+}
+function reveal(){
+ hideWords();const fake=['alpha','bravo','charlie','delta','echo','foxtrot','golf','hotel','india','juliet'];
+ fake.forEach((word,i)=>{const el=document.createElement('div');el.className='word';const no=document.createElement('i');no.textContent=String(i+1).padStart(2,'0');el.append(no,document.createTextNode(word));words.append(el)});
+ $('preReveal').hidden=true;$('revealed').hidden=false;closeTime=Date.now()+45000;showCount();interval=setInterval(showCount,250);
+ $('hide').focus();
+}
+document.querySelectorAll('[data-lang]').forEach(el=>el.addEventListener('click',()=>translate(el.dataset.lang)));
+$('openDialog').addEventListener('click',open);
+$('close').addEventListener('click',close);
+$('reveal').addEventListener('click',reveal);
+$('hide').addEventListener('click',hideWords);
+modal.addEventListener('click',e=>{if(e.target===modal)close()});
+document.addEventListener('keydown',e=>{if(modal.hidden)return;if(e.key==='Escape'){e.preventDefault();close()}if(e.key==='Tab'){const list=[...modal.querySelectorAll('button:not([disabled])')].filter(el=>el.getClientRects().length);if(!list.length)return;const first=list[0],last=list[list.length-1];if(e.shiftKey&&document.activeElement===first){e.preventDefault();last.focus()}else if(!e.shiftKey&&document.activeElement===last){e.preventDefault();first.focus()}}});
+document.addEventListener('visibilitychange',()=>{if(document.hidden&& !modal.hidden)hideWords()});
+window.addEventListener('pagehide',hideWords);
+translate('zh');
+})();
+</script>
+</body>
+</html>
