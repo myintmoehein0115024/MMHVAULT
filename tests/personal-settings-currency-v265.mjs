@@ -450,3 +450,26 @@ console.log('PASS: 53-code shared display registry, additional FX, missing rates
  assert(forecast.includes("SCENARIO_CURRENCIES=CURRENCIES.filter"));assert(forecast.includes("&&SCENARIO_CURRENCIES.includes(state.viewCurrency)"));
  console.log('PASS: forecast expanded display registry independent from scenario currencies and owner-scoped extra FX');
 }
+
+{
+ const {buildAdapter}=await import('../js/mmhvault-cashflow-v2-adapter.mjs');
+ const {summarize}=await import('../js/mmhvault-cashflow-v2-core.mjs');
+ const display=JSON.parse(app.match(/MMHPersonalDisplayCurrenciesV265=Object\.freeze\((\[[^\n]*?\])\)/)[1]);
+ const accountCodes=JSON.parse(app.match(/MMHVAULT_ACCOUNT_CURRENCY_CODES_V140=new Set\((\[[^\n]*?\])\)/)[1]);
+ assert.deepEqual(display,accountCodes);
+ let uid='cf-fx-a',epoch=1;
+ const row={user_id:uid,id:'fixture',type:'Income',tx_date:'2026-11-01',to_account:'Fixture',to_amount:12,category:'Test'};
+ const adapter=buildAdapter({owner:()=>uid,epoch:()=>epoch,guard:()=>true,configOwner:()=>uid,data:()=>({owner:'cf-fx-a',ready:true,rows:[row],accounts:[{name:'Fixture',currency:'USD'}],categories:[],currencies:accountCodes}),rate:c=>({JPY:150,EGP:0,AUD:-1})[c],today:()=>'2026-11-28',groupOf:t=>t.type,isLinkedInvestment:()=>false});
+ const source=adapter.read();
+ assert(display.length===53&&display.every(c=>source.currencies.includes(c)));
+ assert(['GBP','CAD','CHF','NZD'].every(c=>source.currencies.includes(c)));
+ const calc=currency=>summarize({rows:source.rows,scope:{start:'2026-11-01',end:'2026-11-30',currency},accountRate:source.accountRate,displayRate:source.displayRate,groupOf:source.groupOf,isLinkedInvestment:source.isLinkedInvestment});
+ assert.equal(calc('JPY').totals.income,1800);
+ assert(calc('EGP').totals.income===null&&!calc('EGP').complete);
+ assert.equal(calc('AUD').totals.income,null);
+ assert.equal(calc('USD').totals.income,12);
+ assert.equal(calc('EGP').original[0].income,12);
+ epoch++;assert(source.displayRate('JPY')===null&&!source.isCurrent());
+ uid='cf-fx-b';assert.equal(adapter.read(),null);
+ console.log('PASS: active Cash Flow registry parity, unavailable FX, unchanged native amounts and owner/epoch isolation');
+}
