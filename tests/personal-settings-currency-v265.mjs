@@ -921,3 +921,41 @@ console.log('PASS: 53-code shared display registry, additional FX, missing rates
  let customCalls=0;await custom.prompt({prompt:async()=>{customCalls++},userChoice:Promise.resolve({outcome:'accepted'})});assert.equal(customCalls,0);assert.equal(custom.guide.open,true);
  console.log('PASS: installation status and buttons EN/ZH/MY, language refresh, prompt outcomes, appinstalled race and Custom Tab (mock DOM)');
 }
+
+// V2.0.71 Personal candidate-only public/security preservation guard.
+// Pin the exact released main baseline. Any shared change requires re-review;
+// this supplements, never disables or replaces, the shared Landing release gate.
+{
+ const {createHash}=await import('node:crypto');
+ const pinned={
+  'business.html':'eb1ff3646f3bc67beba9495db9934866be8c27a6',
+  'business/index.html':'61cc407a88dad7c694951d07e86b93afa6a7c9a3',
+  'robots.txt':'39efeb5eb71cbfbd5477a0ff3fa10a1b83e30731',
+  'sitemap.xml':'d48dc9e79d6a45a4f6251ffbc0e5c71d16705787',
+  'register/index.html':'c500207084e3dad6a880866a56f5f1f61a48423f',
+  'features/index.html':'5cbcbda5f7c67086dc0e4a71684eab463ed5966a',
+  'about/index.html':'e2c2a3e54e2761a35a2613fcc3e034a28aa27914',
+  'privacy.html':'8098d5471abbedd9db4639584c4abd6279b635ca',
+  'terms.html':'2f935927de5238129976cee82d5631abd88c3db0',
+  'security.html':'40d185fdfa2fe760e19512eebb99d79a877831fe',
+  'landing-assets/landing-browser-check.cjs':'12a1200c4891bb060f2fee6337c76c415884aa86',
+  'landing-assets/landing-webkit-check.cjs':'1af0ce4402e673bb7edb605d41552af098fe9d19',
+  'landing-assets/landing-release-check.cjs':'f8b6af9a4adfb882a126a1f5599f07ede9dfd856',
+  '.github/workflows/landing-release-check.yml':'2f77774a179b78a445af1b79bd7cd34472aba2b9'
+ };
+ const bytes=path=>readFileSync(new URL('../'+path,import.meta.url));
+ const gitHash=buf=>createHash('sha1').update('blob '+buf.length+'\0').update(buf).digest('hex');
+ for(const [path,expected] of Object.entries(pinned)){
+  assert.equal(gitHash(bytes(path)),expected,'Personal V2.0.71 protected released path changed: '+path);
+ }
+ const head=html=>{const end=html.toLowerCase().indexOf('</head>');assert(end>=0,'HTML head required');return html.slice(0,end)};
+ const noindex=html=>/<meta\b(?=[^>]*\bname\s*=\s*["']robots["'])(?=[^>]*\bcontent\s*=\s*["'][^"']*\bnoindex\b)[^>]*>/i.test(head(html));
+ for(const [path,html] of [['app.html',app],['login.html',bytes('login.html').toString('utf8')],['business.html',bytes('business.html').toString('utf8')]]){
+  assert(noindex(html),path+' private page noindex');
+ }
+ const landing=bytes('index.html').toString('utf8');
+ assert(!noindex(landing),'public home indexable');
+ assert.equal((head(landing).match(/<link\b[^>]*\brel\s*=\s*["']canonical["'][^>]*>/gi)||[]).length,1,'unique public canonical');
+ assert.match(head(landing),/<link\b[^>]*\brel\s*=\s*["']canonical["'][^>]*\bhref\s*=\s*["']https:\/\/mmhvault\.com\/["'][^>]*>/i);
+ console.log('PASS: V2.0.71 Personal scope guard: 14 protected public/Business/gate blobs, private noindex and public canonical');
+}
