@@ -11230,9 +11230,47 @@ html.mmh-desktop-compact-v11110 body.mmh-workspace-active #moreNavMenu.more-nav-
   }
   function getBirthISO(){
     const key=scopedKey();if(!key)return '';
-    try{let raw=localStorage.getItem(key);if(raw===null&&localStorage.getItem(KEY+'_legacy_owner')===key.slice(KEY.length+1))raw=localStorage.getItem(KEY);return validBirth(raw)?raw:'';}catch(_){return '';}
+    try{let raw=localStorage.getItem(key);if(raw===null&&localStorage.getItem(KEY+'_legacy_owner')===key.slice(KEY.length+1))raw=localStorage.getItem(KEY);return validBirth(String(raw||'').split('T')[0])?String(raw).split('T')[0]:'';}catch(_){return '';}
   }
   const getBirth=()=>validBirth(getBirthISO());
+  function getBirthTime(){
+    const key=scopedKey();if(!key||!getBirthISO())return '';
+    try{const raw=localStorage.getItem(key)||'';return /^\d{4}-\d{2}-\d{2}T(?:[01]\d|2[0-3]):[0-5]\d$/.test(raw)?raw.slice(11):'';}catch(_){return '';}
+  }
+  const civil=(d)=>Date.UTC(d.getFullYear(),d.getMonth(),d.getDate());
+  function anniversary(year,month,day){return new Date(year,month,Math.min(day,new Date(year,month+1,0).getDate()));}
+  function birthdayLocale(){return {en:document.documentElement.lang||'en',zh:'zh-CN',my:'my-MM'}[birthdayLang()];}
+  function formatBirthday(d,time=''){try{return new Intl.DateTimeFormat(birthdayLocale(),{dateStyle:'medium',...(time?{timeStyle:'short'}:{})}).format(time?new Date(d.getFullYear(),d.getMonth(),d.getDate(),Number(time.slice(0,2)),Number(time.slice(3))):d);}catch(_){return getBirthISO()+(time?' '+time:'');}}
+  let dialogOwner=null,dialogMonth=null,dialogDate='',dialogTime='';
+  const byId=id=>document.getElementById(id);
+  function closeBirthdayDialogs(){for(const id of ['mmhBirthPickerV271','mmhBirthDetailsV271']){const d=byId(id);if(d?.open)d.close();}dialogOwner=null;}
+  function calendarRender(){
+    const year=byId('mmhBirthYearV271'),month=byId('mmhBirthMonthV271'),grid=byId('mmhBirthDaysV271');
+    if(!year||!month||!grid||!dialogMonth)return;
+    const y=dialogMonth.getFullYear(),m=dialogMonth.getMonth(),now=new Date();
+    year.replaceChildren();for(let a=now.getFullYear();a>=1900;a--){const o=document.createElement('option');o.value=String(a);o.textContent=String(a);year.append(o);}year.value=String(y);
+    month.replaceChildren();for(let a=0;a<12;a++){const o=document.createElement('option');o.value=String(a);o.textContent=new Intl.DateTimeFormat(birthdayLocale(),{month:'long'}).format(new Date(2024,a,1));month.append(o);}month.value=String(m);
+    grid.replaceChildren();for(let a=0;a<7;a++){const h=document.createElement('span');h.textContent=new Intl.DateTimeFormat(birthdayLocale(),{weekday:'short'}).format(new Date(2024,0,7+a));grid.append(h);}
+    for(let a=0;a<new Date(y,m,1).getDay();a++)grid.append(document.createElement('span'));
+    for(let a=1;a<=new Date(y,m+1,0).getDate();a++){const b=document.createElement('button');b.type='button';const value=y+'-'+pad(m+1)+'-'+pad(a);b.textContent=String(a);b.disabled=!validBirth(value);b.setAttribute('aria-pressed',String(value===dialogDate));b.addEventListener('click',()=>{dialogDate=value;for(const el of grid.querySelectorAll('button'))el.setAttribute('aria-pressed',String(el===b));});grid.append(b);}
+  }
+  function bindBirthdayDialogs(){
+    const open=byId('mmhBirthOpenV271'),picker=byId('mmhBirthPickerV271'),details=byId('mmhBirthDetailsV271'),time=byId('mmhBirthTimeV271');
+    if(!open||!picker||!details||!time||open.__bound)return;open.__bound=true;
+    open.addEventListener('click',()=>{dialogOwner=scopedKey();if(!dialogOwner)return;dialogDate=getBirthISO();dialogTime=getBirthTime();time.value=dialogTime;const d=getBirth()||new Date();dialogMonth=new Date(d.getFullYear(),d.getMonth(),1);calendarRender();picker.showModal();});
+    byId('mmhBirthInfoV271').addEventListener('click',()=>{render();details.showModal();});
+    for(const id of ['mmhBirthYearV271','mmhBirthMonthV271'])byId(id).addEventListener('change',()=>{dialogMonth=new Date(Number(byId('mmhBirthYearV271').value),Number(byId('mmhBirthMonthV271').value),1);calendarRender();});
+    for(const [id,delta] of [['mmhBirthPrevV271',-1],['mmhBirthNextV271',1]])byId(id).addEventListener('click',()=>{const n=new Date(dialogMonth.getFullYear(),dialogMonth.getMonth()+delta,1);if(n.getFullYear()>=1900&&n.getFullYear()<=new Date().getFullYear()){dialogMonth=n;calendarRender();}});
+    byId('mmhBirthClearV271').addEventListener('click',()=>{dialogDate='';time.value='';calendarRender();});
+    byId('mmhBirthConfirmV271').addEventListener('click',()=>{
+      if(!dialogOwner||dialogOwner!==scopedKey()){closeBirthdayDialogs();return;}
+      const t=time.value;if((dialogDate&&!validBirth(dialogDate))||(t&&!/^(?:[01]\d|2[0-3]):[0-5]\d$/.test(t)))return;
+      try{localStorage.setItem(dialogOwner,dialogDate+(dialogDate&&t?'T'+t:''));}catch(_){byId('mmhBirthErrorV271').hidden=false;return;}
+      picker.close();render();window.dispatchEvent(new CustomEvent('mmhvault-birthday-change'));
+    });
+    for(const d of [picker,details]){d.addEventListener('keydown',e=>{if(e.key==='Escape')e.stopPropagation();});d.querySelectorAll('[data-birth-close]').forEach(b=>b.addEventListener('click',()=>d.close()));}
+    picker.addEventListener('close',()=>{dialogOwner=null;dialogDate='';time.value='';byId('mmhBirthErrorV271').hidden=true;});
+  }
   const birthdayLang=()=>{const lang=(document.documentElement.lang||'en').toLowerCase();return lang.startsWith('zh')?'zh':lang.startsWith('my')?'my':'en';};
   const birthdayText=(en,zh,my)=>({en,zh,my})[birthdayLang()];
   function birthdayLabels(){
@@ -11242,19 +11280,17 @@ html.mmh-desktop-compact-v11110 body.mmh-workspace-active #moreNavMenu.more-nav-
   const pad=n=>String(n).padStart(2,'0');
   function parts(now){
     const birth=getBirth();if(!birth)return null;
-    let years=now.getFullYear()-birth.getFullYear();
-    let anchor=new Date(birth); anchor.setFullYear(birth.getFullYear()+years);
-    if(now<anchor){years--; anchor=new Date(birth); anchor.setFullYear(birth.getFullYear()+years);}
-    let months=now.getMonth()-anchor.getMonth();
-    if(months<0){months+=12;}
-    let monthAnchor=new Date(anchor); monthAnchor.setMonth(anchor.getMonth()+months);
-    if(monthAnchor>now){months--; monthAnchor=new Date(anchor); monthAnchor.setMonth(anchor.getMonth()+months);}
-    let days=Math.floor((now-monthAnchor)/(24*60*60*1000));
-    return {years,months,days};
+    let years=now.getFullYear()-birth.getFullYear(),anchor=anniversary(birth.getFullYear()+years,birth.getMonth(),birth.getDate());
+    if(civil(now)<civil(anchor)){years--;anchor=anniversary(birth.getFullYear()+years,birth.getMonth(),birth.getDate());}
+    let months=(now.getFullYear()-anchor.getFullYear())*12+now.getMonth()-anchor.getMonth();
+    const at=m=>{const base=new Date(anchor.getFullYear(),anchor.getMonth()+m,1);return anniversary(base.getFullYear(),base.getMonth(),anchor.getDate());};
+    if(civil(at(months))>civil(now))months--;
+    return {years,months,days:Math.round((civil(now)-civil(at(months)))/86400000)};
   }
   function nextBirthday(now){
     const birth=getBirth();if(!birth)return null;
-    let y=now.getFullYear(); let d=new Date(y,birth.getMonth(),birth.getDate(),0,0,0); if(d<=now)d=new Date(y+1,birth.getMonth(),birth.getDate(),0,0,0); return d;
+    const time=getBirthTime(),at=y=>{const d=anniversary(y,birth.getMonth(),birth.getDate());if(time)d.setHours(Number(time.slice(0,2)),Number(time.slice(3)),0,0);return d;};
+    let d=at(now.getFullYear());if(time?d<now:civil(d)<civil(now))d=at(now.getFullYear()+1);return d;
   }
   function render(){
     const v=document.getElementById('mmhSettingsAgeValueV34215'), n=document.getElementById('mmhSettingsBirthdayValueV34215'), c=document.getElementById('mmhSettingsBirthdayCountdownV34215');
@@ -11262,13 +11298,16 @@ html.mmh-desktop-compact-v11110 body.mmh-workspace-active #moreNavMenu.more-nav-
     const key=scopedKey(),iso=getBirthISO(),changed=renderedKey!==key;renderedKey=key;
     if(input){input.disabled=!key;if(changed){if(editingKey!==null||document.activeElement===input)editInvalidated=true;editingKey=null;input.setCustomValidity('');}if(changed||document.activeElement!==input){if(input.value!==iso)input.value=iso;}}
     birthdayLabels();
+    const open=byId('mmhBirthOpenV271'),label=byId('mmhBirthDisplayV271'),time=getBirthTime();
+    if(open)open.disabled=!key;
+    if(label)label.textContent=iso?formatBirthday(getBirth(),time):birthdayText('Choose birthday','选择生日','မွေးနေ့ ရွေးချယ်ပါ');
     const now=new Date(),a=parts(now),nb=nextBirthday(now);
     if(input){const max=`${now.getFullYear()}-${pad(now.getMonth()+1)}-${pad(now.getDate())}`;if(input.max!==max)input.max=max;if(input.min!=='1900-01-01')input.min='1900-01-01';}
-    if(!a||!nb){for(const el of [v,n,c])if(el)el.textContent='—';return;}
-    const diff=Math.max(0,nb-now),days=Math.floor(diff/86400000),hrs=Math.floor((diff%86400000)/3600000),mins=Math.floor((diff%3600000)/60000),secs=Math.floor((diff%60000)/1000);
+    if(!a||!nb){for(const el of [v,n,c])if(el)el.textContent='0';return;}
+    const diff=Math.max(0,time?nb-now:civil(nb)-civil(now)),days=Math.floor(diff/86400000),hrs=Math.floor((diff%86400000)/3600000),mins=Math.floor((diff%3600000)/60000),secs=Math.floor((diff%60000)/1000);
     if(v) v.textContent=birthdayText(`${a.years} years, ${a.months} months, ${a.days} days`,`${a.years}岁 ${a.months}个月 ${a.days}天`,`${a.years} နှစ် ${a.months} လ ${a.days} ရက်`);
-    if(n) n.textContent=`${nb.getFullYear()}-${pad(nb.getMonth()+1)}-${pad(nb.getDate())}`;
-    if(c) c.textContent=birthdayText(`${days}d ${hrs}h ${mins}m ${secs}s`,`${days}天 ${hrs}小时 ${mins}分 ${secs}秒`,`${days} ရက် ${hrs} နာရီ ${mins} မိနစ် ${secs} စက္ကန့်`);
+    if(n) n.textContent=formatBirthday(nb,time);
+    if(c) c.textContent=time?birthdayText(`${days}d ${hrs}h ${mins}m ${secs}s`,`${days}天 ${hrs}小时 ${mins}分 ${secs}秒`,`${days} ရက် ${hrs} နာရီ ${mins} မိနစ် ${secs} စက္ကန့်`):birthdayText(`${days} days`,`${days}天`,`${days} ရက်`);
   }
   let lastAgeKey='';
   function ageKey(now=new Date()){const a=parts(now);return a?`${a.years}|${a.months}|${a.days}`:''}
@@ -11294,7 +11333,7 @@ html.mmh-desktop-compact-v11110 body.mmh-workspace-active #moreNavMenu.more-nav-
         render();window.dispatchEvent(new CustomEvent('mmhvault-birthday-change'));
       });
     }
-    render();
+    bindBirthdayDialogs();render();
   };
   function startAgeTickerV3435(){
     let timer=0;
@@ -11316,7 +11355,7 @@ html.mmh-desktop-compact-v11110 body.mmh-workspace-active #moreNavMenu.more-nav-
   window.addEventListener('languagechange',render);
   window.addEventListener('mmhvault-language-change',render);
   window.addEventListener('mmhvault-birthday-change',()=>{render();dispatchAgeDayIfChanged(true)});
-  window.addEventListener('mmhvault:config-owner-changed',()=>{lastAgeKey='';bind();dispatchAgeDayIfChanged(true)});
+  window.addEventListener('mmhvault:config-owner-changed',()=>{lastAgeKey='';closeBirthdayDialogs();bind();dispatchAgeDayIfChanged(true)});
 })();
 </script>
 <!-- Retired Wealth Planning: hidden compatibility sink retained for legacy dashboard writers. -->
@@ -12764,7 +12803,7 @@ window.MMHPersonalDisplayCurrenciesV265=Object.freeze(["USD","THB","MMK","CNY","
 </div>
 <details class="settings-profile-editor"><summary>Edit profile <span>›</span></summary><form class="mmh-profile-edit-v1" id="mmhProfileFormV1">
 <label class="mmh-profile-name-v1"><span>Display name</span><input id="mmhProfileNameV1" type="text" maxlength="40" autocomplete="nickname" required placeholder="Your display name"></label>
-<div class="mmh-profile-photo-v1"><div class="st-profile-avatar-v269" id="mmhProfileAvatarV269" aria-hidden="true">—</div><span>Profile photo</span><button class="mmh-photo-trigger-v1" id="mmhProfilePickV1" type="button"><span aria-hidden="true">＋</span> Change photo</button><input id="mmhProfilePhotoV1" type="file" accept="image/jpeg,image/png,image/webp" hidden><small id="mmhProfileFileNameV1">JPG, PNG or WEBP · up to 2 MB</small></div>
+<div class="mmh-profile-photo-v1"><div class="st-profile-avatar-v269" id="mmhProfileAvatarV269" aria-hidden="true">—</div><span>Profile photo</span><button class="mmh-photo-trigger-v1" id="mmhProfilePickV1" type="button"><svg aria-hidden="true" viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M4 7h4l2-3h4l2 3h4a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V9a2 2 0 0 1 2-2Z"/><circle cx="12" cy="14" r="4"/></svg><span class="mmh-birth-sr-v271">Change photo</span></button><input id="mmhProfilePhotoV1" type="file" accept="image/jpeg,image/png,image/webp" hidden><small id="mmhProfileFileNameV1">JPG, PNG or WEBP · up to 2 MB</small></div>
 <button class="btn primary" id="mmhProfileSaveV1" type="submit">Save changes</button>
 <p id="mmhProfileResultV1" role="status" aria-live="polite"></p>
 </form></details>
@@ -12882,11 +12921,18 @@ window.MMHPersonalDisplayCurrenciesV265=Object.freeze(["USD","THB","MMK","CNY","
 </div>
 </div>
 <div class="panel mmh-birthday-settings-v34216" id="mmhBirthdaySettingsV34215">
-<div class="toolbar"><div><h2 data-i18n-en="Birthday" data-i18n-zh="生日" data-i18n-my="မွေးနေ့" class="mmh-hint-anchor-v195 mmh-context-title-v199" data-mmh-hint-source="next" tabindex="0">Birthday</h2><div class="small mmh-context-desc-v199" data-i18n-en="Set your birth date to calculate your age and next birthday in real time." data-i18n-zh="设置出生日期，系统会实时计算您的年龄和下次生日。" data-i18n-my="အသက်နှင့် နောက်လာမည့် မွေးနေ့ကို အချိန်နှင့်တစ်ပြေးညီ တွက်ချက်ရန် မွေးသက္ကရာဇ် သတ်မှတ်ပါ။">Set your birth date to calculate your age and next birthday in real time.</div></div><span class="pill" data-i18n-en="Live calculation" data-i18n-zh="实时计算" data-i18n-my="တိုက်ရိုက်တွက်ချက်မှု">Live calculation</span></div>
-<div class="mmh-birthday-grid-v34216">
-<label class="mmh-birthday-field-v34216"><span data-i18n-en="Birth Date" data-i18n-zh="出生日期" data-i18n-my="မွေးသက္ကရာဇ်">Birth Date</span><input id="mmhBirthDateInputV34215" type="date" value="" aria-describedby="mmhBirthdayLocalNoteV265"/><span id="mmhBirthdayLocalNoteV265" data-i18n-en="Optional. Saved on this device for your account only." data-i18n-zh="选填。仅保存在此设备上当前账户的设置中。" data-i18n-my="မဖြည့်လည်းရပါသည်။ ဤစက်ရှိ သင့်အကောင့်အတွက်သာ သိမ်းဆည်းပါသည်။">Optional. Saved on this device for your account only.</span></label>
-<div class="mmh-birthday-preview-v34216"><div><span class="k" data-i18n-en="Current Age" data-i18n-zh="当前年龄" data-i18n-my="လက်ရှိအသက်">Current Age</span><b id="mmhSettingsAgeValueV34215">—</b></div><div><span class="k" data-i18n-en="Next Birthday" data-i18n-zh="下次生日" data-i18n-my="လာမည့်မွေးနေ့">Next Birthday</span><b id="mmhSettingsBirthdayValueV34215">—</b></div><div class="mmh-birthday-countdown-v34216"><span class="k" data-i18n-en="Countdown" data-i18n-zh="倒计时" data-i18n-my="ကျန်ရှိချိန်">Countdown</span><b id="mmhSettingsBirthdayCountdownV34215">—</b></div></div>
-</div>
+<label class="mmh-birthday-field-v34216"><span data-i18n-en="Birthday" data-i18n-zh="生日" data-i18n-my="မွေးနေ့">Birthday</span></label>
+<div class="mmh-birth-row-v271"><button type="button" id="mmhBirthOpenV271" aria-haspopup="dialog"><span aria-hidden="true">▦</span><span id="mmhBirthDisplayV271">—</span></button><button type="button" id="mmhBirthInfoV271" aria-haspopup="dialog"><img src="images/mmhvault-v2-auth-mark.webp" alt=""><span class="mmh-birth-sr-v271" data-i18n-en="Birthday details" data-i18n-zh="生日计算详情" data-i18n-my="မွေးနေ့ အချက်အလက်">Birthday details</span></button></div>
+<input id="mmhBirthDateInputV34215" type="date" value="" hidden aria-hidden="true" tabindex="-1">
+<dialog id="mmhBirthPickerV271" class="mmh-birth-dialog-v271" aria-labelledby="mmhBirthPickerTitleV271">
+<h3 id="mmhBirthPickerTitleV271" data-i18n-en="Choose date and time" data-i18n-zh="选择日期与时间" data-i18n-my="ရက်စွဲနှင့် အချိန် ရွေးပါ">Choose date and time</h3>
+<div class="mmh-birth-calendar-controls-v271"><button type="button" id="mmhBirthPrevV271" ><span data-i18n-en="‹" data-i18n-zh="‹" data-i18n-my="‹">‹</span></button><label><span data-i18n-en="Year" data-i18n-zh="年" data-i18n-my="နှစ်">Year</span><select id="mmhBirthYearV271"></select></label><label><span data-i18n-en="Month" data-i18n-zh="月" data-i18n-my="လ">Month</span><select id="mmhBirthMonthV271"></select></label><button type="button" id="mmhBirthNextV271" ><span data-i18n-en="›" data-i18n-zh="›" data-i18n-my="›">›</span></button></div>
+<div class="mmh-birth-days-v271" id="mmhBirthDaysV271"></div>
+<label class="mmh-birth-time-v271"><span data-i18n-en="Birth time (optional)" data-i18n-zh="出生时间（选填）" data-i18n-my="မွေးချိန် (မဖြည့်လည်းရ)">Birth time (optional)</span><input id="mmhBirthTimeV271" type="time" step="60"></label>
+<p id="mmhBirthdayLocalNoteV265" data-i18n-en="Optional. Saved on this device for your account only." data-i18n-zh="选填。仅保存在此设备上当前账户的设置中。" data-i18n-my="မဖြည့်လည်းရပါသည်။ ဤစက်ရှိ သင့်အကောင့်အတွက်သာ သိမ်းဆည်းပါသည်။">Optional. Saved on this device for your account only.</p>
+<p id="mmhBirthErrorV271" role="alert" hidden data-i18n-en="Could not save. Try again." data-i18n-zh="无法保存，请重试。" data-i18n-my="သိမ်းဆည်း၍ မရပါ။ ထပ်စမ်းပါ။">Could not save. Try again.</p>
+<div class="mmh-birth-actions-v271"><button type="button" id="mmhBirthClearV271" ><span data-i18n-en="Clear" data-i18n-zh="清除" data-i18n-my="ရှင်းလင်းရန်">Clear</span></button><button type="button" id="mmhBirthCancelV271" data-birth-close><span data-i18n-en="Cancel" data-i18n-zh="取消" data-i18n-my="မလုပ်တော့ပါ">Cancel</span></button><button type="button" id="mmhBirthConfirmV271" class="btn primary"><span data-i18n-en="Confirm" data-i18n-zh="确定" data-i18n-my="အတည်ပြုရန်">Confirm</span></button></div></dialog>
+<dialog id="mmhBirthDetailsV271" class="mmh-birth-dialog-v271" aria-labelledby="mmhBirthDetailsTitleV271"><h3 id="mmhBirthDetailsTitleV271" data-i18n-en="Birthday details" data-i18n-zh="生日计算详情" data-i18n-my="မွေးနေ့ အချက်အလက်">Birthday details</h3><div class="mmh-birthday-preview-v34216"><div><span class="k" data-i18n-en="Current Age" data-i18n-zh="当前年龄" data-i18n-my="လက်ရှိအသက်">Current Age</span><b id="mmhSettingsAgeValueV34215">—</b></div><div><span class="k" data-i18n-en="Next Birthday" data-i18n-zh="下次生日" data-i18n-my="လာမည့်မွေးနေ့">Next Birthday</span><b id="mmhSettingsBirthdayValueV34215">—</b></div><div class="mmh-birthday-countdown-v34216"><span class="k" data-i18n-en="Countdown" data-i18n-zh="倒计时" data-i18n-my="ကျန်ရှိချိန်">Countdown</span><b id="mmhSettingsBirthdayCountdownV34215">—</b></div></div><div class="mmh-birth-actions-v271"><button type="button" id="mmhBirthDetailsCloseV271" data-birth-close><span data-i18n-en="Close" data-i18n-zh="关闭" data-i18n-my="ပိတ်ရန်">Close</span></button></div></dialog>
 </div>
 </div>
 
@@ -29317,7 +29363,7 @@ for(const [i,g] of [...main.querySelectorAll('.st-group')].entries()){const titl
 const editor=top.querySelector('.settings-profile-editor');const form=$('mmhProfileFormV1');const profileButton=register('profile','Edit profile','◉',form,top.querySelector('.account-center-card-v375'));profileButton.classList.add('st-profile-link');if(birthday)form.after(birthday);const actions=document.createElement('div');actions.className='st-profile-actions-v269';const submit=$('mmhProfileSaveV1'),result=$('mmhProfileResultV1');submit.setAttribute('form',form.id);actions.append(result,submit);(birthday||form).after(actions);editor.remove();
 for(const [i,d] of [...root.querySelectorAll('.st-detail')].sort((a,b)=>['Password & devices','App icon','Data & backup'].indexOf(a.querySelector('summary').firstChild.textContent)-['Password & devices','App icon','Data & backup'].indexOf(b.querySelector('summary').firstChild.textContent)).entries()){const title=d.querySelector('summary').firstChild.textContent;const content=document.createElement('div');for(const node of [...d.childNodes])if(node.nodeName!=='SUMMARY')content.append(node);const kind={'Password & devices':['security','⌑'],'App icon':['icon','▣'],'Data & backup':['data','⇩']}[title];register(kind[0],title,kind[1],content);d.remove();}
 window.mmhOpenSettingsSectionV3=go;
-root.addEventListener('keydown',e=>{if(e.key==='Escape'&&root.classList.contains('st-in-subpage')){e.preventDefault();back()}});
+root.addEventListener('keydown',e=>{if(e.key==='Escape'&&!root.querySelector('dialog[open]')&&root.classList.contains('st-in-subpage')){e.preventDefault();back()}});
 
 window.mmhSettingsRefreshDefaultsV4=refreshDefaults;apply();stats();refreshDefaults();window.mmhRestoreAnalyzeCurrencyV918?.();
 window.addEventListener('mmhvault:personal-display-preferences-restored',()=>{prefs=readPrefs();syncPrefControls();apply();window.mmhRestoreAnalyzeCurrencyV918?.();window.dispatchEvent(new Event('mmhvault:personal-display-currency-changed'));window.mmhvaultForceRenderAllV34421?.('settings-preferences-restored')});
@@ -40908,6 +40954,38 @@ html body.mmh-workspace-active:not(.auth-page-active) #settings#settings#setting
 html body.mmh-workspace-active:not(.auth-page-active) #settings#settings#settings.page.active>.st-page:not([hidden]) select:not([hidden]):focus-visible{outline:2px solid var(--st-gold)!important;outline-offset:2px!important}
 html body.mmh-workspace-active:not(.auth-page-active) #settings#settings#settings.page.active>.st-page:not([hidden])#stPage_general .st-rows>.st-row>select:not([hidden]){flex:0 0 min(180px,48%)!important;width:min(180px,48%)!important;max-width:48%!important;min-width:0!important;margin:0 0 0 auto!important}
 @media(max-width:600px){html body.mmh-workspace-active:not(.auth-page-active) #settings#settings#settings.page.active>.st-page:not([hidden]) select:not([hidden]){font-size:16px!important}}
+</style>
+<style id="mmhvault-personal-profile-v271">
+html body.mmh-workspace-active:not(.auth-page-active) #settings#settings#settings.page.active>.st-page:not([hidden])#stPage_profile{display:grid!important;grid-template-columns:minmax(0,1fr) minmax(0,1.6fr)!important;gap:0 20px!important;padding:20px!important;box-sizing:border-box!important;background:var(--st-bg)!important;border:1px solid var(--st-border)!important;border-radius:16px!important}
+html body.mmh-workspace-active:not(.auth-page-active) #settings#settings#settings.page.active>.st-page:not([hidden])#stPage_profile>.st-page-head,html body.mmh-workspace-active:not(.auth-page-active) #settings#settings#settings.page.active>.st-page:not([hidden])#stPage_profile>.st-profile-actions-v269{grid-column:1/-1!important}
+html body.mmh-workspace-active:not(.auth-page-active) #settings#settings#settings.page.active>.st-page:not([hidden])#stPage_profile>#mmhProfileFormV1{display:contents!important}
+html body.mmh-workspace-active:not(.auth-page-active) #settings#settings#settings.page.active>.st-page:not([hidden])#stPage_profile #mmhProfileFormV1>.mmh-profile-photo-v1{position:relative!important;grid-column:1!important;grid-row:2/4!important;display:flex!important;flex-direction:column!important;align-items:center!important;justify-content:center!important;gap:10px!important;padding:18px 8px!important;background:transparent!important;border:0!important}
+html body.mmh-workspace-active:not(.auth-page-active) #settings#settings#settings.page.active>.st-page:not([hidden])#stPage_profile .st-profile-avatar-v269{width:clamp(104px,15vw,156px)!important;height:clamp(104px,15vw,156px)!important;flex:none!important}
+html body.mmh-workspace-active:not(.auth-page-active) #settings#settings#settings.page.active>.st-page:not([hidden])#stPage_profile .mmh-profile-photo-v1>span{display:none!important}
+html body.mmh-workspace-active:not(.auth-page-active) #settings#settings#settings.page.active>.st-page:not([hidden])#stPage_profile #mmhProfilePickV1{position:relative!important;margin:-48px 0 0 clamp(75px,12vw,125px)!important;display:grid!important;place-items:center!important;width:44px!important;height:44px!important;min-height:44px!important;padding:0!important;border-radius:50%!important;justify-content:center!important;color:var(--uv-text)!important}
+html body.mmh-workspace-active:not(.auth-page-active) #settings#settings#settings.page.active>.st-page:not([hidden])#stPage_profile #mmhProfileFileNameV1{text-align:center!important;overflow-wrap:anywhere!important}
+html body.mmh-workspace-active:not(.auth-page-active) #settings#settings#settings.page.active>.st-page:not([hidden])#stPage_profile #mmhProfileFormV1>.mmh-profile-name-v1{grid-column:2!important;grid-row:2!important;padding:12px 0!important;background:transparent!important;border:0!important}
+html body.mmh-workspace-active:not(.auth-page-active) #settings#settings#settings.page.active>.st-page:not([hidden])#stPage_profile>#mmhBirthdaySettingsV34215{grid-column:2!important;grid-row:3!important;display:grid!important;gap:8px!important;margin:0!important;padding:12px 0!important;border:0!important;border-top:1px solid var(--st-border)!important;border-radius:0!important;box-shadow:none!important;background:transparent!important;transform:none!important}
+html body.mmh-workspace-active:not(.auth-page-active) #settings#settings#settings.page.active>.st-page:not([hidden])#stPage_profile .mmh-birth-row-v271{display:flex;gap:8px;min-width:0}
+html body.mmh-workspace-active:not(.auth-page-active) #settings#settings#settings.page.active>.st-page:not([hidden])#stPage_profile .mmh-birth-row-v271 button,html body.mmh-workspace-active:not(.auth-page-active) #settings#settings#settings.page.active>.st-page:not([hidden])#stPage_profile .mmh-birth-dialog-v271 :is(button,select,input){font:inherit;color:var(--uv-text,CanvasText);background:var(--uv-raised,Canvas);border:1px solid var(--st-border);border-radius:10px;min-height:44px;padding:8px;box-sizing:border-box}
+html body.mmh-workspace-active:not(.auth-page-active) #settings#settings#settings.page.active>.st-page:not([hidden])#stPage_profile #mmhBirthOpenV271{flex:1;display:flex;gap:10px;align-items:center;text-align:start;min-width:0}
+html body.mmh-workspace-active:not(.auth-page-active) #settings#settings#settings.page.active>.st-page:not([hidden])#stPage_profile #mmhBirthInfoV271{width:44px;flex:none;display:grid;place-items:center;padding:6px}
+html body.mmh-workspace-active:not(.auth-page-active) #settings#settings#settings.page.active>.st-page:not([hidden])#stPage_profile #mmhBirthInfoV271 img{width:28px;height:28px;object-fit:contain}
+html body.mmh-workspace-active:not(.auth-page-active) #settings#settings#settings.page.active>.st-page:not([hidden])#stPage_profile .mmh-birth-sr-v271{position:absolute!important;width:1px!important;height:1px!important;padding:0!important;overflow:hidden!important;clip-path:inset(50%)!important;white-space:nowrap!important}
+html body.mmh-workspace-active:not(.auth-page-active) #settings#settings#settings.page.active>.st-page:not([hidden])#stPage_profile #mmhBirthDateInputV34215[hidden],html body.mmh-workspace-active:not(.auth-page-active) #settings#settings#settings.page.active>.st-page:not([hidden])#stPage_profile .mmh-birth-dialog-v271:not([open]){display:none!important}
+html body.mmh-workspace-active:not(.auth-page-active) #settings#settings#settings.page.active>.st-page:not([hidden])#stPage_profile .mmh-birth-dialog-v271{position:fixed;inset:0;margin:auto;width:min(480px,calc(100% - 24px));max-width:calc(100% - 24px);max-height:calc(100dvh - 24px);overflow:auto;overscroll-behavior:contain;box-sizing:border-box;background:var(--st-bg,Canvas);color:var(--uv-text,CanvasText);border:1px solid var(--st-border);border-radius:16px;padding:16px}
+html body.mmh-workspace-active:not(.auth-page-active) #settings#settings#settings.page.active>.st-page:not([hidden])#stPage_profile .mmh-birth-dialog-v271::backdrop{background:rgba(0,0,0,.55)}
+html body.mmh-workspace-active:not(.auth-page-active) #settings#settings#settings.page.active>.st-page:not([hidden])#stPage_profile .mmh-birth-dialog-v271 h3{margin:0 0 12px}
+html body.mmh-workspace-active:not(.auth-page-active) #settings#settings#settings.page.active>.st-page:not([hidden])#stPage_profile .mmh-birth-calendar-controls-v271{display:grid;grid-template-columns:44px minmax(0,1fr) minmax(0,1fr) 44px;gap:6px;align-items:end}
+html body.mmh-workspace-active:not(.auth-page-active) #settings#settings#settings.page.active>.st-page:not([hidden])#stPage_profile .mmh-birth-calendar-controls-v271 label,html body.mmh-workspace-active:not(.auth-page-active) #settings#settings#settings.page.active>.st-page:not([hidden])#stPage_profile .mmh-birth-time-v271{display:grid;gap:6px;min-width:0}
+html body.mmh-workspace-active:not(.auth-page-active) #settings#settings#settings.page.active>.st-page:not([hidden])#stPage_profile .mmh-birth-calendar-controls-v271 select{width:100%;min-width:0}
+html body.mmh-workspace-active:not(.auth-page-active) #settings#settings#settings.page.active>.st-page:not([hidden])#stPage_profile .mmh-birth-days-v271{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:3px;margin:12px 0;text-align:center;align-items:center}
+html body.mmh-workspace-active:not(.auth-page-active) #settings#settings#settings.page.active>.st-page:not([hidden])#stPage_profile .mmh-birth-days-v271 button{min-width:0;padding:2px;min-height:38px}
+html body.mmh-workspace-active:not(.auth-page-active) #settings#settings#settings.page.active>.st-page:not([hidden])#stPage_profile .mmh-birth-days-v271 button[aria-pressed="true"]{background:#226bd2;color:white;border-color:#79b6ff}
+html body.mmh-workspace-active:not(.auth-page-active) #settings#settings#settings.page.active>.st-page:not([hidden])#stPage_profile .mmh-birth-days-v271 button:disabled{opacity:.35}
+html body.mmh-workspace-active:not(.auth-page-active) #settings#settings#settings.page.active>.st-page:not([hidden])#stPage_profile .mmh-birth-actions-v271{display:flex;justify-content:flex-end;flex-wrap:wrap;gap:8px;margin-top:12px}
+html body.mmh-workspace-active:not(.auth-page-active) #settings#settings#settings.page.active>.st-page:not([hidden])#stPage_profile .mmh-birth-dialog-v271 .mmh-birthday-preview-v34216{grid-template-columns:1fr!important;gap:8px!important}
+@media(max-width:700px){html body.mmh-workspace-active:not(.auth-page-active) #settings#settings#settings.page.active>.st-page:not([hidden])#stPage_profile{grid-template-columns:minmax(0,1fr)!important;padding:12px!important}html body.mmh-workspace-active:not(.auth-page-active) #settings#settings#settings.page.active>.st-page:not([hidden])#stPage_profile #mmhProfileFormV1>.mmh-profile-photo-v1,html body.mmh-workspace-active:not(.auth-page-active) #settings#settings#settings.page.active>.st-page:not([hidden])#stPage_profile #mmhProfileFormV1>.mmh-profile-name-v1,html body.mmh-workspace-active:not(.auth-page-active) #settings#settings#settings.page.active>.st-page:not([hidden])#stPage_profile>#mmhBirthdaySettingsV34215{grid-column:1!important;grid-row:auto!important}}
 </style>
 </body>
 </html>
