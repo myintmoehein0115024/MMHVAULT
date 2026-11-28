@@ -33031,9 +33031,10 @@ html body.mmh-workspace-active main.wrap .page.active :is(.empty,.mmh-ui-empty,.
     const uid=typeof currentSessionUser!=='undefined'?String(currentSessionUser?.id||''):'';
     const page=$('reports'),period=window.MMHReportPeriodV201?.get?.(),c=currency(),month=fileMonth();
     if(!uid||document.hidden||!page?.classList.contains('active')||!period||!['month','year'].includes(period.mode)||!/^[A-Z]{3}$/.test(c)||window.mmhLegacyReportDisplayV265?.(0,c)==='—'||!window.mmhLegacyReportDisplayV265||!window.MMHBalanceBridgeV202?.current?.()?.ready)return null;
-    if(period.mode==='year'){const host=$('reportAnnualViewV201');if(host?.hidden!==false||!host.querySelector('.report-annual-budget-metrics-v201'))return null}
+    const annualToken=period.mode==='year'?window.MMHReportPeriodV201?.annualExportTokenV265?.():null;
+    if(period.mode==='year'){if(!Number.isSafeInteger(annualToken)||annualToken<=0)return null}
     else if(!window.mmhLegacyReportReadyV265?.())return null;
-    return {uid,period:period.mode,month,c,epoch:exportEpochV265};
+    return {uid,period:period.mode,month,c,epoch:exportEpochV265,annualToken};
   }
   function assertExportV265(snapshot){
     const now=exportContextV265();
@@ -36937,7 +36938,7 @@ html body #settings.page.active #stPage_security #mmhA783SecurityCenter .mmh-a78
 <!-- Accounts Premium Directory V1: presentation-only, late cascade, isolated from finance/auth. -->
 <link rel="stylesheet" href="css/mmhvault-accounts-directory-v1.css?v=1.0.1" data-mmh-accounts-directory="v1">
 <script defer src="js/mmhvault-accounts-directory-v1.js?v=2.1.0"></script>
-<script defer src="js/mmhvault-report-period-v201.js?v=2.0.65.1"></script>
+<script defer src="js/mmhvault-report-period-v201.js?v=2.0.65.2"></script>
 <script type="module" id="mmh-exchange-v2-staging-loader">
 /* Release candidate: production flags remain OFF until explicit approval.
    The isolated QA host may mount V2 only against Staging. */
