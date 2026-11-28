@@ -1,5 +1,6 @@
 import {readFileSync} from 'node:fs';
 import assert from 'node:assert/strict';
+import {createHash} from 'node:crypto';
 import {chromium} from 'playwright';
 const app=readFileSync(new URL('../app.html',import.meta.url),'utf8');
 const extract=(start,end)=>{const a=app.indexOf(start),b=app.indexOf(end,a);assert(a>=0&&b>a,start);return app.slice(a,b)};
@@ -72,4 +73,52 @@ try{
  }finally{await cdp.detach()}
  console.log('PASS: font selector, computed family cascade including legacy account detail and workspace choice menu, language/owner memory, blocked storage, auth isolation and responsive preview (isolated Chromium; glyph availability not verified)');
  await context.close();
+ // Candidate-only test: pinned upstream assets, hash checked before isolated rendering.
+ // No font files are committed, no application runtime requests are introduced.
+ const revision='5026800714d07231937d92eb4cceabf06e05d74e';
+ const candidates=[
+  ['zh-CN','notosanssc','NotoSansSC[wght].ttf','fb0637bafbcd804fe32152370a1225990745b4bc'],
+  ['zh-CN','notoserifsc','NotoSerifSC[wght].ttf','eab063faf229160a52d3760f5555150e4eb9e5bf'],
+  ['zh-CN','zcoolqingkehuangyou','ZCOOLQingKeHuangYou-Regular.ttf','982a3b80143268592f573feb196791fbc2330e17'],
+  ['my','notosansmyanmar','NotoSansMyanmar[wdth,wght].ttf','a7af8e405d24076f2930c0840523110b3236560b'],
+  ['my','notoserifmyanmar','NotoSerifMyanmar-Regular.ttf','86adf96a587b326f5961b9550d54029608bdc760'],
+  ['my','padauk','Padauk-Regular.ttf','a6882fbb2177bec0271a0b10821a33100efe1fc7']
+ ];
+ const samples={'zh-CN':'账户余额与储蓄交易投资设置财务目标汇率预算收入支出','my':'လက်ကျန်ငွေနှင့်စုဆောင်းငွေမြန်မာဘာသာ၀၁၂၃၄၅၆၇၈၉'};
+ const results={};
+ for(const [locale,folder,file,expected] of candidates){
+  const url='https://raw.githubusercontent.com/google/fonts/'+revision+'/ofl/'+folder+'/'+encodeURIComponent(file);
+  const response=await fetch(url,{redirect:'error',signal:AbortSignal.timeout(45000)});
+  assert(response.ok,folder+' pinned asset HTTP '+response.status);
+  const bytes=Buffer.from(await response.arrayBuffer());
+  assert(bytes.length>0&&bytes.length<=40*1024*1024,folder+' asset size bounds');
+  const actual=createHash('sha1').update('blob '+bytes.length+'\\0').update(bytes).digest('hex');
+  assert.equal(actual,expected,folder+' exact Git blob hash');
+  const fixture=await browser.newContext({viewport:{width:768,height:400}});
+  try{
+   await fixture.route('**/*',route=>route.request().url()==='https://font-fixture.invalid/candidate.ttf'?route.fulfill({status:200,contentType:'font/ttf',headers:{'Access-Control-Allow-Origin':'*'},body:bytes}):route.abort());
+   const p=await fixture.newPage();
+   await p.setContent('<html><body><div id="glyphs" style="font-size:32px;font-weight:400;line-height:1.6;color:black;background:white"></div></body></html>');
+   await p.locator('#glyphs').evaluate((el,s)=>{el.textContent=s},samples[locale]);
+   await p.addStyleTag({content:'@font-face{font-family:Candidate;src:url(https://font-fixture.invalid/candidate.ttf) format("truetype");font-display:block}#glyphs{font-family:Candidate,sans-serif}'});
+   await p.evaluate(async()=>{const loaded=await document.fonts.load('32px Candidate',document.querySelector('#glyphs').textContent);if(!loaded.length)throw Error('candidate not loaded');await document.fonts.ready;document.querySelector('#glyphs').getBoundingClientRect()});
+   const session=await fixture.newCDPSession(p);
+   try{
+    await session.send('DOM.enable');await session.send('CSS.enable');
+    const {root}=await session.send('DOM.getDocument');
+    const {nodeId}=await session.send('DOM.querySelector',{nodeId:root.nodeId,selector:'#glyphs'});
+    const {fonts}=await session.send('CSS.getPlatformFontsForNode',{nodeId});
+    const rendered=fonts.filter(x=>x.glyphCount>0);
+    assert(rendered.length>0&&rendered.every(x=>x.isCustomFont),folder+' sample rendered without platform fallback: '+JSON.stringify(rendered));
+    const image=await p.locator('#glyphs').screenshot({animations:'disabled'});
+    const pixels=createHash('sha256').update(image).digest('hex');
+    (results[locale]??=[]).push({folder,bytes:bytes.length,pixels,fonts:rendered.map(x=>({family:x.familyName,postScript:x.postScriptName,glyphs:x.glyphCount}))});
+   }finally{await session.detach()}
+  }finally{await fixture.close()}
+ }
+ for(const [locale,fonts] of Object.entries(results)){
+  assert.equal(new Set(fonts.map(x=>x.pixels)).size,fonts.length,locale+' candidate sample images must differ');
+  console.log('FONT-CANDIDATE '+JSON.stringify({locale,fonts}));
+ }
+ console.log('PASS: six pinned OFL candidate assets rendered isolated sample text without platform fallback; three distinct sample images per language (not full coverage or application integration)');
 }finally{await browser.close()}
