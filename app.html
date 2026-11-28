@@ -30152,7 +30152,7 @@ html body.st-overview-compact #dashboard :is(.panel,#dashboardCommandCenterV3421
   let selectedDevice=null,installStatus=androidCustomTab()?'customTab':'preview';
   const installCopy={
    preview:['This preview is the app’s installation icon. The icon of an installed app is controlled by your browser.','此处预览应用安装图标。已安装应用的图标由浏览器控制。','ဤသည်မှာ အက်ပ်ထည့်သွင်းရန် အိုင်ကွန်နမူနာ ဖြစ်ပါသည်။ ထည့်သွင်းပြီးသော အက်ပ်၏ အိုင်ကွန်ကို ဘရောက်ဇာက ထိန်းချုပ်ပါသည်။'],
-   customTab:['Android in-app browser / Custom Tab detected. Open this page in the full Chrome app before installing MMHVAULT.','检测到 Android 应用内浏览器或自定义标签页。安装 MMHVAULT 前，请在完整 Chrome 应用中打开此页。','Android အက်ပ်တွင်း ဘရောက်ဇာ သို့မဟုတ် Custom Tab ကို တွေ့ရှိပါသည်။ MMHVAULT မထည့်သွင်းမီ Chrome အက်ပ်တွင် ဤစာမျက်နှာကို ဖွင့်ပါ။'],
+   customTab:['Android in-app browser / Custom Tab detected. Open this page in your full browser app before installing MMHVAULT.','检测到 Android 应用内浏览器或自定义标签页。安装 MMHVAULT 前，请在完整浏览器应用中打开此页。','Android အက်ပ်တွင်း ဘရောက်ဇာ သို့မဟုတ် Custom Tab ကို တွေ့ရှိပါသည်။ MMHVAULT မထည့်သွင်းမီ ဘရောက်ဇာအက်ပ်တွင် ဤစာမျက်နှာကို ဖွင့်ပါ။'],
    accepted:['Installation accepted.','已确认安装。','ထည့်သွင်းရန် အတည်ပြုပြီးပါပြီ။'],
    cancelled:['Installation cancelled. You can still follow the steps above.','已取消安装，仍可按上方步骤操作。','ထည့်သွင်းမှုကို ပယ်ဖျက်လိုက်ပါသည်။ အထက်ပါအဆင့်များအတိုင်း ဆက်လုပ်နိုင်ပါသည်။'],
    manual:['Follow the manual steps above to add the app.','请按上方步骤手动添加。','အက်ပ်ထည့်ရန် အထက်ပါအဆင့်များအတိုင်း လုပ်ဆောင်ပါ။'],
@@ -30179,10 +30179,10 @@ html body.st-overview-compact #dashboard :is(.panel,#dashboardCommandCenterV3421
   function androidCustomTab(){try{return /Android/i.test(navigator.userAgent)&&/^android-app:\/\//i.test(document.referrer||'')}catch(_){return false}}
   function detected(){const ua=navigator.userAgent;if(/iPhone|iPad|iPod/.test(ua)||(/Macintosh/.test(ua)&&navigator.maxTouchPoints>1))return /CriOS|FxiOS|EdgiOS/.test(ua)?'ios-other':'ios';if(/Android/.test(ua))return /Firefox/.test(ua)?'android-firefox':/Chrome/.test(ua)&&!/SamsungBrowser|EdgA/.test(ua)?'android-chrome':'android-other';return 'desktop'}
   function drawGuide(device=detected()){
-   selectedDevice=device;guide.hidden=false;guide.replaceChildren();
+   const restorePickerFocus=document.activeElement?.id==='stInstallDeviceV5';selectedDevice=device;guide.hidden=false;guide.replaceChildren();
    const title=document.createElement('h3');title.textContent=T('Add MMHVAULT to your home screen','将 MMHVAULT 添加到主屏幕','MMHVAULT ကို ပင်မမျက်နှာပြင်တွင် ထည့်ပါ');guide.append(title);
    const label=document.createElement('label');label.textContent=T('Your device & browser','您的设备与浏览器','သင့်စက်နှင့် ဘရောက်ဇာ');const picker=document.createElement('select');picker.id='stInstallDeviceV5';
-   for(const [v,en,zh,my] of [['ios','iPhone / iPad · Safari','iPhone / iPad · Safari'],['ios-other','iPhone / iPad · Other browser','iPhone / iPad · 其他浏览器','iPhone / iPad · အခြားဘရောက်ဇာ'],['android-chrome','Android · Chrome','Android · Chrome'],['android-firefox','Android · Firefox','Android · Firefox'],['android-other','Android · Other browser','Android · 其他浏览器','Android · အခြားဘရောက်ဇာ'],['desktop','Computer','电脑','ကွန်ပျူတာ']]){const o=document.createElement('option');o.value=v;o.textContent=T(en,zh,my);picker.append(o)}picker.value=device;picker.onchange=()=>drawGuide(picker.value);label.append(picker);guide.append(label);
+   for(const [v,en,zh,my] of [['ios','iPhone / iPad · Safari','iPhone / iPad · Safari'],['ios-other','iPhone / iPad · Other browser','iPhone / iPad · 其他浏览器','iPhone / iPad · အခြားဘရောက်ဇာ'],['android-chrome','Android · Chrome','Android · Chrome'],['android-firefox','Android · Firefox','Android · Firefox'],['android-other','Android · Other browser','Android · 其他浏览器','Android · အခြားဘရောက်ဇာ'],['desktop','Computer','电脑','ကွန်ပျူတာ']]){const o=document.createElement('option');o.value=v;o.textContent=T(en,zh,my);picker.append(o)}picker.value=device;picker.onchange=()=>drawGuide(picker.value);label.append(picker);guide.append(label);if(restorePickerFocus)picker.focus({preventScroll:true});
    if(matchMedia('(display-mode: standalone)').matches||navigator.standalone){const done=document.createElement('p');done.textContent=T('You are already using MMHVAULT from the installed app.','您当前已通过已安装的 MMHVAULT 应用打开。','ထည့်သွင်းထားသော MMHVAULT အက်ပ်ကို သင် အသုံးပြုနေပါသည်။');guide.append(done);return}
    const steps=[];const step=(kind,en,zh,my)=>steps.push([kind,T(en,zh,my)]);
    if(device==='ios'||device==='ios-other'){
@@ -30192,7 +30192,8 @@ html body.st-overview-compact #dashboard :is(.panel,#dashboardCommandCenterV3421
     step('confirm','Keep the MMHVAULT name. Enable Open as Web App if offered, then tap Add.','保留 MMHVAULT 名称；如有作为网页 App 打开选项，可开启后点击添加。','MMHVAULT အမည်ကို ထားပါ။ Open as Web App ရှိပါက ဖွင့်ပြီး Add ကို နှိပ်ပါ။');
     step('home','Open MMHVAULT from the home screen.','返回主屏幕并打开 MMHVAULT。','ပင်မမျက်နှာပြင်မှ MMHVAULT ကို ဖွင့်ပါ။');
    }else if(device.startsWith('android')){
-    if(androidCustomTab()||device==='android-other')step('browser','For Chrome instructions, open the same address in the full Chrome app, not an in-app tab.','按 Chrome 步骤操作时，请在完整 Chrome App 打开相同网址，而非应用内标签页。','Chrome အဆင့်များအတွက် တူညီသောလိပ်စာကို အက်ပ်တွင်းတက်ဘ်မဟုတ်ဘဲ Chrome အက်ပ်တွင် ဖွင့်ပါ။');
+    if(androidCustomTab()&&device==='android-firefox')step('browser','Open the same address in the full Firefox app, not an in-app tab.','请在完整 Firefox 应用中打开相同网址，而非应用内标签页。','တူညီသောလိပ်စာကို အက်ပ်တွင်းတက်ဘ်မဟုတ်ဘဲ Firefox အက်ပ်တွင် ဖွင့်ပါ။');
+    else if(androidCustomTab()||device==='android-other')step('browser','For Chrome instructions, open the same address in the full Chrome app, not an in-app tab.','按 Chrome 步骤操作时，请在完整 Chrome App 打开相同网址，而非应用内标签页。','Chrome အဆင့်များအတွက် တူညီသောလိပ်စာကို အက်ပ်တွင်းတက်ဘ်မဟုတ်ဘဲ Chrome အက်ပ်တွင် ဖွင့်ပါ။');
     step('menu','Open the browser menu, usually the three-dot button.','打开浏览器菜单，通常是三点按钮。','ဘရောက်ဇာမီနူး (အများအားဖြင့် အစက်သုံးစက်) ကို ဖွင့်ပါ။');
     if(device==='android-firefox')step('add','Choose Install or Add to Home screen, if available.','选择安装或添加到主屏幕（如有）。','Install သို့မဟုတ် Add to Home screen ရှိပါက ရွေးပါ။');
     else step('add','Choose Add to home screen, then Install if offered.','选择添加到主屏幕；如提供安装选项，再选择安装。','Add to home screen ကို ရွေးပြီး Install ရှိပါက နှိပ်ပါ။');
@@ -30223,6 +30224,7 @@ html body.st-overview-compact #dashboard :is(.panel,#dashboardCommandCenterV3421
 #settings #stPage_icon #stInstallGuideV5 .st-install-illustration-v265 .accent{stroke:#70d4b0;stroke-width:2.5}
 html body.light #settings #stPage_icon #stInstallGuideV5 .st-install-illustration-v265{background:#edf3f7;border-color:#ccd8e1;color:#42576b}
 html body.light #settings #stPage_icon #stInstallGuideV5 .st-install-illustration-v265 .accent{stroke:#147b62}
+html body.light #settings #stPage_icon #stInstallStatusV4{color:#42576b}
 @media(max-width:420px){#settings #stPage_icon #stInstallGuideV5 .st-install-step-copy-v265{grid-template-columns:minmax(0,1fr);gap:7px}#settings #stPage_icon #stInstallGuideV5 .st-install-illustration-v265{max-width:104px}}
 </style>
 
