@@ -658,12 +658,12 @@ console.log('PASS: 53-code shared display registry, additional FX, missing rates
 
 
 {
- const i=app.indexOf('  function monthlyInvestmentRecordedV265(key){'),j=app.indexOf('  function monthlyInvestmentValuationReadyV265()',i);
+ const i=app.indexOf('  function monthlyInvestmentSourceReadyV265('),j=app.indexOf('  function monthlyInvestmentValuationReadyV265()',i);
  assert(i>=0&&j>i);
  const factory=new Function('window','reportOwnerV265','rates','displayRateReportV265',app.slice(i,j)+'return monthlyInvestmentRecordedV265;');
  const base={user_id:'u',inv_date:'2026-11-02',asset:'Crypto',side:'BUY',quantity:1,amount:100,fee:2,other_cost:3,currency:'USD'};
  const gold={...base,asset:'Gold',currency:'MMK',amount:4000,fee:0,other_cost:0};
- const check=(rows,expected,{owner='u',wallet='u',legacy=4000,effective=4000,key='2026-11'}={})=>assert.equal(factory({investments:rows,mmhWalletDataOwnerV191:wallet},()=>owner,{usd_mmk:legacy},()=>effective)(key),expected);
+ const check=(rows,expected,{owner='u',wallet='u',legacy=4000,effective=4000,key='2026-11'}={})=>assert.equal(factory((()=>{const moves=[];return {investments:rows,mmhWalletDataOwnerV191:wallet,mmhWalletMovementsV174:moves,__mmhReportInvestmentSourceV265:{owner,epoch:0,rows,moves}}})(),()=>owner,{usd_mmk:legacy},()=>effective)(key),expected);
  check([],0);check([base],105);check([gold],1);check([gold],null,{effective:null});check([gold],null,{legacy:0});check([gold],null,{effective:5000});check([gold],null,{effective:NaN});check([{...gold,amount:0}],0,{effective:null});
  check([{...gold,quantity:0,weight_kyattha:1}],1);check([{...gold,weight_kyattha:-1}],null);
  check([{...base,user_id:'other'}],null);check([],null,{wallet:'other'});check([],null,{owner:''});check([{...base,asset:'Other'}],null);
@@ -675,11 +675,11 @@ console.log('PASS: 53-code shared display registry, additional FX, missing rates
 {
  const i=app.indexOf('  function monthlyInvestmentValuationReadyV265(){'),j=app.indexOf('  function goalSnapshot()',i);
  assert(i>=0&&j>i);
- const evaluate=new Function('window','reportOwnerV265','monthlyInvestmentRecordedV265','mmhvaultInvestmentCostUSD','displayRateReportV265','goldHoldingQty',app.slice(i,j)+"return investmentSnapshot('2026-11');");
+ const evaluate=new Function('window','reportOwnerV265','monthlyInvestmentRecordedV265','mmhvaultInvestmentCostUSD','displayRateReportV265','goldHoldingQty',app.slice(app.indexOf('  function monthlyInvestmentSourceReadyV265('),app.indexOf('  function monthlyInvestmentRecordedV265('))+app.slice(i,j)+"return investmentSnapshot('2026-11');");
  const row={user_id:'u',asset:'Crypto',symbol:'BTC',side:'BUY',quantity:1,amount:10,fee:0,other_cost:0};
  const gold={...row,asset:'Gold',currency:'MMK'};
  const base={mmhWalletDataOwnerV191:'u',investments:[row],mmhDashboardHeldInvestmentUSD:()=>20,livePrices:{BTC:{price:20}},rates:{usd_mmk:4000}};
- const run=(w=base,basis=()=>10,fx=()=>4000,owner='u')=>evaluate(w,()=>owner,()=>5,basis,fx,x=>x.quantity);
+ const run=(w=base,basis=()=>10,fx=()=>4000,owner='u')=>{const moves=w.mmhWalletMovementsV174||[];return evaluate({mmhWalletMovementsV174:moves,__mmhReportInvestmentSourceV265:{owner,epoch:0,rows:w.investments,moves},...w},()=>owner,()=>5,basis,fx,x=>x.quantity)};
  const unavailable=(...args)=>assert.deepEqual(run(...args),{monthly:5,value:null,basis:null,pl:null,returnPct:null});
  assert.deepEqual(run(),{monthly:5,value:20,basis:10,pl:10,returnPct:100});
  unavailable({...base,livePrices:{}});unavailable({...base,livePrices:{BTC:{price:-1}}});
@@ -691,5 +691,6 @@ console.log('PASS: 53-code shared display registry, additional FX, missing rates
  const g={...base,investments:[gold],mmhGoldAuthorityV376:()=>({priceMMK:100})};
  assert.equal(run(g).value,20);unavailable(g,()=>10,()=>null);unavailable(g,()=>10,()=>5000);unavailable({...g,mmhGoldAuthorityV376:()=>({priceMMK:0})});
  assert.equal(run(base,()=>0).returnPct,null);
+ unavailable({...base,__mmhReportInvestmentSourceV265:null});unavailable({...base,__mmhSessionEpochV1239:2});unavailable({...base,mmhWalletMovementsV174:[{user_id:'other'}]});unavailable({...base,__mmhReportInvestmentSourceV265:{owner:'u',epoch:0,rows:[],moves:[]}});
  console.log('PASS: monthly Report valuation readiness, owner, quote and rate absence, invalid helper results and undefined ROI');
 }
