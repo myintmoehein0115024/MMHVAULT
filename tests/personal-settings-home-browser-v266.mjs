@@ -19,7 +19,7 @@ const browser=await (engine==='webkit'?webkit:chromium).launch({headless:true});
 try{
  const context=await browser.newContext({viewport:{width:1500,height:900}});
  const origin='https://mmh-settings-layout.invalid';
- await context.route('**/*',route=>route.request().url()===origin+'/'?route.fulfill({status:200,contentType:'text/html',body:html}):route.request().url()===origin+'/images/mmhvault-v2-auth-mark.webp'?route.fulfill({status:200,contentType:'image/webp',body:readFileSync(new URL('../images/mmhvault-v2-auth-mark.webp',import.meta.url))}):route.abort());
+ await context.route('**/*',route=>{const url=new URL(route.request().url());if(url.href===origin+'/')return route.fulfill({status:200,contentType:'text/html',body:html});if(url.origin===origin&&(/^\/images\/mmhvault-install-(ios|ipad|android-chrome|desktop)-v271\.webp$/.test(url.pathname)||url.pathname==='/images/mmhvault-v2-auth-mark.webp'))return route.fulfill({status:200,contentType:'image/webp',body:readFileSync(new URL('..'+url.pathname,import.meta.url))});return route.abort()});
  const page=await context.newPage();
  await page.goto(origin+'/');
  await page.addScriptTag({content:install});
@@ -91,6 +91,10 @@ try{
   assert.equal(await g.locator('#stInstallDeviceV5').inputValue(),device,'detected '+device);
   assert.equal(await g.locator('#stInstallDeviceV5').isVisible(),false);
   assert.equal(await g.locator('.st-detected-device-v271').count(),1);
+  const art=({ios:'ios',ipad:'ipad','android-chrome':'android-chrome','desktop-chrome':'desktop','desktop-edge':'desktop'})[device];
+  const picture=g.locator('.st-install-art-image-v271');
+  assert.equal(await picture.count(),art?1:0,'only device-appropriate artwork');
+  if(art){assert.equal(await picture.getAttribute('src'),'./images/mmhvault-install-'+art+'-v271.webp');await picture.evaluate(img=>img.decode())}
   if(device==='desktop-safari')assert.match(await g.locator('ol').innerText(),/Add to Dock/);
   await g.locator('#stInstallCloseV265').click();await page.waitForFunction(()=>document.activeElement?.id==='stAppIconGuideV270');
  }

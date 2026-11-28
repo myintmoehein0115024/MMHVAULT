@@ -881,8 +881,11 @@ console.log('PASS: 53-code shared display registry, additional FX, missing rates
   fn(device);
   const list=host.children.find(x=>x.tag==='ol');
   assert(list.children.length>=3);
-  assert(list.children.every(li=>li.children[0].children.length===2&&li.children[0].children[0].kind&&li.children[0].children[1].textContent));
-  assert(lang!==2||list.children.every(li=>/[\u1000-\u109f]/.test(li.children[0].children[1].textContent)));
+  const art=({ios:'ios','ios-other':'ios','android-chrome':'android-chrome','android-other':'android-chrome'})[device];
+  assert(list.children.every(li=>li.children[0].children.length===(art?1:2)&&li.children[0].children.at(-1).textContent));
+  assert(lang!==2||list.children.every(li=>/[\u1000-\u109f]/.test(li.children[0].children.at(-1).textContent)));
+  const figure=host.children.find(x=>x.tag==='figure');assert.equal(!!figure,!!art);
+  if(art)assert.equal(figure.children[0].children[0].src,'./images/mmhvault-install-'+art+'-v271.webp');
   assert.equal(host.children[1].children[0].value,device);
  }
  console.log('PASS: Settings Myanmar subtitles and illustrated installation steps, 18 device/locale combinations (mock DOM)');

@@ -19,7 +19,7 @@ try{
  const context=await browser.newContext({viewport:{width:360,height:800}});
  const origin='https://mmh-settings-install-fixture.invalid';
  const unexpected=[],errors=[];
- await context.route('**/*',route=>route.request().url()===origin+'/'?route.fulfill({status:200,contentType:'text/html',body:html}):(unexpected.push(route.request().url()),route.abort()));
+ await context.route('**/*',route=>{const url=new URL(route.request().url());if(url.href===origin+'/')return route.fulfill({status:200,contentType:'text/html',body:html});if(url.origin===origin&&/^\/images\/mmhvault-install-(ios|ipad|android-chrome|desktop)-v271\.webp$/.test(url.pathname))return route.fulfill({status:200,contentType:'image/webp',body:readFileSync(new URL('..'+url.pathname,import.meta.url))});unexpected.push(url.href);return route.abort()});
  const page=await context.newPage();
  page.on('pageerror',e=>errors.push(e.message));
  await page.goto(origin+'/');
@@ -42,7 +42,7 @@ try{
  await button.click();await close.click();await guide.waitFor({state:'hidden'});
  await button.click();await page.mouse.click(2,2);await guide.waitFor({state:'hidden'});
  await button.click();
- const cases=[['ios',4],['ios-other',5],['android-chrome',4],['android-firefox',4],['android-other',5],['desktop',3]];
+ const cases=[['ios',4,'ios'],['ios-other',5,'ios'],['ipad',4,'ipad'],['ipad-other',5,'ipad'],['android-chrome',4,'android-chrome'],['android-firefox',4,null],['android-other',5,'android-chrome'],['desktop',3,null],['desktop-chrome',3,'desktop'],['desktop-edge',3,'desktop'],['desktop-safari',3,null]];
  const locale=async lang=>page.evaluate(lang=>{localStorage.setItem('mmhvault_language_v3363',lang);document.documentElement.lang=lang;dispatchEvent(new Event('mmhvault-language-change'))},lang);
  let count=0;
  for(const width of [360,1280]){
@@ -52,13 +52,17 @@ try{
    for(const [lang,label,pattern] of [['en','Add to Home Screen',/[A-Za-z]/],['zh','添加到主屏幕',/[\u4e00-\u9fff]/],['my','ပင်မမျက်နှာပြင်သို့ ထည့်ပါ',/[\u1000-\u109f]/]]){
     await locale(lang);
     assert.equal(await button.textContent(),label);
-    for(const [device,n] of cases){
+    for(const [device,n,art] of cases){
      await picker.focus();
      await picker.selectOption(device);
      assert.equal(await picker.inputValue(),device);
      assert.equal(await page.evaluate(()=>document.activeElement.id),'stInstallDeviceV5','focus retained on redraw');
      assert.equal(await guide.locator('li').count(),n);
-     assert.equal(await guide.locator('li svg').count(),n);
+     assert.equal(await guide.locator('li svg').count(),art?0:n);
+     const picture=guide.locator('.st-install-art-image-v271');
+     assert.equal(await picture.count(),art?1:0);
+     if(art){assert.equal(await picture.getAttribute('src'),'./images/mmhvault-install-'+art+'-v271.webp');assert.deepEqual(await picture.evaluate(async im=>{await im.decode();return [im.naturalWidth,im.naturalHeight]}),[1672,941]);}
+     assert.equal(await guide.locator('.st-install-art-zoom-v271').count(),art?1:0);
      assert.match(await guide.locator('h3').textContent(),pattern);
      for(const copy of await guide.locator('.st-install-step-copy-v265>span:last-child').allTextContents())assert.match(copy,pattern);
      const geometry=await guide.evaluate(el=>{
@@ -72,6 +76,17 @@ try{
    }
   }
  }
+ // Zoom inside the guide without overflowing the dialog; failed artwork leaves localized instructions.
+ await page.setViewportSize({width:360,height:800});await picker.selectOption('ipad');
+ const zoom=guide.locator('.st-install-art-zoom-v271'),view=guide.locator('#stInstallArtViewV271');
+ await zoom.click();assert.equal(await zoom.getAttribute('aria-expanded'),'true');
+ assert.ok(await view.evaluate(el=>el.scrollWidth>el.clientWidth));
+ await view.evaluate(el=>el.scrollLeft=200);assert.ok(await view.evaluate(el=>el.scrollLeft>0));
+ await zoom.click();assert.equal(await zoom.getAttribute('aria-expanded'),'false');
+ assert.ok(await view.evaluate(el=>el.scrollWidth<=el.clientWidth+1));
+ await guide.locator('.st-install-art-image-v271').evaluate(el=>el.dispatchEvent(new Event('error')));
+ assert.equal(await guide.locator('.st-install-art-v271').isVisible(),false);
+ assert.equal(await guide.locator('li').count(),4);
  // Real wheel scrolling in compact portrait and landscape, with the close control pinned.
  let scrollCases=0;
  for(const viewport of [{width:320,height:480},{width:667,height:320}]){

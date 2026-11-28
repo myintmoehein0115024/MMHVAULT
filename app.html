@@ -30323,7 +30323,18 @@ html body.st-overview-compact #dashboard :is(.panel,#dashboardCommandCenterV3421
     step('menu','Look for an install icon near the address bar or an install option in the browser menu.','查看地址栏附近的安装图标或浏览器菜单中的安装选项。','လိပ်စာဘားအနီးရှိ တပ်ဆင်ရန်အိုင်ကွန် သို့မဟုတ် မီနူးရှိ Install ကို ရှာပါ။');
     step('confirm','Confirm if offered. Otherwise bookmark the page.','如有安装选项，请确认；否则可收藏此网页。','တပ်ဆင်နိုင်ပါက အတည်ပြုပါ။ မရပါက စာမျက်နှာကို မှတ်သားထားပါ။');
    }
-   const list=document.createElement('ol');for(const [kind,copy] of steps){const item=document.createElement('li');const content=document.createElement('div');content.className='st-install-step-copy-v265';const words=document.createElement('span');words.textContent=copy;content.append(illustration(kind,device.startsWith('desktop')),words);item.append(content);list.append(item)}guide.append(list);
+   const artKey=({ios:'ios','ios-other':'ios',ipad:'ipad','ipad-other':'ipad','android-chrome':'android-chrome','android-other':'android-chrome','desktop-chrome':'desktop','desktop-edge':'desktop'})[device];
+   if(artKey){
+    const figure=document.createElement('figure');figure.className='st-install-art-v271';
+    const caption=document.createElement('figcaption');caption.textContent=T('Illustrated guide · browser menus may vary.','安装示意图 · 浏览器菜单可能因版本而异。','တပ်ဆင်နည်း သရုပ်ပြပုံ · ဘရောက်ဇာမီနူး ကွာခြားနိုင်ပါသည်။');
+    if(device.endsWith('-other')||androidCustomTab())caption.textContent+=' '+(device.startsWith('android')?T('Open in Chrome first.','请先用 Chrome 打开。','Chrome တွင် အရင်ဖွင့်ပါ။'):T('Open in Safari first.','请先用 Safari 打开。','Safari တွင် အရင်ဖွင့်ပါ။'));
+    const view=document.createElement('div');view.id='stInstallArtViewV271';view.className='st-install-art-view-v271';view.tabIndex=0;view.setAttribute('aria-label',T('Installation illustration','安装教程图片','တပ်ဆင်နည်းပုံ'));
+    const img=document.createElement('img');img.className='st-install-art-image-v271';img.width=1672;img.height=941;img.decoding='async';img.alt=T('MMHVAULT installation steps for ','MMHVAULT 安装步骤：','MMHVAULT တပ်ဆင်နည်း - ')+artKey;img.onerror=()=>{figure.hidden=true};
+    const zoom=document.createElement('button');zoom.type='button';zoom.className='st-install-art-zoom-v271';zoom.setAttribute('aria-controls',view.id);zoom.setAttribute('aria-expanded','false');let enlarged=false;
+    const zoomLabel=()=>{zoom.textContent=enlarged?T('Fit image','适应屏幕','မျက်နှာပြင်နှင့်ကိုက်ညီရန်'):T('Enlarge image','放大图片','ပုံချဲ့ရန်');zoom.setAttribute('aria-expanded',String(enlarged))};
+    zoom.onclick=()=>{enlarged=!enlarged;view.className='st-install-art-view-v271'+(enlarged?' is-enlarged':'');if(!enlarged)view.scrollLeft=0;zoomLabel()};zoomLabel();view.append(img);figure.append(view,caption,zoom);guide.append(figure);img.src='./images/mmhvault-install-'+artKey+'-v271.webp';
+   }
+   const list=document.createElement('ol');if(artKey)list.className='st-install-art-steps-v271';for(const [kind,copy] of steps){const item=document.createElement('li');const content=document.createElement('div');content.className='st-install-step-copy-v265';const words=document.createElement('span');words.textContent=copy;if(!artKey)content.append(illustration(kind,device.startsWith('desktop')));content.append(words);item.append(content);list.append(item)}guide.append(list);
    const note=document.createElement('p');note.className='st-install-note';note.textContent=captions();guide.append(note);
    if(installPrompt&&!androidCustomTab()){const native=document.createElement('button');native.type='button';native.className='btn primary';native.textContent=T('Install app','安装应用','အက်ပ် ထည့်သွင်းရန်');native.onclick=()=>button.onclick();guide.append(native)}
   }
@@ -30369,6 +30380,18 @@ html body.st-overview-compact #dashboard :is(.panel,#dashboardCommandCenterV3421
 html body.light #settings :is(#stPage_icon,#stPage_general) #stInstallGuideV5 .st-install-illustration-v265{background:#edf3f7;border-color:#ccd8e1;color:#42576b}
 html body.light #settings :is(#stPage_icon,#stPage_general) #stInstallGuideV5 .st-install-illustration-v265 .accent{stroke:#147b62}
 html body.light #settings #stPage_icon #stInstallStatusV4{color:#42576b}
+/* V2.0.71: owner-approved, device-specific installation artwork. */
+html body #settings :is(#stPage_icon,#stPage_general) #stInstallGuideV5:has(.st-install-art-v271:not([hidden])){width:min(920px,calc(100% - 32px))!important}
+#settings :is(#stPage_icon,#stPage_general) #stInstallGuideV5 .st-install-art-v271{margin:12px 0;min-width:0;display:grid;gap:8px}
+#settings :is(#stPage_icon,#stPage_general) #stInstallGuideV5 .st-install-art-v271[hidden]{display:none!important}
+#settings :is(#stPage_icon,#stPage_general) #stInstallGuideV5 .st-install-art-view-v271{width:100%;min-width:0;overflow:auto;border-radius:10px;border:1px solid #42576b;touch-action:pan-x pan-y pinch-zoom;box-sizing:border-box}
+#settings :is(#stPage_icon,#stPage_general) #stInstallGuideV5 .st-install-art-image-v271{display:block;width:100%;height:auto;max-width:none;border-radius:0}
+#settings :is(#stPage_icon,#stPage_general) #stInstallGuideV5 .st-install-art-view-v271.is-enlarged .st-install-art-image-v271{width:max(100%,1200px)}
+#settings :is(#stPage_icon,#stPage_general) #stInstallGuideV5 .st-install-art-v271 figcaption{font-size:12px;line-height:1.5;overflow-wrap:anywhere}
+#settings :is(#stPage_icon,#stPage_general) #stInstallGuideV5 .st-install-art-zoom-v271{justify-self:end;min-height:44px;padding:8px 12px;border:1px solid #42576b;border-radius:9px;background:#203447;color:#e3edf5;cursor:pointer;font:inherit;font-size:12px}
+html body.light #settings :is(#stPage_icon,#stPage_general) #stInstallGuideV5 .st-install-art-zoom-v271{background:#f8fbfd;color:#243e55;border-color:#cbd9e5}
+#settings :is(#stPage_icon,#stPage_general) #stInstallGuideV5 .st-install-art-steps-v271 .st-install-step-copy-v265{grid-template-columns:minmax(0,1fr)}
+
 @media(max-width:420px){#settings :is(#stPage_icon,#stPage_general) #stInstallGuideV5 .st-install-step-copy-v265{grid-template-columns:minmax(0,1fr);gap:7px}#settings :is(#stPage_icon,#stPage_general) #stInstallGuideV5 .st-install-illustration-v265{max-width:104px}}
 </style>
 
