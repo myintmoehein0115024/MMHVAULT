@@ -265,6 +265,37 @@ with zipfile.ZipFile(io.BytesIO(source)) as archive:
   console.log('PASS: two Chinese release archives inspected in memory (metadata and coverage diagnostics only; no production assets)');
  }
 
+ // License metadata audit only: never add these files to the pack or runtime until reviewed.
+ if(python){
+  const mySources=[
+   {folder:'pyidaungsu-regular',url:'https://raw.githubusercontent.com/mcfnlp/Pyidaungsu/ff1cd8dfe8c451244329d7a6181c83e769226cac/Pyidaungsu2.5.3/Release/Pyidaungsu-2.5.3_Regular.ttf',blob:'fbea7504343083ae069bbb42f2b0e8b6d944534f',size:189468,license:'OFL-1.1'},
+   {folder:'pyidaungsu-bold',url:'https://raw.githubusercontent.com/mcfnlp/Pyidaungsu/ff1cd8dfe8c451244329d7a6181c83e769226cac/Pyidaungsu2.5.3/Release/Pyidaungsu-2.5.3_Bold.ttf',blob:'87f2f157fcd5744727d2fc1855bdf0d8afc0799e',size:234480,license:'OFL-1.1'},
+   {folder:'myanmar3',url:'https://raw.githubusercontent.com/eimg/myanmar3/91529979b1d4860ce9b3a761fffcbdedb6479b15/mm3.ttf',blob:'6bb1960e59f904c85a32c09598c1919ae3996315',size:98100,license:'LGPL-2.1-or-later'}
+  ];
+  const inspectMyanmar=String.raw`
+import io, json, sys
+from fontTools.ttLib import TTFont
+with TTFont(io.BytesIO(sys.stdin.buffer.read())) as font:
+    names = font["name"]
+    chars = set(font.getBestCmap())
+    license_text = names.getDebugName(13) or ""
+    print(json.dumps({"family": names.getDebugName(1), "style": names.getDebugName(2), "version": names.getDebugName(5), "copyright": names.getDebugName(0), "licenseText": license_text, "licenseUrl": names.getDebugName(14), "fsType": font["OS/2"].fsType, "sourceCount": len(chars), "missingSample": sorted(set(map(ord, sys.argv[1]))-chars), "shapingTables": [tag for tag in ("GSUB", "GPOS") if tag in font]}, ensure_ascii=True))
+`;
+  for(const spec of mySources){
+   const response=await fetch(spec.url,{redirect:'error',signal:AbortSignal.timeout(30000)});
+   assert(response.ok,spec.folder+' pinned metadata HTTP '+response.status);
+   const data=Buffer.from(await response.arrayBuffer());
+   assert.equal(data.length,spec.size,spec.folder+' exact size');
+   assert.equal(createHash('sha1').update('blob '+data.length+String.fromCharCode(0)).update(data).digest('hex'),spec.blob,spec.folder+' exact Git blob hash');
+   const audit=spawnSync(python,['-c',inspectMyanmar,samples.my],{input:data,maxBuffer:65536,timeout:15000});
+   assert.ifError(audit.error);assert.equal(audit.status,0,audit.stderr?.toString());
+   const metadata=JSON.parse(audit.stdout.toString());
+   if(spec.license==='OFL-1.1')assert.match(metadata.licenseText,/SIL Open Font License, Version 1\.1/i);
+   else assert.match(metadata.licenseText,/GNU Lesser General Public License[\s\S]*version 2\.1[\s\S]*later version/i);
+   console.log('FONT-MYANMAR-LICENSE-AUDIT '+JSON.stringify({folder:spec.folder,declaredLicense:spec.license,sourceBlob:spec.blob,...metadata}));
+  }
+  console.log('PASS: pinned Myanmar font embedded license metadata inspected (not redistribution approval or rendering validation)');
+ }
  const compressionScript=`
 import io, sys
 from fontTools.ttLib import TTFont
