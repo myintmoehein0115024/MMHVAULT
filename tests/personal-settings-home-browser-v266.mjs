@@ -307,7 +307,10 @@ try{
     assert.equal(await dialog.locator('tbody tr').count(),1);
     const d=await dialog.evaluate(e=>{const r=e.getBoundingClientRect();return r.left>=-1&&r.right<=innerWidth+1&&r.height<=innerHeight});assert.ok(d);
     await dialog.locator('header button').click();assert.equal(await dialog.isVisible(),false);
-    await board.locator('[data-fx-trend=THB]').click();await page.keyboard.press('Escape');assert.equal(await dialog.isVisible(),false);
+    await page.waitForFunction(()=>document.activeElement?.dataset.fxTrend==='USD');
+    await board.locator('[data-fx-trend=THB]').click();await dialog.waitFor({state:'visible'});await page.keyboard.press('Escape');await dialog.waitFor({state:'hidden'});
+    await page.waitForFunction(()=>document.activeElement?.dataset.fxTrend==='THB');
+    await board.locator('[data-fx-trend=CNY]').click();await dialog.waitFor({state:'visible'});await page.evaluate(()=>dispatchEvent(new Event('mmhvault:config-owner-changed')));await dialog.waitFor({state:'hidden'});
     const search=panel.locator('.mv2-detail .mv2-search');await search.fill('THB');assert.deepEqual(await board.locator('tbody tr').evaluateAll(rs=>rs.map(r=>r.dataset.fxCode)),['THB']);await search.fill('');
     continue;
    }
