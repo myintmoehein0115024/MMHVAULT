@@ -375,3 +375,38 @@ assert(histScript265.includes("'+recordReferenceV265(x)")||histScript265.include
 assert(invScript265.includes('window.mmhInvestmentReferenceV265=invReferenceV265'));
 assert(histScript265.includes('Current FX reference, not trade-date FX'));
 console.log('PASS: standard investment record reference, signs, original currency, owner isolation and unavailable FX');
+
+/* Expanded display registry: reuse existing account list, no source or rate writes. */
+const registryMatch265=app.match(/window\.MMHPersonalDisplayCurrenciesV265=Object\.freeze\((\[[^\n]+\])\);/);
+assert(registryMatch265);
+const allDisplay265=JSON.parse(registryMatch265[1]);
+const accountRegistry265=JSON.parse(app.match(/const MMHVAULT_ACCOUNT_CURRENCY_CODES_V140=new Set\((\[[^\n]+\])\);/)[1]);
+assert.deepEqual(allDisplay265,accountRegistry265);
+assert.equal(new Set(allDisplay265).size,53);
+assert(['JPY','SGD','KRW','INR','AED','KPW','TWD','EUR','AUD','EGP'].every(c=>allDisplay265.includes(c)));
+for(const n of ['overviewCodesV265','txDisplayCodesV265','invDisplayCodesV265'])assert(app.includes('const '+n+'=window.MMHPersonalDisplayCurrenciesV265||'));
+const registryStorage265=new Map(),registryStore265={getItem:k=>registryStorage265.get(k)||null,setItem:(k,v)=>registryStorage265.set(k,v),removeItem:k=>registryStorage265.delete(k)};
+let registryOwner265='registry-a';
+const registryRates265={JPY:150,SGD:1.35,THB:35,MMK:4000};
+const registryWin265={MMHPersonalDisplayCurrenciesV265:allDisplay265,MMHExchangeEffectiveFXV2:{getUsdRate:c=>registryRates265[c]}};
+const setGlobal265=(id,c)=>registryStorage265.set('mmhvault_settings_display_v2_'+id,JSON.stringify({currency:c}));
+setGlobal265('registry-a','JPY');setGlobal265('registry-b','SGD');
+const regOverview265=app.slice(app.indexOf('const overviewCodesV265='),app.indexOf('function signedMoneyV265('));
+const regOv265=new Function('window','localStorage','currentSessionUser','marketMoney',regOverview265+';return {money,overviewCurrencyV265,saveOverviewChoiceV265}')(registryWin265,registryStore265,{get id(){return registryOwner265}},v=>'$'+v);
+const regFmt265=(v)=>v.toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2});
+assert.equal(regOv265.overviewCurrencyV265(),'JPY');assert.equal(regOv265.money(2),'JPY '+regFmt265(300));
+assert(regOv265.saveOverviewChoiceV265('KPW'));assert.equal(regOv265.money(2),'—');
+registryOwner265='registry-b';assert.equal(regOv265.overviewCurrencyV265(),'SGD');assert.equal(regOv265.money(10),'SGD '+regFmt265(13.5));
+registryOwner265='registry-a';assert.equal(regOv265.overviewCurrencyV265(),'KPW');assert(regOv265.saveOverviewChoiceV265('GLOBAL'));assert.equal(regOv265.overviewCurrencyV265(),'JPY');
+const txPart265=app.slice(app.indexOf('  const txDisplayCodesV265='),app.indexOf('  function txDisplayTextV265('));
+const regTx265=new Function('window','localStorage','currentSessionUser','MMHVAULT_CONFIG_OWNER','mmhVaultAccountMeta','txMoneyV720',txPart265+';return {txDisplayCurrencyV265,txSaveDisplayV265,txReferenceV265}')(registryWin265,registryStore265,{id:'registry-a'},'registry-a',()=>({id:'account-a',currency:'USD'}),()=>{});
+const regRecord265={user_id:'registry-a'};
+assert.equal(regTx265.txDisplayCurrencyV265(),'JPY');assert.equal(regTx265.txReferenceV265(regRecord265,2,'a'),'≈ JPY '+regFmt265(300));
+assert(regTx265.txSaveDisplayV265('KPW'));assert.equal(regTx265.txReferenceV265(regRecord265,2,'a'),'≈ KPW —');assert.equal(regTx265.txReferenceV265({user_id:'registry-b'},2,'a'),'');
+const invPart265=app.slice(app.indexOf('  const invDisplayCodesV265='),app.indexOf('  function invDisplayTextV265('));
+const regInv265=new Function('window','localStorage','currentSessionUser','MMHVAULT_CONFIG_OWNER',invPart265+';return {invDisplayCurrencyV265,invSaveDisplayV265,invReferenceV265}')(registryWin265,registryStore265,{id:'registry-a'},'registry-a');
+assert.equal(regInv265.invDisplayCurrencyV265(),'JPY');assert.equal(regInv265.invReferenceV265(2,'USD','registry-a'),'≈ JPY '+regFmt265(300));
+assert(regInv265.invSaveDisplayV265('SGD'));assert.equal(regInv265.invReferenceV265(40000,'MMK','registry-a'),'≈ SGD '+regFmt265(13.5));assert.equal(regInv265.invReferenceV265(2,'USD','registry-b'),'');
+assert.equal(regTx265.txDisplayCurrencyV265(),'KPW');assert.equal(regOv265.overviewCurrencyV265(),'JPY');assert.equal(JSON.parse(registryStorage265.get('mmhvault_settings_display_v2_registry-a')).currency,'JPY');
+assert(!regInv265.invSaveDisplayV265('ZZZ'));assert(regInv265.invSaveDisplayV265('KPW'));assert.equal(regInv265.invReferenceV265(2,'USD','registry-a'),'≈ KPW —');
+console.log('PASS: 53-code shared display registry, additional FX, missing rates, owner and per-view isolation');
