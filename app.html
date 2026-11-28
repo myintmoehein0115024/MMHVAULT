@@ -28904,7 +28904,7 @@ html,body{max-width:100%;overflow-x:clip}
     $('cfaOpenBudgetV112')?.addEventListener('click',openBudget);
     const visibleActive=()=>!document.hidden&&page.classList.contains('active');
     const refreshVisible=()=>{if(!visibleActive())return;render();if(state.budgetKey!==budgetContextKey())void loadBudget()};
-    ['mmhvault:data-loaded','mmhvault:data-change','mmhvault:cache-restored','mmhvault:market-updated','mmhvault:exchange-fx-updated','mmhvault:asia-rates-updated','mmhvault:account-reference-fx-updated','mmhvault:category-config-changed','mmhvault:page-visible'].forEach(ev=>window.addEventListener(ev,refreshVisible,{passive:true}));
+    ['mmhvault:data-loaded','mmhvault:data-change','mmhvault:cache-restored','mmhvault:market-updated','mmhvault:exchange-reference-updated','mmhvault:category-config-changed','mmhvault:page-visible'].forEach(ev=>window.addEventListener(ev,refreshVisible,{passive:true}));
     window.addEventListener('mmhvault:budget-changed',()=>{state.budgetKey='';state.budget=null;if(visibleActive())periodChanged()},{passive:true});
     document.addEventListener('visibilitychange',()=>{if(!document.hidden)refreshVisible()},{passive:true});
     render();if(!document.hidden)void loadBudget();
