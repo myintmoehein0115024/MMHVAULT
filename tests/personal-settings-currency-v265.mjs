@@ -542,22 +542,29 @@ console.log('PASS: 53-code shared display registry, additional FX, missing rates
  function finish(i,value){requests[i].resolve({data:value})}
  const a=change('a','2025'),other=change('b','2025'),again=change('a','2025');
  assert.equal(requests.length,3);assert.equal(requests[1].uid,'b');
- finish(0,[{currency:'USD',monthly_amount:900}]);await a;
+ finish(0,[{budget_month:'2025-01-01',currency:'USD',monthly_amount:900}]);await a;
  assert.equal(api.annualExportTokenV265(),null);assert.equal(api.pending(),true);
- finish(1,[{currency:'USD',monthly_amount:800}]);await other;
+ finish(1,[{budget_month:'2025-01-01',currency:'USD',monthly_amount:800}]);await other;
  assert.equal(api.annualExportTokenV265(),null);assert.equal(api.pending(),true);
- finish(2,[{currency:'USD',monthly_amount:100}]);await again;
+ finish(2,[{budget_month:'2025-01-01',currency:'USD',monthly_amount:100}]);await again;
  assert(mount.innerHTML.includes('USD 100'));assert(!mount.innerHTML.includes('USD 900'));
  const first=api.annualExportTokenV265();assert(Number.isSafeInteger(first));
  await rerender();assert(api.annualExportTokenV265()>first);assert.equal(requests.length,3);
  const y1=change('a','2026'),y2=change('a','2025'),y3=change('a','2026');
- finish(3,[{currency:'USD',monthly_amount:999}]);await y1;
+ finish(3,[{budget_month:'2026-01-01',currency:'USD',monthly_amount:999}]);await y1;
  finish(4,[]);await y2;assert.equal(api.annualExportTokenV265(),null);assert.equal(api.pending(),true);
- finish(5,[{currency:'USD',monthly_amount:200}]);await y3;assert(mount.innerHTML.includes('USD 200'));
+ finish(5,[{budget_month:'2026-01-01',currency:'USD',monthly_amount:200}]);await y3;assert(mount.innerHTML.includes('USD 200'));
  const reload=change('a','2026');assert.equal(api.annualExportTokenV265(),null);
  finish(6,null);await reload;assert.equal(api.annualExportTokenV265(),null);
- const missing=change('a','2026');rate=0;finish(7,[{currency:'USD',monthly_amount:200}]);await missing;assert.equal(api.annualExportTokenV265(),null);
+ const missing=change('a','2026');rate=0;finish(7,[{budget_month:'2026-01-01',currency:'USD',monthly_amount:200}]);await missing;assert.equal(api.annualExportTokenV265(),null);
  rate=1;await rerender();assert(Number.isSafeInteger(api.annualExportTokenV265()));
+ const valid={budget_month:'2026-01-01',currency:'USD',monthly_amount:100};
+ for(const rows of [[null],[{...valid,budget_month:'2025-12-01'}],[{...valid,budget_month:'2026-13-01'}],[{...valid,budget_month:'2026-01-02'}],[valid,valid],[{...valid,currency:null}],[{...valid,currency:''}],[{...valid,monthly_amount:null}],[{...valid,monthly_amount:''}],[{...valid,monthly_amount:-1}],[{...valid,monthly_amount:'bad'}],[{...valid,monthly_amount:Infinity}],[{...valid,monthly_amount:true}]]){
+  const pending=change('a','2026');finish(requests.length-1,rows);await pending;assert.equal(api.annualExportTokenV265(),null);assert(mount.textContent.includes('Saved budgets cannot be loaded'));
+ }
+ const empty=change('a','2026');finish(requests.length-1,[]);await empty;assert(Number.isSafeInteger(api.annualExportTokenV265()));assert(mount.innerHTML.includes('0 / 12'));
+ const zero=change('a','2026');finish(requests.length-1,[{...valid,monthly_amount:'0'}]);await zero;assert(Number.isSafeInteger(api.annualExportTokenV265()));assert(mount.innerHTML.includes('USD 0'));
+ const full=change('a','2026');finish(requests.length-1,Array.from({length:12},(_,i)=>({...valid,budget_month:'2026-'+String(i+1).padStart(2,'0')+'-01',monthly_amount:'100'})));await full;assert(Number.isSafeInteger(api.annualExportTokenV265()));assert(mount.innerHTML.includes('12 / 12'));assert(mount.innerHTML.includes('USD 1200'));
  sourcesReady=false;assert.equal(api.annualExportTokenV265(),null);await rerender();assert.equal(mount.textContent,'source unavailable');assert.equal(api.annualExportTokenV265(),null);sourcesReady=true;await rerender();assert(Number.isSafeInteger(api.annualExportTokenV265()));
   code='JPY';assert.equal(api.annualExportTokenV265(),null);
  code='USD';active=false;assert.equal(api.annualExportTokenV265(),null);
