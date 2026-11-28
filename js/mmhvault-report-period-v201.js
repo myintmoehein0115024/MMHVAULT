@@ -21,15 +21,19 @@
   // Use the same owner-checked display formatter as the legacy monthly Report; fx remains the budget source rate.
   const F=v=>{if(!owner()||typeof v!=='number'||!Number.isFinite(v))return '—';try{return window.mmhLegacyReportDisplayV265?.(v,currency())||'—'}catch(_){return '—'}};
   const amountUSD=(account,amount)=>{try{if(typeof mmhvaultAmountUSD==='function')return n(mmhvaultAmountUSD(account,amount));if(typeof window.mmhvaultAmountUSD==='function')return n(window.mmhvaultAmountUSD(account,amount));if(typeof toUSD==='function')return n(amount)*n(toUSD(account));}catch(_){return 0}return 0};
+  const sourceAmountReadyV265=(account,amount)=>{if(amount===null||amount===undefined||String(amount).trim()==='')return false;const v=Number(amount);if(!Number.isFinite(v))return false;if(v===0)return true;if(!account)return false;try{if(typeof mmhVaultAccountMeta==='function'&&String(mmhVaultAccountMeta(account)?.id||'').startsWith('legacy_'))return false;const usd=amountUSD(account,v);return Number.isFinite(usd)&&usd!==0&&Math.sign(usd)===Math.sign(v)}catch(_){return false}};
   const group=t=>{try{if(typeof inferTxGroup==='function')return inferTxGroup(t)}catch(_){}
     if(t?.category==='Data Adjustment')return'Data Adjustment';if(t?.type==='Transfer')return'Transfer';
     if(t?.type==='Income')return 'Income';if(t?.type==='Expense')return 'Expense';return text(t?.type);
   };
   const linked=t=>{try{return typeof isLinkedInvestmentTx==='function'&&isLinkedInvestmentTx(t)}catch(_){return false}};
+  function annualSourceReadyV265(year){try{return !!owner()&&rows().filter(t=>validMonth(text(t?.tx_date).slice(0,7))&&text(t.tx_date).slice(0,4)===year).every(t=>{const g=group(t);if(g==='Income')return sourceAmountReadyV265(t.to_account,t.to_amount);if(g==='Personal'||(g==='Expense'&&t.category!=='Investment'&&!linked(t)))return sourceAmountReadyV265(t.from_account,t.from_amount);return true})}catch(_){return false}}
+  function annualSourcesReadyV265(){return annualSourceReadyV265(state.year)&&annualSourceReadyV265(String(Number(state.year)-1))}
+  const sourceNoticeV265=()=>tr('Transaction conversion unavailable. Check source account exchange rates; annual totals and export are temporarily unavailable.','交易换算暂不可用。请检查源账户汇率，年度统计及导出暂不可用。','ငွေလွှဲမှတ်တမ်း ငွေကြေးပြောင်းလဲမှု မရရှိသေးပါ။ မူလအကောင့် ငွေလဲနှုန်းကို စစ်ဆေးပါ။ နှစ်စဉ်စာရင်းနှင့် ထုတ်ယူမှု ယာယီမရရှိနိုင်ပါ။');
   let state={mode:'month',month:current(),year:current().slice(0,4)};
   let viewReady=false,budgetCache={key:'',data:null,error:false,pending:false},lastOwner='',annualRenderEpochV265=0,annualReadyV265=null;
   function resetAnnualBudgetV265(){budgetCache={key:'',data:null,error:false,pending:false};annualReadyV265=null}
-  function annualExportTokenV265(){const v=annualReadyV265,host=$('reportAnnualViewV201');return v&&owner()&&state.mode==='year'&&$(rootId)?.classList.contains('active')&&host?.hidden===false&&v.epoch===annualRenderEpochV265&&v.cache===budgetCache&&v.key===owner()+'|'+state.year&&v.currency===currency()&&v.mount===$('reportAnnualBudgetBodyV201')&&v.mount.querySelector('.report-annual-budget-metrics-v201')?v.epoch:null}
+  function annualExportTokenV265(){const v=annualReadyV265,host=$('reportAnnualViewV201');return v&&owner()&&annualSourcesReadyV265()&&state.mode==='year'&&$(rootId)?.classList.contains('active')&&host?.hidden===false&&v.epoch===annualRenderEpochV265&&v.cache===budgetCache&&v.key===owner()+'|'+state.year&&v.currency===currency()&&v.mount===$('reportAnnualBudgetBodyV201')&&v.mount.querySelector('.report-annual-budget-metrics-v201')?v.epoch:null}
   function loadPrefs(){state={mode:'month',month:current(),year:current().slice(0,4)};try{const raw=JSON.parse(localStorage.getItem(localKey())||'null');if(!raw||typeof raw!=='object')return;if(validMonth(raw.month))state.month=raw.month;if(validYear(raw.year))state.year=raw.year;if(raw.mode==='year')state.mode='year'}catch(_){}}
   function savePrefs(){try{localStorage.setItem(localKey(),JSON.stringify(state))}catch(_){}}
   function alignLegacyMonth(){
@@ -130,6 +134,7 @@
     annualRenderEpochV265++;annualReadyV265=null;
     if(!viewReady||state.mode!=='year'||!$(rootId)?.classList.contains('active'))return;
     const host=$('reportAnnualViewV201');if(!host)return;
+    if(!annualSourcesReadyV265()){host.innerHTML='';const notice=document.createElement('p');notice.className='report-annual-warning-v201';notice.textContent=sourceNoticeV265();host.append(notice);return}
     const cur=collectYear(state.year),prev=collectYear(String(Number(state.year)-1)),wealth=wealthLive(),movement=window.MMHBalanceBridgeV202?.movements?.(rows().filter(t=>text(t?.tx_date).slice(0,4)===state.year));
     const delta=(v,p)=>p>0?`${v-p>=0?'+':''}${((v-p)/p*100).toFixed(2)}%`:tr('No prior-year baseline','无上年度基准','ယခင်နှစ်အချက်အလက်မရှိ');
     const rateText=F(0)!=='—'?'':`<p class="report-annual-warning-v201">${tr('No exchange rate for the selected currency; values are hidden until a rate is available.','所选币种汇率缺失，暂不显示换算金额。','ရွေးချယ်ထားသော ငွေလဲနှုန်းမရှိပါ။')}</p>`;
@@ -167,6 +172,7 @@
     }
     if(!currentRequest()||state.mode!=='year'||!$(rootId)?.classList.contains('active'))return;
     const mount=$('reportAnnualBudgetBodyV201');if(!mount)return;
+    if(!annualSourcesReadyV265()){annualReadyV265=null;mount.textContent=sourceNoticeV265();return}
     if(budgetCache.error){mount.textContent=tr('Saved budgets cannot be loaded right now. Transactions remain unchanged.','暂时无法读取预算，交易数据未改变。','ဘတ်ဂျက်ကို မဖတ်နိုင်ပါ။');return}
     if(!budgetCache.data){mount.textContent=tr('Loading budgets…','读取预算中…','ဘတ်ဂျက်ဖတ်နေသည်…');return}
     const budgets=budgetCache.data,year=collectYear(state.year);let saved=0,missing=[];
