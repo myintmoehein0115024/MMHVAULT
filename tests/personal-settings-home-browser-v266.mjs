@@ -152,6 +152,13 @@ try{
    assert.equal(await page.locator('#stPref_fontV265').inputValue(),'modern');assert.deepEqual(await page.evaluate(()=>window.fixtureChanges.at(-1)),['stPref_fontV265','modern']);
    await font.click();await page.keyboard.press('Escape');await dialog.waitFor({state:'hidden'});
    await page.waitForFunction(()=>document.activeElement?.classList.contains('st-combo-trigger-v272'));
+   // A choice opened for a previous owner must not write after owner change.
+   for(const button of [currency,font]){
+    await button.click();
+    const blocked=await dialog.evaluate(d=>{const choice=[...d.querySelectorAll('button[data-ap-currency],button[data-st-choice-v272]')].find(b=>b.getAttribute('aria-pressed')!=='true');if(!choice)throw Error('missing alternate option');const count=window.fixtureChanges.length;window.dispatchEvent(new Event('mmhvault:config-owner-changed'));choice.click();return {open:d.open,unchanged:window.fixtureChanges.length===count}});
+    assert.deepEqual(blocked,{open:false,unchanged:true});
+    await dialog.waitFor({state:'hidden'});await page.waitForFunction(()=>document.activeElement?.classList.contains('st-combo-trigger-v272'));
+   }
    await page.evaluate(()=>{document.getElementById('stPref_fontV265').disabled=true});
    assert.equal(await font.isDisabled(),true);
    await page.evaluate(()=>{document.getElementById('stPref_fontV265').disabled=false;document.getElementById('stPage_general').hidden=true;document.getElementById('settings').classList.remove('st-in-subpage');document.getElementById('stSettingsHomeV3').hidden=false});
