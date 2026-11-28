@@ -91,7 +91,7 @@ console.log('PASS: 12 Cash Flow follow-default, legacy migration and explicit-ch
 
 const forecast=readFileSync(new URL('../js/mmhvault-forecast-v1.js',import.meta.url),'utf8');
 new Function(forecast);
-const fcStart=forecast.indexOf(' const viewKey=id=>'),fcEnd=forecast.indexOf('  const customToField=',fcStart);
+const fcStart=forecast.indexOf(' const viewCodes='),fcEnd=forecast.indexOf('  const customToField=',fcStart);
 assert(fcStart>=0&&fcEnd>fcStart);
 const fcCodes=forecast.match(/const CURRENCIES=(\[[^\n]+\]);/)[1];
 let fcOwner='forecast-a';
@@ -109,8 +109,8 @@ assert(!fcAPI.setViewChoice('ZZZ'));assert.equal(fcAPI.readViewChoice(''),'GLOBA
 assert.equal(data.get(fcPlanKey),savedPlan);
 data.set('mmhvault_forecast_plan_v1_'+fcOwner,JSON.stringify({version:3,viewCurrency:'SGD'}));fcAPI.activate(fcOwner);assert.equal(fcAPI.get(),'SGD');
 assert(fcAPI.setViewChoice('GLOBAL'));fcAPI.activate(fcOwner);assert.equal(fcAPI.get(),'CNY');
-assert(forecast.includes('viewCurrency:validCcy(viewChoice)?viewChoice:undefined'));
-assert(forecast.includes("currencyPickerHTML('view',state.viewCurrency,['GLOBAL',...CURRENCIES]"));
+assert(forecast.includes('viewCurrency:validViewCcy(viewChoice)?viewChoice:undefined'));
+assert(forecast.includes("currencyPickerHTML('view',state.viewCurrency,['GLOBAL',...viewCodes()]"));
 console.log('PASS: Future Assets owner-scoped immediate display preference, legacy fallback and scenario isolation (synthetic storage)');
 
 
@@ -432,4 +432,21 @@ console.log('PASS: 53-code shared display registry, additional FX, missing rates
  state.currency='KPW';assert.equal(calc.money(2),'—');owner='';assert.equal(calc.displayRateV265('JPY'),0);
  assert(script.includes('const rate=currencyRate(row?.currency)'));assert(script.includes("'mmhvault:exchange-reference-updated'"));new Function(script);
  console.log('PASS: Analyze 53-code display, owner preference, unchanged budget conversion and unavailable FX');
+}
+
+{
+ const scenario=JSON.parse(fcCodes.replaceAll("'",'"')), display=[...scenario,'AUD','EGP'];
+ let uid='fc-expanded-a';const values=new Map(),store={getItem:k=>values.get(k)||null,setItem:(k,v)=>values.set(k,v)};
+ const win={MMHPersonalDisplayCurrenciesV265:display,MMHExchangeEffectiveFXV2:{getUsdRate:c=>({AUD:1.5,EGP:0})[c]}};
+ const rate=forecast.slice(forecast.indexOf('const displayRate='),forecast.indexOf('const displayMoney='));
+ const api=new Function('window','localStorage','owner','CURRENCIES','let activeOwner="",state={};const validCcy=c=>CURRENCIES.includes(c);const localKey=id=>"plan_"+id;'+rate+forecast.slice(fcStart,fcEnd)+';return {validCcy,validViewCcy,displayRate,validDisplayRate,activate:id=>{activeOwner=id;viewChoice=readViewChoice(id);state.viewCurrency=resolveViewCurrency(id,viewChoice)},setViewChoice,get:()=>state.viewCurrency}')(win,store,()=>uid,scenario);
+ values.set('mmhvault_settings_display_v2_'+uid,JSON.stringify({currency:'AUD'}));
+ api.activate(uid);assert.equal(api.get(),'AUD');assert(!api.validCcy('AUD'));assert(api.validViewCcy('AUD'));
+ assert.equal(api.displayRate({AUD:99}),1.5);assert(api.setViewChoice('EGP'));assert(!api.validDisplayRate({EGP:999}));
+ assert(api.setViewChoice('THB'));assert.equal(api.displayRate({THB:35}),35);assert(api.setViewChoice('GLOBAL'));assert.equal(api.get(),'AUD');
+ uid='fc-expanded-b';assert(!api.validDisplayRate({}));assert(!api.setViewChoice('USD'));
+ values.set('mmhvault_settings_display_v2_'+uid,JSON.stringify({currency:'JPY'}));api.activate(uid);assert.equal(api.get(),'JPY');assert(!api.setViewChoice('ZZZ'));
+ uid='fc-expanded-a';api.activate(uid);assert.equal(api.get(),'AUD');
+ assert(forecast.includes("SCENARIO_CURRENCIES=CURRENCIES.filter"));assert(forecast.includes("&&SCENARIO_CURRENCIES.includes(state.viewCurrency)"));
+ console.log('PASS: forecast expanded display registry independent from scenario currencies and owner-scoped extra FX');
 }
