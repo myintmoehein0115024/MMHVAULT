@@ -528,6 +528,11 @@ with tempfile.TemporaryDirectory() as temp:
     output=root/"bundle"
     result=bundle.build_bundle(source,ui,output)
     assert len(result["candidates"])==8
+    notices=(output/result["notices"]).read_bytes()
+    assert result["notices_sha256"]==hashlib.sha256(notices).hexdigest()
+    assert b"not approved for distribution" in notices
+    assert all(r["license_id"]=="OFL-1.1" and r["source_repository"] and r["source_revision"] for r in result["candidates"])
+    assert next(r for r in result["candidates"] if r["candidate"]=="padauk")["reserved_source_names"]==["Padauk","Namkio","Deemawso"]
     css=(output/"fonts.css").read_text()
     assert len(set(r["family"] for r in result["candidates"]))==8
     assert result["stylesheet_sha256"]==hashlib.sha256((output/"fonts.css").read_bytes()).hexdigest()
@@ -617,9 +622,18 @@ with tempfile.TemporaryDirectory() as temp:
   const actualManifest=JSON.parse(readFileSync(join(assemblyOutput,'bundle.json'),'utf8'));
   assert.deepEqual(actualManifest,JSON.parse(assembled.stdout.toString('utf8')));
   assert.equal(actualManifest.candidates.length,8);
+  const noticeBytes=readFileSync(join(assemblyOutput,actualManifest.notices));
+  assert.equal(createHash('sha256').update(noticeBytes).digest('hex'),actualManifest.notices_sha256);
+  assert.match(noticeBytes.toString('utf8'),/not approved for distribution/);
   assert.equal(actualManifest.static_ui_sha256,createHash('sha256').update(app).digest('hex'));
   for(const rec of actualManifest.candidates){
    const input=bundleInputs.get(rec.candidate);assert(input);
+   assert.equal(rec.license_id,'OFL-1.1');
+   assert.equal(rec.source_repository,rec.candidate==='lxgwwenkai'?'lxgw/LxgwWenKai':'google/fonts');
+   assert.equal(rec.source_revision,rec.candidate==='lxgwwenkai'?'f4cc16fa07f7d115135d203065e711d43c3076d3':revision);
+   assert(rec.source_path.endsWith('/'+input.file));
+   assert(noticeBytes.toString('utf8').includes(rec.family));
+   assert(rec.reserved_source_names.every(name=>!rec.family.toLowerCase().includes(name.toLowerCase())));
    assert.deepEqual(readFileSync(join(assemblyOutput,rec.license)),input.license);
    const manifestBytes=readFileSync(join(assemblyOutput,rec.manifest));assert.equal(createHash('sha256').update(manifestBytes).digest('hex'),rec.manifest_sha256);
    const files=new Map();for(const item of rec.files){const bytes=readFileSync(join(assemblyOutput,rec.candidate,item.file));assert.equal(bytes.length,item.bytes);assert.equal(createHash('sha256').update(bytes).digest('hex'),item.sha256);assert.equal(bytes.subarray(0,4).toString(),'wOF2');files.set(item.file,bytes)}
