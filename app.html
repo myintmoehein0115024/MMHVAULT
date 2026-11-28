@@ -1751,7 +1751,7 @@ body.mmh-workspace-active main.wrap,body.mmh-workspace-active #header,body.mmh-w
 .mmh-birthday-preview-v34216{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
 .mmh-birthday-preview-v34216>div{padding:14px;border-radius:13px;border:1px solid rgba(74,121,190,.2);background:linear-gradient(160deg,rgba(20,42,78,.38),rgba(6,13,28,.6));display:flex;flex-direction:column;justify-content:center;min-width:0}
 .mmh-birthday-preview-v34216 .k{font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:#8ea4c8}
-.mmh-birthday-preview-v34216 b{margin-top:6px;font-size:16px;color:#f6f8ff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mmh-birthday-preview-v34216 b{margin-top:6px;font-size:16px;color:#f6f8ff;white-space:normal;overflow-wrap:anywhere}
 .mmh-birthday-countdown-v34216 b{color:#f4c95d}
 @media(max-width:780px){.mmh-birthday-grid-v34216{grid-template-columns:1fr}.mmh-birthday-preview-v34216{grid-template-columns:1fr}}
 </style>
@@ -11231,7 +11231,12 @@ html.mmh-desktop-compact-v11110 body.mmh-workspace-active #moreNavMenu.more-nav-
     try{let raw=localStorage.getItem(key);if(raw===null&&localStorage.getItem(KEY+'_legacy_owner')===key.slice(KEY.length+1))raw=localStorage.getItem(KEY);return validBirth(raw)?raw:'';}catch(_){return '';}
   }
   const getBirth=()=>validBirth(getBirthISO());
-  const TLocal=(en,zh)=>typeof T==='function'?T(en,zh):(document.documentElement.lang==='zh-CN'?zh:en);
+  const birthdayLang=()=>{const lang=(document.documentElement.lang||'en').toLowerCase();return lang.startsWith('zh')?'zh':lang.startsWith('my')?'my':'en';};
+  const birthdayText=(en,zh,my)=>({en,zh,my})[birthdayLang()];
+  function birthdayLabels(){
+    const panel=document.getElementById('mmhBirthdaySettingsV34215');
+    panel?.querySelectorAll?.('[data-i18n-en][data-i18n-zh][data-i18n-my]').forEach(el=>{const value=el.getAttribute('data-i18n-'+birthdayLang());if(el.textContent!==value)el.textContent=value;});
+  }
   const pad=n=>String(n).padStart(2,'0');
   function parts(now){
     const birth=getBirth();if(!birth)return null;
@@ -11254,13 +11259,14 @@ html.mmh-desktop-compact-v11110 body.mmh-workspace-active #moreNavMenu.more-nav-
     const input=document.getElementById('mmhBirthDateInputV34215');
     const key=scopedKey(),iso=getBirthISO(),changed=renderedKey!==key;renderedKey=key;
     if(input){input.disabled=!key;if(changed){if(editingKey!==null||document.activeElement===input)editInvalidated=true;editingKey=null;input.setCustomValidity('');}if(changed||document.activeElement!==input){if(input.value!==iso)input.value=iso;}}
+    birthdayLabels();
     const now=new Date(),a=parts(now),nb=nextBirthday(now);
+    if(input){const max=`${now.getFullYear()}-${pad(now.getMonth()+1)}-${pad(now.getDate())}`;if(input.max!==max)input.max=max;if(input.min!=='1900-01-01')input.min='1900-01-01';}
     if(!a||!nb){for(const el of [v,n,c])if(el)el.textContent='—';return;}
     const diff=Math.max(0,nb-now),days=Math.floor(diff/86400000),hrs=Math.floor((diff%86400000)/3600000),mins=Math.floor((diff%3600000)/60000),secs=Math.floor((diff%60000)/1000);
-    const zh=document.documentElement.lang==='zh-CN';
-    if(v) v.textContent=zh?`${a.years}岁 ${a.months}个月 ${a.days}天`:`${a.years} years, ${a.months} months, ${a.days} days`;
+    if(v) v.textContent=birthdayText(`${a.years} years, ${a.months} months, ${a.days} days`,`${a.years}岁 ${a.months}个月 ${a.days}天`,`${a.years} နှစ် ${a.months} လ ${a.days} ရက်`);
     if(n) n.textContent=`${nb.getFullYear()}-${pad(nb.getMonth()+1)}-${pad(nb.getDate())}`;
-    if(c) c.textContent=zh?`${days}天 ${hrs}小时 ${mins}分 ${secs}秒`:`${days}d ${hrs}h ${mins}m ${secs}s`;
+    if(c) c.textContent=birthdayText(`${days}d ${hrs}h ${mins}m ${secs}s`,`${days}天 ${hrs}小时 ${mins}分 ${secs}秒`,`${days} ရက် ${hrs} နာရီ ${mins} မိနစ် ${secs} စက္ကန့်`);
   }
   let lastAgeKey='';
   function ageKey(now=new Date()){const a=parts(now);return a?`${a.years}|${a.months}|${a.days}`:''}
@@ -11280,7 +11286,7 @@ html.mmh-desktop-compact-v11110 body.mmh-workspace-active #moreNavMenu.more-nav-
       input.addEventListener('change',()=>{
         const key=scopedKey(),raw=input.value;
         if(!key||editInvalidated||key!==renderedKey||(editingKey!==null&&editingKey!==key)){input.value=getBirthISO();render();return;}
-        if(raw!==''&&!validBirth(raw)){input.setCustomValidity('Choose a valid past birth date, from 1900 onward.');input.reportValidity();input.value=getBirthISO();return;}
+        if(raw!==''&&!validBirth(raw)){input.setCustomValidity(birthdayText('Choose a valid birth date from 1900 through today.','请选择1900年至今天之间的有效出生日期。','၁၉၀၀ ခုနှစ်မှ ယနေ့အထိ မှန်ကန်သော မွေးသက္ကရာဇ်ကို ရွေးပါ။'));input.reportValidity();input.value=getBirthISO();return;}
         input.setCustomValidity('');
         try{localStorage.setItem(key,raw);}catch(_){input.value=getBirthISO();render();return;}
         render();window.dispatchEvent(new CustomEvent('mmhvault-birthday-change'));
@@ -11306,6 +11312,7 @@ html.mmh-desktop-compact-v11110 body.mmh-workspace-active #moreNavMenu.more-nav-
   }
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>{bind();startAgeTickerV3435();},{once:true}); else {bind();startAgeTickerV3435();}
   window.addEventListener('languagechange',render);
+  window.addEventListener('mmhvault-language-change',render);
   window.addEventListener('mmhvault-birthday-change',()=>{render();dispatchAgeDayIfChanged(true)});
   window.addEventListener('mmhvault:config-owner-changed',()=>{lastAgeKey='';bind();dispatchAgeDayIfChanged(true)});
 })();
@@ -12873,10 +12880,10 @@ window.MMHPersonalDisplayCurrenciesV265=Object.freeze(["USD","THB","MMK","CNY","
 </div>
 </div>
 <div class="panel mmh-birthday-settings-v34216" id="mmhBirthdaySettingsV34215">
-<div class="toolbar"><div><h2 data-i18n-en="Birthday" data-i18n-zh="生日" class="mmh-hint-anchor-v195 mmh-context-title-v199" data-mmh-hint-source="next" tabindex="0">Birthday</h2><div class="small mmh-context-desc-v199" data-i18n-en="Set your birth date to calculate your age and next birthday in real time." data-i18n-zh="设置出生日期，系统会实时计算您的年龄和下次生日。">Set your birth date to calculate your age and next birthday in real time.</div></div><span class="pill" data-i18n-en="Live calculation" data-i18n-zh="实时计算">Live calculation</span></div>
+<div class="toolbar"><div><h2 data-i18n-en="Birthday" data-i18n-zh="生日" data-i18n-my="မွေးနေ့" class="mmh-hint-anchor-v195 mmh-context-title-v199" data-mmh-hint-source="next" tabindex="0">Birthday</h2><div class="small mmh-context-desc-v199" data-i18n-en="Set your birth date to calculate your age and next birthday in real time." data-i18n-zh="设置出生日期，系统会实时计算您的年龄和下次生日。" data-i18n-my="အသက်နှင့် နောက်လာမည့် မွေးနေ့ကို အချိန်နှင့်တစ်ပြေးညီ တွက်ချက်ရန် မွေးသက္ကရာဇ် သတ်မှတ်ပါ။">Set your birth date to calculate your age and next birthday in real time.</div></div><span class="pill" data-i18n-en="Live calculation" data-i18n-zh="实时计算" data-i18n-my="တိုက်ရိုက်တွက်ချက်မှု">Live calculation</span></div>
 <div class="mmh-birthday-grid-v34216">
-<label class="mmh-birthday-field-v34216"><span data-i18n-en="Birth Date" data-i18n-zh="出生日期">Birth Date</span><input id="mmhBirthDateInputV34215" type="date" value=""/></label>
-<div class="mmh-birthday-preview-v34216"><div><span class="k" data-i18n-en="Current Age" data-i18n-zh="当前年龄">Current Age</span><b id="mmhSettingsAgeValueV34215">—</b></div><div><span class="k" data-i18n-en="Next Birthday" data-i18n-zh="下次生日">Next Birthday</span><b id="mmhSettingsBirthdayValueV34215">—</b></div><div class="mmh-birthday-countdown-v34216"><span class="k" data-i18n-en="Countdown" data-i18n-zh="倒计时">Countdown</span><b id="mmhSettingsBirthdayCountdownV34215">—</b></div></div>
+<label class="mmh-birthday-field-v34216"><span data-i18n-en="Birth Date" data-i18n-zh="出生日期" data-i18n-my="မွေးသက္ကရာဇ်">Birth Date</span><input id="mmhBirthDateInputV34215" type="date" value="" aria-describedby="mmhBirthdayLocalNoteV265"/><span id="mmhBirthdayLocalNoteV265" data-i18n-en="Optional. Saved on this device for your account only." data-i18n-zh="选填。仅保存在此设备上当前账户的设置中。" data-i18n-my="မဖြည့်လည်းရပါသည်။ ဤစက်ရှိ သင့်အကောင့်အတွက်သာ သိမ်းဆည်းပါသည်။">Optional. Saved on this device for your account only.</span></label>
+<div class="mmh-birthday-preview-v34216"><div><span class="k" data-i18n-en="Current Age" data-i18n-zh="当前年龄" data-i18n-my="လက်ရှိအသက်">Current Age</span><b id="mmhSettingsAgeValueV34215">—</b></div><div><span class="k" data-i18n-en="Next Birthday" data-i18n-zh="下次生日" data-i18n-my="လာမည့်မွေးနေ့">Next Birthday</span><b id="mmhSettingsBirthdayValueV34215">—</b></div><div class="mmh-birthday-countdown-v34216"><span class="k" data-i18n-en="Countdown" data-i18n-zh="倒计时" data-i18n-my="ကျန်ရှိချိန်">Countdown</span><b id="mmhSettingsBirthdayCountdownV34215">—</b></div></div>
 </div>
 </div>
 </div>
@@ -20697,7 +20704,7 @@ function translateTextNode(n){
   const current=n.nodeValue.trim();if(!current||!n.parentElement||n.parentElement.closest('script,style,textarea,[contenteditable="true"]'))return;
 
   const parent=n.parentElement;
-  if(parent.closest('[data-mmh-font-copy-v265]')){mmhI18nTextStateV135.delete(n);return;}
+  if(parent.closest('[data-mmh-font-copy-v265],#mmhBirthdaySettingsV34215')){mmhI18nTextStateV135.delete(n);return;}
   if(recurringCopySurfaceV264(parent)&&recurringCopyProtectedV264(parent)){mmhI18nTextStateV135.delete(n);return;}
   if(goalCopySurfaceV263(parent)&&parent.closest('[data-goal-user-copy-v263],.goal-card-title-v113 h3,.mmh-goal-dialog-v149 #mmhVaultDialogTitleV449,.mmh-shared-trigger-v217')){mmhI18nTextStateV135.delete(n);return;}
   if(investCopySurfaceV236(parent)){if(investCopyProtectedV236(parent)||investCopyOwnedV236(parent))return;const translated=investCopyStableV236(investCopyNodeStateV236,n,current);if(translated!=null){if(current!==translated){const raw=n.nodeValue;n.nodeValue=(raw.match(/^\s*/)?.[0]||'')+translated+(raw.match(/\s*$/)?.[0]||'');}return;}}
