@@ -88,6 +88,7 @@ try{
  ];
  const samples={'zh-CN':'账户余额与储蓄交易投资设置财务目标汇率预算收入支出','my':'လက်ကျန်ငွေနှင့်စုဆောင်းငွေမြန်မာဘာသာ၀၁၂၃၄၅၆၇၈၉'};
  const results={};
+ const lazyCandidates=new Map();
  const python=process.env.MMH_FONTQA_PYTHON;
  if(process.env.CI)assert(python,'CI must provide isolated font compression interpreter');
  const compressionScript=`
@@ -139,6 +140,7 @@ sys.stdout.buffer.write(data)
    assert(compressed.length>0&&compressed.length<bytes.length,folder+' compressed size');
    assert.equal(compressed.subarray(0,4).toString(),'wOF2',folder+' WOFF2 signature');
   }
+  if(compressed)lazyCandidates.set(folder,{locale,bytes:compressed});
   const fixture=await browser.newContext({viewport:{width:768,height:400}});
   try{
    await fixture.route('**/*',route=>{
@@ -186,5 +188,49 @@ sys.stdout.buffer.write(data)
   console.log('FONT-CANDIDATE '+JSON.stringify({locale,fonts}));
  }
  console.log('PASS: seven pinned OFL candidate assets rendered isolated sample text without platform fallback; three Chinese and four Myanmar distinct sample images (not full coverage or application integration)');
- if(python)console.log('PASS: seven WOFF2 candidates rendered sample without fallback and preserved glyph count and geometry (Chinese sample subset only; Myanmar full cmap preserved; no assets distributed)');
+ if(python){
+  console.log('PASS: seven WOFF2 candidates rendered sample without fallback and preserved glyph count and geometry (Chinese sample subset only; Myanmar full cmap preserved; no assets distributed)');
+  // Same-origin loading prototype; candidates are ephemeral, not deployable assets.
+  const origin='https://mmh-font-fixture.invalid';
+  const ctx=await browser.newContext();
+  const requests=[];
+  let rejectFont='';
+  try{
+   await ctx.route('**/*',route=>{
+    const url=new URL(route.request().url());
+    if(url.origin!==origin)return route.abort();
+    if(url.pathname==='/')return route.fulfill({status:200,contentType:'text/html',body:'<!doctype html><html><body class="mmh-workspace-active"><main class="page"><div id="text"></div></main></body></html>'});
+    const match=/^\/fonts\/([a-z]+)\.woff2$/.exec(url.pathname);
+    if(!match)return route.fulfill({status:404,body:''});
+    const folder=match[1],candidate=lazyCandidates.get(folder);
+    requests.push(folder);
+    if(!candidate||folder===rejectFont)return route.fulfill({status:404,body:''});
+    return route.fulfill({status:200,contentType:'font/woff2',headers:{'Cache-Control':'public, max-age=31536000, immutable'},body:candidate.bytes});
+   });
+   const page=await ctx.newPage();
+   await page.goto(origin+'/');
+   const faces=[...lazyCandidates].map(([name])=>'@font-face{font-family:"Candidate-'+name+'";src:url("/fonts/'+name+'.woff2") format("woff2");font-display:swap}').join('');
+   await page.addStyleTag({content:faces+'body{font-family:system-ui,sans-serif}body.mmh-workspace-active:not(.auth-page-active)[data-mmh-personal-font-v265] #text{font-family:var(--mmh-personal-font-v265),sans-serif}'});
+   const setText=locale=>page.locator('#text').evaluate((el,s)=>{el.textContent=s},samples[locale]);
+   const settle=()=>page.evaluate(async()=>{document.querySelector('#text').getBoundingClientRect();await document.fonts.ready;await new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r)))});
+   const select=async folder=>{
+    await setText(lazyCandidates.get(folder).locale);
+    await page.evaluate(name=>{document.body.setAttribute('data-mmh-personal-font-v265','candidate');document.body.style.setProperty('--mmh-personal-font-v265','"Candidate-'+name+'"')},folder);
+    await settle();
+   };
+   await setText('my');await settle();assert.deepEqual(requests,[],'System must not request candidate fonts');
+   await page.evaluate(()=>document.body.classList.add('auth-page-active'));
+   await select('notosansmyanmar');assert.deepEqual(requests,[],'Auth page must not request candidate fonts');
+   await page.evaluate(()=>document.body.classList.remove('auth-page-active'));
+   await select('notosansmyanmar');assert.deepEqual(requests,['notosansmyanmar'],'Only selected Myanmar font requested');
+   await select('notosansmyanmar');assert.deepEqual(requests,['notosansmyanmar'],'Repeat selection reuses loaded font');
+   await select('notoserifsc');assert.deepEqual(requests,['notosansmyanmar','notoserifsc'],'Language/choice switch loads only the requested Chinese candidate');
+   await page.evaluate(()=>{document.body.removeAttribute('data-mmh-personal-font-v265');document.body.style.removeProperty('--mmh-personal-font-v265')});
+   await settle();assert.equal(requests.length,2,'System reset requests no candidate');
+   rejectFont='padauk';await select('padauk');assert.deepEqual(requests,['notosansmyanmar','notoserifsc','padauk']);
+   const fallback=await page.locator('#text').evaluate(el=>{const b=el.getBoundingClientRect();return {text:el.textContent,width:b.width,height:b.height}});
+   assert(fallback.text===samples.my&&fallback.width>0&&fallback.height>0,'Missing font retains visible text layout');
+   console.log('PASS: isolated same-origin font loading prototype: System/auth zero requests, selected-only fetch, repeated selection reuse, language switch, System reset and missing-asset fallback');
+  }finally{await ctx.close()}
+ }
 }finally{await browser.close()}
