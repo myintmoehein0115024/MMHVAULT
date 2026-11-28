@@ -483,6 +483,70 @@ sys.stdout.buffer.write(data)
    assert(fallback.text===samples.my&&fallback.width>0&&fallback.height>0,'Missing font retains visible text layout');
    console.log('PASS: isolated same-origin font loading with actual Settings helper/CSS: System/auth/guest zero requests, selected-only fetch, language/owner memory and missing-asset fallback');
   }finally{await ctx.close()}
+  // Exercise the new isolated bundle assembly with synthetic tiny pack outputs.
+  // Real candidate bytes are verified by the individual pack cases below.
+  const bundleTool=fileURLToPath(new URL('../tools/personal-font-bundle-v265.py',import.meta.url));
+  const bundleTest=String.raw`
+import hashlib, importlib.util, json, sys, tempfile
+from pathlib import Path
+sys.dont_write_bytecode=True
+spec=importlib.util.spec_from_file_location("bundle",sys.argv[1])
+bundle=importlib.util.module_from_spec(spec)
+spec.loader.exec_module(bundle)
+original_candidates={**bundle.pack.CANDIDATES,**bundle.pack.CHINESE}
+with tempfile.TemporaryDirectory() as temp:
+    root=Path(temp); source=root/"sources"; source.mkdir()
+    ui=root/"app.html"; ui.write_text("<html>测试</html>",encoding="utf-8")
+    for name, (filename, _, _, family) in original_candidates.items():
+        folder=source/name; folder.mkdir()
+        data=("synthetic-"+name).encode(); notice=("synthetic notice "+name).encode()
+        (folder/filename).write_bytes(data); (folder/"OFL.txt").write_bytes(notice)
+        dest=bundle.pack.CHINESE if name in bundle.pack.CHINESE else bundle.pack.CANDIDATES
+        dest[name]=(filename,bundle.pack.git_blob(data),bundle.pack.git_blob(notice),family)
+    def fake(name,font,license_data,dest):
+        dest.mkdir()
+        is_chinese=name in bundle.pack.CHINESE
+        specs=bundle.pack.CHINESE if is_chinese else bundle.pack.CANDIDATES
+        _,font_hash,license_hash,family=specs[name]
+        filename="part-0.woff2" if is_chinese else "font.woff2"
+        data=b"synthetic-output-"+font
+        (dest/filename).write_bytes(data); (dest/"OFL.txt").write_bytes(license_data)
+        result={"family":family,"source_git_blob":font_hash,"license_git_blob":license_hash}
+        item={"file":filename,"bytes":len(data),"sha256":hashlib.sha256(data).hexdigest()}
+        if is_chinese: result["groups"]=[item]
+        else: result.update(output_bytes=item["bytes"],output_sha256=item["sha256"])
+        (dest/"manifest.json").write_text(json.dumps(result),encoding="utf-8")
+        (dest/"font.css").write_text('@font-face{font-family:"'+family+'";src:url("./'+filename+'")}',encoding="utf-8")
+        return result
+    bundle.pack.build=fake
+    bundle.pack.build_chinese=lambda name,font,lic,ui,dest:fake(name,font,lic,dest)
+    output=root/"bundle"
+    result=bundle.build_bundle(source,ui,output)
+    assert len(result["candidates"])==8
+    css=(output/"fonts.css").read_text()
+    assert len(set(r["family"] for r in result["candidates"]))==8
+    assert result["stylesheet_sha256"]==hashlib.sha256((output/"fonts.css").read_bytes()).hexdigest()
+    for rec in result["candidates"]:
+        assert (output/rec["license"]).is_file()
+        assert (output/rec["manifest"]).is_file()
+        for item in rec["files"]:
+            assert './'+rec["candidate"]+'/'+item["file"] in css
+            assert (output/rec["candidate"]/item["file"]).is_file()
+    def rejects(call):
+        try: call()
+        except ValueError: return
+        raise AssertionError("expected rejection")
+    rejects(lambda:bundle.build_bundle(source,ui,output))
+    rejects(lambda:bundle.build_bundle(source,ui,bundle.REPO/"forbidden-font-test"))
+    name=next(iter(original_candidates)); (source/name/"OFL.txt").write_bytes(b"tampered")
+    rejects(lambda:bundle.build_bundle(source,ui,root/"rejected"))
+    assert not (root/"rejected").exists()
+    assert not list(root.glob(".mmh-font-qa-*"))
+`;
+  const bundleCheck=spawnSync(python,['-c',bundleTest,bundleTool],{maxBuffer:1024*1024,timeout:30000});
+  assert.ifError(bundleCheck.error);
+  assert.equal(bundleCheck.status,0,bundleCheck.stderr?.toString());
+  console.log('PASS: isolated eight-candidate bundle assembly, CSS paths, notices, hashes, tamper/overwrite/repository output guards (synthetic pack outputs; not actual full bundle)');
   // English candidate diagnostics only. Preserve the approved device stacks until visual review.
   const englishCandidates=[
    ['modern','inter','Inter[opsz,wght].ttf','047c92f6e2212473dc436020afed689527076d44','21f6aff961064c2e429f570995e446bcdd555422'],
