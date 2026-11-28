@@ -26093,7 +26093,31 @@ window.MMHBalanceBridgeV202=Object.freeze({current,kind,movements});
   function comparePct(cur,prev){if(Math.abs(prev)<1e-9)return cur===0?null:null;return (cur-prev)/Math.abs(prev)*100}
   function deltaText(cur,prev,pp=false){if(pp){const d=cur-prev;return{txt:(d>=0?'+':'')+d.toFixed(2)+' pp',cls:d>0?'pos':d<0?'neg':'neutral'}}const d=comparePct(cur,prev);if(d===null)return{txt:'—',cls:'neutral'};return{txt:(d>=0?'+':'')+d.toFixed(2)+'%',cls:d>0?'pos':d<0?'neg':'neutral'}}
   function currentWealth(){let cash=0,invest=0,recv=0;try{cash=Math.max(0,num(typeof mmhvaultCashUSD==='function'?mmhvaultCashUSD():0))}catch(_e){}try{invest=Math.max(0,num(typeof window.mmhDashboardHeldInvestmentUSD==='function'?window.mmhDashboardHeldInvestmentUSD():(typeof mmhvaultInvestmentValueUSD==='function'?mmhvaultInvestmentValueUSD():0)))}catch(_e){}try{recv=Math.max(0,num(typeof window.mmhDashboardReceivableUSD==='function'?window.mmhDashboardReceivableUSD():0))}catch(_e){}return{cash,invest,recv,total:cash+invest+recv}}
-  function investmentSnapshot(key){let monthly=0;for(const x of (Array.isArray(window.investments)?window.investments:investments||[])){if(String(x.inv_date||x.date||'').slice(0,7)!==key)continue;const side=String(x.side||x.trade_type||'BUY').toUpperCase();if(side==='SELL')continue;const cost=num(x.amount)+num(x.fee)+num(x.other_cost);monthly+=x.asset==='Crypto'?cost:(num((typeof rates!=='undefined'?rates:window.rates)?.usd_mmk)>0?cost/num((typeof rates!=='undefined'?rates:window.rates).usd_mmk):0)}let value=0,basis=0;try{value=num(typeof window.mmhDashboardHeldInvestmentUSD==='function'?window.mmhDashboardHeldInvestmentUSD():(typeof mmhvaultInvestmentValueUSD==='function'?mmhvaultInvestmentValueUSD():0));basis=num(typeof mmhvaultInvestmentCostUSD==='function'?mmhvaultInvestmentCostUSD():0)}catch(_e){}return{monthly,value,basis,pl:value-basis,returnPct:basis?(value-basis)/basis*100:0}}
+  function monthlyInvestmentRecordedV265(key){
+    const owner=reportOwnerV265(),rows=window.investments;
+    const finite=v=>(typeof v==='number'||(typeof v==='string'&&v.trim()!==''))&&Number.isFinite(Number(v));
+    if(!owner||window.mmhWalletDataOwnerV191!==owner||!Array.isArray(rows)||!/^\d{4}-(0[1-9]|1[0-2])$/.test(key)||!rows.every(x=>x?.user_id===owner))return null;
+    let monthly=0;
+    for(const x of rows){
+      const date=String(x.inv_date||x.date||'');
+      if(!/^\d{4}-(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01])$/.test(date))return null;
+      if(date.slice(0,7)!==key)continue;
+      const side=String(x.side||x.trade_type||'BUY').toUpperCase();
+      if(side==='SELL')continue;
+      if(side!=='BUY'||!['Crypto','Gold'].includes(x.asset)||![x.amount,x.fee,x.other_cost].every(v=>finite(v)&&Number(v)>=0)||!finite(x.quantity)||Number(x.quantity)<=0)return null;
+      const expected=x.asset==='Gold'?'MMK':'USD';
+      if(x.currency&&String(x.currency).toUpperCase()!==expected)return null;
+      const cost=Number(x.amount)+Number(x.fee)+Number(x.other_cost);
+      if(x.asset==='Gold'&&cost!==0){
+        const legacy=Number((typeof rates!=='undefined'?rates:window.rates)?.usd_mmk),effective=displayRateReportV265('MMK');
+        if(!Number.isFinite(legacy)||legacy<=0||effective===null||Math.abs(legacy-effective)>Math.max(1,legacy)*1e-9)return null;
+        monthly+=cost/legacy;
+      }else monthly+=cost;
+      if(!Number.isFinite(monthly))return null;
+    }
+    return monthly;
+  }
+  function investmentSnapshot(key){const monthly=monthlyInvestmentRecordedV265(key);let value=0,basis=0;try{value=num(typeof window.mmhDashboardHeldInvestmentUSD==='function'?window.mmhDashboardHeldInvestmentUSD():(typeof mmhvaultInvestmentValueUSD==='function'?mmhvaultInvestmentValueUSD():0));basis=num(typeof mmhvaultInvestmentCostUSD==='function'?mmhvaultInvestmentCostUSD():0)}catch(_e){}return{monthly,value,basis,pl:value-basis,returnPct:basis?(value-basis)/basis*100:0}}
   function goalSnapshot(){const active=state.goals.filter(g=>g.status==='active'),completed=state.goals.filter(g=>g.status==='completed');let target=0,current=0;for(const g of active){const f=fx(g.currency);if(!(f>0))continue;target+=num(g.target_amount)/f;current+=num(g.current_amount)/f}const progress=target?Math.min(100,Math.max(0,current/target*100)):0;return{active,completed,target,current,progress}}
   function recurringSnapshot(){const today=new Date();today.setHours(0,0,0,0);let overdue=0,dueMonth=0,paused=0;for(const r of state.recurring){if(r.status==='paused'){paused++;continue}const d=new Date(String(r.next_due_date)+'T00:00:00');if(!Number.isFinite(d.getTime()))continue;if(d<today)overdue++;if(String(r.next_due_date||'').slice(0,7)===state.month)dueMonth++}return{overdue,dueMonth,paused,active:state.recurring.filter(r=>r.status==='active').length}}
   function budgetSnapshot(m){const b=state.budget;if(!b||num(b.monthly_amount)<=0)return{set:false,budget:0,spent:m.individual,remaining:0,usage:0,level:'good',sourceCurrency:null};const f=fx(b.currency);if(!(f>0))return{set:true,unavailable:true,budget:null,spent:m.individual,remaining:null,usage:null,level:'watch',sourceCurrency:b.currency};const usd=num(b.monthly_amount)/f,usage=usd?m.individual/usd*100:0;return{set:true,unavailable:false,budget:usd,spent:m.individual,remaining:usd-m.individual,usage,level:usage>=100?'over':usage>=80?'watch':'good',sourceCurrency:b.currency}}
