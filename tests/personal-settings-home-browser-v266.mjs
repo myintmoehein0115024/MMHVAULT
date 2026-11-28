@@ -194,4 +194,38 @@ try{
   welcomeCases++;
  }
  console.log('PASS: V2.0.73 welcome actual markup/CSS and existing step handlers; '+welcomeCases+' '+engine+' cases (synthetic owner, no production)');
+
+ // Market UI only: actual new markup, style and script; existing FX controls are isolated fixture nodes.
+ const marketMarkup=app.match(/<div id="mmhMarketShellV273"[\s\S]*?(?=<div class="ex-template-head">)/)?.[0];
+ const marketStyle=app.match(/<style id="mmh-personal-market-v273">[\s\S]*?<\/style>/)?.[0];
+ const marketScript=app.match(/<script id="mmh-personal-market-v273-js">([\s\S]*?)<\/script>/)?.[1];
+ assert.ok(marketMarkup&&marketStyle&&marketScript);
+ assert.doesNotMatch(marketScript,/\b(?:fetch|XMLHttpRequest|setInterval|supabase)\b/);
+ await page.setContent('<!doctype html><html lang="en"><head>'+css+marketStyle+'</head><body class="mmh-workspace-active"><section id="exchange" class="page active">'+marketMarkup+'<div class="ex-template-head">Legacy</div><div id="exCurrencyCardsV7">Existing rates</div><div id="mmhExchangeV2StagingRoot" hidden>Existing V2</div><div class="panel exchange-converter-panel">Converter</div><div class="panel ex-rate-editor">Editor</div><section id="exAsiaSummaryV130">Asia</section><section id="exAsiaV10" hidden>Asia detail</section></section></body></html>');
+ await page.addScriptTag({content:marketScript});
+ let marketCases=0;
+ for(const width of [320,390,768,1440])for(const light of [false,true])for(const lang of ['en','zh','my']){
+  await page.setViewportSize({width,height:800});
+  await page.evaluate(([light,lang])=>{document.body.classList.toggle('light',light);document.documentElement.lang=lang;localStorage.setItem('mmhvault_language_v3363',lang);dispatchEvent(new Event('mmhvault-language-change'))},[light,lang]);
+  const root=page.locator('#exchange'),shell=root.locator('#mmhMarketShellV273'),nav=shell.locator('nav');
+  const expected={en:'Market',zh:'市场',my:'ဈေးကွက်'}[lang];
+  assert.equal(await shell.locator('h1').innerText(),expected);
+  for(const view of ['overview','exchange','gold','crypto','oil']){
+   await nav.locator('[data-mv-view="'+view+'"]').click();
+   assert.equal(await root.getAttribute('data-mv273'),view);
+   assert.equal(await nav.locator('[aria-pressed=true]').count(),1);
+   assert.equal(await root.locator('.exchange-converter-panel').isVisible(),view==='exchange');
+   assert.equal(await root.locator('.ex-rate-editor').isVisible(),view==='exchange');
+   assert.equal(await root.locator('#mmhExchangeV2StagingRoot').getAttribute('hidden'),'');
+   for(const name of ['overview','gold','crypto','oil'])assert.equal(await shell.locator('[data-mv-panel="'+name+'"]').isVisible(),view===name);
+   const dims=await shell.evaluate(e=>{const r=e.getBoundingClientRect();return {left:r.left,right:r.right,width:innerWidth,overflow:[...e.querySelectorAll('.mv273-card')].filter(n=>n.getClientRects().length).some(n=>n.scrollWidth>n.clientWidth+1)}});
+   assert.ok(dims.left>=-1&&dims.right<=dims.width+1&&!dims.overflow,JSON.stringify({width,light,lang,view,dims}));
+  }
+  await nav.locator('[data-mv-view="overview"]').click();
+  await shell.locator('[data-mv-panel="overview"] button[data-mv-view="gold"]').click();
+  assert.equal(await root.getAttribute('data-mv273'),'gold');
+  assert.equal(await shell.locator('[data-mv-panel="gold"] .mv273-quote b').allTextContents().then(xs=>xs.every(x=>x==='—')),true);
+  marketCases++;
+ }
+ console.log('PASS: V2.0.73 Market layout, five views, three languages, preserved FX fixture and no synthetic prices; '+marketCases+' '+engine+' cases (isolated DOM)');
 }finally{await browser.close()}
