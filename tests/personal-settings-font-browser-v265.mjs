@@ -77,6 +77,69 @@ try{
  }finally{await cdp.detach()}
  console.log('PASS: font selector, computed family cascade including legacy account detail and workspace choice menu, language/owner memory, blocked storage, auth isolation and responsive preview (isolated Chromium; glyph availability not verified)');
  await context.close();
+ {
+  // Render the exact checked-in resources, without regenerating or activating them in the app.
+  const assetRoot=new URL('../assets/personal-fonts-v265/',import.meta.url);
+  const manifest=JSON.parse(readFileSync(new URL('bundle.json',assetRoot),'utf8'));
+  const allowed=new Set(manifest.candidates.flatMap(c=>c.files.map(f=>c.candidate+'/'+f.file)));
+  assert.equal(manifest.candidates.length,8);
+  assert.equal(allowed.size,101);
+  const combinedCSS=readFileSync(new URL('fonts.css',assetRoot),'utf8');
+  const samples={'zh-CN':'账户余额与储蓄交易投资设置财务目标汇率预算收入支出','my':'လက်ကျန်ငွေနှင့်စုဆောင်းငွေမြန်မာဘာသာ၀၁၂၃၄၅၆၇၈၉'};
+  const combinedOrigin='https://mmh-committed-font-fixture.invalid';
+  const allCtx=await browser.newContext(),allRequests=[],stylesheetRequests=[];
+  try{
+   await allCtx.route('**/*',route=>{
+    const url=new URL(route.request().url());
+    if(url.origin!==combinedOrigin)return route.abort();
+    if(url.pathname==='/')return route.fulfill({status:200,contentType:'text/html',body:'<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="mmh-personal-font-bundle-v265" content="approved"></head><body class="mmh-workspace-active"><main id="settings" class="page active"><div id="rows"></div><p id="sample"></p></main></body></html>'});
+    if(url.pathname==='/assets/personal-fonts-v265/fonts.css'){stylesheetRequests.push(url.pathname);return route.fulfill({status:200,contentType:'text/css',body:combinedCSS});}
+    const match=/^\/assets\/personal-fonts-v265\/([a-z]+)\/(font|part-\d+)\.woff2$/.exec(url.pathname);
+    const key=match&&match[1]+'/'+match[2]+'.woff2';
+    const data=key&&allowed.has(key)?readFileSync(new URL(key,assetRoot)):null;
+    if(!data)return route.fulfill({status:404,body:''});
+    allRequests.push({folder:match[1],file:match[2]+'.woff2'});
+    return route.fulfill({status:200,contentType:'font/woff2',body:data});
+   });
+   const page=await allCtx.newPage();
+   await page.goto(combinedOrigin+'/');
+   await page.addStyleTag({content:'body{font-family:system-ui,sans-serif}#sample{font-size:28px;font-weight:400}'+css});
+   await page.addScriptTag({content:`const $=id=>document.getElementById(id);let owner='a';const store=new Map();const prefOwner=()=>owner;const lsGet=k=>store.get(k)??null;const lsSet=(k,v)=>{store.set(k,v);return true};`+row+helpers+`addFontV265($('rows'));window.fontFixture={owner:id=>{owner=id;dispatchEvent(new Event('mmhvault:config-owner-changed'))},lang:id=>{document.documentElement.lang=id;dispatchEvent(new Event('mmhvault-language-change'))}};`});
+   const picker=page.locator('#stPref_fontV265');
+   const settle=async()=>{await page.waitForFunction(()=>{const link=document.getElementById('mmhPersonalFontBundleV265');return !link||!!link.sheet});await page.evaluate(async()=>{document.querySelector('#sample').getBoundingClientRect();await document.fonts.ready;await new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r)))})};
+   const setText=async locale=>{await page.evaluate(l=>fontFixture.lang(l),locale);await page.locator('#sample').evaluate((el,s)=>{el.textContent=s},samples[locale]);await settle()};
+   await setText('zh-CN');assert.equal(await picker.inputValue(),'system');assert.deepEqual(allRequests,[]);assert.deepEqual(stylesheetRequests,[]);
+   await page.evaluate(()=>document.body.classList.add('auth-page-active'));await picker.selectOption('modern');await settle();assert.deepEqual(stylesheetRequests,[],'auth state must not request bundle CSS');
+   await picker.selectOption('system');await page.evaluate(()=>document.body.classList.remove('auth-page-active'));await settle();assert.deepEqual(stylesheetRequests,[]);
+   await page.evaluate(()=>document.querySelector('meta[name="mmh-personal-font-bundle-v265"]').remove());await picker.selectOption('modern');await settle();assert.deepEqual(stylesheetRequests,[],'missing approval marker must not request bundle CSS');
+   await picker.selectOption('system');await page.evaluate(()=>{const m=document.createElement('meta');m.name='mmh-personal-font-bundle-v265';m.content='approved';document.head.append(m)});
+   const styleCases=[['zh-CN','modern','notosanssc'],['zh-CN','elegant','notoserifsc'],['zh-CN','minimal','lxgwwenkai'],['zh-CN','digital','zcoolqingkehuangyou'],['my','modern','notosansmyanmar'],['my','elegant','notoserifmyanmar'],['my','minimal','padauk'],['my','bold','tharlon']];
+   const session=await allCtx.newCDPSession(page);
+   try{
+    await session.send('DOM.enable');await session.send('CSS.enable');
+    const {root}=await session.send('DOM.getDocument');
+    const {nodeId}=await session.send('DOM.querySelector',{nodeId:root.nodeId,selector:'#sample'});
+    for(const [locale,style,folder] of styleCases){
+     await picker.selectOption('system');await settle();
+     await setText(locale);assert.equal(await picker.inputValue(),'system');
+     const before=allRequests.length;
+     await picker.selectOption(style);await settle();
+     assert.deepEqual(allRequests.slice(before),[{folder,file:locale==='zh-CN'?'part-0.woff2':'font.woff2'}],folder+' only selected core/full font requested');
+     const {fonts}=await session.send('CSS.getPlatformFontsForNode',{nodeId});
+     assert(fonts.some(f=>f.glyphCount>0)&&fonts.filter(f=>f.glyphCount>0).every(f=>f.isCustomFont),folder+' custom sample rendered');
+    }
+    assert.deepEqual(stylesheetRequests,['/assets/personal-fonts-v265/fonts.css'],'stylesheet loaded only once');
+    const before=allRequests.length;
+    await picker.selectOption('system');await settle();
+    await setText('zh-CN');await picker.selectOption('modern');await settle();
+    assert.equal(allRequests.length,before,'previously loaded family reused');
+    await page.evaluate(()=>fontFixture.owner('guest'));await settle();
+    assert(await picker.isDisabled());assert.equal(allRequests.length,before,'guest no font requests');
+   }finally{await session.detach()}
+   console.log('FONT-COMMITTED '+JSON.stringify({families:manifest.candidates.length,requests:allRequests,cssBytes:Buffer.byteLength(combinedCSS),stylesheetRequests}));
+   console.log('PASS: all eight checked-in font packs render in one same-origin Settings fixture with selected-only requests, custom glyphs, reuse and guest isolation (not deployed)');
+  }finally{await allCtx.close()}
+ }
  // Birthday profile: exact markup, original module and scoped theme CSS, no production requests.
  const bdContext=await browser.newContext({viewport:{width:390,height:844}});
  try{
