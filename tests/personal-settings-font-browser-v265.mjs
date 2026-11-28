@@ -496,7 +496,15 @@ sys.stdout.buffer.write(data)
    assert(compressed.length>0&&compressed.length<bytes.length,folder+' compressed size');
    assert.equal(compressed.subarray(0,4).toString(),'wOF2',folder+' WOFF2 signature');
   }
-  if(compressed)lazyCandidates.set(folder,{locale,bytes:compressed});
+  // RFN feasibility only: reuse the existing neutral-name helper, with no pack or runtime output.
+  if(python&&folder==='smileysans'){
+   const renameScript="import hashlib, importlib.util, io, sys\nfrom fontTools.ttLib import TTFont\nsys.dont_write_bytecode=True\nspec=importlib.util.spec_from_file_location(\"mmh_pack\",sys.argv[1])\nmod=importlib.util.module_from_spec(spec)\nspec.loader.exec_module(mod)\nsource=sys.stdin.buffer.read()\nassert hashlib.sha256(source).hexdigest()==\"b447d7e781f08bc95c4c9f23ba71ed2b8ebb639aa7184485c71c4ca5afcd25c4\"\nfont=TTFont(io.BytesIO(source),recalcTimestamp=False)\nassert \"CFF \" not in font and \"CFF2\" not in font, \"unexpected outline format\"\ndef notices(f):\n    return sorted((n.nameID,n.platformID,n.platEncID,n.langID,n.toBytes()) for n in f[\"name\"].names if n.nameID in (0,7,13,14))\nlegal=notices(font)\nbefore=dict(font.getBestCmap())\nuvs=mod.variation_sequences(font)\naxes=mod.axes(font)\nshaping=[tag for tag in (\"GSUB\",\"GPOS\") if tag in font]\nmod.rename_identity(font,\"MMH Personal Chinese E QA\")\nout=io.BytesIO()\nfont.flavor=\"woff2\"\nfont.save(out)\ndata=out.getvalue()\nassert data[:4]==b\"wOF2\"\ncheck=TTFont(io.BytesIO(data),recalcTimestamp=False)\nassert dict(check.getBestCmap())==before and mod.variation_sequences(check)==uvs\nassert mod.axes(check)==axes and all(tag in check for tag in shaping)\nassert notices(check)==legal\nassert check[\"name\"].getDebugName(1)==\"MMH Personal Chinese E QA\"\nfor n in check[\"name\"].names:\n    if n.nameID in (1,2,3,4,6,16,17,18,20,21,22,25):\n        value=n.toUnicode()\n        assert \"smiley\" not in value.casefold() and \"\\u5f97\\u610f\\u9ed1\" not in value, (n.nameID,value)\nsys.stdout.buffer.write(data)";
+   const helper=fileURLToPath(new URL('../tools/personal-font-pack-v265.py',import.meta.url));
+   const derivative=spawnSync(python,['-c',renameScript,helper],{input:bytes,maxBuffer:40*1024*1024,timeout:120000});
+   assert.ifError(derivative.error);assert.equal(derivative.status,0,'Smiley neutral-name feasibility: '+derivative.stderr?.toString().slice(-2000));
+   compressed=derivative.stdout;assert(compressed.length>0&&compressed.length<bytes.length);assert.equal(compressed.subarray(0,4).toString(),'wOF2');
+  }
+  if(compressed&&!renderOnly)lazyCandidates.set(folder,{locale,bytes:compressed});
   const fixture=await browser.newContext({viewport:{width:768,height:400}});
   try{
    await fixture.route('**/*',route=>{
@@ -533,7 +541,8 @@ sys.stdout.buffer.write(data)
      const bounds=await measure();
      assert(Math.abs(bounds.width-originalBounds.width)<=1&&Math.abs(bounds.height-originalBounds.height)<=1,folder+' compressed text geometry');
      const compressedPixels=createHash('sha256').update(await p.locator('#glyphs').screenshot({animations:'disabled'})).digest('hex');
-     compression={kind:locale==='zh-CN'?'sample-only subset':'full font',bytes:compressed.length,pixelEqual:compressedPixels===pixels};
+     compression={kind:folder==='smileysans'?'full neutral-name QA derivative':locale==='zh-CN'?'sample-only subset':'full font',bytes:compressed.length,pixelEqual:compressedPixels===pixels};
+     if(folder==='smileysans'){assert.equal(compressedPixels,pixels,'Smiley neutral-name derivative retains sample pixels');assert(used.every(x=>/MMHPersonalChineseEQA/i.test(x.postScriptName.replace(/[^A-Za-z0-9]/g,''))),'neutral PostScript identity');console.log('PASS: Smiley neutral-name WOFF2 feasibility, retained notices, cmap/shaping tables and sample pixels; no distribution or runtime activation');}
      if(packManifest){assert.equal(compressedPixels,pixels,folder+' renamed candidate retains identical sample pixels');compression.packFamily=packManifest.family;compression.packSha256=packManifest.output_sha256;compression.packCodepoints=packManifest.codepoints;}
     }
     (results[locale]??=[]).push({folder,bytes:bytes.length,pixels,compression,fonts:rendered.map(x=>({family:x.familyName,postScript:x.postScriptName,glyphs:x.glyphCount}))});
