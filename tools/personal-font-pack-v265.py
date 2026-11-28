@@ -26,6 +26,7 @@ CHINESE = {
     "notosanssc": ("NotoSansSC[wght].ttf", "fb0637bafbcd804fe32152370a1225990745b4bc", "1c9f43281b8f216c5461fe9ac729afbade7724e4", "MMH Personal Chinese A"),
     "notoserifsc": ("NotoSerifSC[wght].ttf", "eab063faf229160a52d3760f5555150e4eb9e5bf", "94d1bf7b52481343e2983fb7751e8b7abe1ea07b", "MMH Personal Chinese B"),
     "zcoolqingkehuangyou": ("ZCOOLQingKeHuangYou-Regular.ttf", "982a3b80143268592f573feb196791fbc2330e17", "bd3df5cf6f237a4afaea70106f8243da07cd8cd8", "MMH Personal Chinese C"),
+    "lxgwwenkai": ("LXGWWenKai-Regular.ttf", "7f8f031dc5c6c5ba1913d93c36d4667c1e311cea", "bb1634cb03ee7202d5c66bf2754705493bd73e1e", "MMH Personal Chinese D"),
 }
 
 
@@ -144,6 +145,10 @@ def variation_sequences(font):
             for base, glyph in pairs}
 
 def build_chinese(candidate, source, license_data, ui, output):
+    source_repository, source_revision, source_path = (
+        ("lxgw/LxgwWenKai", "f4cc16fa07f7d115135d203065e711d43c3076d3", "fonts/TTF/")
+        if candidate == "lxgwwenkai" else ("google/fonts", REVISION, "ofl/" + candidate + "/")
+    )
     filename, source_hash, license_hash, family = CHINESE[candidate]
     require(not output.exists(), "output already exists")
     require(0 < len(source) <= 40 * 1024 * 1024, "unexpected source size")
@@ -207,7 +212,8 @@ def build_chinese(candidate, source, license_data, ui, output):
     require(seen == chars, "source cmap coverage incomplete")
     require(preserved_variations == source_variations, "source variation sequences incomplete")
     manifest = {
-        "candidate": candidate, "family": family, "source_revision": REVISION,
+        "candidate": candidate, "family": family, "source_revision": source_revision,
+        "source_repository": source_repository, "source_path": source_path + filename,
         "source_file": filename, "source_git_blob": source_hash, "license_git_blob": license_hash,
         "license": "OFL-1.1", "source_bytes": len(source), "sourceCount": len(chars),
         "weight": weights, "axes": original_axes, "groups": entries,
