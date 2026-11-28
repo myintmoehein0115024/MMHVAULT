@@ -306,6 +306,42 @@ with TTFont(io.BytesIO(sys.stdin.buffer.read())) as font:
   }
   console.log('PASS: pinned Myanmar font embedded license metadata inspected (not redistribution approval or rendering validation)');
  }
+ // Evaluate the four outstanding render-only candidates against the actual static UI.
+ // No user text, distribution, compression or production resources are involved.
+ if(python){
+  const coverageScript=String.raw`
+import io,json,sys
+from fontTools.ttLib import TTFont
+locale=sys.argv[1]
+source=sys.stdin.buffer.read()
+def wanted(cp):
+    if locale=="zh-CN":
+        return 0x3400<=cp<=0x4DBF or 0x4E00<=cp<=0x9FFF or 0xF900<=cp<=0xFAFF or 0x20000<=cp<=0x323AF
+    return 0x1000<=cp<=0x109F or 0xAA60<=cp<=0xAA7F or 0xA9E0<=cp<=0xA9FF
+with TTFont(io.BytesIO(source)) as font:
+    cmap=set(font.getBestCmap())
+    names=font["name"]
+    print(json.dumps({"family":names.getDebugName(1),"cmap":sorted(cp for cp in cmap if wanted(cp)),
+                      "sourceCmapCount":len(cmap),"shapingTables":[t for t in ("GSUB","GPOS") if t in font],
+                      "hasVariationSequences":any(t.format==14 for t in font["cmap"].tables),
+                      "licenseMetadataPresent":bool(names.getDebugName(13))},ensure_ascii=True))
+`;
+  const checks=[['zh-CN','smileysans','OFL-1.1','Smiley, 得意黑'],['zh-CN','zhuquefangsong','OFL-1.1','technical preview'],['my','pyidaungsu-regular','OFL-1.1','embedded declaration; standalone notice unresolved'],['my','myanmar3','LGPL-2.1-or-later','corresponding-source and notice obligations unresolved']];
+  for(const [locale,folder,declaredLicense,gate] of checks){
+   const bytes=renderOnlyCandidates.get(folder);assert(bytes,folder+' pinned source available');
+   const inspection=spawnSync(python,['-c',coverageScript,locale],{input:bytes,maxBuffer:2*1024*1024,timeout:15000});
+   assert.ifError(inspection.error);assert.equal(inspection.status,0,inspection.stderr?.toString());
+   const info=JSON.parse(inspection.stdout.toString()),supported=new Set(info.cmap);
+   const wanted=cp=>locale==='zh-CN'?(cp>=0x3400&&cp<=0x4dbf||cp>=0x4e00&&cp<=0x9fff||cp>=0xf900&&cp<=0xfaff||cp>=0x20000&&cp<=0x323af):(cp>=0x1000&&cp<=0x109f||cp>=0xaa60&&cp<=0xaa7f||cp>=0xa9e0&&cp<=0xa9ff);
+   const ui=[...new Set([...app].map(c=>c.codePointAt(0)).filter(wanted))].sort((a,b)=>a-b);
+   assert(ui.length>0,locale+' actual static UI character set');
+   const missing=ui.filter(cp=>!supported.has(cp));
+   assert.equal(ui.filter(cp=>supported.has(cp)).length+missing.length,ui.length);
+   delete info.cmap;
+   console.log('FONT-OUTSTANDING-COVERAGE '+JSON.stringify({folder,locale,declaredLicense,gate,staticUiCount:ui.length,missingCount:missing.length,missingCodepoints:missing,...info}));
+  }
+  console.log('PASS: remaining four candidate static UI coverage diagnostics recorded (gaps are reported, not treated as complete coverage or distribution approval)');
+ }
  const compressionScript=`
 import io, sys
 from fontTools.ttLib import TTFont
