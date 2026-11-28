@@ -26104,13 +26104,14 @@ window.MMHBalanceBridgeV202=Object.freeze({current,kind,movements});
       if(date.slice(0,7)!==key)continue;
       const side=String(x.side||x.trade_type||'BUY').toUpperCase();
       if(side==='SELL')continue;
-      if(side!=='BUY'||!['Crypto','Gold'].includes(x.asset)||![x.amount,x.fee,x.other_cost].every(v=>finite(v)&&Number(v)>=0)||!finite(x.quantity)||Number(x.quantity)<=0)return null;
+      const quantity=x.asset==='Gold'&&finite(x.weight_kyattha)&&Number(x.weight_kyattha)!==0?x.weight_kyattha:x.quantity;
+      if(side!=='BUY'||!['Crypto','Gold'].includes(x.asset)||![x.amount,x.fee,x.other_cost].every(v=>finite(v)&&Number(v)>=0)||!finite(quantity)||Number(quantity)<=0)return null;
       const expected=x.asset==='Gold'?'MMK':'USD';
       if(x.currency&&String(x.currency).toUpperCase()!==expected)return null;
       const cost=Number(x.amount)+Number(x.fee)+Number(x.other_cost);
       if(x.asset==='Gold'&&cost!==0){
         const legacy=Number((typeof rates!=='undefined'?rates:window.rates)?.usd_mmk),effective=displayRateReportV265('MMK');
-        if(!Number.isFinite(legacy)||legacy<=0||effective===null||Math.abs(legacy-effective)>Math.max(1,legacy)*1e-9)return null;
+        if(!Number.isFinite(legacy)||legacy<=0||!Number.isFinite(effective)||effective<=0||Math.abs(legacy-effective)>Math.max(1,legacy)*1e-9)return null;
         monthly+=cost/legacy;
       }else monthly+=cost;
       if(!Number.isFinite(monthly))return null;
