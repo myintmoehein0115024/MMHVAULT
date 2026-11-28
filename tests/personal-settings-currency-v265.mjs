@@ -858,3 +858,34 @@ console.log('PASS: 53-code shared display registry, additional FX, missing rates
  }
  console.log('PASS: Settings Myanmar subtitles and illustrated installation steps, 18 device/locale combinations (mock DOM)');
 }
+
+{
+ const code=app.match(/<script id="mmhvault-settings-control-feedback-v4">([\s\S]*?)<\/script>/)[1];
+ function fixture(ua='Android Chrome',referrer='',initial='my'){
+  let lang=initial;const events={};
+  function elem(tag){return {tag,children:[],append(...n){this.children.push(...n)},replaceChildren(){this.children=[]},setAttribute(){},scrollIntoView(){},remove(){this.removed=true},hidden:false,textContent:''}}
+  const host=elem('section');
+  const doc={readyState:'complete',referrer,createElement:elem,getElementById:id=>id==='stPage_icon'?host:null};
+  const win={addEventListener:(n,fn)=>events[n]=fn};
+  new Function('window','document','navigator','localStorage','matchMedia',code)(win,doc,{userAgent:ua},{getItem:()=>lang},()=>({matches:false}));
+  const [button,status,guide]=host.children;
+  return {events,button,status,guide,locale(v){lang=v;events['mmhvault-language-change']()},prompt(p){events.beforeinstallprompt({preventDefault(){},...p});button.onclick();return guide.children.find(x=>x.tag==='button')}};
+ }
+ for(const [initial,label] of [['en','Add to Home Screen'],['zh','添加到主屏幕'],['my','ပင်မမျက်နှာပြင်သို့ ထည့်ပါ']]){
+  const q=fixture('Android Chrome','',initial);assert.equal(q.button.textContent,label);
+  const first=q.status.textContent;q.locale('en');q.locale(initial);assert.equal(q.status.textContent,first);
+ }
+ for(const [outcome,english] of [['accepted','Installation accepted.'],['dismissed','Installation cancelled. You can still follow the steps above.'],['error','Follow the manual steps above to add the app.'],['race','MMHVAULT has been installed.']]){
+  const q=fixture();
+  const p=q.prompt({prompt:async()=>{if(outcome==='error')throw Error('mock');if(outcome==='race')q.events.appinstalled()},userChoice:Promise.resolve({outcome:outcome==='dismissed'?'dismissed':'accepted'})});
+  assert.equal(p.textContent,'ယခု ထည့်သွင်းပါ');await p.onclick();
+  assert.match(q.status.textContent,/[\u1000-\u109f]/);
+  q.locale('en');assert.equal(q.status.textContent,english);
+  q.locale('zh');assert.match(q.status.textContent,/[\u4e00-\u9fff]/);
+ }
+ const custom=fixture('Android Chrome','android-app://example');
+ assert.match(custom.status.textContent,/[\u1000-\u109f]/);
+ custom.locale('en');assert.match(custom.status.textContent,/^Android in-app/);
+ assert.equal(custom.prompt({prompt:async()=>{},userChoice:Promise.resolve({outcome:'accepted'})}),undefined);
+ console.log('PASS: installation status and buttons EN/ZH/MY, language refresh, prompt outcomes, appinstalled race and Custom Tab (mock DOM)');
+}
