@@ -45,3 +45,44 @@ html body.mmh-workspace-active #settings.page.active #stSettingsHomeV3 .st-home-
 @media(max-width:600px){
  html body.mmh-workspace-active #settings.page.active #stSettingsHomeV3 .st-home-menu>.st-template-group:last-child{grid-template-columns:minmax(0,1fr)!important}
 }
+
+/* Personal V2.0.65 — birthday card within Edit profile, independent of the legacy theme. */
+html body.mmh-workspace-active #settings #stPage_profile #mmhBirthdaySettingsV34215{
+ --bd-panel:#1c2531;--bd-inset:#222e3b;--bd-line:#354353;--bd-ink:#e8edf4;--bd-dim:#aab8c8;--bd-accent:#e7bc69;
+ margin-top:12px!important;padding:16px!important;min-width:0!important;box-sizing:border-box!important;
+ background:var(--bd-panel)!important;border:1px solid var(--bd-line)!important;border-radius:14px!important;
+ color:var(--bd-ink)!important;box-shadow:none!important;transform:none!important;transition:none!important;color-scheme:dark;
+}
+html body.mmh-workspace-active.light #settings #stPage_profile #mmhBirthdaySettingsV34215{
+ --bd-panel:#fff;--bd-inset:#f6f8fb;--bd-line:#dbe3ec;--bd-ink:#243347;--bd-dim:#59697c;--bd-accent:#825a13;color-scheme:light;
+}
+html body.mmh-workspace-active #settings #stPage_profile #mmhBirthdaySettingsV34215 .toolbar{
+ display:flex!important;align-items:flex-start!important;justify-content:space-between!important;flex-wrap:wrap!important;gap:8px!important;background:none!important;border-color:var(--bd-line)!important;
+}
+html body.mmh-workspace-active #settings #stPage_profile #mmhBirthdaySettingsV34215 .toolbar>div{min-width:0;flex:1 1 180px}
+html body.mmh-workspace-active #settings #stPage_profile #mmhBirthdaySettingsV34215 :is(h2,.mmh-birthday-preview-v34216 b){color:var(--bd-ink)!important;overflow-wrap:anywhere}
+html body.mmh-workspace-active #settings #stPage_profile #mmhBirthdaySettingsV34215 :is(.small,.mmh-birthday-field-v34216,.mmh-birthday-preview-v34216 .k,#mmhBirthdayLocalNoteV265){
+ color:var(--bd-dim)!important;white-space:normal!important;overflow-wrap:anywhere;line-height:1.5;
+}
+html body.mmh-workspace-active #settings #stPage_profile #mmhBirthdaySettingsV34215 .pill{background:var(--bd-inset)!important;border-color:var(--bd-line)!important;color:var(--bd-dim)!important;white-space:normal!important}
+html body.mmh-workspace-active #settings #stPage_profile #mmhBirthdaySettingsV34215 .mmh-birthday-grid-v34216{grid-template-columns:minmax(0,1fr) minmax(0,1.5fr)!important;gap:12px!important}
+html body.mmh-workspace-active #settings #stPage_profile #mmhBirthdaySettingsV34215 .mmh-birthday-field-v34216{min-width:0!important;max-width:100%;margin:0!important}
+html body.mmh-workspace-active #settings #stPage_profile #mmhBirthdaySettingsV34215 #mmhBirthDateInputV34215{
+ width:100%!important;min-width:0!important;max-width:100%!important;min-height:46px!important;box-sizing:border-box!important;
+ background:var(--bd-inset)!important;border:1px solid var(--bd-line)!important;color:var(--bd-ink)!important;box-shadow:none!important;font-size:16px!important;
+}
+html body.mmh-workspace-active #settings #stPage_profile #mmhBirthdaySettingsV34215 #mmhBirthDateInputV34215:focus-visible{outline:2px solid var(--bd-accent)!important;outline-offset:2px!important}
+html body.mmh-workspace-active #settings #stPage_profile #mmhBirthdaySettingsV34215 .mmh-birthday-preview-v34216{min-width:0;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+html body.mmh-workspace-active #settings #stPage_profile #mmhBirthdaySettingsV34215 .mmh-birthday-preview-v34216>div{
+ background:var(--bd-inset)!important;border:1px solid var(--bd-line)!important;padding:10px!important;box-shadow:none!important;min-width:0;box-sizing:border-box;
+}
+html body.mmh-workspace-active #settings #stPage_profile #mmhBirthdaySettingsV34215 .mmh-birthday-preview-v34216 b{font-size:14px!important;line-height:1.45;white-space:normal!important;overflow:visible!important;text-overflow:clip!important}
+html body.mmh-workspace-active #settings #stPage_profile #mmhBirthdaySettingsV34215 .mmh-birthday-countdown-v34216 b{color:var(--bd-accent)!important}
+html body.mmh-workspace-active #settings #stPage_profile #mmhBirthdaySettingsV34215 #mmhBirthdayLocalNoteV265{font-size:11px;font-weight:400}
+@media(max-width:900px){
+ html body.mmh-workspace-active #settings #stPage_profile #mmhBirthdaySettingsV34215 .mmh-birthday-grid-v34216{grid-template-columns:minmax(0,1fr)!important}
+}
+@media(max-width:480px){
+ html body.mmh-workspace-active #settings #stPage_profile #mmhBirthdaySettingsV34215{padding:12px!important}
+ html body.mmh-workspace-active #settings #stPage_profile #mmhBirthdaySettingsV34215 .mmh-birthday-preview-v34216{grid-template-columns:minmax(0,1fr)}
+}
