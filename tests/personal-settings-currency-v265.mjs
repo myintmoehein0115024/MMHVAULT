@@ -941,7 +941,7 @@ console.log('PASS: 53-code shared display registry, additional FX, missing rates
   'landing-assets/landing-browser-check.cjs':'12a1200c4891bb060f2fee6337c76c415884aa86',
   'landing-assets/landing-webkit-check.cjs':'1af0ce4402e673bb7edb605d41552af098fe9d19',
   'landing-assets/landing-release-check.cjs':'f8b6af9a4adfb882a126a1f5599f07ede9dfd856',
-  '.github/workflows/landing-release-check.yml':'4599e0557678435cd9121a1e8b19f33290bbef02',
+  '.github/workflows/landing-release-check.yml':'75b3a4613ec3b894b79d1bbc961d5ab34399b3a8',
   'landing-assets/personal-v271-release-scope.cjs':'554baaa11e0a429a4a6c6f1d2bf3e4c88731de19',
   'landing-assets/personal-v271-public-browser.cjs':'b57f9b1e5f0afcb6d0f78f9bf2bd3e23820d63fa'
  };
