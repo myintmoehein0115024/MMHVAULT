@@ -400,6 +400,8 @@ sys.stdout.buffer.write(data)
    if(folder==='notosanssc')assert.equal(bundle.sourceCount,30890);
    assert.equal(bundle.missing_ui_han_count,bundle.missing_ui_han.length);
    assert.equal(bundle.source_uvs_count,bundle.preserved_uvs_count+bundle.missing_uvs_count);
+   assert.equal(bundle.missing_uvs_count,0,folder+' all source variation mappings retained');
+   if(folder==='notosanssc'||folder==='notoserifsc')assert.equal(bundle.source_uvs_count,25,folder+' pinned source variation count');
    for(const n of [bundle.source_uvs_count,bundle.preserved_uvs_count,bundle.missing_uvs_count,bundle.missing_ui_han_count])assert(Number.isSafeInteger(n)&&n>=0);
    assert(bundle.groups.length>1&&bundle.groups[0].codes.length>0);
    partitionCss=readFileSync(join(output,'font.css'),'utf8');
