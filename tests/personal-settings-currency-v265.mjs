@@ -504,3 +504,21 @@ console.log('PASS: 53-code shared display registry, additional FX, missing rates
  assert(app.includes("return window.mmhLegacyReportDisplayV265?.(usd,code)||'—';"));
  console.log('PASS: legacy Report display preference, effective FX, unavailable goal/source amounts and signal formatting');
 }
+
+{
+ const annual=readFileSync(new URL('../js/mmhvault-report-period-v201.js',import.meta.url),'utf8');
+ new Function(annual);
+ const start=annual.indexOf('  const F='),end=annual.indexOf('  const amountUSD=',start);
+ assert(start>=0&&end>start);
+ let uid='annual-a',code='JPY';
+ const win={mmhLegacyReportDisplayV265:(v,c)=>c==='JPY'?'JPY '+v*150:'—'};
+ const F=new Function('owner','currency','window',annual.slice(start,end)+';return F;')(()=>uid,()=>code,win);
+ assert.equal(F(2),'JPY 300');assert.equal(F(0),'JPY 0');assert.equal(F(null),'—');assert.equal(F(Infinity),'—');
+ code='KPW';assert.equal(F(2),'—');uid='';code='JPY';assert.equal(F(2),'—');
+ uid='annual-b';delete win.mmhLegacyReportDisplayV265;assert.equal(F(2),'—');
+ assert(annual.includes('rateText=F(0)'));assert(annual.includes('rate=fx(c)'));
+ assert(annual.includes("'mmhvault:personal-display-currency-changed','mmhvault:exchange-reference-updated'"));
+ assert(annual.includes("reportCurrencyV115')?.addEventListener('change',rerender)"));
+ assert(app.includes('js/mmhvault-report-period-v201.js?v=2.0.65.1'));
+ console.log('PASS: annual legacy Report shared display FX, unavailable values, refresh and unchanged budget source rate');
+}
