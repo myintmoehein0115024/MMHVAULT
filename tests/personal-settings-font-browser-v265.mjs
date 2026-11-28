@@ -1,6 +1,7 @@
 import {readFileSync} from 'node:fs';
 import assert from 'node:assert/strict';
 import {createHash} from 'node:crypto';
+import {spawnSync} from 'node:child_process';
 import {chromium} from 'playwright';
 const app=readFileSync(new URL('../app.html',import.meta.url),'utf8');
 const extract=(start,end)=>{const a=app.indexOf(start),b=app.indexOf(end,a);assert(a>=0&&b>a,start);return app.slice(a,b)};
@@ -86,6 +87,33 @@ try{
  ];
  const samples={'zh-CN':'账户余额与储蓄交易投资设置财务目标汇率预算收入支出','my':'လက်ကျန်ငွေနှင့်စုဆောင်းငွေမြန်မာဘာသာ၀၁၂၃၄၅၆၇၈၉'};
  const results={};
+ const python=process.env.MMH_FONTQA_PYTHON;
+ if(process.env.CI)assert(python,'CI must provide isolated font compression interpreter');
+ const compressionScript=`
+import io, sys
+from fontTools.ttLib import TTFont
+from fontTools import subset
+font=TTFont(io.BytesIO(sys.stdin.buffer.read()))
+sample=sys.argv[2]
+before=set(font.getBestCmap())
+assert set(map(ord,sample)) <= before, "source sample coverage"
+if sys.argv[1]=="zh-CN":
+    options=subset.Options()
+    options.layout_features=["*"]
+    sub=subset.Subsetter(options=options)
+    sub.populate(text=sample)
+    sub.subset(font)
+font.flavor="woff2"
+output=io.BytesIO()
+font.save(output)
+data=output.getvalue()
+check=TTFont(io.BytesIO(data))
+after=set(check.getBestCmap())
+assert set(map(ord,sample)) <= after, "compressed sample coverage"
+if sys.argv[1]=="my":
+    assert before==after, "full Myanmar cmap preservation"
+sys.stdout.buffer.write(data)
+`;
  for(const [locale,folder,file,expected] of candidates){
   const licenseHashes={"notosanssc":"1c9f43281b8f216c5461fe9ac729afbade7724e4","notoserifsc":"94d1bf7b52481343e2983fb7751e8b7abe1ea07b","zcoolqingkehuangyou":"bd3df5cf6f237a4afaea70106f8243da07cd8cd8","notosansmyanmar":"c94c47416f38b8ddec9f3fbc9e0241998d7823dc","notoserifmyanmar":"94d1bf7b52481343e2983fb7751e8b7abe1ea07b","padauk":"57410e8e9eb58b0cce938440696cf36e2daf8fcf"};
   const licenseResponse=await fetch('https://raw.githubusercontent.com/google/fonts/'+revision+'/ofl/'+folder+'/OFL.txt',{redirect:'error',signal:AbortSignal.timeout(30000)});
@@ -101,9 +129,23 @@ try{
   assert(bytes.length>0&&bytes.length<=40*1024*1024,folder+' asset size bounds');
   const actual=createHash('sha1').update('blob '+bytes.length+'\0').update(bytes).digest('hex');
   assert.equal(actual,expected,folder+' exact Git blob hash');
+  let compressed=null;
+  if(python){
+   const conversion=spawnSync(python,['-c',compressionScript,locale,samples[locale]],{input:bytes,maxBuffer:50*1024*1024,timeout:120000});
+   assert.ifError(conversion.error);
+   assert.equal(conversion.status,0,folder+' compression: '+conversion.stderr?.toString().slice(-2000));
+   compressed=conversion.stdout;
+   assert(compressed.length>0&&compressed.length<bytes.length,folder+' compressed size');
+   assert.equal(compressed.subarray(0,4).toString(),'wOF2',folder+' WOFF2 signature');
+  }
   const fixture=await browser.newContext({viewport:{width:768,height:400}});
   try{
-   await fixture.route('**/*',route=>route.request().url()==='https://font-fixture.invalid/candidate.ttf'?route.fulfill({status:200,contentType:'font/ttf',headers:{'Access-Control-Allow-Origin':'*'},body:bytes}):route.abort());
+   await fixture.route('**/*',route=>{
+    const url=route.request().url(),headers={'Access-Control-Allow-Origin':'*'};
+    if(url==='https://font-fixture.invalid/candidate.ttf')return route.fulfill({status:200,contentType:'font/ttf',headers,body:bytes});
+    if(compressed&&url==='https://font-fixture.invalid/candidate.woff2')return route.fulfill({status:200,contentType:'font/woff2',headers,body:compressed});
+    return route.abort();
+   });
    const p=await fixture.newPage();
    await p.setContent('<html><body><div id="glyphs" style="font-size:32px;font-weight:400;line-height:1.6;color:black;background:white"></div></body></html>');
    await p.locator('#glyphs').evaluate((el,s)=>{el.textContent=s},samples[locale]);
@@ -119,7 +161,22 @@ try{
     assert(rendered.length>0&&rendered.every(x=>x.isCustomFont),folder+' sample rendered without platform fallback: '+JSON.stringify(rendered));
     const image=await p.locator('#glyphs').screenshot({animations:'disabled'});
     const pixels=createHash('sha256').update(image).digest('hex');
-    (results[locale]??=[]).push({folder,bytes:bytes.length,pixels,fonts:rendered.map(x=>({family:x.familyName,postScript:x.postScriptName,glyphs:x.glyphCount}))});
+    let compression=null;
+    if(compressed){
+     const measure=()=>p.locator('#glyphs').evaluate(el=>{const r=document.createRange();r.selectNodeContents(el);const b=r.getBoundingClientRect();return {width:b.width,height:b.height}});
+     const originalBounds=await measure();
+     await p.addStyleTag({content:'@font-face{font-family:CandidateCompressed;src:url(https://font-fixture.invalid/candidate.woff2) format("woff2");font-display:block}#glyphs{font-family:CandidateCompressed,sans-serif}'});
+     await p.evaluate(async()=>{const loaded=await document.fonts.load('32px CandidateCompressed',document.querySelector('#glyphs').textContent);if(!loaded.length)throw Error('compressed candidate not loaded');await document.fonts.ready;document.querySelector('#glyphs').getBoundingClientRect()});
+     const {fonts:compressedFonts}=await session.send('CSS.getPlatformFontsForNode',{nodeId});
+     const used=compressedFonts.filter(x=>x.glyphCount>0);
+     assert(used.length>0&&used.every(x=>x.isCustomFont),folder+' compressed sample rendered without fallback');
+     assert.equal(used.reduce((n,x)=>n+x.glyphCount,0),rendered.reduce((n,x)=>n+x.glyphCount,0),folder+' compressed glyph count');
+     const bounds=await measure();
+     assert(Math.abs(bounds.width-originalBounds.width)<=1&&Math.abs(bounds.height-originalBounds.height)<=1,folder+' compressed text geometry');
+     const compressedPixels=createHash('sha256').update(await p.locator('#glyphs').screenshot({animations:'disabled'})).digest('hex');
+     compression={kind:locale==='zh-CN'?'sample-only subset':'full font',bytes:compressed.length,pixelEqual:compressedPixels===pixels};
+    }
+    (results[locale]??=[]).push({folder,bytes:bytes.length,pixels,compression,fonts:rendered.map(x=>({family:x.familyName,postScript:x.postScriptName,glyphs:x.glyphCount}))});
    }finally{await session.detach()}
   }finally{await fixture.close()}
  }
@@ -128,4 +185,5 @@ try{
   console.log('FONT-CANDIDATE '+JSON.stringify({locale,fonts}));
  }
  console.log('PASS: six pinned OFL candidate assets rendered isolated sample text without platform fallback; three distinct sample images per language (not full coverage or application integration)');
+ if(python)console.log('PASS: six WOFF2 candidates rendered sample without fallback and preserved glyph count and geometry (Chinese sample subset only; Myanmar full cmap preserved; no assets distributed)');
 }finally{await browser.close()}
