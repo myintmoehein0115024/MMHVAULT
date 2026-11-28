@@ -198,7 +198,7 @@ try{
   await installContext.addInitScript(()=>{Object.defineProperty(document,'referrer',{get:()=> 'android-app://synthetic.fixture'});const original=window.matchMedia.bind(window);window.matchMedia=q=>q==='(display-mode: standalone)'?{matches:!!window.syntheticStandalone}:original(q)});
   const p=await installContext.newPage(),errors=[];p.on('pageerror',e=>errors.push(e.message));await p.goto(origin);
   assert.equal(await p.evaluate(()=>document.characterSet),'UTF-8');
-  const styleIds=['mmhvault-settings-working-controls-v4','mmhvault-personal-install-illustrations-v265','mmhvault-install-guide-v5-css'];
+  const styleIds=['mmhvault-settings-working-controls-v4','mmhvault-personal-install-illustrations-v265','mmhvault-install-guide-v5-css','mmhvault-install-guide-layout-v6'];
   const guideCss=styleIds.map(id=>{const tag='<style id="'+id+'">';return extract(tag,'</style>').slice(tag.length)}).join('\n');
   const codeTag='<script id="mmhvault-settings-control-feedback-v4">';
   const guideCode=extract(codeTag,'</script>').slice(codeTag.length);
@@ -226,7 +226,7 @@ try{
     }));
     assert(result.length>=3&&result.every(x=>x.text&&x.svg&&x.hidden==='true'),JSON.stringify({l,device,result}));
     if(l==='my')assert(result.every(x=>/[\u1000-\u109f]/.test(x.text)));
-    assert.equal(await guide.locator('button').count(),0,'Custom Tab cannot show native install action');
+    assert.equal(await guide.locator('button:not(#stInstallCloseV265)').count(),0,'Custom Tab cannot show native install action');
    }
   }
   let cases=0;

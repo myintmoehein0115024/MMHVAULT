@@ -26,9 +26,22 @@ try{
  await page.addScriptTag({content:script});
  const guide=page.locator('#stInstallGuideV5'),button=page.locator('#stInstallAppV4');
  const picker=page.locator('#stInstallDeviceV5');
+ const close=page.locator('#stInstallCloseV265'),host=page.locator('#stPage_icon');
  assert.equal(await guide.isVisible(),false);
+ const hostBefore=await host.boundingBox();
  await button.click();
  assert.equal(await guide.isVisible(),true);
+ assert.equal(await guide.evaluate(el=>el.matches(':modal')),true);
+ assert.equal(await button.getAttribute('aria-expanded'),'true');
+ assert.equal(await close.evaluate(el=>el===document.activeElement),true);
+ assert.deepEqual(await host.boundingBox(),hostBefore,'opening modal must not reflow Settings');
+ await page.keyboard.press('Escape');
+ await guide.waitFor({state:'hidden'});
+ await page.waitForFunction(()=>document.getElementById('stInstallAppV4').getAttribute('aria-expanded')==='false');
+ assert.equal(await button.evaluate(el=>el===document.activeElement),true);
+ await button.click();await close.click();await guide.waitFor({state:'hidden'});
+ await button.click();await page.mouse.click(2,2);await guide.waitFor({state:'hidden'});
+ await button.click();
  const cases=[['ios',4],['ios-other',5],['android-chrome',4],['android-firefox',4],['android-other',5],['desktop',3]];
  const locale=async lang=>page.evaluate(lang=>{localStorage.setItem('mmhvault_language_v3363',lang);document.documentElement.lang=lang;dispatchEvent(new Event('mmhvault-language-change'))},lang);
  let count=0;
@@ -50,7 +63,7 @@ try{
      for(const copy of await guide.locator('.st-install-step-copy-v265>span:last-child').allTextContents())assert.match(copy,pattern);
      const geometry=await guide.evaluate(el=>{
       const r=el.getBoundingClientRect();
-      return {width:r.width,inside:r.left>=-1&&r.right<=innerWidth+1,overflow:el.scrollWidth-el.clientWidth,background:getComputedStyle(el).backgroundColor,illustrations:[...el.querySelectorAll('svg')].every(svg=>{const b=svg.getBoundingClientRect();return b.width>0&&b.height>0&&b.left>=r.left-1&&b.right<=r.right+1})};
+      return {width:r.width,inside:r.left>=-1&&r.right<=innerWidth+1&&r.top>=-1&&r.bottom<=innerHeight+1,overflow:el.scrollWidth-el.clientWidth,background:getComputedStyle(el).backgroundColor,illustrations:[...el.querySelectorAll('svg')].every(svg=>{const b=svg.getBoundingClientRect();return b.width>0&&b.height>0&&b.left>=r.left-1&&b.right<=r.right+1})};
      });
      assert(geometry.width>0&&geometry.inside&&geometry.overflow<=1&&geometry.illustrations,JSON.stringify({width,light,lang,device,geometry}));
      assert.equal(geometry.background,light?'rgb(237, 244, 249)':'rgb(16, 30, 44)');
@@ -63,12 +76,19 @@ try{
  await locale('zh');assert.equal(await picker.inputValue(),'ios-other');
  await locale('my');assert.equal(await picker.inputValue(),'ios-other');
  // Simulated browser prompt events: exercise actual DOM handler, not OS installation.
- await page.evaluate(()=>{const e=new Event('beforeinstallprompt',{cancelable:true});e.prompt=async()=>{};e.userChoice=Promise.resolve({outcome:'dismissed'});dispatchEvent(e)});
- await button.click();
- await guide.getByRole('button').click();
- await page.waitForFunction(()=>!document.querySelector('#stInstallGuideV5 button'));
+ await close.click();await guide.waitFor({state:'hidden'});
+ await page.evaluate(()=>{const e=new Event('beforeinstallprompt',{cancelable:true});e.prompt=async()=>{window.promptCount=(window.promptCount||0)+1;window.wasModal=document.querySelector('#stInstallGuideV5').open};e.userChoice=Promise.resolve({outcome:'dismissed'});dispatchEvent(e)});
+ await button.click();await guide.waitFor({state:'visible'});
+ assert.deepEqual(await page.evaluate(()=>[window.promptCount,window.wasModal]),[1,false],'native prompt takes priority');
  await locale('en');
- assert.equal(await page.locator('#stInstallStatusV4').textContent(),'Installation cancelled. You can still follow the steps above.');
+ assert.equal(await page.locator('#stInstallStatusV4').textContent(),'Installation cancelled. You can still follow the manual guide.');
+ await close.click();await guide.waitFor({state:'hidden'});
+ await page.evaluate(()=>{const e=new Event('beforeinstallprompt',{cancelable:true});e.prompt=async()=>{window.promptCount++};e.userChoice=Promise.resolve({outcome:'accepted'});dispatchEvent(e)});
+ await button.click();await page.waitForFunction(()=>document.getElementById('stInstallStatusV4').textContent==='Installation accepted.');
+ assert.equal(await guide.isVisible(),false);
+ await button.click();await guide.waitFor({state:'visible'});
+ await page.evaluate(()=>dispatchEvent(new Event('mmhvault:config-owner-changed')));
+ await guide.waitFor({state:'hidden'});
  await page.evaluate(()=>dispatchEvent(new Event('appinstalled')));
  assert.equal(await page.locator('#stInstallStatusV4').textContent(),'MMHVAULT has been installed.');
  await locale('zh');assert.match(await page.locator('#stInstallStatusV4').textContent(),/已安装/);

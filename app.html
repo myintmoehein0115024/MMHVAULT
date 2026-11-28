@@ -30168,7 +30168,7 @@ html body.st-overview-compact #dashboard :is(.panel,#dashboardCommandCenterV3421
   const host=document.getElementById('stPage_icon');if(!host)return;
   const button=document.createElement('button');button.id='stInstallAppV4';button.type='button';button.className='btn primary';
   const status=document.createElement('p');status.id='stInstallStatusV4';status.className='st-function-status';status.setAttribute('role','status');
-  const guide=document.createElement('section');guide.id='stInstallGuideV5';guide.hidden=true;guide.setAttribute('aria-live','polite');
+  const guide=document.createElement('dialog');guide.id='stInstallGuideV5';guide.hidden=true;guide.setAttribute('aria-labelledby','stInstallTitleV265');button.setAttribute('aria-haspopup','dialog');button.setAttribute('aria-controls',guide.id);button.setAttribute('aria-expanded','false');
   const locale=()=>{try{return localStorage.getItem('mmhvault_language_v3363')||'en'}catch(_){return 'en'}};
   const T=(en,zh,my)=>locale()==='zh'?zh:locale()==='my'?(my||en):en;
   let selectedDevice=null,installStatus=androidCustomTab()?'customTab':'preview';
@@ -30176,8 +30176,8 @@ html body.st-overview-compact #dashboard :is(.panel,#dashboardCommandCenterV3421
    preview:['This preview is the app’s installation icon. The icon of an installed app is controlled by your browser.','此处预览应用安装图标。已安装应用的图标由浏览器控制。','ဤသည်မှာ အက်ပ်ထည့်သွင်းရန် အိုင်ကွန်နမူနာ ဖြစ်ပါသည်။ ထည့်သွင်းပြီးသော အက်ပ်၏ အိုင်ကွန်ကို ဘရောက်ဇာက ထိန်းချုပ်ပါသည်။'],
    customTab:['Android in-app browser / Custom Tab detected. Open this page in your full browser app before installing MMHVAULT.','检测到 Android 应用内浏览器或自定义标签页。安装 MMHVAULT 前，请在完整浏览器应用中打开此页。','Android အက်ပ်တွင်း ဘရောက်ဇာ သို့မဟုတ် Custom Tab ကို တွေ့ရှိပါသည်။ MMHVAULT မထည့်သွင်းမီ ဘရောက်ဇာအက်ပ်တွင် ဤစာမျက်နှာကို ဖွင့်ပါ။'],
    accepted:['Installation accepted.','已确认安装。','ထည့်သွင်းရန် အတည်ပြုပြီးပါပြီ။'],
-   cancelled:['Installation cancelled. You can still follow the steps above.','已取消安装，仍可按上方步骤操作。','ထည့်သွင်းမှုကို ပယ်ဖျက်လိုက်ပါသည်။ အထက်ပါအဆင့်များအတိုင်း ဆက်လုပ်နိုင်ပါသည်။'],
-   manual:['Follow the manual steps above to add the app.','请按上方步骤手动添加。','အက်ပ်ထည့်ရန် အထက်ပါအဆင့်များအတိုင်း လုပ်ဆောင်ပါ။'],
+   cancelled:['Installation cancelled. You can still follow the manual guide.','已取消安装，仍可查看手动安装引导。','ထည့်သွင်းမှုကို ပယ်ဖျက်လိုက်ပါသည်။ လက်စွဲလမ်းညွှန်အတိုင်း ဆက်လုပ်နိုင်ပါသည်။'],
+   manual:['Follow the manual guide to add the app.','请按手动安装引导添加。','အက်ပ်ထည့်ရန် လက်စွဲလမ်းညွှန်အတိုင်း လုပ်ဆောင်ပါ။'],
    installed:['MMHVAULT has been installed.','MMHVAULT 已安装。','MMHVAULT ကို ထည့်သွင်းပြီးပါပြီ။']
   };
   function refreshInstallCopy(){button.textContent=T('Add to Home Screen','添加到主屏幕','ပင်မမျက်နှာပြင်သို့ ထည့်ပါ');status.textContent=T(...installCopy[installStatus])}
@@ -30201,8 +30201,8 @@ html body.st-overview-compact #dashboard :is(.panel,#dashboardCommandCenterV3421
   function androidCustomTab(){try{return /Android/i.test(navigator.userAgent)&&/^android-app:\/\//i.test(document.referrer||'')}catch(_){return false}}
   function detected(){const ua=navigator.userAgent;if(/iPhone|iPad|iPod/.test(ua)||(/Macintosh/.test(ua)&&navigator.maxTouchPoints>1))return /CriOS|FxiOS|EdgiOS/.test(ua)?'ios-other':'ios';if(/Android/.test(ua))return /Firefox/.test(ua)?'android-firefox':/Chrome/.test(ua)&&!/SamsungBrowser|EdgA/.test(ua)?'android-chrome':'android-other';return 'desktop'}
   function drawGuide(device=detected()){
-   const restorePickerFocus=document.activeElement?.id==='stInstallDeviceV5';selectedDevice=device;guide.hidden=false;guide.replaceChildren();
-   const title=document.createElement('h3');title.textContent=T('Add MMHVAULT to your home screen','将 MMHVAULT 添加到主屏幕','MMHVAULT ကို ပင်မမျက်နှာပြင်တွင် ထည့်ပါ');guide.append(title);
+   const restorePickerFocus=document.activeElement?.id==='stInstallDeviceV5',restoreCloseFocus=document.activeElement?.id==='stInstallCloseV265';selectedDevice=device;guide.replaceChildren();
+   const header=document.createElement('div');header.className='st-install-modal-head-v265';const title=document.createElement('h3');title.id='stInstallTitleV265';title.textContent=T('Add MMHVAULT to your home screen','将 MMHVAULT 添加到主屏幕','MMHVAULT ကို ပင်မမျက်နှာပြင်တွင် ထည့်ပါ');const close=document.createElement('button');close.id='stInstallCloseV265';close.type='button';close.textContent='×';close.setAttribute('aria-label',T('Close','关闭','ပိတ်ရန်'));close.onclick=()=>guide.close();header.append(title,close);guide.append(header);if(restoreCloseFocus)close.focus({preventScroll:true});
    const label=document.createElement('label');label.textContent=T('Your device & browser','您的设备与浏览器','သင့်စက်နှင့် ဘရောက်ဇာ');const picker=document.createElement('select');picker.id='stInstallDeviceV5';
    for(const [v,en,zh,my] of [['ios','iPhone / iPad · Safari','iPhone / iPad · Safari'],['ios-other','iPhone / iPad · Other browser','iPhone / iPad · 其他浏览器','iPhone / iPad · အခြားဘရောက်ဇာ'],['android-chrome','Android · Chrome','Android · Chrome'],['android-firefox','Android · Firefox','Android · Firefox'],['android-other','Android · Other browser','Android · 其他浏览器','Android · အခြားဘရောက်ဇာ'],['desktop','Computer','电脑','ကွန်ပျူတာ']]){const o=document.createElement('option');o.value=v;o.textContent=T(en,zh,my);picker.append(o)}picker.value=device;picker.onchange=()=>drawGuide(picker.value);label.append(picker);guide.append(label);if(restorePickerFocus)picker.focus({preventScroll:true});
    if(matchMedia('(display-mode: standalone)').matches||navigator.standalone){const done=document.createElement('p');done.textContent=T('You are already using MMHVAULT from the installed app.','您当前已通过已安装的 MMHVAULT 应用打开。','ထည့်သွင်းထားသော MMHVAULT အက်ပ်ကို သင် အသုံးပြုနေပါသည်။');guide.append(done);return}
@@ -30228,13 +30228,27 @@ html body.st-overview-compact #dashboard :is(.panel,#dashboardCommandCenterV3421
    }
    const list=document.createElement('ol');for(const [kind,copy] of steps){const item=document.createElement('li');const content=document.createElement('div');content.className='st-install-step-copy-v265';const words=document.createElement('span');words.textContent=copy;content.append(illustration(kind,device==='desktop'),words);item.append(content);list.append(item)}guide.append(list);
    const note=document.createElement('p');note.className='st-install-note';note.textContent=captions();guide.append(note);
-   if(installPrompt&&!androidCustomTab()){const install=document.createElement('button');install.type='button';install.className='btn primary';install.textContent=T('Install now','立即安装','ယခု ထည့်သွင်းပါ');install.onclick=async()=>{if(!installPrompt)return;const prompt=installPrompt;installPrompt=null;install.disabled=true;try{await prompt.prompt();const result=await prompt.userChoice;setInstallStatus(result.outcome==='accepted'?'accepted':'cancelled')}catch(_){setInstallStatus('manual')}finally{install.remove()}};guide.append(install)}
   }
-  button.onclick=()=>{drawGuide(selectedDevice||detected());guide.scrollIntoView({block:'nearest',behavior:'auto'})};
-  ['mmhvault-language-change','languagechange'].forEach(name=>window.addEventListener(name,()=>{refreshInstallCopy();if(!guide.hidden)drawGuide(selectedDevice||detected())}));
-  window.addEventListener('appinstalled',()=>{installPrompt=null;setInstallStatus('installed');if(!guide.hidden)drawGuide(selectedDevice||detected())});
+  function openGuide(){drawGuide(selectedDevice||detected());if(!guide.open){guide.hidden=false;guide.showModal();button.setAttribute('aria-expanded','true');document.getElementById('stInstallCloseV265')?.focus({preventScroll:true})}}
+  guide.addEventListener('close',()=>{if(guide.open)return;guide.hidden=true;button.setAttribute('aria-expanded','false');if(button.isConnected&&button.getClientRects().length)button.focus({preventScroll:true})});
+  let backdropDown=false;
+  const outside=e=>{const r=guide.getBoundingClientRect();return e.clientX<r.left||e.clientX>r.right||e.clientY<r.top||e.clientY>r.bottom};
+  guide.addEventListener('pointerdown',e=>{backdropDown=e.target===guide&&outside(e)});
+  guide.addEventListener('click',e=>{if(backdropDown&&e.target===guide&&outside(e))guide.close();backdropDown=false});
+  let prompting=false;
+  button.onclick=async()=>{
+   if(prompting)return;
+   if(installPrompt&&!androidCustomTab()&&!matchMedia('(display-mode: standalone)').matches&&!navigator.standalone&&installStatus!=='installed'){
+    const prompt=installPrompt;installPrompt=null;prompting=true;
+    try{await prompt.prompt();const result=await prompt.userChoice;setInstallStatus(result.outcome==='accepted'?'accepted':'cancelled');if(result.outcome!=='accepted'&&installStatus!=='installed')openGuide()}
+    catch(_){setInstallStatus('manual');if(installStatus!=='installed')openGuide()}
+    finally{prompting=false}
+   }else openGuide()
+  };
+  ['mmhvault-language-change','languagechange'].forEach(name=>window.addEventListener(name,()=>{refreshInstallCopy();if(guide.open)drawGuide(selectedDevice||detected())}));
+  window.addEventListener('appinstalled',()=>{installPrompt=null;setInstallStatus('installed');if(guide.open)guide.close()});
   host.append(button,status,guide);
-  window.addEventListener('mmhvault:config-owner-changed',()=>{for(const id of ['securityCurrentPasswordV379','securityNewPasswordV379','securityConfirmPasswordV379','mmhProfilePhotoV1']){const input=document.getElementById(id);if(input)input.value=''}for(const id of ['securityPasswordResultV379','mmhProfileResultV1']){const el=document.getElementById(id);if(el)el.textContent=''}window.mmhSettingsRefreshDefaultsV4?.()});
+  window.addEventListener('mmhvault:config-owner-changed',()=>{if(guide.open)guide.close();for(const id of ['securityCurrentPasswordV379','securityNewPasswordV379','securityConfirmPasswordV379','mmhProfilePhotoV1']){const input=document.getElementById(id);if(input)input.value=''}for(const id of ['securityPasswordResultV379','mmhProfileResultV1']){const el=document.getElementById(id);if(el)el.textContent=''}window.mmhSettingsRefreshDefaultsV4?.()});
  }
  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});else init();
 })();
@@ -30629,38 +30643,40 @@ html body.light #stInstallGuideV5 :is(label,.st-install-note){color:#52738c}
 @media(max-width:600px){html body #stInstallGuideV5{padding:14px;max-width:100%}html body #stInstallGuideV5 select{font-size:16px}}
 </style>
 <style id="mmhvault-install-guide-layout-v6">
-html body:not(#mmh-install-layout-a):not(#mmh-install-layout-b) #settings #stPage_icon{max-width:980px!important;margin:0 auto!important;min-width:0!important}
-html body:not(#mmh-install-layout-a):not(#mmh-install-layout-b) #stPage_icon>.st-page-head{margin-bottom:18px!important}
-html body:not(#mmh-install-layout-a):not(#mmh-install-layout-b) #stPage_icon>.panel{padding:20px!important;margin:0!important;border-radius:14px!important;min-width:0!important;box-sizing:border-box!important}
-html body:not(#mmh-install-layout-a):not(#mmh-install-layout-b) #stPage_icon>.panel .toolbar{background:none!important;border:0!important;padding:0!important;margin:0 0 18px!important}
-html body:not(#mmh-install-layout-a):not(#mmh-install-layout-b) #stPage_icon .pwa-row{gap:14px!important;align-items:center!important;margin:0!important;min-width:0!important}
-html body:not(#mmh-install-layout-a):not(#mmh-install-layout-b) #stPage_icon .app-icon-preview{width:60px!important;height:60px!important;min-width:60px!important;object-fit:contain!important;border-radius:14px!important}
-html body:not(#mmh-install-layout-a):not(#mmh-install-layout-b) #stPage_icon .pwa-row>div{min-width:0!important;overflow-wrap:anywhere!important}
-html body:not(#mmh-install-layout-a):not(#mmh-install-layout-b) #stInstallAppV4{min-height:44px!important;padding:11px 16px!important;border-radius:10px!important;margin:14px 0 0!important;font-size:13px!important}
-html body:not(#mmh-install-layout-a):not(#mmh-install-layout-b) #stInstallStatusV4{font-size:12px!important;line-height:1.6!important;margin:10px 0 0!important;overflow-wrap:anywhere!important}
-html body:not(#mmh-install-layout-a):not(#mmh-install-layout-b) #stInstallGuideV5{max-width:none!important;width:100%!important;margin:18px 0 0!important;padding:20px!important;min-width:0!important}
-html body:not(#mmh-install-layout-a):not(#mmh-install-layout-b) #stInstallGuideV5 h3{font-size:18px!important;margin:0 0 16px!important;line-height:1.4!important}
-html body:not(#mmh-install-layout-a):not(#mmh-install-layout-b) #stInstallGuideV5 label{font-size:12px!important;margin:0!important}
-html body:not(#mmh-install-layout-a):not(#mmh-install-layout-b) #stInstallGuideV5 ol{list-style:none!important;counter-reset:mmh-install-step;margin:16px 0!important;padding:0!important;display:grid!important;gap:9px!important}
-html body:not(#mmh-install-layout-a):not(#mmh-install-layout-b) #stInstallGuideV5 li{counter-increment:mmh-install-step;display:grid!important;grid-template-columns:28px minmax(0,1fr)!important;align-items:start!important;gap:10px!important;border:1px solid #30495d!important;background:#162a3b!important;padding:12px!important;border-radius:10px!important;font-size:13px!important;line-height:1.6!important;min-width:0!important}
-html body:not(#mmh-install-layout-a):not(#mmh-install-layout-b) #stInstallGuideV5 li::before{content:counter(mmh-install-step);width:26px;height:26px;display:flex;align-items:center;justify-content:center;background:#26465e;color:#b5d7ef;font-size:12px;font-weight:750;border-radius:8px}
-html body:not(#mmh-install-layout-a):not(#mmh-install-layout-b) #stInstallGuideV5 .st-install-note{border-top:1px solid #30495d!important;padding-top:12px!important;font-size:11px!important;line-height:1.6!important}
-@media(min-width:801px){
-html body:not(#mmh-install-layout-a):not(#mmh-install-layout-b) #stPage_icon:not([hidden]):has(#stInstallGuideV5:not([hidden])){display:grid!important;grid-template-columns:280px minmax(0,1fr)!important;grid-template-rows:auto auto auto 1fr!important;column-gap:20px!important;align-items:start!important}
-html body:not(#mmh-install-layout-a):not(#mmh-install-layout-b) #stPage_icon>.st-page-head{grid-column:1/-1!important;grid-row:1!important}
-html body:not(#mmh-install-layout-a):not(#mmh-install-layout-b) #stPage_icon>.panel{grid-column:1!important;grid-row:2!important}
-html body:not(#mmh-install-layout-a):not(#mmh-install-layout-b) #stInstallAppV4{grid-column:1!important;grid-row:3!important;width:100%!important}
-html body:not(#mmh-install-layout-a):not(#mmh-install-layout-b) #stInstallStatusV4{grid-column:1!important;grid-row:4!important}
-html body:not(#mmh-install-layout-a):not(#mmh-install-layout-b) #stInstallGuideV5{grid-column:2!important;grid-row:2/span 3!important;margin:0!important}
-}
+html body #settings #stPage_icon{max-width:980px!important;margin:0 auto!important;min-width:0!important}
+html body #stPage_icon>.st-page-head{margin-bottom:18px!important}
+html body #stPage_icon>.panel{padding:20px!important;margin:0!important;border-radius:14px!important;min-width:0!important;box-sizing:border-box!important}
+html body #stPage_icon>.panel .toolbar{background:none!important;border:0!important;padding:0!important;margin:0 0 18px!important}
+html body #stPage_icon .pwa-row{gap:14px!important;align-items:center!important;margin:0!important;min-width:0!important}
+html body #stPage_icon .app-icon-preview{width:60px!important;height:60px!important;min-width:60px!important;object-fit:contain!important;border-radius:14px!important}
+html body #stPage_icon .pwa-row>div{min-width:0!important;overflow-wrap:anywhere!important}
+html body #stInstallAppV4{min-height:44px!important;padding:11px 16px!important;border-radius:10px!important;margin:14px 0 0!important;font-size:13px!important}
+html body #stInstallStatusV4{font-size:12px!important;line-height:1.6!important;margin:10px 0 0!important;overflow-wrap:anywhere!important}
+html body #stInstallGuideV5{position:fixed!important;inset:0!important;margin:auto!important;width:min(600px,calc(100% - 32px))!important;max-width:none!important;max-height:calc(100vh - 32px)!important;max-height:calc(100dvh - 32px)!important;overflow:auto!important;overscroll-behavior:contain;box-sizing:border-box!important;padding:20px!important;min-width:0!important;border-radius:14px!important;box-shadow:0 20px 64px #0005;color-scheme:dark}
+html body #stInstallGuideV5:not([open]){display:none!important}
+html body #stInstallGuideV5::backdrop{background:rgba(5,12,22,.66)}
+html body.light #stInstallGuideV5{color-scheme:light}
+html body #stInstallGuideV5 .st-install-modal-head-v265{display:flex;gap:12px;align-items:center;justify-content:space-between;margin-bottom:16px}
+html body #stInstallGuideV5 .st-install-modal-head-v265 h3{min-width:0;margin:0!important;overflow-wrap:anywhere}
+html body #stInstallCloseV265{flex:0 0 44px;width:44px;height:44px;border:1px solid #42576b;border-radius:10px;background:#203447;color:#e3edf5;font:24px/1 system-ui;cursor:pointer}
+html body.light #stInstallCloseV265{background:#f8fbfd;color:#243e55;border-color:#cbd9e5}
+html body #stInstallGuideV5 select{box-sizing:border-box;background:#203447;color:#e3edf5;border:1px solid #42576b}
+html body.light #stInstallGuideV5 select{background:#fff;color:#243e55;border-color:#cbd9e5}
+html body #stInstallGuideV5 h3{font-size:18px!important;margin:0 0 16px!important;line-height:1.4!important}
+html body #stInstallGuideV5 label{font-size:12px!important;margin:0!important}
+html body #stInstallGuideV5 ol{list-style:none!important;counter-reset:mmh-install-step;margin:16px 0!important;padding:0!important;display:grid!important;gap:9px!important}
+html body #stInstallGuideV5 li{counter-increment:mmh-install-step;display:grid!important;grid-template-columns:28px minmax(0,1fr)!important;align-items:start!important;gap:10px!important;border:1px solid #30495d!important;background:#162a3b!important;padding:12px!important;border-radius:10px!important;font-size:13px!important;line-height:1.6!important;min-width:0!important}
+html body #stInstallGuideV5 li::before{content:counter(mmh-install-step);width:26px;height:26px;display:flex;align-items:center;justify-content:center;background:#26465e;color:#b5d7ef;font-size:12px;font-weight:750;border-radius:8px}
+html body #stInstallGuideV5 .st-install-note{border-top:1px solid #30495d!important;padding-top:12px!important;font-size:11px!important;line-height:1.6!important}
+
 @media(max-width:800px){
-html body:not(#mmh-install-layout-a):not(#mmh-install-layout-b) #stPage_icon>.panel{padding:16px!important}
-html body:not(#mmh-install-layout-a):not(#mmh-install-layout-b) #stInstallAppV4{width:100%!important}
-html body:not(#mmh-install-layout-a):not(#mmh-install-layout-b) #stInstallGuideV5{padding:14px!important}
-html body:not(#mmh-install-layout-a):not(#mmh-install-layout-b) #stInstallGuideV5 li{padding:10px!important;gap:8px!important}
+html body #stPage_icon>.panel{padding:16px!important}
+html body #stInstallAppV4{width:100%!important}
+html body #stInstallGuideV5{padding:14px!important}
+html body #stInstallGuideV5 li{padding:10px!important;gap:8px!important}
 }
-html body.light:not(#mmh-install-layout-a):not(#mmh-install-layout-b) #stInstallGuideV5 li{background:#f8fbfd!important;border-color:#cbd9e5!important}
-html body.light:not(#mmh-install-layout-a):not(#mmh-install-layout-b) #stInstallGuideV5 li::before{background:#d8eaf6!important;color:#215f88!important}
+html body.light #stInstallGuideV5 li{background:#f8fbfd!important;border-color:#cbd9e5!important}
+html body.light #stInstallGuideV5 li::before{background:#d8eaf6!important;color:#215f88!important}
 </style>
 
 <script id="mmhvault-exchange-currency-logos-v7">

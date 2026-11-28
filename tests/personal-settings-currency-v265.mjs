@@ -843,7 +843,7 @@ console.log('PASS: 53-code shared display registry, additional FX, missing rates
  new Function(nav);new Function(guide);
  const myCopy=new Function(nav.match(/const myCopy=(\{[^;]+\});/)[0]+'return myCopy')();
  assert.equal(Object.keys(myCopy).length,7);assert(Object.values(myCopy).every(x=>/[\u1000-\u109f]/.test(x)));
- const draw=guide.slice(guide.indexOf('  function drawGuide'),guide.indexOf('  button.onclick'));
+ const draw=guide.slice(guide.indexOf('  function drawGuide'),guide.indexOf('  function openGuide'));
  const build=new Function('document','T','matchMedia','navigator','guide','androidCustomTab','illustration','captions','let selectedDevice=null,installPrompt=null;'+draw+'return drawGuide');
  function elem(tag){return {tag,children:[],append(...items){this.children.push(...items)},replaceChildren(){this.children=[]},setAttribute(){},textContent:'',className:'',hidden:false,value:''}}
  for(const lang of [0,1,2])for(const device of ['ios','ios-other','android-chrome','android-firefox','android-other','desktop']){
@@ -863,22 +863,22 @@ console.log('PASS: 53-code shared display registry, additional FX, missing rates
  const code=app.match(/<script id="mmhvault-settings-control-feedback-v4">([\s\S]*?)<\/script>/)[1];
  function fixture(ua='Android Chrome',referrer='',initial='my'){
   let lang=initial;const events={};
-  function elem(tag){return {tag,children:[],append(...n){this.children.push(...n)},replaceChildren(){this.children=[]},setAttribute(){},scrollIntoView(){},remove(){this.removed=true},hidden:false,textContent:''}}
+  function elem(tag){return {tag,children:[],append(...n){this.children.push(...n)},replaceChildren(){this.children=[]},setAttribute(){},addEventListener(){},showModal(){this.open=true},close(){this.open=false;this.hidden=true},hidden:false,open:false,textContent:''}}
   const host=elem('section');
   const doc={readyState:'complete',referrer,createElement:elem,getElementById:id=>id==='stPage_icon'?host:null};
   const win={addEventListener:(n,fn)=>events[n]=fn};
   new Function('window','document','navigator','localStorage','matchMedia',code)(win,doc,{userAgent:ua},{getItem:()=>lang},()=>({matches:false}));
   const [button,status,guide]=host.children;
-  return {events,button,status,guide,locale(v){lang=v;events['mmhvault-language-change']()},prompt(p){events.beforeinstallprompt({preventDefault(){},...p});button.onclick();return guide.children.find(x=>x.tag==='button')}};
+  return {events,button,status,guide,locale(v){lang=v;events['mmhvault-language-change']()},async prompt(p){events.beforeinstallprompt({preventDefault(){},...p});await button.onclick()}};
  }
  for(const [initial,label] of [['en','Add to Home Screen'],['zh','添加到主屏幕'],['my','ပင်မမျက်နှာပြင်သို့ ထည့်ပါ']]){
   const q=fixture('Android Chrome','',initial);assert.equal(q.button.textContent,label);
   const first=q.status.textContent;q.locale('en');q.locale(initial);assert.equal(q.status.textContent,first);
  }
- for(const [outcome,english] of [['accepted','Installation accepted.'],['dismissed','Installation cancelled. You can still follow the steps above.'],['error','Follow the manual steps above to add the app.'],['race','MMHVAULT has been installed.']]){
+ for(const [outcome,english] of [['accepted','Installation accepted.'],['dismissed','Installation cancelled. You can still follow the manual guide.'],['error','Follow the manual guide to add the app.'],['race','MMHVAULT has been installed.']]){
   const q=fixture();
-  const p=q.prompt({prompt:async()=>{if(outcome==='error')throw Error('mock');if(outcome==='race')q.events.appinstalled()},userChoice:Promise.resolve({outcome:outcome==='dismissed'?'dismissed':'accepted'})});
-  assert.equal(p.textContent,'ယခု ထည့်သွင်းပါ');await p.onclick();
+  await q.prompt({prompt:async()=>{assert.equal(q.guide.open,false);if(outcome==='error')throw Error('mock');if(outcome==='race')q.events.appinstalled()},userChoice:Promise.resolve({outcome:outcome==='dismissed'?'dismissed':'accepted'})});
+  assert.equal(q.guide.open,['dismissed','error'].includes(outcome));
   assert.match(q.status.textContent,/[\u1000-\u109f]/);
   q.locale('en');assert.equal(q.status.textContent,english);
   q.locale('zh');assert.match(q.status.textContent,/[\u4e00-\u9fff]/);
@@ -886,6 +886,6 @@ console.log('PASS: 53-code shared display registry, additional FX, missing rates
  const custom=fixture('Android Chrome','android-app://example');
  assert.match(custom.status.textContent,/[\u1000-\u109f]/);
  custom.locale('en');assert.match(custom.status.textContent,/^Android in-app/);
- assert.equal(custom.prompt({prompt:async()=>{},userChoice:Promise.resolve({outcome:'accepted'})}),undefined);
+ let customCalls=0;await custom.prompt({prompt:async()=>{customCalls++},userChoice:Promise.resolve({outcome:'accepted'})});assert.equal(customCalls,0);assert.equal(custom.guide.open,true);
  console.log('PASS: installation status and buttons EN/ZH/MY, language refresh, prompt outcomes, appinstalled race and Custom Tab (mock DOM)');
 }
