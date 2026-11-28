@@ -1,4 +1,7 @@
-import {readFileSync} from 'node:fs';
+import {readFileSync,mkdtempSync,writeFileSync,rmSync} from 'node:fs';
+import {tmpdir} from 'node:os';
+import {join} from 'node:path';
+import {fileURLToPath} from 'node:url';
 import assert from 'node:assert/strict';
 import {createHash} from 'node:crypto';
 import {spawnSync} from 'node:child_process';
@@ -133,12 +136,39 @@ sys.stdout.buffer.write(data)
   const actual=createHash('sha1').update('blob '+bytes.length+'\0').update(bytes).digest('hex');
   assert.equal(actual,expected,folder+' exact Git blob hash');
   if(folder==='notosanssc')chinesePartitionSource=bytes;
-  let compressed=null;
+  let compressed=null,packManifest=null;
   if(python){
-   const conversion=spawnSync(python,['-c',compressionScript,locale,samples[locale]],{input:bytes,maxBuffer:50*1024*1024,timeout:120000});
-   assert.ifError(conversion.error);
-   assert.equal(conversion.status,0,folder+' compression: '+conversion.stderr?.toString().slice(-2000));
-   compressed=conversion.stdout;
+   if(locale==='my'){
+    const temp=mkdtempSync(join(tmpdir(),'mmh-font-pack-'));
+    try{
+     const sourcePath=join(temp,'source.ttf'),licensePath=join(temp,'source-license.txt'),output=join(temp,'candidate');
+     writeFileSync(sourcePath,bytes);writeFileSync(licensePath,license);
+     const script=fileURLToPath(new URL('../tools/personal-font-pack-v265.py',import.meta.url));
+     const build=(source,lic,dest)=>spawnSync(python,[script,folder,'--source',source,'--license',lic,'--output',dest],{maxBuffer:4*1024*1024,timeout:120000});
+     const generated=build(sourcePath,licensePath,output);
+     assert.ifError(generated.error);assert.equal(generated.status,0,folder+' pack generation: '+generated.stderr?.toString().slice(-2000));
+     compressed=readFileSync(join(output,'font.woff2'));
+     packManifest=JSON.parse(readFileSync(join(output,'manifest.json'),'utf8'));
+     assert.equal(packManifest.output_sha256,createHash('sha256').update(compressed).digest('hex'));
+     assert.equal(packManifest.source_git_blob,expected);assert.equal(packManifest.license_git_blob,licenseHashes[folder]);
+     assert.deepEqual(readFileSync(join(output,'OFL.txt')),license);
+     assert(readFileSync(join(output,'font.css'),'utf8').includes(packManifest.family));
+     if(folder==='padauk'){
+      const repeat=join(temp,'repeat'),again=build(sourcePath,licensePath,repeat);
+      assert.ifError(again.error);assert.equal(again.status,0,again.stderr?.toString());assert.deepEqual(readFileSync(join(repeat,'font.woff2')),compressed,'deterministic pack');
+      const badSource=join(temp,'bad.ttf'),badLicense=join(temp,'bad.txt');writeFileSync(badSource,Buffer.concat([bytes,Buffer.from([0])]));writeFileSync(badLicense,Buffer.concat([license,Buffer.from([0])]));
+      assert.notEqual(build(badSource,licensePath,join(temp,'reject-source')).status,0,'tampered font rejected');
+      assert.notEqual(build(sourcePath,badLicense,join(temp,'reject-license')).status,0,'tampered license rejected');
+      assert.notEqual(build(sourcePath,licensePath,output).status,0,'existing output protected');
+      assert.deepEqual(readFileSync(join(output,'font.woff2')),compressed,'existing output unchanged');
+     }
+    }finally{rmSync(temp,{recursive:true,force:true})}
+   }else{
+    const conversion=spawnSync(python,['-c',compressionScript,locale,samples[locale]],{input:bytes,maxBuffer:50*1024*1024,timeout:120000});
+    assert.ifError(conversion.error);
+    assert.equal(conversion.status,0,folder+' compression: '+conversion.stderr?.toString().slice(-2000));
+    compressed=conversion.stdout;
+   }
    assert(compressed.length>0&&compressed.length<bytes.length,folder+' compressed size');
    assert.equal(compressed.subarray(0,4).toString(),'wOF2',folder+' WOFF2 signature');
   }
@@ -180,6 +210,7 @@ sys.stdout.buffer.write(data)
      assert(Math.abs(bounds.width-originalBounds.width)<=1&&Math.abs(bounds.height-originalBounds.height)<=1,folder+' compressed text geometry');
      const compressedPixels=createHash('sha256').update(await p.locator('#glyphs').screenshot({animations:'disabled'})).digest('hex');
      compression={kind:locale==='zh-CN'?'sample-only subset':'full font',bytes:compressed.length,pixelEqual:compressedPixels===pixels};
+     if(packManifest){assert.equal(compressedPixels,pixels,folder+' renamed candidate retains identical sample pixels');compression.packFamily=packManifest.family;compression.packSha256=packManifest.output_sha256;compression.packCodepoints=packManifest.codepoints;}
     }
     (results[locale]??=[]).push({folder,bytes:bytes.length,pixels,compression,fonts:rendered.map(x=>({family:x.familyName,postScript:x.postScriptName,glyphs:x.glyphCount}))});
    }finally{await session.detach()}
@@ -192,6 +223,7 @@ sys.stdout.buffer.write(data)
  console.log('PASS: seven pinned OFL candidate assets rendered isolated sample text without platform fallback; three Chinese and four Myanmar distinct sample images (not full coverage or application integration)');
  if(python){
   console.log('PASS: seven WOFF2 candidates rendered sample without fallback and preserved glyph count and geometry (Chinese sample subset only; Myanmar full cmap preserved; no assets distributed)');
+  console.log('PASS: four reproducible Myanmar candidate packs preserve source license, cmap, axes and sample pixels; tampered source/license and overwrite rejected');
   // Same-origin loading prototype; candidates are ephemeral, not deployable assets.
   const origin='https://mmh-font-fixture.invalid';
   const ctx=await browser.newContext();
