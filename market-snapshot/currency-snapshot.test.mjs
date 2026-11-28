@@ -18,4 +18,15 @@ assert.equal(normalizeCurrencySnapshot({...payload,data:{...payload.data,currenc
 assert.equal(normalizeCurrencySnapshot({...payload,result:0},now),null);
 assert.equal(normalizeCurrencySnapshot({...payload,data:{...payload.data,currencies:[{...item,quote:{...item.quote,sell:'90'}}]}},now),null);
 assert.equal(normalizeCurrencySnapshot({...payload,data:{...payload.data,currencies:[{...item,stale:true}]}},now).quotes.USD.stale,true);
+const arrayPayload={result:1,data:[item,{...item,series:{...item.series,code:'thb'},quote:{...item.quote,recorded_at:'2026-01-02T11:45:00+00:00',buy:'20',sell:'21',buy_change:'0',sell_change:'-1'}}]};
+const directSnap=normalizeCurrencySnapshot(arrayPayload,now);
+assert.equal(directSnap.asOf,'2026-01-02T11:45:00.000Z');
+assert.equal(directSnap.quotes.USD.buy,100);
+assert.equal(directSnap.quotes.THB.buyChange,0);
+assert.equal(directSnap.quotes.THB.sellChange,-1);
+assert.equal(normalizeCurrencySnapshot({result:1,data:[]},now),null);
+assert.equal(normalizeCurrencySnapshot({result:1,data:[item,item]},now),null);
+assert.equal(normalizeCurrencySnapshot({result:1,data:[{...item,quote:{...item.quote,recorded_at:'2026-01-03T00:00:00Z'}}]},now),null);
+assert.equal(normalizeCurrencySnapshot({result:1,data:[item,{...item,series:{...item.series,kind:'other'},quote:{...item.quote,recorded_at:'2026-01-02T11:59:00Z'}}]},now).asOf,'2026-01-02T11:00:00.000Z');
+assert.equal(normalizeCurrencySnapshot({result:1,data:[item]},NaN),null);
 console.log('PASS: currency snapshot validation and direct MMK display; synthetic data only');
