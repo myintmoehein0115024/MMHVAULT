@@ -11563,7 +11563,7 @@ html.mmh-desktop-compact-v11110 body.mmh-workspace-active #moreNavMenu.more-nav-
 <button type="button" class="invest-subtab-v371" id="investSubLiveV1" role="tab" hidden tabindex="-1" aria-hidden="true">Live Prices</button>
 </div></div></div>
 <div id="mmhUnifiedInvestV1" aria-label="All investments">
-  <div class="mmh-ui-panel"><div class="mmh-ui-heading"><div><h2 class="mmh-hint-anchor-v195 mmh-context-title-v199" data-mmh-hint-source="next" tabindex="0">Investment Portfolio Overview</h2><p class="mmh-context-desc-v199">Crypto / Gold 当前持仓与历史卖出分开统计 · 合计用 USD</p></div></div><div class="mmh-ui-kpis" id="mmhUnifiedKpisV1"></div></div>
+  <div class="mmh-ui-panel"><div class="mmh-ui-heading"><div><h2 class="mmh-hint-anchor-v195 mmh-context-title-v199" data-mmh-hint-source="next" tabindex="0">Investment Portfolio Overview</h2><p class="mmh-context-desc-v199">Crypto / Gold 当前持仓与历史卖出分开统计 · 合计用 USD</p></div></div><div class="inv-display-toolbar-v265"><small id="invDisplayHintV265"></small><details id="invDisplayPickerV265"><summary><span></span><span aria-hidden="true">⌄</span></summary><div class="pf-display-menu-v265" role="group"><label for="invDisplaySearchV265"></label><input id="invDisplaySearchV265" type="search" autocomplete="off" spellcheck="false"><div class="ap-currency-list-v2"></div><select aria-label="Reference currency"><option value="GLOBAL">Follow default</option><option value="NATIVE">Original currency only</option><option>USD</option><option>THB</option><option>MMK</option><option>CNY</option></select></div></details></div><div class="mmh-ui-kpis" id="mmhUnifiedKpisV1"></div></div>
   <div class="mmh-ui-panel"><div class="mmh-ui-heading"><div><h2 class="mmh-hint-anchor-v195 mmh-context-title-v199" data-mmh-hint-source="next" tabindex="0">My Investments</h2><p class="mmh-context-desc-v199">One list for every asset. Investment history remains available in Portfolio.</p></div><button class="mmh-catalog-toggle" id="mmhCatalogToggleV1" type="button" aria-expanded="false">Manage Types & Assets</button></div><div class="mmh-ui-filters" id="mmhUnifiedFiltersV1" aria-label="Filter investments"></div><div class="mmh-overview-mix-wrap" id="mmhInvestPositionMixV215" hidden aria-hidden="true"><div class="mmh-ui-allocation" id="mmhUnifiedAllocationV1"></div><span class="mmh-overview-mix-hint" aria-hidden="true">›</span></div><div class="mmh-ui-list" id="mmhUnifiedListV1"></div></div>
   <div class="mmh-ui-panel" id="mmhInvestCatalogV1" hidden><div class="mmh-ui-heading"><div><h2 class="mmh-hint-anchor-v195 mmh-context-title-v199" data-mmh-hint-source="next" tabindex="0">Investment Types & Assets</h2><p class="mmh-context-desc-v199">Set up types and assets for future investments. Existing records stay intact.</p></div></div><div id="mmhCatalogNoticeV1" class="mmh-ui-empty">Loading your signed-in investment catalog…</div><div class="mmh-catalog-sections"><div class="mmh-catalog-section"><h3>1 · Investment Types</h3><p>Create a category such as Stocks, then manage its name or availability here.</p><form class="mmh-catalog-form" id="mmhTypeFormV1"><input id="mmhTypeNameV1" maxlength="40" placeholder="New type, e.g. Stocks" required><button type="submit">Add Type</button></form><div id="mmhTypeRowsV1"></div></div><div class="mmh-catalog-section"><h3>2 · Assets</h3><p>Choose a type, then add assets to it. New assets will appear in this list.</p><form class="mmh-catalog-form" id="mmhAssetFormV1"><select id="mmhAssetTypeV1" aria-label="Investment type"></select><input id="mmhAssetNameV1" maxlength="60" placeholder="Asset name, e.g. AAPL" required><button type="submit">Add Asset</button></form><div id="mmhAssetRowsV1"></div></div></div></div>
 </div>
@@ -12484,6 +12484,59 @@ html.mmh-desktop-compact-v11110 body.mmh-workspace-active #moreNavMenu.more-nav-
   const typeTone=type=>String(type).toUpperCase()==='CRYPTO'?'mmh-asset-crypto':String(type).toUpperCase()==='GOLD'?'mmh-asset-gold':'mmh-asset-custom-'+([...String(type).toUpperCase()].reduce((sum,c)=>sum+c.charCodeAt(0),0)%5);
   const field=(title,value,sub='',kind='')=>'<div class="mmh-overview-field '+kind+'"><small>'+title+'</small><b>'+value+'</b>'+(sub?'<em>'+sub+'</em>':'')+'</div>';
   const valid=v=>v!==null&&v!==undefined&&v!==''&&Number.isFinite(Number(v));
+
+  // V2.0.65: presentation-only currency reference for verified native overview metrics.
+  const invDisplayCodesV265=['USD','THB','MMK','CNY'];
+  const invDisplayOwnerV265=()=>typeof currentSessionUser!=='undefined'&&currentSessionUser?.id===MMHVAULT_CONFIG_OWNER?String(currentSessionUser.id):'';
+  function invDisplayChoiceV265(){
+    const id=invDisplayOwnerV265();if(!id)return 'GLOBAL';
+    try{const c=localStorage.getItem('mmhvault_inv_display_currency_v265_'+id);return c==='NATIVE'||invDisplayCodesV265.includes(c)?c:'GLOBAL'}catch(_){return 'GLOBAL'}
+  }
+  function invDisplayCurrencyV265(){
+    const id=invDisplayOwnerV265(),c=invDisplayChoiceV265();if(c!=='GLOBAL')return c;
+    try{const v=id&&JSON.parse(localStorage.getItem('mmhvault_settings_display_v2_'+id)||'{}')?.currency;return invDisplayCodesV265.includes(v)?v:'USD'}catch(_){return 'USD'}
+  }
+  function invSaveDisplayV265(c){
+    const id=invDisplayOwnerV265();if(!id||!(c==='GLOBAL'||c==='NATIVE'||invDisplayCodesV265.includes(c)))return false;
+    try{const key='mmhvault_inv_display_currency_v265_'+id;if(c==='GLOBAL')localStorage.removeItem(key);else localStorage.setItem(key,c);return true}catch(_){return false}
+  }
+  function invReferenceV265(value,source,owner){
+    const id=invDisplayOwnerV265(),target=invDisplayCurrencyV265();
+    if(!id||owner!==id||target==='NATIVE'||target===source||!['USD','MMK'].includes(source))return '';
+    const missing='≈ '+target+' —';
+    if(value===null||value===undefined||value===''||typeof value==='boolean'||!Number.isFinite(Number(value)))return missing;
+    try{
+      const rate=c=>c==='USD'?1:Number(window.MMHExchangeEffectiveFXV2?.getUsdRate?.(c));
+      const from=rate(source),to=rate(target);
+      if(!(from>0&&to>0&&Number.isFinite(from)&&Number.isFinite(to)))return missing;
+      const result=Number(value)/from*to;
+      return Number.isFinite(result)?'≈ '+target+' '+result.toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2}):missing;
+    }catch(_){return missing}
+  }
+  function invDisplayTextV265(en,zh,my){const l=String(window.getMMHVAULTLanguage?.()||document.documentElement.lang||'en').toLowerCase();return l.startsWith('zh')?zh:/^(my|mm|bur)/.test(l)?my:en}
+  function bindInvDisplayPickerV265(){
+    const p=el('invDisplayPickerV265');if(!p)return;
+    const summary=p.querySelector('summary'),select=p.querySelector('select'),search=p.querySelector('input'),list=p.querySelector('.ap-currency-list-v2'),group=p.querySelector('.pf-display-menu-v265'),label=p.querySelector('label'),hint=el('invDisplayHintV265'),tr=invDisplayTextV265;
+    const sync=()=>{
+      const choice=invDisplayChoiceV265(),code=invDisplayCurrencyV265(),caption=tr('Reference currency','参考币种','ကိုးကားငွေကြေး');
+      select.options[0].textContent=tr('Follow default','跟随默认币种','မူလငွေကြေးအတိုင်း');select.options[1].textContent=tr('Original currency only','仅原始币种','မူရင်းငွေကြေးသာ');select.value=choice;select.setAttribute('aria-label',caption);
+      const shared=window.MMHCurrencyPickerV3;
+      summary.querySelector('span').textContent=code==='NATIVE'?select.options[1].textContent:(shared?.flag?.(code)||'')+code+(choice==='GLOBAL'?' · '+tr('Default','默认','မူလ'):'');
+      summary.setAttribute('aria-label',caption+': '+summary.textContent);
+      hint.textContent=tr('Original amounts · ≈ current FX reference','原始金额 · ≈ 当前汇率参考','မူရင်းပမာဏ · ≈ လက်ရှိငွေလဲနှုန်း ကိုးကားချက်');
+      let ready=false;try{if(shared?.render){shared.render({select,search,list,group,label:caption,includeNative:true});ready=true}}catch(_){}
+      label.hidden=search.hidden=list.hidden=!ready;select.hidden=ready;
+    };
+    if(!p.__mmhInvDisplayV265){
+      p.__mmhInvDisplayV265=true;
+      const choose=c=>{if(!invSaveDisplayV265(c)){sync();return}p.open=false;sync();summary.focus({preventScroll:true});render()};
+      select.addEventListener('change',()=>choose(select.value));
+      p.addEventListener('click',e=>{const b=e.target.closest('[data-ap-currency]');if(b){e.preventDefault();choose(b.dataset.apCurrency)}});
+      p.addEventListener('toggle',()=>{if(p.open){search.value='';sync();list.scrollTop=0}});
+      p.addEventListener('keydown',e=>{if(e.key==='Escape'){p.open=false;summary.focus({preventScroll:true})}});
+    }
+    if(!p.open)sync();
+  }
   function nativeOverview(rows,ready,quote,moves=[]){
  const eps=1e-9, finite=x=>x!==null&&x!==undefined&&x!==''&&typeof x!=='boolean'&&Number.isFinite(Number(x)), sym=x=>String(x??'').trim().toUpperCase(), missing=()=>({cost:null,value:null,unreal:null,realized:null,total:null});
  const result={Crypto:missing(),Gold:missing()};if(!ready||!Array.isArray(rows)||!Array.isArray(moves))return result;
@@ -12579,13 +12632,14 @@ html.mmh-desktop-compact-v11110 body.mmh-workspace-active #moreNavMenu.more-nav-
     const native=nativeOverview(records,nativeReady,(asset,symbol)=>asset==='Gold'?data.gold.price:data.cryptos.find(x=>String(x.name).trim().toUpperCase()===symbol)?.price,window.mmhWalletMovementsV174);
     const metrics=[['cost',tr('持仓成本','Holding Cost','လက်ရှိပိုင်ဆိုင်မှု ကုန်ကျစရိတ်')],['value',tr('持仓价值','Holding Value','လက်ရှိပိုင်ဆိုင်မှု တန်ဖိုး')],['unreal',tr('未实现盈亏','Unrealized P/L','မရရှိသေးသော အမြတ်/အရှုံး')],['realized',tr('已实现盈亏','Realized P/L','ရရှိပြီးသော အမြတ်/အရှုံး')],['total',tr('累计综合盈亏','Total P/L','စုစုပေါင်း အမြတ်/အရှုံး')]];
     const unknown=tr('缺少价格或有效记录，无法确认','Price or valid ledger data unavailable','ဈေးနှုန်း သို့မဟုတ် မှန်ကန်သော မှတ်တမ်း မရှိပါ');
-    const cell=(metric,asset,cur)=>{const n=native[asset][metric],isPL=['unreal','realized','total'].includes(metric);return '<td class="'+(n===null?'mmh-pl-flat':isPL?tone(n):'mmh-pl-flat')+'"'+(n===null?' title="'+safe(unknown)+'" aria-label="'+safe(unknown)+'"':'')+'>'+(n===null?'—':isPL?signed(n,cur):cash(n,cur))+'</td>';};
+    const cell=(metric,asset,cur)=>{const n=native[asset][metric],isPL=['unreal','realized','total'].includes(metric);return '<td class="'+(n===null?'mmh-pl-flat':isPL?tone(n):'mmh-pl-flat')+'"'+(n===null?' title="'+safe(unknown)+'" aria-label="'+safe(unknown)+'"':'')+'>'+(n===null?'—':isPL?signed(n,cur):cash(n,cur))+(nativeReady?(()=>{const ref=invReferenceV265(n,cur,owner);return ref?'<small class="inv-fx-ref-v265">'+safe(ref)+'</small>':''})():'')+'</td>';};
     const table='<table class="mmh-native-kpi-v214"><thead><tr><th scope="col">'+safe(tr('投资指标','Metric','ရင်းနှီးမြှုပ်နှံမှု'))+'</th><th scope="col">'+safe(tr('加密资产','Crypto','Crypto'))+' · USD</th><th scope="col">'+safe(tr('黄金','Gold','ရွှေ'))+' · MMK</th></tr></thead><tbody>'+metrics.map(([key,label])=>'<tr'+(key==='total'?' class="mmh-native-total-v214"':'')+'><th scope="row">'+safe(label)+'</th>'+cell(key,'Crypto','USD')+cell(key,'Gold','MMK')+'</tr>').join('')+'</tbody></table>';
     const note=tr('累计盈亏 = 已实现 + 未实现；估值使用现有行情或记录价格。— 表示数据不足。','Total P/L = realized + unrealized; valuations use existing quotes or recorded prices. — means unavailable.','စုစုပေါင်း = ရရှိပြီး + မရရှိသေးသော အမြတ်/အရှုံး။ ရှိပြီးသား ဈေးနှုန်းများကို အသုံးပြုသည်။ — ဒေတာမပြည့်စုံပါ။');
     // Retain the pre-existing aggregate unrealized return in USD, without adding currencies to Total P/L.
     const aggregateReturn=roi!==null&&Number.isFinite(roi)?(roi>0?'+':roi<0?'−':'')+number(Math.abs(roi))+'%':'—';
     const returnLabel=tr('整体持仓回报率 · USD','Portfolio Return · USD','စုစုပေါင်း ပိုင်ဆိုင်မှု ပြန်ရနှုန်း · USD');
     const returnRow='<div class="mmh-native-roi-v214"><span>'+safe(returnLabel)+'</span><b class="'+(roi!==null&&Number.isFinite(roi)?tone(roi):'mmh-pl-flat')+'">'+safe(aggregateReturn)+'</b></div>';
+    bindInvDisplayPickerV265();
     el('mmhUnifiedKpisV1').innerHTML=table+returnRow+'<div class="mmh-native-note-v214">'+safe(note)+'</div>';
     const allocation=nativeReady&&native.Crypto.cost!==null&&native.Gold.cost!==null&&complete?valued.filter(x=>x.quantity>1e-12).map(x=>{
       const percent=value?x.quantity*x.price*toUSD(x)/value*100:null;
@@ -12631,7 +12685,8 @@ html.mmh-desktop-compact-v11110 body.mmh-workspace-active #moreNavMenu.more-nav-
   }
   el('mmhUnifiedFiltersV1')?.addEventListener('click',event=>{const b=event.target.closest('button[data-type]');if(b){filter=b.dataset.type;render();}});
   const schedule=()=>{if(el('invest')?.classList.contains('active'))render();};
-  ['mmhvault:data-loaded','mmhvault:cache-restored','mmhvault:market-updated','mmhvault-language-change','languagechange'].forEach(name=>window.addEventListener(name,schedule));
+  ['mmhvault:data-loaded','mmhvault:cache-restored','mmhvault:market-updated','mmhvault:exchange-reference-updated','mmhvault:personal-display-currency-changed','mmhvault-language-change','languagechange'].forEach(name=>window.addEventListener(name,schedule));
+  window.addEventListener('mmhvault:config-owner-changed',()=>{el('mmhUnifiedKpisV1')?.querySelectorAll('.inv-fx-ref-v265').forEach(n=>n.remove());const picker=el('invDisplayPickerV265');if(picker)picker.open=false;bindInvDisplayPickerV265();schedule()});
   document.addEventListener('click',event=>{if(event.target.closest('.language-choice-v3363'))setTimeout(()=>{render();window.renderInvestNavigationHardFixV371?.();},180);});
   window.addEventListener('mmhvault:page-visible',schedule);
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',schedule,{once:true});else schedule();
@@ -30861,6 +30916,22 @@ db.auth.getSession().then(({data})=>owner(data?.session?.user)).catch(()=>{});db
 #transactions #txDisplayPickerV265 button[data-ap-currency]{display:grid;grid-template-columns:auto minmax(0,1fr);align-items:center;gap:8px;width:100%;min-height:34px;padding:7px 8px;border-radius:6px;border:1px solid transparent;background:var(--uv-card,Canvas);color:inherit;font-size:12px;text-align:left;cursor:pointer}
 #transactions #txDisplayPickerV265 button[data-ap-currency]>span:last-child{text-align:right;font-size:11px;color:var(--uv-muted,inherit);overflow-wrap:anywhere}
 #transactions #txDisplayPickerV265 button[data-ap-currency]:is(:hover,[aria-pressed=true]){border-color:var(--uv-line,#80808060)}
+</style>
+<style id="mmhvault-inv-display-picker-v265-style">
+#invest .inv-display-toolbar-v265{display:flex;align-items:center;justify-content:flex-end;flex-wrap:wrap;gap:6px 10px;margin:0 0 8px;position:relative;z-index:12;min-width:0}
+#invest #invDisplayHintV265{font-size:11px;color:var(--uv-muted,inherit);overflow-wrap:anywhere}
+#invest #invDisplayPickerV265{position:relative;min-width:0;max-width:100%;color:var(--uv-text,inherit)}
+#invest #invDisplayPickerV265 summary{display:flex;align-items:center;justify-content:space-between;gap:8px;box-sizing:border-box;min-height:44px;min-width:128px;padding:7px 10px;border:1px solid var(--uv-line,#80808060);border-radius:8px;background:var(--uv-card,transparent);font-size:12px;cursor:pointer;list-style:none}
+#invest #invDisplayPickerV265 summary::-webkit-details-marker{display:none}
+#invest #invDisplayPickerV265 .pf-display-menu-v265{position:absolute;top:calc(100% + 5px);right:0;box-sizing:border-box;width:min(310px,calc(100vw - 36px));padding:8px;display:flex;flex-direction:column;gap:4px;border:1px solid var(--uv-line,#80808060);border-radius:8px;background:var(--uv-raised,Canvas);color:var(--uv-text,CanvasText);box-shadow:0 8px 22px #0002}
+#invest #invDisplayPickerV265:not([open]) .pf-display-menu-v265,#invest #invDisplayPickerV265 [hidden]{display:none!important}
+#invest #invDisplayPickerV265 label,#invest #invDisplayPickerV265 .ap-currency-section-v2{font-size:11px;color:var(--uv-muted,inherit);padding:4px}
+#invest #invDisplayPickerV265 :is(input,select){box-sizing:border-box;width:100%;min-height:34px;border:1px solid var(--uv-line,#80808060);border-radius:7px;padding:7px 9px;background:var(--uv-card,Canvas);color:inherit;font-size:12px}
+#invest #invDisplayPickerV265 .ap-currency-list-v2{display:grid;gap:2px;max-height:min(280px,40dvh);overflow:auto;overscroll-behavior:contain}
+#invest #invDisplayPickerV265 button[data-ap-currency]{display:grid;grid-template-columns:auto minmax(0,1fr);align-items:center;gap:8px;width:100%;min-height:34px;padding:7px 8px;border-radius:6px;border:1px solid transparent;background:var(--uv-card,Canvas);color:inherit;font-size:12px;text-align:left;cursor:pointer}
+#invest #invDisplayPickerV265 button[data-ap-currency]>span:last-child{text-align:right;font-size:11px;color:var(--uv-muted,inherit);overflow-wrap:anywhere}
+#invest #invDisplayPickerV265 button[data-ap-currency]:is(:hover,[aria-pressed=true]){border-color:var(--uv-line,#80808060)}
+#invest #mmhUnifiedKpisV1 .inv-fx-ref-v265{display:block;font-size:11px;font-weight:400;color:var(--uv-muted,inherit);line-height:1.4;overflow-wrap:anywhere;white-space:normal}
 </style>
 <style id="mmhvault-overview-picker-v265-style">
 #dashboard #mmhPremiumDashboardV500 .pf-display-toolbar-v265{display:flex;justify-content:flex-end;min-width:0;margin:0 0 8px;position:relative;z-index:12}
