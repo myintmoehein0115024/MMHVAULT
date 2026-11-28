@@ -769,6 +769,8 @@ console.log('PASS: 53-code shared display registry, additional FX, missing rates
  const outputs=['mmhSettingsAgeValueV34215','mmhSettingsBirthdayValueV34215','mmhSettingsBirthdayCountdownV34215'];
  for(const id of outputs)nodes[id]={textContent:''};
  nodes.mmhBirthDateInputV34215=input;
+ const labels=[{textContent:'Birthday',getAttribute:k=>({'data-i18n-en':'Birthday','data-i18n-zh':'生日','data-i18n-my':'မွေးနေ့'})[k]}];
+ nodes.mmhBirthdaySettingsV34215={querySelectorAll:()=>labels};
  const doc={readyState:'loading',documentElement:{lang:'en'},visibilityState:'visible',activeElement:null,getElementById:id=>nodes[id]||null,addEventListener:(n,fn)=>domEvents[n]=fn};
  const win={addEventListener:(n,fn)=>windowEvents[n]=fn,dispatchEvent:e=>windowEvents[e.type]?.(e)};
  const storage={getItem:k=>{if(blocked)throw Error('blocked');return data.has(k)?data.get(k):null},setItem:(k,v)=>{if(blocked)throw Error('blocked');data.set(k,String(v))}};
@@ -781,6 +783,13 @@ console.log('PASS: 53-code shared display registry, additional FX, missing rates
  change('1992-02-30');assert(!data.has(key+'_a'),'invalid calendar date rejected');
  change('2999-01-01');assert(!data.has(key+'_a'),'future date rejected');
  change('1992-02-29');assert(data.get(key+'_a')==='1992-02-29','valid leap date saved to current owner');
+ assert.equal(input.min,'1900-01-01');assert.match(input.max,/^\d{4}-\d{2}-\d{2}$/);
+ for(const [lang,title,age,countdown] of [['my','မွေးနေ့','နှစ်','စက္ကန့်'],['zh-CN','生日','岁','秒'],['en','Birthday','years','s']]){
+  doc.documentElement.lang=lang;windowEvents['mmhvault-language-change']();assert.equal(labels[0].textContent,title);assert(nodes[outputs[0]].textContent.includes(age));assert(nodes[outputs[2]].textContent.includes(countdown));
+ }
+ doc.documentElement.lang='my';change('2999-01-01');assert(input.validity.includes('မွေးသက္ကရာဇ်'));assert.equal(data.get(key+'_a'),'1992-02-29');
+ doc.documentElement.lang='en';windowEvents['mmhvault-language-change']();
+ assert(app.includes('id="mmhBirthdayLocalNoteV265"')&&app.includes('Optional. Saved on this device for your account only.'));
  change('');assert(data.get(key+'_a')===''&&blank(),'explicit clear masks claimed legacy');
  doc.activeElement=input;input.handlers.focus();switchOwner('b');assert(blank(),'owner switch clears input');
  change('1998-01-01');assert(!data.has(key+'_b'),'stale edit cannot write to new owner');
