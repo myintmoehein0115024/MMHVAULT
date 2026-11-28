@@ -836,3 +836,25 @@ console.log('PASS: 53-code shared display registry, additional FX, missing rates
  assert(app.includes('css/mmhvault-settings-life-p928.css?v=2.0.65.2'));
  console.log('PASS: Settings redundant navigation removed, legacy pages and global language function retained (source/mock DOM)');
 }
+
+{
+ const extract=id=>app.match(new RegExp('<script id="'+id+'">([\\s\\S]*?)</script>'))[1];
+ const nav=extract('mmhvault-settings-template-groups-v7'),guide=extract('mmhvault-settings-control-feedback-v4');
+ new Function(nav);new Function(guide);
+ const myCopy=new Function(nav.match(/const myCopy=(\{[^;]+\});/)[0]+'return myCopy')();
+ assert.equal(Object.keys(myCopy).length,7);assert(Object.values(myCopy).every(x=>/[\u1000-\u109f]/.test(x)));
+ const draw=guide.slice(guide.indexOf('  function drawGuide'),guide.indexOf('  button.onclick'));
+ const build=new Function('document','T','matchMedia','navigator','guide','androidCustomTab','illustration','captions','let selectedDevice=null,installPrompt=null;'+draw+'return drawGuide');
+ function elem(tag){return {tag,children:[],append(...items){this.children.push(...items)},replaceChildren(){this.children=[]},setAttribute(){},textContent:'',className:'',hidden:false,value:''}}
+ for(const lang of [0,1,2])for(const device of ['ios','ios-other','android-chrome','android-firefox','android-other','desktop']){
+  const host=elem('section');
+  const fn=build({createElement:elem},(...args)=>args[lang]||args[0],()=>({matches:false}),{},host,()=>false,(kind,desktop)=>({kind,desktop}),()=>'caption');
+  fn(device);
+  const list=host.children.find(x=>x.tag==='ol');
+  assert(list.children.length>=3);
+  assert(list.children.every(li=>li.children[0].children.length===2&&li.children[0].children[0].kind&&li.children[0].children[1].textContent));
+  assert(lang!==2||list.children.every(li=>/[\u1000-\u109f]/.test(li.children[0].children[1].textContent)));
+  assert.equal(host.children[1].children[0].value,device);
+ }
+ console.log('PASS: Settings Myanmar subtitles and illustrated installation steps, 18 device/locale combinations (mock DOM)');
+}
