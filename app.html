@@ -20700,6 +20700,19 @@ function goalCopyTextV263(base,el,locale=lang){
  return base;
 }
 
+// V2.0.68: Personal Settings fixed copy only; never translate account or member data.
+function personalSettingsCopyV268(base,el,locale){
+ if(!['zh','my'].includes(locale))return null;
+ const i=locale==='zh'?0:1;
+ if(el.matches('#settings .st-row > span:nth-child(2)')&&base==='Default display currency')return ['默认显示货币','မူလပြသမည့် ငွေကြေး'][i];
+ if(el.matches('#settings .st-note')&&base==='Amounts always display two decimal places. Investment quantities and original stored values retain their precision.')return ['金额始终显示两位小数。投资数量及原始存储值保留原有精度。','ငွေပမာဏကို ဒသမ နှစ်နေရာဖြင့် အမြဲပြသသည်။ ရင်းနှီးမြှုပ်နှံမှု အရေအတွက်နှင့် သိမ်းထားသော မူလတန်ဖိုးများ၏ တိကျမှုကို ထိန်းသိမ်းထားသည်။'][i];
+ if(el.matches('#settings .mmh-session-actions-v1 button')){
+  if(base==='Sign out other devices')return ['退出其他设备','အခြားစက်များမှ ထွက်ရန်'][i];
+  if(base==='Sign out all devices')return ['退出所有设备','စက်အားလုံးမှ ထွက်ရန်'][i];
+ }
+ if(el.matches('#settings .mmh-session-actions-v1 .security-password-note-v379')&&base==='Signing out other devices keeps this device signed in. “Sign out all devices” also signs out this device.')return ['退出其他设备不会退出当前设备；“退出所有设备”也会退出当前设备。','အခြားစက်များမှ ထွက်လျှင် ဤစက်တွင် ဆက်လက်ဝင်ထားမည်။ “စက်အားလုံးမှ ထွက်ရန်” သည် ဤစက်မှလည်း ထွက်မည်။'][i];
+ return null;
+}
 const mmhI18nTextStateV135=new WeakMap();
 function translateTextNode(n){
   if(!n||n.nodeType!==Node.TEXT_NODE)return;
@@ -20725,7 +20738,7 @@ function translateTextNode(n){
     rec={base:current,last:current};
   }
 
-  const desired=recurringCopySurfaceV264(parent)?recurringCopyTextV264(rec.base,lang):goalCopySurfaceV263(parent)?goalCopyTextV263(rec.base,parent):parent.closest('#budget')?budgetCopyTextV262(rec.base,parent):txUiSurfaceV2(parent)?txUiTextV2(rec.base):lang==='zh'?(myWorkspaceUiV2(parent)&&Object.prototype.hasOwnProperty.call(zhWorkspaceV2,rec.base)?zhWorkspaceV2[rec.base]:translateDynamicText(rec.base)):lang==='my'?myWorkspaceTextV2(rec.base,parent):rec.base;
+  const desired=personalSettingsCopyV268(rec.base,parent,lang)??(recurringCopySurfaceV264(parent)?recurringCopyTextV264(rec.base,lang):goalCopySurfaceV263(parent)?goalCopyTextV263(rec.base,parent):parent.closest('#budget')?budgetCopyTextV262(rec.base,parent):txUiSurfaceV2(parent)?txUiTextV2(rec.base):lang==='zh'?(myWorkspaceUiV2(parent)&&Object.prototype.hasOwnProperty.call(zhWorkspaceV2,rec.base)?zhWorkspaceV2[rec.base]:translateDynamicText(rec.base)):lang==='my'?myWorkspaceTextV2(rec.base,parent):rec.base);
   if(current!==desired){
     const raw=n.nodeValue;
     const lead=raw.match(/^\s*/)?.[0]||'',tail=raw.match(/\s*$/)?.[0]||'';
