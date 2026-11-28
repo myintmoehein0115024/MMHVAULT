@@ -21,6 +21,10 @@ on:
       - '.github/workflows/landing-release-check.yml'
 permissions:
   contents: read
+env:
+  MMH_GATE_EVENT: ${{ github.event_name }}
+  MMH_GATE_HEAD: ${{ github.head_ref }}
+  MMH_GATE_BASE: ${{ github.event.pull_request.base.sha }}
 jobs:
   preflight:
     name: Static SEO/Auth/PWA preservation
@@ -32,12 +36,24 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
+      - name: Verify release scope (fail closed)
+        id: scope
+        run: |
+          MODE="$(node landing-assets/personal-v271-release-scope.cjs)"
+          case "$MODE" in legacy|personal-v271) ;; *) exit 1 ;; esac
+          echo "mode=$MODE" >> "$GITHUB_OUTPUT"
       - name: JavaScript syntax
         run: node --check landing-assets/landing.js
       - name: Public information language script syntax
         run: node --check landing-assets/public-pages.js
       - name: Release invariants
+        if: steps.scope.outputs.mode == 'legacy'
         run: node landing-assets/landing-release-check.cjs
+      - name: V2 Personal SEO, Auth, PWA and protected scope invariants
+        if: steps.scope.outputs.mode == 'personal-v271'
+        run: |
+          node --check landing-assets/personal-v271-public-browser.cjs
+          node tests/personal-settings-currency-v265.mjs
 
   browser-qa:
     name: Public responsive browser QA (no auth)
@@ -45,18 +61,38 @@ jobs:
     timeout-minutes: 12
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
+      - name: Verify release scope (fail closed)
+        id: scope
+        run: |
+          MODE="$(node landing-assets/personal-v271-release-scope.cjs)"
+          case "$MODE" in legacy|personal-v271) ;; *) exit 1 ;; esac
+          echo "mode=$MODE" >> "$GITHUB_OUTPUT"
       - name: Install test-only browser driver
+        if: steps.scope.outputs.mode == 'legacy'
         run: npm install --no-save --no-package-lock --no-audit --no-fund playwright-core@1.56.1
       - name: Run six-size Landing and public-page browser regression
+        if: steps.scope.outputs.mode == 'legacy'
         run: |
           python3 -m http.server 8765 --bind 127.0.0.1 >/tmp/mmhvault-landing-http.log 2>&1 &
           SERVER_PID=$!
           trap 'kill "$SERVER_PID"' EXIT
           sleep 2
           node landing-assets/landing-browser-check.cjs
+      - name: Install V2 isolated Chromium driver
+        if: steps.scope.outputs.mode == 'personal-v271'
+        run: |
+          npm install --no-save --no-package-lock --no-audit --no-fund --ignore-scripts playwright@1.51.1
+          npx playwright install --with-deps chromium
+      - name: V2 public homepage, PWA and all informational routes (Chromium)
+        if: steps.scope.outputs.mode == 'personal-v271'
+        run: |
+          node tests/personal-settings-install-browser-v265.mjs
+          node landing-assets/personal-v271-public-browser.cjs
       - name: Upload public-only visual snapshots
         if: always()
         uses: actions/upload-artifact@v4
@@ -74,17 +110,39 @@ jobs:
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
+      - name: Verify release scope (fail closed)
+        id: scope
+        run: |
+          MODE="$(node landing-assets/personal-v271-release-scope.cjs)"
+          case "$MODE" in legacy|personal-v271) ;; *) exit 1 ;; esac
+          echo "mode=$MODE" >> "$GITHUB_OUTPUT"
       - name: Install isolated WebKit test driver
+        if: steps.scope.outputs.mode == 'legacy'
         run: |
           npm install --no-save --no-package-lock --no-audit --no-fund playwright-core@1.56.1
           node node_modules/playwright-core/cli.js install webkit
       - name: Run native macOS WebKit public-only desktop regression
+        if: steps.scope.outputs.mode == 'legacy'
         run: |
           python3 -m http.server 8765 --bind 127.0.0.1 >/tmp/mmhvault-safari-http.log 2>&1 &
           SERVER_PID=$!
           trap 'kill "$SERVER_PID"' EXIT
           sleep 2
           node landing-assets/landing-webkit-check.cjs
+      - name: Install V2 isolated macOS WebKit driver
+        if: steps.scope.outputs.mode == 'personal-v271'
+        run: |
+          npm install --no-save --no-package-lock --no-audit --no-fund --ignore-scripts playwright@1.51.1
+          npx playwright install webkit
+      - name: V2 public homepage, PWA and all informational routes (macOS WebKit)
+        if: steps.scope.outputs.mode == 'personal-v271'
+        env:
+          MMH_SETTINGS_BROWSER: webkit
+        run: |
+          node tests/personal-settings-install-browser-v265.mjs
+          node landing-assets/personal-v271-public-browser.cjs
