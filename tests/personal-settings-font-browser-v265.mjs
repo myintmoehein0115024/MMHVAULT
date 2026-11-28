@@ -92,7 +92,7 @@ try{
   assert(response.ok,folder+' pinned asset HTTP '+response.status);
   const bytes=Buffer.from(await response.arrayBuffer());
   assert(bytes.length>0&&bytes.length<=40*1024*1024,folder+' asset size bounds');
-  const actual=createHash('sha1').update('blob '+bytes.length+'\\0').update(bytes).digest('hex');
+  const actual=createHash('sha1').update('blob '+bytes.length+'\0').update(bytes).digest('hex');
   assert.equal(actual,expected,folder+' exact Git blob hash');
   const fixture=await browser.newContext({viewport:{width:768,height:400}});
   try{
