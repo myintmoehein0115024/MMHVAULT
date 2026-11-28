@@ -328,3 +328,21 @@ assert(invScript265.includes("querySelectorAll('.inv-fx-ref-v265').forEach(n=>n.
 assert(invScript265.includes("cell(key,'Crypto','USD')+cell(key,'Gold','MMK')"));
 assert(app.includes('id="invDisplayPickerV265"'));assert(app.includes('id="mmhvault-inv-display-picker-v265-style"'));
 console.log('PASS: Investment native KPI references, missing rates, signed values, independent settings, owner guard and reset');
+
+/* Holding-card presentation reuses the verified native overview and owner-scoped FX helper. */
+const holdingLine265=invScript265.match(/const holdingRef=.*?;\n/);
+assert(holdingLine265);
+const holdingFactory265=new Function('nativeReady','nativeMetrics','gold','native','owner','invReferenceV265',holdingLine265[0]+'return holdingRef');
+const holdingMetrics265={Gold:{cost:10,value:null,unreal:null},Crypto:{cost:0,value:0,unreal:0}};
+const holdingReference265=(n,c,o)=>n+'/'+c+'/'+o;
+assert.equal(holdingFactory265(true,holdingMetrics265,true,'MMK','a',holdingReference265)(10,'cost'),'10/MMK/a');
+assert.equal(holdingFactory265(true,holdingMetrics265,true,'MMK','a',holdingReference265)(null,'value'),'');
+assert.equal(holdingFactory265(false,holdingMetrics265,false,'USD','a',holdingReference265)(1,'cost'),'');
+assert.equal(holdingFactory265(true,holdingMetrics265,false,'USD','a',holdingReference265)(0,'unreal'),'0/USD/a');
+assert(invScript265.includes("holdingRef(x.cost,'cost')"));
+assert(invScript265.includes("holdingRef(current,'value')"));
+assert(invScript265.includes("holdingRef(pnl,'unreal')"));
+assert(invScript265.includes("el('mmhUnifiedListV1')?.querySelectorAll('.inv-fx-ref-v265').forEach(n=>n.remove())"));
+assert(invScript265.includes("cash(x.cost/x.quantity,native,6)+' / '+safe(unit)"));
+assert(invScript265.includes("cash(x.price,native,6)+' / '+safe(unit)"));
+console.log('PASS: Investment holding-card reference guards, native unit retention and owner-switch clearing');
