@@ -473,3 +473,34 @@ console.log('PASS: 53-code shared display registry, additional FX, missing rates
  uid='cf-fx-b';assert.equal(adapter.read(),null);
  console.log('PASS: active Cash Flow registry parity, unavailable FX, unchanged native amounts and owner/epoch isolation');
 }
+
+{
+ const start=app.indexOf('  const reportCodesV265='),end=app.indexOf('  function fx(c){',start);
+ assert(start>=0&&end>start);
+ let uid='report-a';const values=new Map(),store={getItem:k=>values.get(k)||null};
+ const codes=JSON.parse(app.match(/MMHPersonalDisplayCurrenciesV265=Object\.freeze\((\[[^\n]*?\])\)/)[1]);
+ const win={MMHPersonalDisplayCurrenciesV265:codes,MMHExchangeEffectiveFXV2:{getUsdRate:c=>({JPY:150,AUD:0,EGP:-1})[c]}};
+ const api=new Function('window','localStorage','getOwner',"const currentSessionUser={get id(){return getOwner()}};const state={currency:'USD'},money=(v,c)=>c+' '+v;"+app.slice(start,end)+';return {prefsCurrency,displayRateReportV265,formatReportV265,reportCodesV265};')(win,store,()=>uid);
+ values.set('mmhvault_settings_display_v2_report-a',JSON.stringify({currency:'JPY'}));
+ assert.equal(api.prefsCurrency(),'JPY');
+ assert(codes.every(c=>api.reportCodesV265().includes(c)));
+ assert(['GBP','CAD','CHF','NZD'].every(c=>api.reportCodesV265().includes(c)));
+ assert.equal(api.formatReportV265(2,'JPY'),'JPY 300');
+ assert.equal(api.formatReportV265(0,'JPY'),'JPY 0');
+ assert.equal(api.formatReportV265(null,'JPY'),'—');
+ assert.equal(api.formatReportV265(2,'AUD'),'—');
+ assert.equal(api.formatReportV265(2,'EGP'),'—');
+ assert.equal(api.formatReportV265(2,'ZZZ'),'—');
+ values.set('mmhvault_personal_display_currency_v265_report-a_report','USD');
+ assert.equal(api.prefsCurrency(),'USD');
+ values.set('mmhvault_personal_display_currency_v265_report-a_report','GLOBAL');
+ assert.equal(api.prefsCurrency(),'JPY');
+ uid='report-b';assert.equal(api.prefsCurrency(),'USD');
+ uid='';assert.equal(api.formatReportV265(2,'JPY'),'—');
+ const legacy=app.match(/<script id="mmhvault-monthly-report-v115-js">([\s\S]*?)<\/script>/)[1];
+ new Function(legacy);
+ assert(legacy.includes("const f=fx(b.currency)"));
+ assert(legacy.includes("target=f>0?num(g.target_amount)/f:null"));
+ assert(app.includes("return window.mmhLegacyReportDisplayV265?.(usd,code)||'—';"));
+ console.log('PASS: legacy Report display preference, effective FX, unavailable goal/source amounts and signal formatting');
+}
