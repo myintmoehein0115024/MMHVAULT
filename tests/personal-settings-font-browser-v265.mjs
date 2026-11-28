@@ -220,8 +220,8 @@ try{
   assert.match(await guide.locator('li').first().textContent(),/full Chrome/);
   const lang=async l=>p.evaluate(v=>{localStorage.setItem('mmhvault_language_v3363',v);document.documentElement.lang=v;dispatchEvent(new Event('mmhvault-language-change'))},l);
   await lang('zh');assert.equal(await picker.inputValue(),'android-chrome');assert(await picker.evaluate(el=>document.activeElement===el));
-  const artwork={ios:'ios','ios-other':'ios',ipad:'ipad','ipad-other':'ipad','android-chrome':'android-chrome','android-other':'android-chrome','desktop-chrome':'desktop','desktop-edge':'desktop'};
-  const devices=['ios','ios-other','ipad','ipad-other','android-chrome','android-firefox','android-other','desktop','desktop-chrome','desktop-edge','desktop-safari'];
+  const artwork={"ios":"ios","ios-other":"ios","ipad":"ipad","ipad-other":"ipad","android-chrome":"android-chrome","android-firefox":"android-chrome","android-other":"android-chrome","android-tablet-chrome":"ipad","android-tablet-firefox":"ipad","android-tablet-other":"ipad","tablet-other":"ipad","desktop":"desktop","desktop-chrome":"desktop","desktop-edge":"desktop","desktop-safari":"desktop"};
+  const devices=["ios","ios-other","ipad","ipad-other","android-chrome","android-firefox","android-other","android-tablet-chrome","android-tablet-firefox","android-tablet-other","tablet-other","desktop","desktop-chrome","desktop-edge","desktop-safari"];
   const locales=[['en','Your device & browser'],['zh','您的设备与浏览器'],['my','သင့်စက်နှင့် ဘရောက်ဇာ']];
   for(const [l,label] of locales){
    await lang(l);assert((await guide.locator('label').textContent()).includes(label));
@@ -264,7 +264,7 @@ try{
   await p.evaluate(()=>{window.syntheticStandalone=true;dispatchEvent(new Event('mmhvault-language-change'))});
   assert.equal(await guide.locator('li').count(),0);assert(await guide.locator('p').isVisible());
   assert.deepEqual(errors,[]);
-  console.log('PASS: installation guide isolated Chromium WebP/SVG, 33 device/locale and '+cases+' responsive theme/locale cases, focus, Custom Tab and simulated standalone');
+  console.log('PASS: installation guide isolated Chromium WebP, 45 device/locale and '+cases+' responsive theme/locale cases, focus, Custom Tab and simulated standalone');
  }finally{await installContext.close()}
  // Candidate-only test: pinned upstream assets, hash checked before isolated rendering.
  // No font files are committed, no application runtime requests are introduced.
