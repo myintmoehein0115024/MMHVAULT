@@ -29216,8 +29216,10 @@ function add(r,icon,label,name,options){const id='stPref_'+name;r.append(row(ico
 const fontStylesV265=Object.freeze(['system','modern','elegant','minimal','digital','soft','bold']);
 const fontStacksV265=Object.freeze({
  en:['system-ui','"Inter", "Segoe UI", sans-serif','Georgia, "Times New Roman", serif','"Helvetica Neue", Arial, sans-serif','"SF Mono", Consolas, monospace','"Nunito", "Trebuchet MS", sans-serif','"Montserrat", "Arial Black", sans-serif'],
- zh:['system-ui','"Source Han Sans SC", "Noto Sans CJK SC", sans-serif','"Source Han Serif SC", "Noto Serif CJK SC", "Songti SC", SimSun, serif','"LXGW WenKai", "Kaiti SC", KaiTi, serif','"QingKe HuangYou", "ZCOOL QingKe HuangYou", "Heiti SC", sans-serif','"Smiley Sans", "PingFang SC", sans-serif','"Zhuque Fangsong", "FangSong", STFangsong, serif'],
- my:['system-ui','"Noto Sans Myanmar", "Myanmar Text", sans-serif','"Noto Serif Myanmar", "Myanmar Text", serif','Padauk, "Myanmar Text", sans-serif','Pyidaungsu, "Myanmar Text", sans-serif','Myanmar3, "Myanmar Text", sans-serif','Tharlon, "Myanmar Text", sans-serif']
+ // Reserved same-origin pack family names; no @font-face or network request
+ // is registered here. Until a reviewed pack is present, device fallbacks remain.
+ zh:['system-ui','"MMH Personal Chinese A", "Source Han Sans SC", "Noto Sans CJK SC", sans-serif','"MMH Personal Chinese B", "Source Han Serif SC", "Noto Serif CJK SC", "Songti SC", SimSun, serif','"MMH Personal Chinese D", "LXGW WenKai", "Kaiti SC", KaiTi, serif','"MMH Personal Chinese C", "QingKe HuangYou", "ZCOOL QingKe HuangYou", "Heiti SC", sans-serif','"Smiley Sans", "PingFang SC", sans-serif','"Zhuque Fangsong", "FangSong", STFangsong, serif'],
+ my:['system-ui','"MMH Personal Myanmar A", "Noto Sans Myanmar", "Myanmar Text", sans-serif','"MMH Personal Myanmar B", "Noto Serif Myanmar", "Myanmar Text", serif','"MMH Personal Myanmar C", Padauk, "Myanmar Text", sans-serif','Pyidaungsu, "Myanmar Text", sans-serif','Myanmar3, "Myanmar Text", sans-serif','"MMH Personal Myanmar D", Tharlon, "Myanmar Text", sans-serif']
 });
 function fontLanguageV265(lang){return /^zh/i.test(lang||'')?'zh':/^(my|mm)/i.test(lang||'')?'my':'en'}
 function fontChoiceV265(value){return fontStylesV265.includes(value)?value:'system'}
@@ -29233,7 +29235,7 @@ function applyFontV265(){const lang=activeFontLanguageV265(),key=fontKeyV265(pre
  const body=document.body;if(choice==='system'){body.removeAttribute('data-mmh-personal-font-v265');body.style.removeProperty('--mmh-personal-font-v265')}else{body.setAttribute('data-mmh-personal-font-v265',choice);body.style.setProperty('--mmh-personal-font-v265',stack)}
  const select=$('stPref_fontV265'),copy=fontCopyV265[lang];if(!select)return;
  $('stFontLabelV265').textContent=copy[0];for(let i=0;i<fontStylesV265.length;i++)select.options[i].textContent=copy[i+1];select.value=choice;select.disabled=!key;
- $('stFontPreviewV265').textContent=copy[8];$('stFontPreviewV265').style.fontFamily=stack;
+ $('stFontPreviewV265').textContent=copy[8];
  $('stFontNoteV265').textContent=copy[9];$('stFontStatusV265').textContent='';
 }
 function addFontV265(r){const holder=row('Aa','Font style','stPref_fontV265',fontStylesV265.map((v,i)=>[v,fontCopyV265.en[i+1]]),'system');holder.id='stFontRowV265';holder.setAttribute('data-mmh-font-copy-v265','');holder.children[1].id='stFontLabelV265';r.append(holder);
@@ -29299,7 +29301,8 @@ html body.mmh-workspace-active:not(.auth-page-active)[data-mmh-personal-font-v26
 /* Account detail legacy rule hardcodes system-ui; override only while a Personal font is selected. */
 html body.mmh-workspace-active:not(.auth-page-active)[data-mmh-personal-font-v265] #mmhVaultDialogV449#mmhVaultDialogV449 .mmh-account-detail-v148 :is(.mmh-tx-detail-amount-v800,.mmh-tx-detail-hero-v800 h2,.mmh-account-balance-card-v149 b){font-family:var(--mmh-personal-font-v265)!important}
 #settings #stFontRowV265 select{min-width:0;max-width:100%;min-height:44px}
-#settings #stFontPreviewV265{padding:12px 10px;text-align:center;line-height:1.65;overflow-wrap:anywhere;font-size:16px;border:1px solid var(--wv-border, #64748b66);border-radius:8px}
+#settings #stFontPreviewV265{font-family:system-ui;padding:12px 10px;text-align:center;line-height:1.65;overflow-wrap:anywhere;font-size:16px;border:1px solid var(--wv-border, #64748b66);border-radius:8px}
+html body.mmh-workspace-active:not(.auth-page-active)[data-mmh-personal-font-v265] #settings #stFontPreviewV265{font-family:var(--mmh-personal-font-v265)!important}
 #settings #stFontNoteV265,#settings #stFontStatusV265{margin:0;padding:4px 8px;line-height:1.55;overflow-wrap:anywhere}
 #settings #stFontStatusV265:empty{display:none}
 </style>
