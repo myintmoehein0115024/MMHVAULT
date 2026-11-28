@@ -26165,6 +26165,10 @@ window.MMHBalanceBridgeV202=Object.freeze({current,kind,movements});
       if(!current())return;
       if(budget?.error)throw budget.error;if(goals?.error)throw goals.error;if(recurring?.error)throw recurring.error;
       if(!budget||!Object.prototype.hasOwnProperty.call(budget,'data')||(budget.data!==null&&(typeof budget.data!=='object'||Array.isArray(budget.data)||budget.data.budget_month!==month+'-01'))||!Array.isArray(goals?.data)||!Array.isArray(recurring?.data))throw new Error('Invalid report source response');
+      if(budget.data!==null){
+        const code=String(budget.data.currency??''),amount=budget.data.monthly_amount;
+        if(!/^[A-Za-z]{3}$/.test(code)||!(typeof amount==='number'||typeof amount==='string'&&amount.trim()!=='')||!Number.isFinite(Number(amount))||Number(amount)<0)throw new Error('Invalid monthly budget row');
+      }
       state.budget=budget.data;state.goals=goals.data;state.recurring=recurring.data;state.lastCloudKey=key;state.lastCloudAt=Date.now();
     }catch(err){if(!current())return;state.cloudDirty=true;console.warn('[MMHVAULT] report cloud load failed',err);if(owner)window.MMHUI?.message?.(err?.message||'Unable to load report cloud data.','Financial Report',{type:'error'})}
     finally{if(current()){state.loading=false;state.loadKey='';render()}else if(request===state.request){invalidateCloudV265();render()}}
@@ -36962,7 +36966,7 @@ html body #settings.page.active #stPage_security #mmhA783SecurityCenter .mmh-a78
 <!-- Accounts Premium Directory V1: presentation-only, late cascade, isolated from finance/auth. -->
 <link rel="stylesheet" href="css/mmhvault-accounts-directory-v1.css?v=1.0.1" data-mmh-accounts-directory="v1">
 <script defer src="js/mmhvault-accounts-directory-v1.js?v=2.1.0"></script>
-<script defer src="js/mmhvault-report-period-v201.js?v=2.0.65.2"></script>
+<script defer src="js/mmhvault-report-period-v201.js?v=2.0.65.3"></script>
 <script type="module" id="mmh-exchange-v2-staging-loader">
 /* Release candidate: production flags remain OFF until explicit approval.
    The isolated QA host may mount V2 only against Staging. */
