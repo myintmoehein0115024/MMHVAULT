@@ -1,0 +1,16 @@
+{
+  "axes": [],
+  "candidate": "padauk",
+  "codepoints": 524,
+  "family": "MMH Personal Myanmar C",
+  "license": "OFL-1.1",
+  "license_git_blob": "57410e8e9eb58b0cce938440696cf36e2daf8fcf",
+  "output_bytes": 95220,
+  "output_sha256": "40771947d079136681e6d07e89745137a26d34bd75947c13ac26ce19ddd2b589",
+  "source_bytes": 498860,
+  "source_file": "Padauk-Regular.ttf",
+  "source_git_blob": "a6882fbb2177bec0271a0b10821a33100efe1fc7",
+  "source_revision": "5026800714d07231937d92eb4cceabf06e05d74e",
+  "status": "candidate-only; visual and redistribution review required",
+  "weight": "400"
+}

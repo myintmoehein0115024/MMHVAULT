@@ -1,0 +1,16 @@
+{
+  "axes": [],
+  "candidate": "notoserifmyanmar",
+  "codepoints": 239,
+  "family": "MMH Personal Myanmar B",
+  "license": "OFL-1.1",
+  "license_git_blob": "94d1bf7b52481343e2983fb7751e8b7abe1ea07b",
+  "output_bytes": 73972,
+  "output_sha256": "883142e6294a1483eb62f3cf7828f0cd1b7aba2a34d81f52c536ac0b9c9462b4",
+  "source_bytes": 260396,
+  "source_file": "NotoSerifMyanmar-Regular.ttf",
+  "source_git_blob": "86adf96a587b326f5961b9550d54029608bdc760",
+  "source_revision": "5026800714d07231937d92eb4cceabf06e05d74e",
+  "status": "candidate-only; visual and redistribution review required",
+  "weight": "400"
+}

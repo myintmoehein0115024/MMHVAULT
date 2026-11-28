@@ -1,0 +1,29 @@
+{
+  "axes": [
+    [
+      "wght",
+      100.0,
+      400.0,
+      900.0
+    ],
+    [
+      "wdth",
+      62.5,
+      100.0,
+      100.0
+    ]
+  ],
+  "candidate": "notosansmyanmar",
+  "codepoints": 564,
+  "family": "MMH Personal Myanmar A",
+  "license": "OFL-1.1",
+  "license_git_blob": "c94c47416f38b8ddec9f3fbc9e0241998d7823dc",
+  "output_bytes": 359472,
+  "output_sha256": "87b499fc7d9f87d6c0a59ee7ece560d17584d525c50cf177d20b0941c670283b",
+  "source_bytes": 784832,
+  "source_file": "NotoSansMyanmar[wdth,wght].ttf",
+  "source_git_blob": "a7af8e405d24076f2930c0840523110b3236560b",
+  "source_revision": "5026800714d07231937d92eb4cceabf06e05d74e",
+  "status": "candidate-only; visual and redistribution review required",
+  "weight": "100 900"
+}

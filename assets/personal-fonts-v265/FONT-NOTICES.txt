@@ -1,0 +1,68 @@
+MMHVAULT Personal font candidate notices
+Isolated QA only; not approved for distribution.
+Each candidate retains its exact upstream OFL.txt.
+
+MMH Personal Chinese D
+Source: https://github.com/lxgw/LxgwWenKai/tree/f4cc16fa07f7d115135d203065e711d43c3076d3
+Original file: fonts/TTF/LXGWWenKai-Regular.ttf
+Original license: OFL.txt
+Local notice: lxgwwenkai/OFL.txt
+Modification: neutral family rename; WOFF2 conversion and Unicode partitioning
+Reserved source names: 霞鹜, 霞鶩, 落霞孤鹜, 落霞孤鶩, LXGW
+
+MMH Personal Myanmar A
+Source: https://github.com/google/fonts/tree/5026800714d07231937d92eb4cceabf06e05d74e
+Original file: ofl/notosansmyanmar/NotoSansMyanmar[wdth,wght].ttf
+Original license: ofl/notosansmyanmar/OFL.txt
+Local notice: notosansmyanmar/OFL.txt
+Modification: neutral family rename; WOFF2 conversion
+Reserved source names: none declared in pinned header
+
+MMH Personal Chinese A
+Source: https://github.com/google/fonts/tree/5026800714d07231937d92eb4cceabf06e05d74e
+Original file: ofl/notosanssc/NotoSansSC[wght].ttf
+Original license: ofl/notosanssc/OFL.txt
+Local notice: notosanssc/OFL.txt
+Modification: neutral family rename; WOFF2 conversion and Unicode partitioning
+Reserved source names: Source
+
+MMH Personal Myanmar B
+Source: https://github.com/google/fonts/tree/5026800714d07231937d92eb4cceabf06e05d74e
+Original file: ofl/notoserifmyanmar/NotoSerifMyanmar-Regular.ttf
+Original license: ofl/notoserifmyanmar/OFL.txt
+Local notice: notoserifmyanmar/OFL.txt
+Modification: neutral family rename; WOFF2 conversion
+Reserved source names: none declared in pinned header
+
+MMH Personal Chinese B
+Source: https://github.com/google/fonts/tree/5026800714d07231937d92eb4cceabf06e05d74e
+Original file: ofl/notoserifsc/NotoSerifSC[wght].ttf
+Original license: ofl/notoserifsc/OFL.txt
+Local notice: notoserifsc/OFL.txt
+Modification: neutral family rename; WOFF2 conversion and Unicode partitioning
+Reserved source names: none declared in pinned header
+
+MMH Personal Myanmar C
+Source: https://github.com/google/fonts/tree/5026800714d07231937d92eb4cceabf06e05d74e
+Original file: ofl/padauk/Padauk-Regular.ttf
+Original license: ofl/padauk/OFL.txt
+Local notice: padauk/OFL.txt
+Modification: neutral family rename; WOFF2 conversion
+Reserved source names: Padauk, Namkio, Deemawso
+
+MMH Personal Myanmar D
+Source: https://github.com/google/fonts/tree/5026800714d07231937d92eb4cceabf06e05d74e
+Original file: ofl/tharlon/Tharlon-Regular.ttf
+Original license: ofl/tharlon/OFL.txt
+Local notice: tharlon/OFL.txt
+Modification: neutral family rename; WOFF2 conversion
+Reserved source names: Yunghkio, Arimo, TharLon
+
+MMH Personal Chinese C
+Source: https://github.com/google/fonts/tree/5026800714d07231937d92eb4cceabf06e05d74e
+Original file: ofl/zcoolqingkehuangyou/ZCOOLQingKeHuangYou-Regular.ttf
+Original license: ofl/zcoolqingkehuangyou/OFL.txt
+Local notice: zcoolqingkehuangyou/OFL.txt
+Modification: neutral family rename; WOFF2 conversion and Unicode partitioning
+Reserved source names: none declared in pinned header
+

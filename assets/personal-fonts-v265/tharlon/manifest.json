@@ -1,0 +1,16 @@
+{
+  "axes": [],
+  "candidate": "tharlon",
+  "codepoints": 386,
+  "family": "MMH Personal Myanmar D",
+  "license": "OFL-1.1",
+  "license_git_blob": "6ef7b18ea7f5b430f10160034ecdcd0295335954",
+  "output_bytes": 85420,
+  "output_sha256": "b62f22c72deebb8fbf879e6162bef1df8e047a3969e57a7068a96bcc7ac7fbe8",
+  "source_bytes": 353228,
+  "source_file": "Tharlon-Regular.ttf",
+  "source_git_blob": "d3840f3ccd173b3da87e0ed476d33027ad880490",
+  "source_revision": "5026800714d07231937d92eb4cceabf06e05d74e",
+  "status": "candidate-only; visual and redistribution review required",
+  "weight": "400"
+}

@@ -1,0 +1,2 @@
+# Preserve the exact bytes verified by the Personal font manifest.
+personal-fonts-v265/** -text

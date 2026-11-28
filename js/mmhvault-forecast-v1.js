@@ -71,6 +71,8 @@
   "Daily ": "နေ့စဉ် ",
   "Change currency, currently ": "ငွေကြေးပြောင်းရန်၊ လက်ရှိ ",
   "Currency": "ငွေကြေး",
+  "Follow default": "မူလငွေကြေးအတိုင်း",
+  "Default": "မူလ",
   "Income": "ဝင်ငွေ",
   "Expenses & transfers": "အသုံးစရိတ်နှင့် ငွေလွှဲ",
   "Month ": "လ ",
@@ -218,7 +220,7 @@
  const fmt=n=>Number(n).toLocaleString(isZh()?'zh-CN':'en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
  const usd=n=>`${fmt(n)} U`;
  const signed=n=>`${n>=0?'+':'−'}${usd(Math.abs(n))}`;
- const displayRate=fx=>{const c=state?.viewCurrency||'USD';return c==='USD'?1:Number(fx?.[c])};
+ const displayRate=fx=>{const c=state?.viewCurrency||'USD';if(c==='USD')return 1;if(validCcy(c))return Number(fx?.[c]);if(!validViewCcy(c)||!activeOwner||activeOwner!==owner())return NaN;try{const n=window.MMHExchangeEffectiveFXV2?.getUsdRate?.(c);return typeof n==='number'&&Number.isFinite(n)&&n>0?n:NaN}catch(_){return NaN}};
  const validDisplayRate=fx=>{const n=displayRate(fx);return Number.isFinite(n)&&n>0};
  const displayMoney=(n,fx)=>{const c=state?.viewCurrency||'USD',rate=displayRate(fx);return Number.isFinite(n)&&validDisplayRate(fx)?`${fmt(n*rate)} ${c==='USD'?'U':c}`:'—'};
  const displaySigned=(n,fx)=>{const value=displayMoney(Math.abs(n),fx);return Number.isFinite(n)&&value!=='—'?`${n>=0?'+':'−'}${value}`:'—'};
@@ -227,6 +229,27 @@
  const localKey=id=>STORAGE+id;
  const defaultState=()=>({base:Object.fromEntries(FIELDS.filter(f=>f.base).map(f=>[f.key,f.def])),baseCurrencies:Object.fromEntries(FIELDS.filter(f=>f.base).map(f=>[f.key,f.ccy])),disabledBase:[],customItems:[],targetSavingsRate:60,months:{},monthCurrencies:{},end:'',dailyMonth:'',rate:null,fxOverrides:{},viewCurrency:'USD',salaryConfigured:false});
  const validCcy=c=>CURRENCIES.includes(c);
+ // View preference is independent of scenario inputs and their explicit save action.
+ const viewCodes=()=>typeof window!=='undefined'&&Array.isArray(window.MMHPersonalDisplayCurrenciesV265)?window.MMHPersonalDisplayCurrenciesV265:CURRENCIES;
+ const validViewCcy=c=>viewCodes().includes(c);
+ const viewKey=id=>'mmhvault_forecast_display_currency_v265_'+id;
+ let viewChoice='GLOBAL';
+ function readViewChoice(id){
+  if(!id)return 'GLOBAL';
+  try{const choice=localStorage.getItem(viewKey(id));if(choice==='GLOBAL'||validViewCcy(choice))return choice;
+   const raw=JSON.parse(localStorage.getItem(localKey(id))||'null');return [1,2,3].includes(raw?.version)&&validViewCcy(raw.viewCurrency)?raw.viewCurrency:'GLOBAL';
+  }catch(_){return 'GLOBAL'}
+ }
+ function defaultViewCurrency(id){
+  if(!id)return 'USD';
+  try{const code=JSON.parse(localStorage.getItem('mmhvault_settings_display_v2_'+id)||'{}')?.currency;return validViewCcy(code)?code:'USD'}catch(_){return 'USD'}
+ }
+ function resolveViewCurrency(id,choice){return id&&validViewCcy(choice)?choice:defaultViewCurrency(id)}
+ function setViewChoice(code){
+  if(!activeOwner||activeOwner!==owner()||!(code==='GLOBAL'||validViewCcy(code)))return false;
+  viewChoice=code;state.viewCurrency=resolveViewCurrency(activeOwner,viewChoice);
+  try{localStorage.setItem(viewKey(activeOwner),code);return true}catch(_){return false}
+ }
   const customToField=item=>({key:item.key,en:item.label,zh:item.label,def:0,ccy:item.currency,type:item.type,base:true});
   const allFields=()=>FIELDS.filter(f=>!f.base||!state.disabledBase.includes(f.key)).concat(state.customItems.map(customToField));
   const regularFields=()=>allFields().filter(f=>f.base);
@@ -241,7 +264,7 @@
    const raw=JSON.parse(localStorage.getItem(localKey(id))||'null');
    if(!raw||typeof raw!=='object'||![1,2,3].includes(raw.version))return defaultState();
    const next=defaultState();
-   next.viewCurrency=validCcy(raw.viewCurrency)?raw.viewCurrency:'USD';
+   next.viewCurrency=resolveViewCurrency(id,viewChoice);
     next.disabledBase=Array.isArray(raw.disabledBase)?[...new Set(raw.disabledBase.filter(k=>FIELD[k]?.base))]:[];
     if(Array.isArray(raw.customItems))for(const item of raw.customItems.slice(0,40)){
       if(!item||!/^custom_[a-z0-9_]{1,70}$/.test(String(item.key||''))||next.customItems.some(x=>x.key===item.key))continue;
@@ -286,10 +309,10 @@
   function save(){dirty=true;updateSaveStatus()}
   function persist(){
     if(!activeOwner||!state)return false;
-    try{localStorage.setItem(localKey(activeOwner),JSON.stringify({...state,version:3}));dirty=false;updateSaveStatus();return true}
+    try{localStorage.setItem(localKey(activeOwner),JSON.stringify({...state,viewCurrency:validViewCcy(viewChoice)?viewChoice:undefined,version:3}));dirty=false;updateSaveStatus();return true}
     catch(e){console.warn('[MMHVAULT Forecast] Storage unavailable',e);showWarning(tr('Could not save settings on this device. Check browser storage.','保存失败，请检查浏览器存储是否可用。'));return false}
   }
- function syncOwner(){const id=owner();if(id!==activeOwner){activeOwner=id;state=getState(id);dirty=false;lastFirst='';selectedMonth='';extraRate='JPY';modal='';modalReturn=[];modalOrigin='';monthScroll=0;if(!id)el('mmhDailyDashboardV13')?.remove()}}
+ function syncOwner(){const id=owner();if(id!==activeOwner){activeOwner=id;viewChoice=readViewChoice(id);state=getState(id);dirty=false;lastFirst='';selectedMonth='';extraRate='JPY';modal='';modalReturn=[];modalOrigin='';monthScroll=0;if(!id)el('mmhDailyDashboardV13')?.remove()}if(state)state.viewCurrency=resolveViewCurrency(id,viewChoice)}
  function active(){return !!el(PAGE)?.classList.contains('active')}
  function ratesNow(){
   const obj=window.rates||(typeof rates!=='undefined'?rates:null);
@@ -457,14 +480,15 @@
  }
  // A single compact money input: only the symbol is visible until activated.
  function currencyPickerHTML(kind,code,codes,label){
-  const flag=window.MMHCurrencyPickerV3?.flag?.(code)||'';
-  return `<details class="fc-shared-picker ${kind==='view'?'fc-view-picker':''}" data-fc-picker-kind="${kind}" ${kind==='view'?'id="fc-view-picker"':''}><summary class="${kind==='field'?'fc-currency-trigger':''}" aria-label="${esc(label+' · '+code)}" title="${esc(label)}"><span>${esc(flag+code)}</span><span aria-hidden="true">⌄</span></summary><div class="fc-shared-menu mmh-shared-currency-v3"><label>${esc(tr('Search currencies','搜索币种'))}</label><input type="search" autocomplete="off" aria-label="${esc(tr('Search currencies','搜索币种'))}" placeholder="${esc(tr('Currency code or name','币种代码或名称'))}"><div class="ap-currency-list-v2"></div><select hidden aria-hidden="true" tabindex="-1">${codes.map(c=>`<option value="${c}"${c===code?' selected':''}>${c}</option>`).join('')}</select></div></details>`;
+  const flag=window.MMHCurrencyPickerV3?.flag?.(code)||'',selected=kind==='view'?viewChoice:code;
+  const displayLabel=flag+code+(kind==='view'&&selected==='GLOBAL'?' · '+tr('Default','默认'):'');
+  return `<details class="fc-shared-picker ${kind==='view'?'fc-view-picker':''}" data-fc-picker-kind="${kind}" ${kind==='view'?'id="fc-view-picker"':''}><summary class="${kind==='field'?'fc-currency-trigger':''}" aria-label="${esc(label+' · '+displayLabel)}" title="${esc(label)}"><span>${esc(displayLabel)}</span><span aria-hidden="true">⌄</span></summary><div class="fc-shared-menu mmh-shared-currency-v3"><label>${esc(tr('Search currencies','搜索币种'))}</label><input type="search" autocomplete="off" aria-label="${esc(tr('Search currencies','搜索币种'))}" placeholder="${esc(tr('Currency code or name','币种代码或名称'))}"><div class="ap-currency-list-v2"></div><select hidden aria-hidden="true" tabindex="-1">${codes.map(c=>`<option value="${c}"${c===selected?' selected':''}>${c==='GLOBAL'?esc(tr('Follow default','跟随默认币种')):c}</option>`).join('')}</select></div></details>`;
  }
  function setupCurrencyPicker(picker){
   const group=picker.querySelector('.fc-shared-menu'),select=group.querySelector('select'),search=group.querySelector('input'),list=group.querySelector('.ap-currency-list-v2'),label=picker.querySelector('summary').getAttribute('aria-label');
   search.value='';
   if(window.MMHCurrencyPickerV3?.render){try{window.MMHCurrencyPickerV3.render({select,search,list,group,label});return}catch(error){console.warn('[MMHVAULT Forecast] shared picker unavailable',error)}}
-  const render=()=>{const q=search.value.trim().toLocaleLowerCase();list.replaceChildren();for(const o of select.options){if(![o.value,currencyName(o.value)].join(' ').toLocaleLowerCase().includes(q))continue;const b=document.createElement('button');b.type='button';b.dataset.apCurrency=o.value;b.setAttribute('aria-pressed',String(o.value===select.value));const a=document.createElement('span'),n=document.createElement('span');a.textContent=o.value;n.textContent=currencyName(o.value);b.append(a,n);list.append(b)}};
+  const render=()=>{const q=search.value.trim().toLocaleLowerCase();list.replaceChildren();for(const o of select.options){const name=o.value==='GLOBAL'?tr('Follow default','跟随默认币种'):currencyName(o.value);if(![o.value,name,o.value==='GLOBAL'?'Follow default':''].join(' ').toLocaleLowerCase().includes(q))continue;const b=document.createElement('button');b.type='button';b.dataset.apCurrency=o.value;b.setAttribute('aria-pressed',String(o.value===select.value));const a=document.createElement('span'),n=document.createElement('span');a.textContent=o.value==='GLOBAL'?name:o.value;n.textContent=o.value==='GLOBAL'?'':name;b.append(a,n);list.append(b)}};
   search.oninput=render;render();
  }
  function syncForecastOverlay(){const overlay=el(ROOT)?.querySelector('.fc-dialog-overlay');if(!overlay||typeof overlay.showPopover!=='function')return;const notice=el('mmhVaultDialogV449'),blocked=!!notice?.classList.contains('show');if(!overlay.hasAttribute('popover'))overlay.setAttribute('popover','manual');if(blocked){if(overlay.matches(':popover-open'))overlay.hidePopover();}else if(active()&&!overlay.matches(':popover-open'))overlay.showPopover();if(notice&&notice!==forecastNoticeNode){forecastNoticeObserver?.disconnect();forecastNoticeNode=notice;forecastNoticeObserver=new MutationObserver(syncForecastOverlay);forecastNoticeObserver.observe(notice,{attributes:true,attributeFilter:['class']});}}
@@ -546,7 +570,7 @@
   const target=`<div class="fc-rate-target"><label for="fc-savings-target">${tr('Savings rate target (%)','目标储蓄率 (%)')}</label><input id="fc-savings-target" type="number" min="0" max="100" step="0.1" inputmode="decimal" value="${state.targetSavingsRate}"></div>`;
   const fx=`<p class="fc-muted">${tr('1 USD/U equals the currency shown. Empty uses the saved Exchange rate if available; otherwise enter a local scenario rate.','每个汇率表示 1 U 兑换多少该币种；留空时使用可用的 Exchange 已保存汇率，否则请填写本地预测汇率。')}</p><div class="fc-fx-grid">${CORE_RATES.map(rateField).join('')}</div><div class="fc-extra-rate"><div class="fc-field"><span>${tr('Other currency','其他币种')}</span>${currencyPickerHTML('rate',extraRate,SCENARIO_CURRENCIES.filter(c=>!CORE_RATES.includes(c)),tr('Other currency','其他币种'))}</div>${rateField(extraRate)}</div>`;
   root.innerHTML=`<div class="fc-wrap"${modal?' inert':''}>
-    <header class="fc-head"><div><div class="fc-eyebrow">MMHVAULT · ${tr('FUTURE WEALTH PLANNER','未来资产预测')}</div><h1>${tr('Future Asset Forecast','未来资产预测')}</h1><p class="fc-muted">${tr('Forecast from next month, based on your current Dashboard assets.','从下个月起，使用 Dashboard 实时总资产逐月预测。')}</p></div><div class="fc-head-actions">${currencyPickerHTML('view',state.viewCurrency,CURRENCIES,tr('Forecast display currency','预测显示币种'))}${planningLinks()}<button type="button" class="fc-btn alt" data-fc-action="refresh">↻ ${tr('Refresh assets','刷新资产')}</button></div></header>
+    <header class="fc-head"><div><div class="fc-eyebrow">MMHVAULT · ${tr('FUTURE WEALTH PLANNER','未来资产预测')}</div><h1>${tr('Future Asset Forecast','未来资产预测')}</h1><p class="fc-muted">${tr('Forecast from next month, based on your current Dashboard assets.','从下个月起，使用 Dashboard 实时总资产逐月预测。')}</p></div><div class="fc-head-actions">${currencyPickerHTML('view',state.viewCurrency,['GLOBAL',...viewCodes()],tr('Forecast display currency','预测显示币种'))}${planningLinks()}<button type="button" class="fc-btn alt" data-fc-action="refresh">↻ ${tr('Refresh assets','刷新资产')}</button></div></header>
 
     <p id="fc-display-warning" class="fc-warning" role="status" hidden></p>
     <div class="fc-stats"><div class="fc-stat"><span>${tr('Current total assets','当前总资产')}</span><strong id="fc-start">—</strong><small>${tr('Dashboard value, including receivables','Dashboard 实时资产，含应收款')}</small></div><div class="fc-stat good"><span>${tr('Regular monthly savings','每月常规净储蓄')}</span><strong id="fc-saving">—</strong><small>${tr('Before bonus and extra spending','未计奖金与额外消费')}</small></div><div class="fc-stat"><span>${tr('Forecast end assets','预测期末总资产')}</span><strong id="fc-result">—</strong><small id="fc-result-date">—</small></div><div class="fc-stat"><span>${tr('Projected gain','预计增长')}</span><strong id="fc-gain">—</strong><small id="fc-count">—</small></div></div>
@@ -578,7 +602,7 @@
   const set=(id,s)=>{const x=el(id);if(x)x.textContent=s};
   const note=out.end<out.first?tr('The selected end month is in the past. Select a later month.','结束月份已经早于预测开始月，请重新选择。'):out.tooLong?tr('Maximum forecast length: 240 months.','最长只能预测240个月。'):!activeOwner?tr('Sign in to see your assets.','请先登录后查看资产。'):!out.worth.ready?tr('Dashboard assets are not ready; refresh financial data.','Dashboard 资产尚未准备好，请刷新财务数据。'):out.invalidCcy?tr('Enter a positive saved or scenario rate for ','请设置有效的已保存或模拟汇率：')+out.invalidCcy:!validDisplayRate(out.fx)?tr('Enter a valid display exchange rate for ','请设置有效的显示汇率：')+state.viewCurrency:'';
   showWarning(note);
-  const displayWarning=el('fc-display-warning');if(displayWarning){displayWarning.hidden=validDisplayRate(out.fx);displayWarning.textContent=validDisplayRate(out.fx)?'':tr('Set a local forecast exchange rate for ','请填写本地预测汇率：')+state.viewCurrency;}
+  const displayWarning=el('fc-display-warning');if(displayWarning){displayWarning.hidden=validDisplayRate(out.fx);displayWarning.textContent=validDisplayRate(out.fx)?'':(validCcy(state.viewCurrency)?tr('Set a local forecast exchange rate for ','请填写本地预测汇率：'):tr('Display exchange rate unavailable for ','显示汇率暂不可用：'))+state.viewCurrency;}
   set('fc-start',out.worth.ready?displayMoney(out.worth.total,out.fx):'—');
   set('fc-saving',!out.invalidCcy?displaySigned(out.normal.net,out.fx):'—');
   const rate=out.invalidCcy?null:savingRate(out.normal.incomeU,out.normal.net);
@@ -730,8 +754,8 @@
  async function onClick(e){
   const root=el(ROOT),btn=e.target.closest('button');
   if(!btn||!root?.contains(btn))return;
-  if(btn.dataset.apCurrency){const picker=btn.closest('.fc-shared-picker');if(!picker)return;const code=btn.dataset.apCurrency,kind=picker.dataset.fcPickerKind;if(!validCcy(code)||!Array.from(picker.querySelector('select').options).some(o=>o.value===code))return;
-  if(kind==='view'){const c=code;state.viewCurrency=c;save();if(!validDisplayRate(exchangeRates()))openScenarioRate(c);else{layout();el('fc-view-picker')?.querySelector('summary')?.focus({preventScroll:true})}return}
+  if(btn.dataset.apCurrency){const picker=btn.closest('.fc-shared-picker');if(!picker)return;const code=btn.dataset.apCurrency,kind=picker.dataset.fcPickerKind;if(!(kind==='view'?(code==='GLOBAL'||validViewCcy(code)):validCcy(code))||!Array.from(picker.querySelector('select').options).some(o=>o.value===code))return;
+  if(kind==='view'){if(!activeOwner||activeOwner!==owner())return;const saved=setViewChoice(code);if(!validDisplayRate(exchangeRates())&&SCENARIO_CURRENCIES.includes(state.viewCurrency))openScenarioRate(state.viewCurrency);else{layout();el('fc-view-picker')?.querySelector('summary')?.focus({preventScroll:true})}if(!saved)forecastMessage(tr('Could not save settings on this device. Check browser storage.','保存失败，请检查浏览器存储是否可用。'));return}
    if(kind==='rate'){extraRate=code;layout();el(ROOT)?.querySelector('[data-fc-picker-kind="rate"] summary')?.focus({preventScroll:true});return}
    if(kind==='field'){const group=picker.closest('.fc-money-pair');if(group)chooseCurrency(group,code);return}
   }
@@ -776,7 +800,7 @@
    return;
   }
   if(action==='discard'){
-   state=getState(activeOwner);dirty=false;layout();return;
+   state=getState(activeOwner);state.viewCurrency=resolveViewCurrency(activeOwner,viewChoice);dirty=false;layout();return;
   }
   if(action==='refresh'){updateOutputs();return}
   if(action==='export'){exportCSV();return}
@@ -820,9 +844,10 @@
   root.addEventListener('toggle',e=>{const picker=e.target;if(!picker.matches?.('.fc-shared-picker,.fc-choice-picker'))return;if(picker.open){closeForecastPickers(picker);if(picker.matches('.fc-shared-picker'))setupCurrencyPicker(picker);positionForecastPicker(picker)}else hideForecastPicker(picker)},true);
   document.addEventListener('pointerdown',e=>{const p=e.target.closest?.('#'+ROOT+' .fc-shared-picker,#'+ROOT+' .fc-choice-picker');closeForecastPickers(p||null)},{passive:true});
   document.addEventListener('keydown',e=>{if(!active()||el('mmhVaultDialogV449')?.classList.contains('show'))return;if(e.key==='Tab'&&modal){const dialog=root.querySelector('.fc-dialog');const controls=[...dialog?.querySelectorAll('button:not(:disabled),input:not(:disabled),summary,[tabindex="0"]')||[]].filter(x=>x.getClientRects().length&&getComputedStyle(x).visibility!=='hidden');if(controls.length){const first=controls[0],last=controls.at(-1);if(e.shiftKey&&(document.activeElement===first||!dialog.contains(document.activeElement))){e.preventDefault();last.focus()}else if(!e.shiftKey&&(document.activeElement===last||!dialog.contains(document.activeElement))){e.preventDefault();first.focus()}}}if(e.key==='Escape'){const picker=root.querySelector('.fc-shared-picker[open],.fc-choice-picker[open]');if(picker){e.preventDefault();closeForecastPickers();picker.querySelector('summary')?.focus({preventScroll:true})}else if(modal&&active()&&!el('mmhVaultDialogV449')?.classList.contains('show')){e.preventDefault();closeModal()}}});
-  for(const name of ['mmhvault:page-visible','mmhvault:config-owner-changed','mmhvault:data-loaded','mmhvault:data-change','mmhvault:cache-restored','mmhvault:market-updated','mmhvault-language-change','languagechange']){
+  for(const name of ['mmhvault:page-visible','mmhvault:config-owner-changed','mmhvault:data-loaded','mmhvault:data-change','mmhvault:cache-restored','mmhvault:market-updated','mmhvault:exchange-reference-updated','mmhvault-language-change','languagechange']){
    window.addEventListener(name,()=>{if(active()){if(['mmhvault-language-change','languagechange','mmhvault:config-owner-changed'].includes(name))onVisible();else dateChanged()}else{if(name==='mmhvault:config-owner-changed')syncOwner();if(name==='mmhvault:page-visible'){onVisible()}if(el('dashboard')?.classList.contains('active')){if(['mmhvault-language-change','languagechange'].includes(name)){el('mmhDailyDashboardV13')?.remove()}watchDashboard();scheduleMidnight()}}},{passive:true});
   }
+  window.addEventListener('mmhvault:personal-display-currency-changed',()=>{syncOwner();if(active())layout()},{passive:true});
   document.addEventListener('visibilitychange',()=>{if(document.hidden)stopMidnight();else onVisible()},{passive:true});
   window.addEventListener('beforeunload',e=>{if(dirty){e.preventDefault();e.returnValue=''}});
   let chartResizeFrame=0;
