@@ -27,7 +27,9 @@
   };
   const linked=t=>{try{return typeof isLinkedInvestmentTx==='function'&&isLinkedInvestmentTx(t)}catch(_){return false}};
   let state={mode:'month',month:current(),year:current().slice(0,4)};
-  let viewReady=false,budgetCache={key:'',data:null,error:false,pending:false},lastOwner='';
+  let viewReady=false,budgetCache={key:'',data:null,error:false,pending:false},lastOwner='',annualRenderEpochV265=0,annualReadyV265=null;
+  function resetAnnualBudgetV265(){budgetCache={key:'',data:null,error:false,pending:false};annualReadyV265=null}
+  function annualExportTokenV265(){const v=annualReadyV265,host=$('reportAnnualViewV201');return v&&owner()&&state.mode==='year'&&$(rootId)?.classList.contains('active')&&host?.hidden===false&&v.epoch===annualRenderEpochV265&&v.cache===budgetCache&&v.key===owner()+'|'+state.year&&v.currency===currency()&&v.mount===$('reportAnnualBudgetBodyV201')&&v.mount.querySelector('.report-annual-budget-metrics-v201')?v.epoch:null}
   function loadPrefs(){state={mode:'month',month:current(),year:current().slice(0,4)};try{const raw=JSON.parse(localStorage.getItem(localKey())||'null');if(!raw||typeof raw!=='object')return;if(validMonth(raw.month))state.month=raw.month;if(validYear(raw.year))state.year=raw.year;if(raw.mode==='year')state.mode='year'}catch(_){}}
   function savePrefs(){try{localStorage.setItem(localKey(),JSON.stringify(state))}catch(_){}}
   function alignLegacyMonth(){
@@ -86,17 +88,17 @@
   }
   function announce(){window.dispatchEvent(new CustomEvent('mmhvault:report-period-changed',{detail:{...state}}))}
   function switchMode(mode){
-    if(mode!=='month'&&mode!=='year')return;state.mode=mode;savePrefs();sync();render();announce();
+    if(mode!=='month'&&mode!=='year')return;if(state.mode!==mode)resetAnnualBudgetV265();state.mode=mode;savePrefs();sync();render();announce();
   }
   function selectMonth(month){
     if(!validMonth(month))return;
-    state.month=month;state.year=month.slice(0,4);state.mode='month';
+    resetAnnualBudgetV265();state.month=month;state.year=month.slice(0,4);state.mode='month';
     const native=$('reportMonthV115');if(native){native.value=month;native.dispatchEvent(new Event('change',{bubbles:true}))}
     savePrefs();sync();render();announce();
   }
   function selectYear(year){
     if(!validYear(year))return;
-    state.year=String(year);state.mode='year';
+    if(state.year!==String(year)||state.mode!=='year')resetAnnualBudgetV265();state.year=String(year);state.mode='year';
     savePrefs();sync();render();announce();
   }
   function step(delta){if(![-1,1].includes(delta))return;if(state.mode==='year')selectYear(String(Number(state.year)+delta));else selectMonth(shift(state.month,delta))}
@@ -125,6 +127,7 @@
     return s?.ready?{ready:true,total:s.total,assets:s.assets,liabilities:s.liabilities,gold:s.gold}:{ready:false};
   }
   function render(){
+    annualRenderEpochV265++;annualReadyV265=null;
     if(!viewReady||state.mode!=='year'||!$(rootId)?.classList.contains('active'))return;
     const host=$('reportAnnualViewV201');if(!host)return;
     const cur=collectYear(state.year),prev=collectYear(String(Number(state.year)-1)),wealth=wealthLive(),movement=window.MMHBalanceBridgeV202?.movements?.(rows().filter(t=>text(t?.tx_date).slice(0,4)===state.year));
@@ -145,21 +148,24 @@
   }
   async function renderBudget(){
     if(state.mode!=='year')return;
-    const key=owner()+'|'+state.year,body=$('reportAnnualBudgetBodyV201');
+    const uid=owner(),requestedYear=state.year,key=uid+'|'+requestedYear,body=$('reportAnnualBudgetBodyV201');
     if(!body)return;
     if(budgetCache.key!==key){budgetCache={key,data:null,error:false,pending:false};}
-    if(!budgetCache.data&&!budgetCache.pending&&!budgetCache.error){
-      if(!owner()||typeof db==='undefined'){body.textContent=tr('Sign in to load saved budgets.','登录后读取预算。','ဘတ်ဂျက်ကိုကြည့်ရန် ဝင်ရောက်ပါ။');return}
-      budgetCache.pending=true;
+    const request=budgetCache;
+    const currentRequest=()=>budgetCache===request&&key===owner()+'|'+state.year;
+    if(!request.data&&!request.pending&&!request.error){
+      if(!uid||typeof db==='undefined'){body.textContent=tr('Sign in to load saved budgets.','登录后读取预算。','ဘတ်ဂျက်ကိုကြည့်ရန် ဝင်ရောက်ပါ။');return}
+      request.pending=true;
       try{
-        const result=await db.from('budgets').select('budget_month,currency,monthly_amount').eq('user_id',owner()).gte('budget_month',state.year+'-01-01').lt('budget_month',String(Number(state.year)+1)+'-01-01');
+        const result=await db.from('budgets').select('budget_month,currency,monthly_amount').eq('user_id',uid).gte('budget_month',requestedYear+'-01-01').lt('budget_month',String(Number(requestedYear)+1)+'-01-01');
         if(result.error)throw result.error;
-        if(key!==owner()+'|'+state.year||budgetCache.key!==key)return;
-        budgetCache.data=Array.isArray(result.data)?result.data:[];
-      }catch(e){if(key===owner()+'|'+state.year){budgetCache.error=true;console.warn('[MMHVAULT Report] Annual budgets unavailable',e)}}
-      finally{if(budgetCache.key===key)budgetCache.pending=false}
+        if(!currentRequest())return;
+        if(!Array.isArray(result.data))throw new Error('Invalid annual budget response');
+        request.data=result.data;
+      }catch(e){if(currentRequest()){request.error=true;console.warn('[MMHVAULT Report] Annual budgets unavailable',e)}}
+      finally{if(currentRequest())request.pending=false}
     }
-    if(key!==owner()+'|'+state.year||state.mode!=='year'||!$(rootId)?.classList.contains('active'))return;
+    if(!currentRequest()||state.mode!=='year'||!$(rootId)?.classList.contains('active'))return;
     const mount=$('reportAnnualBudgetBodyV201');if(!mount)return;
     if(budgetCache.error){mount.textContent=tr('Saved budgets cannot be loaded right now. Transactions remain unchanged.','暂时无法读取预算，交易数据未改变。','ဘတ်ဂျက်ကို မဖတ်နိုင်ပါ။');return}
     if(!budgetCache.data){mount.textContent=tr('Loading budgets…','读取预算中…','ဘတ်ဂျက်ဖတ်နေသည်…');return}
@@ -168,6 +174,7 @@
     if(missing.length){mount.textContent=tr('Missing budget exchange rate: ','缺少预算汇率：','ငွေလဲနှုန်းမရှိပါ: ')+[...new Set(missing)].join(', ');return}
     const usage=budgets.length===12&&saved>0?year.individual/saved*100:null;
     mount.innerHTML=`<div class="report-annual-budget-metrics-v201"><div><span>${tr('Budgeted months','已设预算月份','ဘတ်ဂျက်ရှိသောလ')} </span><b>${budgets.length} / 12</b></div><div><span>${tr('Saved budgets total','预算合计','ဘတ်ဂျက်စုစုပေါင်း')}</span><b>${budgets.length?F(saved):'—'}</b></div><div><span>${tr('Individual spending','日常支出','အသုံးစရိတ်')}</span><b>${F(year.individual)}</b></div><div><span>${tr('Against saved budgets','预算使用比','အသုံးစရိတ် / ဘတ်ဂျက်')}</span><b>${usage===null?'—':usage.toFixed(2)+'%'}</b></div></div><p class="report-annual-muted-v201">${tr('Partial coverage: months without a saved budget are not treated as a zero budget.','未设置预算的月份不会视为零预算；合计仅覆盖有保存记录的月份。','ဘတ်ဂျက်မသိမ်းထားသောလများကို သုညအဖြစ် မတွက်ပါ။')}</p>`;
+    if(F(0)!=='—')annualReadyV265={epoch:annualRenderEpochV265,cache:request,key,currency:currency(),mount};
   }
   function init(){
     loadPrefs();lastOwner=owner();alignLegacyMonth();
@@ -177,13 +184,13 @@
     if(kpis)kpis.before(host);else shell.append(host);
     host.addEventListener('click',e=>{const c=e.target.closest('[data-report-month-cell-v201]');if(c)selectMonth(c.dataset.reportMonthCellV201)});
     sync();render();
-    const rerender=()=>{if(owner()!==lastOwner){lastOwner=owner();loadPrefs();budgetCache={key:'',data:null,error:false,pending:false};alignLegacyMonth();}if(!$(rootId)?.classList.contains('active'))return;sync();render()};
+    const rerender=()=>{if(owner()!==lastOwner){lastOwner=owner();loadPrefs();resetAnnualBudgetV265();alignLegacyMonth();}if(!$(rootId)?.classList.contains('active'))return;sync();render()};
     ['mmhvault:data-loaded','mmhvault:data-change','mmhvault:cache-restored','mmhvault:market-updated','mmhvault:page-visible','mmhvault-language-change','languagechange','mmhvault:personal-display-currency-changed','mmhvault:exchange-reference-updated'].forEach(ev=>window.addEventListener(ev,rerender,{passive:true}));
     $('reportCurrencyV115')?.addEventListener('change',rerender);
-    ['mmhvault:budget-changed'].forEach(ev=>window.addEventListener(ev,()=>{budgetCache.key='';rerender()},{passive:true}));
-    window.addEventListener('mmhvault:config-owner-changed',()=>{lastOwner=owner();loadPrefs();budgetCache={key:'',data:null,error:false,pending:false};alignLegacyMonth();sync();render()},{passive:true});
+    ['mmhvault:budget-changed'].forEach(ev=>window.addEventListener(ev,()=>{resetAnnualBudgetV265();rerender()},{passive:true}));
+    window.addEventListener('mmhvault:config-owner-changed',()=>{lastOwner=owner();loadPrefs();resetAnnualBudgetV265();alignLegacyMonth();sync();render()},{passive:true});
     document.addEventListener('visibilitychange',()=>{if(!document.hidden)rerender()},{passive:true});
   }
-  window.MMHReportPeriodV201={get:()=>({...state}),collectYear,selectMonth,selectYear,switchMode,step};
+  window.MMHReportPeriodV201={get:()=>({...state}),collectYear,selectMonth,selectYear,switchMode,step,annualExportTokenV265};
   if(document.readyState==='complete')init();else document.addEventListener('DOMContentLoaded',init,{once:true});
 })();
