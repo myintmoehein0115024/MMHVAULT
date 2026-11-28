@@ -564,3 +564,26 @@ console.log('PASS: 53-code shared display registry, additional FX, missing rates
  assert(app.includes('epoch:exportEpochV265,annualToken'));
  console.log('PASS: annual Report request identity, owner/year ABA, invalid response, missing rate and render-bound export token');
 }
+
+
+{
+ const script=app.match(/<script id="mmhvault-monthly-report-v115-js">([\s\S]*?)<\/script>/)[1];new Function(script);
+ const piece=script.slice(script.indexOf('  function cloudKey()'),script.indexOf('  function setup(){'));
+ let uid='a',timer=0;const jobs=new Map(),requests=[],w={};
+ const state={month:'2026-01',currency:'USD',request:0,loading:false,cloudDirty:true,loadTimer:0,pendingLoad:false,lastCloudKey:'',lastCloudAt:0,loadKey:'',budget:null,goals:[],recurring:[]};
+ const db={from(table){return{select(){return this},eq(k,v){this[k]=v;return this},maybeSingle(){return this.run()},order(){return this.run()},run(){return new Promise(resolve=>requests.push({table,owner:this.user_id,month:this.budget_month,resolve}))}}}};
+ const api=new Function('state','reportOwnerV265','currentSessionUser','db','window','document','byId','render','setTimeout','clearTimeout','console',piece+';return {load,scheduleCloudLoad,invalidateCloudV265,cloudDataReadyV265};')(state,()=>uid,{get id(){return uid}},db,w,{documentElement:{lang:'en'}},id=>({value:id==='reportMonthV115'?state.month:state.currency}),()=>{},fn=>{jobs.set(++timer,fn);return timer},id=>jobs.delete(id),{warn(){}});
+ function finish(i,month,value){requests[i].resolve({data:{budget_month:month+'-01',monthly_amount:value}});requests[i+1].resolve({data:[]});requests[i+2].resolve({data:[]})}
+ const a=api.load(true);state.month='2026-02';api.scheduleCloudLoad(true,0);assert(!api.cloudDataReadyV265());assert.equal(state.budget,null);jobs.delete(state.loadTimer);state.loadTimer=0;
+ const b=api.load(true);state.month='2026-01';api.scheduleCloudLoad(true,0);jobs.delete(state.loadTimer);state.loadTimer=0;const c=api.load(true);
+ assert.equal(requests.length,9);assert.equal(requests[3].month,'2026-02-01');
+ finish(0,'2026-01',999);await a;assert.equal(state.budget,null);assert(state.loading);
+ finish(3,'2026-02',888);await b;assert(!api.cloudDataReadyV265());
+ finish(6,'2026-01',100);await c;assert.equal(state.budget.monthly_amount,100);assert(w.mmhLegacyReportReadyV265());
+ const d=api.load(true);uid='b';api.invalidateCloudV265();const e=api.load(true);finish(9,'2026-01',999);await d;assert.equal(state.budget,null);finish(12,'2026-01',200);await e;assert.equal(state.budget.monthly_amount,200);assert.equal(requests[12].owner,'b');
+ const bad=api.load(true);finish(15,'2026-02',300);await bad;assert(!api.cloudDataReadyV265());assert.equal(state.budget,null);
+ const empty=api.load(true);requests[18].resolve({data:null});requests[19].resolve({data:[]});requests[20].resolve({data:[]});await empty;assert(w.mmhLegacyReportReadyV265());assert.equal(state.budget,null);
+ const refresh=api.load(true);api.scheduleCloudLoad(true,0);finish(21,'2026-01',500);await refresh;assert(!api.cloudDataReadyV265());assert.equal(state.budget,null);
+ assert(script.includes("if(!cloudReady)for(const id of ['reportBudgetV115','reportGoalsV115','reportRecurringV115'])"));
+ console.log('PASS: monthly Report owner/month ABA, refresh invalidation, mismatched response, valid empty budget and unavailable state');
+}
