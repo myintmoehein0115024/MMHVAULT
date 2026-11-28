@@ -24,6 +24,10 @@ try{
  await page.addScriptTag({content:grouping});
  await page.evaluate(()=>{const last=document.querySelector('.st-template-group:last-child');for(const [cls,text] of [['fb-nav','Feedback center'],['st-nav cs-entry-v1518','Live support']]){const b=document.createElement('button');b.className=cls;b.textContent=text;last.append(b)}});
  assert.equal(await page.locator('.st-template-group').count(),3);
+ assert.equal(await page.locator('.st-template-legacy-support-v268').isVisible(),false);
+ assert.equal(await page.locator('.st-home-menu [aria-controls="stPage_icon"]').count(),0);
+ assert.equal(await page.locator('#stPage_general [aria-controls="stPage_icon"]').count(),1);
+ assert.deepEqual(await page.locator('.st-template-group:nth-child(2) [aria-controls]').evaluateAll(es=>es.map(e=>e.getAttribute('aria-controls'))),['stPage_security','stPage_data']);
  let cases=0;
  for(const width of [360,760,1100,1500]){
   await page.setViewportSize({width,height:900});
@@ -36,17 +40,24 @@ try{
      const rect=e=>{const r=e.getBoundingClientRect();return {x:r.x,y:r.y,w:r.width,h:r.height,right:r.right,bottom:r.bottom}};
      const hidden=[...menu.querySelectorAll('.fb-nav,.cs-entry-v1518')].map(e=>getComputedStyle(e).display);
      const entries=[...menu.querySelectorAll('.st-nav[aria-controls]')].map(e=>({rect:rect(e),display:getComputedStyle(e).display,overflow:e.scrollWidth-e.clientWidth}));
-     const groups=[...menu.querySelectorAll('.st-template-group')].map(rect);
+     const groups=[...menu.querySelectorAll('.st-template-group')].filter(e=>getComputedStyle(e).display!=='none').map(rect);
      return {home:rect(home),menu:rect(menu),profile:rect(profile),hidden,entries,groups,heading:menu.querySelector('h3').textContent,columns:getComputedStyle(menu).gridTemplateColumns.split(' ').length};
     });
     const label=[width,light,lang].join('/');
     assert.deepEqual(result.hidden,['none','none'],label+' duplicate support hidden');
-    assert.equal(result.entries.length,4,label);
-    assert.ok(result.entries.every(x=>x.display!=='none'&&x.rect.w>0&&x.rect.h>=44&&x.overflow<=2),label+' four available entries, no overflow');
+    assert.equal(result.entries.length,3,label);
+    assert.equal(result.groups.length,2,label+' two visible groups');
+    assert.ok(result.entries.every(x=>x.display!=='none'&&x.rect.w>0&&x.rect.h>=44&&x.overflow<=2),label+' three available home entries, no overflow');
     assert.ok(Math.abs(result.profile.x-result.menu.x)<=2&&Math.abs(result.profile.right-result.menu.right)<=2,label+' profile and menu align');
     assert.ok(result.groups.every(x=>x.h>0&&x.h<260&&x.x>=result.menu.x-2&&x.right<=result.menu.right+2),label+' compact groups');
-    assert.equal(result.columns,result.home.w>=1060?3:result.home.w>=560?2:1,label+' responsive content columns');
+    assert.equal(result.columns,result.home.w>=560?2:1,label+' responsive content columns');
     assert.equal(result.heading,{en:'Preferences',zh:'偏好设置',my:'စိတ်ကြိုက်ဆက်တင်များ'}[lang],label+' actual group translation');
+    assert.equal(await page.locator('#stPage_general .st-general-icon-link-v268 small').textContent(),{en:'App icon and home screen installation',zh:'应用图标与添加主屏幕',my:'အက်ပ်အိုင်ကွန်နှင့် ပင်မမျက်နှာပြင်သို့ ထည့်သွင်းခြင်း'}[lang]);
+    await page.evaluate(()=>{document.getElementById('stSettingsHomeV3').hidden=true;document.getElementById('settings').classList.add('st-in-subpage');document.getElementById('stPage_general').hidden=false});
+    const nested=page.locator('#stPage_general .st-general-icon-link-v268');
+    assert.equal(await nested.isVisible(),true,label+' icon link visible in General');
+    assert.ok(await nested.evaluate(e=>e.getBoundingClientRect().height>=44&&e.scrollWidth-e.clientWidth<=2),label+' icon link fits');
+    await page.evaluate(()=>{document.getElementById('stPage_general').hidden=true;document.getElementById('settings').classList.remove('st-in-subpage');document.getElementById('stSettingsHomeV3').hidden=false});
     cases++;
    }
   }

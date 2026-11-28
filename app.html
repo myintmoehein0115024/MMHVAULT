@@ -20700,6 +20700,29 @@ function goalCopyTextV263(base,el,locale=lang){
  return base;
 }
 
+// V2.0.68: Personal Settings fixed copy only; never translate account or member data.
+function personalSettingsCopyV268(base,el,locale){
+ // Fixed, original Settings labels only, including English for legacy bilingual copy.
+ const j=['en','zh','my'].indexOf(locale);
+ if(j<0)return null;
+ if(el.matches('#settings #mmhDataHealthV191 h2')&&base==='Data Health / 数据健康检查')return ['Data Health','数据健康检查','ဒေတာအခြေအနေ စစ်ဆေးခြင်း'][j];
+ if(el.matches('#settings #mmhDataHealthV191 .small')&&base==='Read only · 仅检查，不自动修改数据')return ['Read only · No automatic data changes','只读 · 仅检查，不自动修改数据','ဖတ်ရှုရန်သာ · ဒေတာကို အလိုအလျောက် မပြောင်းလဲပါ'][j];
+ if(el.matches('#settings #mmhDataHealthRunV191')&&base==='Check / 检查')return ['Check','检查','စစ်ဆေးရန်'][j];
+ if(el.matches('#settings #mmhDataHealthStatusV191')&&base==='Not checked / 尚未检查')return ['Not checked','尚未检查','မစစ်ဆေးရသေးပါ'][j];
+ if(el.matches('#settings #selectBackupBtnV433')&&base==='📥 Select Backup / Import JSON')return ['📥 Select Backup / Import JSON','📥 选择备份 / 导入 JSON','📥 အရန်ဖိုင်ရွေးရန် / JSON တင်သွင်းရန်'][j];
+ if(el.matches('#settings #stPage_icon .pwa-row .small')&&base==='PWA icon · 192×192 / 512×512')return ['PWA icon · 192×192 / 512×512','PWA 图标 · 192×192 / 512×512','PWA အိုင်ကွန် · 192×192 / 512×512'][j];
+ if(el.matches('#settings #stPage_icon .mmh-context-desc-v199')&&base==='Used when you add MMHVAULT to your phone home screen.')return ['Used when you add MMHVAULT to your phone home screen.','当您将 MMHVAULT 添加到手机主屏幕时使用。','MMHVAULT ကို ဖုန်းပင်မမျက်နှာပြင်တွင် ထည့်သွင်းသောအခါ အသုံးပြုသည်။'][j];
+ if(!['zh','my'].includes(locale))return null;
+ const i=locale==='zh'?0:1;
+ if(el.matches('#settings .st-row > span:nth-child(2)')&&base==='Default display currency')return ['默认显示货币','မူလပြသမည့် ငွေကြေး'][i];
+ if(el.matches('#settings .st-note')&&base==='Amounts always display two decimal places. Investment quantities and original stored values retain their precision.')return ['金额始终显示两位小数。投资数量及原始存储值保留原有精度。','ငွေပမာဏကို ဒသမ နှစ်နေရာဖြင့် အမြဲပြသသည်။ ရင်းနှီးမြှုပ်နှံမှု အရေအတွက်နှင့် သိမ်းထားသော မူလတန်ဖိုးများ၏ တိကျမှုကို ထိန်းသိမ်းထားသည်။'][i];
+ if(el.matches('#settings .mmh-session-actions-v1 button')){
+  if(base==='Sign out other devices')return ['退出其他设备','အခြားစက်များမှ ထွက်ရန်'][i];
+  if(base==='Sign out all devices')return ['退出所有设备','စက်အားလုံးမှ ထွက်ရန်'][i];
+ }
+ if(el.matches('#settings .mmh-session-actions-v1 .security-password-note-v379')&&base==='Signing out other devices keeps this device signed in. “Sign out all devices” also signs out this device.')return ['退出其他设备不会退出当前设备；“退出所有设备”也会退出当前设备。','အခြားစက်များမှ ထွက်လျှင် ဤစက်တွင် ဆက်လက်ဝင်ထားမည်။ “စက်အားလုံးမှ ထွက်ရန်” သည် ဤစက်မှလည်း ထွက်မည်။'][i];
+ return null;
+}
 const mmhI18nTextStateV135=new WeakMap();
 function translateTextNode(n){
   if(!n||n.nodeType!==Node.TEXT_NODE)return;
@@ -20717,7 +20740,7 @@ function translateTextNode(n){
   if(parent.closest('#mmhPremiumDashboardV500 .pf-tx-copy-v500,#mmhPremiumDashboardV500 .pf-tag-v500,#mmhPremiumDashboardV500 .pf-name-v500,#mmhPremiumDashboardV500 .pf-asset-v500,#mmhPremiumDashboardV500 .pf-signal-card-v150[data-signal-action-v150="category"] b,#header .wvLiveClockV2'))return;
   let rec=mmhI18nTextStateV135.get(n);
   if(!rec){
-    if(lang==='en')return;
+    if(lang==='en'&&personalSettingsCopyV268(current,parent,lang)==null)return;
     rec={base:current,last:current};
   }else if(current!==rec.last && current!==rec.base){
     // The app itself changed this dynamic text (amount, count, live status, etc.).
@@ -20725,7 +20748,7 @@ function translateTextNode(n){
     rec={base:current,last:current};
   }
 
-  const desired=recurringCopySurfaceV264(parent)?recurringCopyTextV264(rec.base,lang):goalCopySurfaceV263(parent)?goalCopyTextV263(rec.base,parent):parent.closest('#budget')?budgetCopyTextV262(rec.base,parent):txUiSurfaceV2(parent)?txUiTextV2(rec.base):lang==='zh'?(myWorkspaceUiV2(parent)&&Object.prototype.hasOwnProperty.call(zhWorkspaceV2,rec.base)?zhWorkspaceV2[rec.base]:translateDynamicText(rec.base)):lang==='my'?myWorkspaceTextV2(rec.base,parent):rec.base;
+  const desired=personalSettingsCopyV268(rec.base,parent,lang)??(recurringCopySurfaceV264(parent)?recurringCopyTextV264(rec.base,lang):goalCopySurfaceV263(parent)?goalCopyTextV263(rec.base,parent):parent.closest('#budget')?budgetCopyTextV262(rec.base,parent):txUiSurfaceV2(parent)?txUiTextV2(rec.base):lang==='zh'?(myWorkspaceUiV2(parent)&&Object.prototype.hasOwnProperty.call(zhWorkspaceV2,rec.base)?zhWorkspaceV2[rec.base]:translateDynamicText(rec.base)):lang==='my'?myWorkspaceTextV2(rec.base,parent):rec.base);
   if(current!==desired){
     const raw=n.nodeValue;
     const lead=raw.match(/^\s*/)?.[0]||'',tail=raw.match(/\s*$/)?.[0]||'';
@@ -29285,9 +29308,9 @@ const data=$('settingsPanelDataV371');data.classList.remove('settings-panel-v371
 
 const home=document.createElement('div');home.className='st-home';home.id='stSettingsHomeV3';root.append(home);home.append(account);
 const menu=document.createElement('nav');menu.className='st-home-menu';menu.setAttribute('aria-label','Settings');home.append(menu);
-const pages=new Map();let homeScroll=0,lastTrigger=null;
-function go(id,trigger){if(id==='personal')id='profile';const page=pages.get(id);if(!page)return;if(!root.classList.contains('st-in-subpage'))homeScroll=mmhWorkspaceScrollYV2()||0;lastTrigger=trigger||lastTrigger;home.hidden=true;root.classList.add('st-in-subpage');for(const [k,p] of pages)p.hidden=k!==id;mmhWorkspaceScrollToV2({top:0,behavior:'instant'});page.querySelector('.st-back').focus({preventScroll:true});}
-function back(){for(const p of pages.values())p.hidden=true;home.hidden=false;root.classList.remove('st-in-subpage');mmhWorkspaceScrollToV2({top:homeScroll,behavior:'instant'});lastTrigger?.focus({preventScroll:true});}
+const pages=new Map();let homeScroll=0,lastTrigger=null,nestedIconTrigger=null,nestedIconScroll=0;
+function go(id,trigger){if(id==='personal')id='profile';const page=pages.get(id);if(!page)return;if(!root.classList.contains('st-in-subpage'))homeScroll=mmhWorkspaceScrollYV2()||0;const nested=id==='icon'&&trigger?.closest?.('#stPage_general')&&pages.get('general')?.hidden===false;nestedIconTrigger=nested?trigger:null;if(nested){nestedIconScroll=mmhWorkspaceScrollYV2()||0}else{lastTrigger=trigger||lastTrigger}home.hidden=true;root.classList.add('st-in-subpage');for(const [k,p] of pages)p.hidden=k!==id;mmhWorkspaceScrollToV2({top:0,behavior:'instant'});page.querySelector('.st-back').focus({preventScroll:true});}
+function back(){if(nestedIconTrigger&&pages.get('icon')?.hidden===false){const trigger=nestedIconTrigger;nestedIconTrigger=null;for(const [k,p] of pages)p.hidden=k!=='general';mmhWorkspaceScrollToV2({top:nestedIconScroll,behavior:'instant'});trigger.focus({preventScroll:true});return}nestedIconTrigger=null;for(const p of pages.values())p.hidden=true;home.hidden=false;root.classList.remove('st-in-subpage');mmhWorkspaceScrollToV2({top:homeScroll,behavior:'instant'});lastTrigger?.focus({preventScroll:true});}
 function register(id,title,icon,content,host=menu){const page=document.createElement('section');page.className='st-page';page.id='stPage_'+id;page.hidden=true;page.setAttribute('aria-label',title);const header=document.createElement('div');header.className='st-page-head';const backButton=document.createElement('button');backButton.type='button';backButton.className='st-back';backButton.textContent='‹ Back';backButton.addEventListener('click',back);const heading=document.createElement('h2');heading.textContent=title;header.append(backButton,heading);page.append(header,content);root.append(page);pages.set(id,page);
 const button=document.createElement('button');button.type='button';button.className='st-nav';button.setAttribute('aria-controls',page.id);const glyph=document.createElement('span');glyph.className='st-icon';glyph.textContent=icon;glyph.setAttribute('aria-hidden','true');const label=document.createElement('span');label.className='st-nav-name';label.textContent=title;const arrow=document.createElement('span');arrow.className='st-chevron';arrow.textContent='›';arrow.setAttribute('aria-hidden','true');button.append(glyph,label,arrow);button.addEventListener('click',()=>go(id,button));host.append(button);return button;}
 for(const [i,g] of [...main.querySelectorAll('.st-group')].entries()){const title=g.querySelector('h2').textContent,id=['appearance','general','transactions'][i];const button=register(id,title,['◐','⚙','⇄'][i],g);if(id!=='general')button.remove();}main.remove();
@@ -30777,11 +30800,12 @@ html body #exchange .ex-rate-pair-logos .ex-flag-img{width:24px!important;height
 </style>
 <script id="mmhvault-settings-template-groups-v7">
 (function(){function init(){const menu=document.querySelector('#stSettingsHomeV3 .st-home-menu');if(!menu||menu.dataset.templateGrouped)return;menu.dataset.templateGrouped='1';
-const groups=[['Preferences','偏好设置',['general']],['Personal & security','个人与安全',['security']],['App & data','应用与数据',['icon','data']]];
+const groups=[['Preferences','偏好设置',['general']],['Personal & security','个人与安全',['security','data']],['App & data','应用与数据',[]]];
 const copy={appearance:['Theme, overview and budget layout','主题、概览与预算布局'],general:['Currency and font style','币种与字体样式'],transactions:['Default categories and source account','默认分类与来源账户'],security:['Password and signed-in devices','密码与已登录设备'],icon:['App icon and home screen installation','应用图标与添加主屏幕'],data:['Export, import and backup tools','导出、导入与备份工具']};
-for(const [en,zh,ids] of groups){const group=document.createElement('section');group.className='st-template-group';const h=document.createElement('h3');h.dataset.en=en;h.dataset.zh=zh;h.textContent=(localStorage.getItem('mmhvault_language_v3363')||'en')==='zh'?zh:en;group.append(h);for(const id of ids){const button=menu.querySelector('[aria-controls="stPage_'+id+'"]');if(!button)continue;const title=button.querySelector('.st-nav-name'),body=document.createElement('span');body.className='st-template-nav-copy';title.before(body);body.append(title);const small=document.createElement('small');small.dataset.en=copy[id][0];small.dataset.zh=copy[id][1];small.textContent=(localStorage.getItem('mmhvault_language_v3363')||'en')==='zh'?copy[id][1]:copy[id][0];body.append(small);group.append(button)}menu.append(group)}
+for(const [en,zh,ids] of groups){const group=document.createElement('section');group.className='st-template-group';if(!ids.length){group.hidden=true;group.classList.add('st-template-legacy-support-v268')}const h=document.createElement('h3');h.dataset.en=en;h.dataset.zh=zh;h.textContent=(localStorage.getItem('mmhvault_language_v3363')||'en')==='zh'?zh:en;group.append(h);for(const id of ids){const button=menu.querySelector('[aria-controls="stPage_'+id+'"]');if(!button)continue;const title=button.querySelector('.st-nav-name'),body=document.createElement('span');body.className='st-template-nav-copy';title.before(body);body.append(title);const small=document.createElement('small');small.dataset.en=copy[id][0];small.dataset.zh=copy[id][1];small.textContent=(localStorage.getItem('mmhvault_language_v3363')||'en')==='zh'?copy[id][1]:copy[id][0];body.append(small);group.append(button)}menu.append(group)}
+const iconButton=menu.querySelector('[aria-controls="stPage_icon"]'),general=document.getElementById('stPage_general');if(iconButton&&general){const title=iconButton.querySelector('.st-nav-name'),body=document.createElement('span');body.className='st-template-nav-copy';title.before(body);body.append(title);const small=document.createElement('small');small.dataset.en=copy.icon[0];small.dataset.zh=copy.icon[1];small.textContent=copy.icon[0];body.append(small);iconButton.classList.add('st-general-icon-link-v268');general.append(iconButton)}
 const myCopy={'Preferences':'စိတ်ကြိုက်ဆက်တင်များ','Personal & security':'ကိုယ်ရေးနှင့် လုံခြုံရေး','App & data':'အက်ပ်နှင့် ဒေတာ','Currency and font style':'ငွေကြေးနှင့် ဖောင့်ပုံစံ','Password and signed-in devices':'စကားဝှက်နှင့် ဝင်ရောက်ထားသော စက်များ','App icon and home screen installation':'အက်ပ်အိုင်ကွန်နှင့် ပင်မမျက်နှာပြင်သို့ ထည့်သွင်းခြင်း','Export, import and backup tools':'ဒေတာထုတ်ယူခြင်း၊ ထည့်သွင်းခြင်းနှင့် အရန်ကူးခြင်း'};
-function translate(){const lang=localStorage.getItem('mmhvault_language_v3363')||'en';menu.querySelectorAll('[data-en][data-zh]').forEach(e=>{const value=lang==='zh'?e.dataset.zh:lang==='my'?(myCopy[e.dataset.en]||e.dataset.en):e.dataset.en;if(e.textContent!==value)e.textContent=value})}
+function translate(){const lang=localStorage.getItem('mmhvault_language_v3363')||'en';[...menu.querySelectorAll('[data-en][data-zh]'),...(general?.querySelectorAll('.st-general-icon-link-v268 [data-en][data-zh]')||[])].forEach(e=>{const value=lang==='zh'?e.dataset.zh:lang==='my'?(myCopy[e.dataset.en]||e.dataset.en):e.dataset.en;if(e.textContent!==value)e.textContent=value})}
 ['mmhvault-language-change','languagechange'].forEach(name=>window.addEventListener(name,translate));translate();
 }
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});else init();})();
@@ -40729,5 +40753,49 @@ html body.mmh-workspace-active:not(.auth-page-active) #settings#settings#setting
 }
 </style>
 
+
+<style id="mmhvault-personal-settings-cascade-v268">
+/* V2.0.68 — actual legacy cascade cleanup, Personal Settings only. */
+html body.mmh-workspace-active:not(.auth-page-active) #settings#settings#settings.page.active.st-in-subpage>.mmh-pf-kicker-v510{display:none!important}
+html body.mmh-workspace-active:not(.auth-page-active) #settings#settings#settings.page.active.st-in-subpage>.st-page:not([hidden])>.st-page-head{min-height:56px!important;background:var(--st-bg)!important;background-image:none!important;box-shadow:none!important;backdrop-filter:none!important;-webkit-backdrop-filter:none!important;display:grid!important;grid-template-columns:minmax(44px,1fr) minmax(0,4fr) minmax(44px,1fr)!important;align-items:center!important}
+html body.mmh-workspace-active:not(.auth-page-active) #settings#settings#settings.page.active.st-in-subpage>.st-page:not([hidden])>.st-page-head::before,html body.mmh-workspace-active:not(.auth-page-active) #settings#settings#settings.page.active.st-in-subpage>.st-page:not([hidden])>.st-page-head::after{content:none!important;display:none!important;background:none!important;box-shadow:none!important}
+html body.mmh-workspace-active:not(.auth-page-active) #settings#settings#settings.page.active.st-in-subpage>.st-page:not([hidden])>.st-page-head>.st-back{justify-self:start!important;grid-column:1!important}
+html body.mmh-workspace-active:not(.auth-page-active) #settings#settings#settings.page.active.st-in-subpage>.st-page:not([hidden])>.st-page-head>h2{grid-column:2!important;text-align:center!important}
+html body.mmh-workspace-active:not(.auth-page-active) #settings#settings#settings.page.active.st-in-subpage>.st-page:not([hidden]) :is(.st-group,.st-rows,.panel,.account-security-card-v379,.mmh-profile-edit-v1,.restore-center-v383,.system-status-card-v313,.excel-import-v318){background:var(--st-bg)!important;background-image:none!important;box-shadow:none!important;backdrop-filter:none!important;-webkit-backdrop-filter:none!important;border-color:var(--st-border)!important}
+html body.mmh-workspace-active:not(.auth-page-active) #settings#settings#settings.page.active.st-in-subpage>.st-page:not([hidden]) :is(.st-group,.st-rows,.panel,.account-security-card-v379,.mmh-profile-edit-v1)::before,html body.mmh-workspace-active:not(.auth-page-active) #settings#settings#settings.page.active.st-in-subpage>.st-page:not([hidden]) :is(.st-group,.st-rows,.panel,.account-security-card-v379,.mmh-profile-edit-v1)::after{background-image:none!important;box-shadow:none!important}
+html body.mmh-workspace-active:not(.auth-page-active) #settings#settings#settings.page.active.st-in-subpage>.st-page:not([hidden]) :is(input:not([type=checkbox]):not([type=radio]):not([type=file]):not([type=hidden]):not([type=range]),select,textarea){background-color:var(--uv-raised,#273242)!important;background-image:none!important;border:1px solid var(--st-border)!important;box-shadow:none!important}
+html body.mmh-workspace-active:not(.auth-page-active) #settings#settings#settings.page.active.st-in-subpage>.st-page:not([hidden]) .mmh-photo-trigger-v1{min-height:44px!important;background:var(--uv-raised,#273242)!important;background-image:none!important;border:1px solid var(--st-border)!important}
+html body.mmh-workspace-active:not(.auth-page-active) #settings#settings#settings.page.active.st-in-subpage>.st-page:not([hidden]) :is(.st-group,.account-security-v379,.account-security-grid-v379){width:100%!important;max-width:none!important;min-width:0!important;margin-inline:0!important;box-sizing:border-box!important}
+html body.mmh-workspace-active:not(.auth-page-active) #settings#settings#settings.page.active.st-in-subpage>.st-page:not([hidden]) :is(.mmh-email-reset-destination-v952,.mmh-email-reset-icon-v952,.mmh-a783-section,.data-center-status-v380,.restore-stat-v383,.security-password-form-v379,.excel-dropzone-v318){background:var(--uv-raised,#273242)!important;background-image:none!important;border-color:var(--st-border)!important;box-shadow:none!important}
+html body.mmh-workspace-active:not(.auth-page-active) #settings#settings#settings.page.active.st-in-subpage>.st-page:not([hidden]) .security-password-form-v379{padding:0!important;border:0!important;background:transparent!important}
+html body.mmh-workspace-active:not(.auth-page-active) #settings#settings#settings.page.active.st-in-subpage>.st-page:not([hidden]) :is(.mmh-a783-label,.mmh-email-reset-steps-v952 b){color:var(--st-gold)!important}
+html body.mmh-workspace-active:not(.auth-page-active) #settings#settings#settings.page.active.st-in-subpage>.st-page:not([hidden]) .account-security-grid-v379{gap:12px!important}
+html body.mmh-workspace-active:not(.auth-page-active) #settings#settings#settings.page.active.st-in-subpage>.st-page:not([hidden]) #mmhA783SecurityCenter .mmh-a783-title{color:var(--uv-text,#e8edf4)!important}
+html body.mmh-workspace-active:not(.auth-page-active) #settings#settings#settings.page.active.st-in-subpage>.st-page:not([hidden]) #mmhA783SecurityCenter .mmh-a783-title::after{color:var(--st-gold)!important}
+html body.mmh-workspace-active:not(.auth-page-active) #settings#settings#settings.page.active.st-in-subpage>.st-page:not([hidden])#stPage_icon #stInstallAppV4{max-width:100%!important}
+@media(max-width:700px){
+ html body.mmh-workspace-active:not(.auth-page-active) #settings#settings#settings.page.active.st-in-subpage>.st-page:not([hidden])>.st-page-head{min-height:48px!important;grid-template-columns:minmax(44px,1fr) minmax(0,3fr) minmax(44px,1fr)!important;gap:6px!important}
+ html body.mmh-workspace-active:not(.auth-page-active) #settings#settings#settings.page.active.st-in-subpage>.st-page:not([hidden]) .account-security-grid-v379,html body.mmh-workspace-active:not(.auth-page-active) #settings#settings#settings.page.active.st-in-subpage>.st-page:not([hidden]) .account-security-grid-v379>#mmhA783SecurityCenter{grid-template-columns:minmax(0,1fr)!important}
+}
+</style>
+
+<style id="mmhvault-personal-settings-data-surface-v268">
+/* Preserve visibility/handlers; only normalize the legacy preview surface. */
+html body.mmh-workspace-active:not(.auth-page-active) #settings#settings#settings.page.active.st-in-subpage>#stPage_data.st-page:not([hidden]) :is(.restore-preview-v383,.restore-stat-v383,.data-center-safety-card-v380,.system-status-card-v313){background:var(--uv-raised,#273242)!important;background-image:none!important;border-color:var(--st-border)!important;box-shadow:none!important;min-width:0!important;overflow-wrap:anywhere}
+html body.mmh-workspace-active:not(.auth-page-active) #settings#settings#settings.page.active.st-in-subpage>#stPage_data.st-page:not([hidden]) :is(.restore-actions-v383,.data-center-actions-v380,.system-status-actions-v313){flex-wrap:wrap!important}
+html body.mmh-workspace-active:not(.auth-page-active) #settings#settings#settings.page.active.st-in-subpage>#stPage_data.st-page:not([hidden]) :is(.restore-actions-v383,.data-center-actions-v380,.system-status-actions-v313)>.btn{max-width:100%!important;white-space:normal!important;overflow-wrap:anywhere}
+</style>
+
+<style id="mmhvault-personal-settings-regroup-v268">
+/* Retain a hidden legacy integration mount; show only two Settings groups. */
+html body.mmh-workspace-active:not(.auth-page-active) #settings.page.active:has(>#stSettingsHomeV3:not([hidden])) > #stSettingsHomeV3:not([hidden]) > .st-home-menu>.st-template-legacy-support-v268{display:none!important}
+html body.mmh-workspace-active:not(.auth-page-active) #settings.page.active:has(>#stSettingsHomeV3:not([hidden])) > #stSettingsHomeV3:not([hidden]) > .st-home-menu>.st-template-group{grid-template-rows:auto!important;align-self:start!important}
+@container settings-home-v266 (min-width:560px){html body.mmh-workspace-active:not(.auth-page-active) #settings.page.active:has(>#stSettingsHomeV3:not([hidden])) > #stSettingsHomeV3:not([hidden]) > .st-home-menu{grid-template-columns:repeat(2,minmax(0,1fr))!important}}
+html body.mmh-workspace-active:not(.auth-page-active) #settings#settings#settings.page.active #stPage_general:not([hidden])>.st-general-icon-link-v268{display:flex!important;align-items:center!important;text-align:left!important;width:100%!important;min-width:0!important;min-height:60px!important;margin:12px 0 0!important;padding:10px!important;gap:9px!important;border:1px solid var(--st-border)!important;border-radius:10px!important;background:var(--uv-raised,#273242)!important;background-image:none!important;color:var(--uv-text,#e8edf4)!important;box-shadow:none!important;box-sizing:border-box!important}
+#settings #stPage_general .st-general-icon-link-v268 .st-template-nav-copy{display:flex;flex:1;min-width:0;flex-direction:column;gap:3px;white-space:normal;overflow-wrap:anywhere}
+#settings #stPage_general .st-general-icon-link-v268 .st-icon{flex-shrink:0}
+#settings #stPage_general .st-general-icon-link-v268 .st-chevron{flex-shrink:0;margin-left:auto}
+#settings #stPage_general .st-general-icon-link-v268:focus-visible{outline:2px solid var(--st-gold);outline-offset:2px}
+</style>
 </body>
 </html>
