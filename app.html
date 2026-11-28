@@ -33606,7 +33606,7 @@ html body.mmh-workspace-active main.wrap .page.active :is(.empty,.mmh-ui-empty,.
     const status=card.querySelector('.pf-budget-head-v112 strong')?.textContent?.trim()||'Budget';
     const stats=[...card.querySelectorAll('.pf-budget-stat-v112 strong')];
     const usage=stats[3]?.textContent?.trim()||'—';
-    const tone=card.classList.contains('over')?'over':card.classList.contains('watch')?'watch':'good';
+    const tone=usage==='—'?'':card.classList.contains('over')?'over':card.classList.contains('watch')?'watch':'good';
     return {status,usage,tone};
   }
   function openHistoryFilter(q){
