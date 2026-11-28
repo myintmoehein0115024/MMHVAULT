@@ -245,7 +245,29 @@ try{
   await shell.locator('[data-mv-panel="overview"] button[data-mv-view="gold"]').click();
   assert.equal(await root.getAttribute('data-mv273'),'gold');
   assert.equal(await shell.locator('[data-mv-panel="gold"] .mv273-quote b').allTextContents().then(xs=>xs.every(x=>x==='—')),true);
+  // Actual native detail dialogs; rotate coverage across all nine reference instruments.
+  const detail=shell.locator('#mmhMarketDetailV273');
+  const detailCopy={en:['Price history','Historical data is not available in this view.','Close'],zh:['历史价格','此界面暂未接入历史行情。','关闭'],my:['ဈေးနှုန်းမှတ်တမ်း','ဤမြင်ကွင်းတွင် သမိုင်းဝင်ဈေးနှုန်းဒေတာ မရရှိသေးပါ။','ပိတ်ရန်']}[lang];
+  for(const [view,keys] of [['gold',['xau','localgold']],['crypto',['btc','eth','sol']],['oil',['ron92','ron95','diesel','edible']]]){
+   await nav.locator('[data-mv-view="'+view+'"]').click();
+   const key=keys[marketCases%keys.length],trigger=shell.locator('[data-mv-detail="'+key+'"]');
+   await trigger.click();await detail.waitFor({state:'visible'});
+   assert.equal(await detail.evaluate(e=>e.open),true);
+   assert.equal(await detail.locator('[data-mv-copy="history"]').innerText(),detailCopy[0]);
+   assert.equal(await detail.locator('[data-mv-copy="nohistory"]').innerText(),detailCopy[1]);
+   assert.equal(await detail.locator('.mv273-detail-current strong').innerText(),'—');
+   assert.equal(await detail.locator('.mv273-detail-head button').getAttribute('aria-label'),detailCopy[2]);
+   assert.ok((await detail.locator('h2').innerText()).length>0);
+   assert.equal(await detail.locator('canvas,svg').count(),0);
+   const bounds=await detail.evaluate(e=>{const r=e.getBoundingClientRect();return {fits:r.left>=-1&&r.right<=innerWidth+1&&r.top>=-1&&r.bottom<=innerHeight+1,overflow:e.scrollWidth>e.clientWidth+1}});
+   assert.ok(bounds.fits&&!bounds.overflow,JSON.stringify({width,lang,view,bounds}));
+   if(view==='gold')await page.keyboard.press('Escape');
+   else if(view==='crypto')await detail.locator('.mv273-detail-foot button').click();
+   else await page.evaluate(()=>window.dispatchEvent(new Event('mmhvault:config-owner-changed')));
+   await detail.waitFor({state:'hidden'});
+   await page.waitForFunction(key=>document.activeElement?.dataset.mvDetail===key,key);
+  }
   marketCases++;
  }
- console.log('PASS: V2.0.73 Market layout, five views, three languages, preserved FX fixture and no synthetic prices; '+marketCases+' '+engine+' cases (isolated DOM)');
+ console.log('PASS: V2.0.73 Market layout, five views, three languages, preserved FX fixture, native reference details and no synthetic prices; '+marketCases+' '+engine+' cases (isolated DOM)');
 }finally{await browser.close()}
