@@ -91,10 +91,10 @@ html.mmh-p960-quiet-loading body #dataLoadOverlayV384.show .data-load-sub-v384{f
 
 <meta content="width=device-width,initial-scale=1,viewport-fit=cover" name="viewport"/>
 <link href="images/mmhvault-v2-auth-mark.webp" rel="icon" type="image/webp"/>
-<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png?v=pwa25-20261029"/>
+<link rel="apple-touch-icon" sizes="180x180" href="/images/mmhvault-personal-v2-icon-180.png"/>
 
 <meta content="#06111f" name="theme-color"/>
-<link rel="manifest" href="./mmh-manifest-v2.webmanifest?v=pwa25-20261029"/>
+<link rel="manifest" href="./mmh-manifest-v2.webmanifest?v=personal-v271"/>
 <meta name="application-name" content="MMHVAULT"/>
 <meta name="mobile-web-app-capable" content="yes"/>
 <meta name="apple-mobile-web-app-capable" content="yes"/>
@@ -11230,9 +11230,48 @@ html.mmh-desktop-compact-v11110 body.mmh-workspace-active #moreNavMenu.more-nav-
   }
   function getBirthISO(){
     const key=scopedKey();if(!key)return '';
-    try{let raw=localStorage.getItem(key);if(raw===null&&localStorage.getItem(KEY+'_legacy_owner')===key.slice(KEY.length+1))raw=localStorage.getItem(KEY);return validBirth(raw)?raw:'';}catch(_){return '';}
+    try{let raw=localStorage.getItem(key);if(raw===null&&localStorage.getItem(KEY+'_legacy_owner')===key.slice(KEY.length+1))raw=localStorage.getItem(KEY);return validBirth(String(raw||'').split('T')[0])?String(raw).split('T')[0]:'';}catch(_){return '';}
   }
   const getBirth=()=>validBirth(getBirthISO());
+  function getBirthTime(){
+    const key=scopedKey();if(!key||!getBirthISO())return '';
+    try{const raw=localStorage.getItem(key)||'';return /^\d{4}-\d{2}-\d{2}T(?:[01]\d|2[0-3]):[0-5]\d$/.test(raw)?raw.slice(11):'';}catch(_){return '';}
+  }
+  const civil=(d)=>Date.UTC(d.getFullYear(),d.getMonth(),d.getDate());
+  function anniversary(year,month,day){return new Date(year,month,Math.min(day,new Date(year,month+1,0).getDate()));}
+  function birthdayLocale(){return {en:document.documentElement.lang||'en',zh:'zh-CN',my:'my-MM'}[birthdayLang()];}
+  function formatBirthday(d,time=''){try{return new Intl.DateTimeFormat(birthdayLocale(),{dateStyle:'medium',...(time?{timeStyle:'short'}:{})}).format(time?new Date(d.getFullYear(),d.getMonth(),d.getDate(),Number(time.slice(0,2)),Number(time.slice(3))):d);}catch(_){return getBirthISO()+(time?' '+time:'');}}
+  let dialogOwner=null,dialogMonth=null,dialogDate='',dialogTime='';
+  const byId=id=>document.getElementById(id);
+  function closeBirthdayDialogs(){for(const id of ['mmhBirthPickerV271','mmhBirthDetailsV271']){const d=byId(id);if(d?.open)d.close();}dialogOwner=null;}
+  function calendarRender(){
+    const year=byId('mmhBirthYearV271'),month=byId('mmhBirthMonthV271'),grid=byId('mmhBirthDaysV271');
+    if(!year||!month||!grid||!dialogMonth)return;
+    const y=dialogMonth.getFullYear(),m=dialogMonth.getMonth(),now=new Date();
+    year.replaceChildren();for(let a=now.getFullYear();a>=1900;a--){const o=document.createElement('option');o.value=String(a);o.textContent=String(a);year.append(o);}year.value=String(y);
+    month.replaceChildren();for(let a=0;a<12;a++){const o=document.createElement('option');o.value=String(a);o.textContent=new Intl.DateTimeFormat(birthdayLocale(),{month:'long'}).format(new Date(2024,a,1));month.append(o);}month.value=String(m);
+    grid.replaceChildren();for(let a=0;a<7;a++){const h=document.createElement('span');h.textContent=new Intl.DateTimeFormat(birthdayLocale(),{weekday:'short'}).format(new Date(2024,0,7+a));grid.append(h);}
+    for(let a=0;a<new Date(y,m,1).getDay();a++)grid.append(document.createElement('span'));
+    for(let a=1;a<=new Date(y,m+1,0).getDate();a++){const b=document.createElement('button');b.type='button';const value=y+'-'+pad(m+1)+'-'+pad(a);b.textContent=String(a);b.disabled=!validBirth(value);b.setAttribute('aria-pressed',String(value===dialogDate));b.addEventListener('click',()=>{dialogDate=value;for(const el of grid.querySelectorAll('button'))el.setAttribute('aria-pressed',String(el===b));});grid.append(b);}
+  }
+  function bindBirthdayDialogs(){
+    const open=byId('mmhBirthOpenV271'),picker=byId('mmhBirthPickerV271'),details=byId('mmhBirthDetailsV271'),time=byId('mmhBirthTimeV271');
+    if(!open||!picker||!details||!time||open.__bound)return;open.__bound=true;
+    open.addEventListener('click',()=>{dialogOwner=scopedKey();if(!dialogOwner)return;dialogDate=getBirthISO();dialogTime=getBirthTime();time.value=dialogTime;const d=getBirth()||new Date();dialogMonth=new Date(d.getFullYear(),d.getMonth(),1);calendarRender();picker.showModal();});
+    byId('mmhBirthInfoV271').addEventListener('click',()=>{render();details.showModal();});
+    for(const id of ['mmhBirthYearV271','mmhBirthMonthV271'])byId(id).addEventListener('change',()=>{dialogMonth=new Date(Number(byId('mmhBirthYearV271').value),Number(byId('mmhBirthMonthV271').value),1);calendarRender();});
+    for(const [id,delta] of [['mmhBirthPrevV271',-1],['mmhBirthNextV271',1]])byId(id).addEventListener('click',()=>{const n=new Date(dialogMonth.getFullYear(),dialogMonth.getMonth()+delta,1);if(n.getFullYear()>=1900&&n.getFullYear()<=new Date().getFullYear()){dialogMonth=n;calendarRender();}});
+    byId('mmhBirthClearV271').addEventListener('click',()=>{dialogDate='';time.value='';calendarRender();});
+    byId('mmhBirthClearTimeV271').addEventListener('click',()=>{time.value='';});
+    byId('mmhBirthConfirmV271').addEventListener('click',()=>{
+      if(!dialogOwner||dialogOwner!==scopedKey()){closeBirthdayDialogs();return;}
+      const t=time.value;if((dialogDate&&!validBirth(dialogDate))||(t&&!/^(?:[01]\d|2[0-3]):[0-5]\d$/.test(t)))return;
+      try{localStorage.setItem(dialogOwner,dialogDate+(dialogDate&&t?'T'+t:''));}catch(_){byId('mmhBirthErrorV271').hidden=false;return;}
+      picker.close();render();window.dispatchEvent(new CustomEvent('mmhvault-birthday-change'));
+    });
+    for(const d of [picker,details]){d.addEventListener('keydown',e=>{if(e.key==='Escape')e.stopPropagation();});d.querySelectorAll('[data-birth-close]').forEach(b=>b.addEventListener('click',()=>d.close()));}
+    picker.addEventListener('close',()=>{dialogOwner=null;dialogDate='';time.value='';byId('mmhBirthErrorV271').hidden=true;});
+  }
   const birthdayLang=()=>{const lang=(document.documentElement.lang||'en').toLowerCase();return lang.startsWith('zh')?'zh':lang.startsWith('my')?'my':'en';};
   const birthdayText=(en,zh,my)=>({en,zh,my})[birthdayLang()];
   function birthdayLabels(){
@@ -11242,19 +11281,17 @@ html.mmh-desktop-compact-v11110 body.mmh-workspace-active #moreNavMenu.more-nav-
   const pad=n=>String(n).padStart(2,'0');
   function parts(now){
     const birth=getBirth();if(!birth)return null;
-    let years=now.getFullYear()-birth.getFullYear();
-    let anchor=new Date(birth); anchor.setFullYear(birth.getFullYear()+years);
-    if(now<anchor){years--; anchor=new Date(birth); anchor.setFullYear(birth.getFullYear()+years);}
-    let months=now.getMonth()-anchor.getMonth();
-    if(months<0){months+=12;}
-    let monthAnchor=new Date(anchor); monthAnchor.setMonth(anchor.getMonth()+months);
-    if(monthAnchor>now){months--; monthAnchor=new Date(anchor); monthAnchor.setMonth(anchor.getMonth()+months);}
-    let days=Math.floor((now-monthAnchor)/(24*60*60*1000));
-    return {years,months,days};
+    let years=now.getFullYear()-birth.getFullYear(),anchor=anniversary(birth.getFullYear()+years,birth.getMonth(),birth.getDate());
+    if(civil(now)<civil(anchor)){years--;anchor=anniversary(birth.getFullYear()+years,birth.getMonth(),birth.getDate());}
+    let months=(now.getFullYear()-anchor.getFullYear())*12+now.getMonth()-anchor.getMonth();
+    const at=m=>{const base=new Date(anchor.getFullYear(),anchor.getMonth()+m,1);return anniversary(base.getFullYear(),base.getMonth(),anchor.getDate());};
+    if(civil(at(months))>civil(now))months--;
+    return {years,months,days:Math.round((civil(now)-civil(at(months)))/86400000)};
   }
   function nextBirthday(now){
     const birth=getBirth();if(!birth)return null;
-    let y=now.getFullYear(); let d=new Date(y,birth.getMonth(),birth.getDate(),0,0,0); if(d<=now)d=new Date(y+1,birth.getMonth(),birth.getDate(),0,0,0); return d;
+    const time=getBirthTime(),at=y=>{const d=anniversary(y,birth.getMonth(),birth.getDate());if(time)d.setHours(Number(time.slice(0,2)),Number(time.slice(3)),0,0);return d;};
+    let d=at(now.getFullYear());if(time?d<now:civil(d)<civil(now))d=at(now.getFullYear()+1);return d;
   }
   function render(){
     const v=document.getElementById('mmhSettingsAgeValueV34215'), n=document.getElementById('mmhSettingsBirthdayValueV34215'), c=document.getElementById('mmhSettingsBirthdayCountdownV34215');
@@ -11262,13 +11299,16 @@ html.mmh-desktop-compact-v11110 body.mmh-workspace-active #moreNavMenu.more-nav-
     const key=scopedKey(),iso=getBirthISO(),changed=renderedKey!==key;renderedKey=key;
     if(input){input.disabled=!key;if(changed){if(editingKey!==null||document.activeElement===input)editInvalidated=true;editingKey=null;input.setCustomValidity('');}if(changed||document.activeElement!==input){if(input.value!==iso)input.value=iso;}}
     birthdayLabels();
+    const open=byId('mmhBirthOpenV271'),label=byId('mmhBirthDisplayV271'),time=getBirthTime();
+    if(open)open.disabled=!key;
+    if(label)label.textContent=iso?formatBirthday(getBirth(),time):birthdayText('Choose birthday','选择生日','မွေးနေ့ ရွေးချယ်ပါ');
     const now=new Date(),a=parts(now),nb=nextBirthday(now);
     if(input){const max=`${now.getFullYear()}-${pad(now.getMonth()+1)}-${pad(now.getDate())}`;if(input.max!==max)input.max=max;if(input.min!=='1900-01-01')input.min='1900-01-01';}
-    if(!a||!nb){for(const el of [v,n,c])if(el)el.textContent='—';return;}
-    const diff=Math.max(0,nb-now),days=Math.floor(diff/86400000),hrs=Math.floor((diff%86400000)/3600000),mins=Math.floor((diff%3600000)/60000),secs=Math.floor((diff%60000)/1000);
+    if(!a||!nb){for(const el of [v,n,c])if(el)el.textContent='0';return;}
+    const diff=Math.max(0,time?nb-now:civil(nb)-civil(now)),days=Math.floor(diff/86400000),hrs=Math.floor((diff%86400000)/3600000),mins=Math.floor((diff%3600000)/60000),secs=Math.floor((diff%60000)/1000);
     if(v) v.textContent=birthdayText(`${a.years} years, ${a.months} months, ${a.days} days`,`${a.years}岁 ${a.months}个月 ${a.days}天`,`${a.years} နှစ် ${a.months} လ ${a.days} ရက်`);
-    if(n) n.textContent=`${nb.getFullYear()}-${pad(nb.getMonth()+1)}-${pad(nb.getDate())}`;
-    if(c) c.textContent=birthdayText(`${days}d ${hrs}h ${mins}m ${secs}s`,`${days}天 ${hrs}小时 ${mins}分 ${secs}秒`,`${days} ရက် ${hrs} နာရီ ${mins} မိနစ် ${secs} စက္ကန့်`);
+    if(n) n.textContent=formatBirthday(nb,time);
+    if(c) c.textContent=time?birthdayText(`${days}d ${hrs}h ${mins}m ${secs}s`,`${days}天 ${hrs}小时 ${mins}分 ${secs}秒`,`${days} ရက် ${hrs} နာရီ ${mins} မိနစ် ${secs} စက္ကန့်`):birthdayText(`${days} days`,`${days}天`,`${days} ရက်`);
   }
   let lastAgeKey='';
   function ageKey(now=new Date()){const a=parts(now);return a?`${a.years}|${a.months}|${a.days}`:''}
@@ -11294,7 +11334,7 @@ html.mmh-desktop-compact-v11110 body.mmh-workspace-active #moreNavMenu.more-nav-
         render();window.dispatchEvent(new CustomEvent('mmhvault-birthday-change'));
       });
     }
-    render();
+    bindBirthdayDialogs();render();
   };
   function startAgeTickerV3435(){
     let timer=0;
@@ -11313,10 +11353,11 @@ html.mmh-desktop-compact-v11110 body.mmh-workspace-active #moreNavMenu.more-nav-
     window.addEventListener('mmhvault:page-visible',()=>{dispatchAgeDayIfChanged(false)},{passive:true});
   }
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>{bind();startAgeTickerV3435();},{once:true}); else {bind();startAgeTickerV3435();}
-  window.addEventListener('languagechange',render);
-  window.addEventListener('mmhvault-language-change',render);
+  function birthLanguageChanged(){render();if(byId('mmhBirthPickerV271')?.open)calendarRender();}
+  window.addEventListener('languagechange',birthLanguageChanged);
+  window.addEventListener('mmhvault-language-change',birthLanguageChanged);
   window.addEventListener('mmhvault-birthday-change',()=>{render();dispatchAgeDayIfChanged(true)});
-  window.addEventListener('mmhvault:config-owner-changed',()=>{lastAgeKey='';bind();dispatchAgeDayIfChanged(true)});
+  window.addEventListener('mmhvault:config-owner-changed',()=>{lastAgeKey='';closeBirthdayDialogs();bind();dispatchAgeDayIfChanged(true)});
 })();
 </script>
 <!-- Retired Wealth Planning: hidden compatibility sink retained for legacy dashboard writers. -->
@@ -12764,7 +12805,7 @@ window.MMHPersonalDisplayCurrenciesV265=Object.freeze(["USD","THB","MMK","CNY","
 </div>
 <details class="settings-profile-editor"><summary>Edit profile <span>›</span></summary><form class="mmh-profile-edit-v1" id="mmhProfileFormV1">
 <label class="mmh-profile-name-v1"><span>Display name</span><input id="mmhProfileNameV1" type="text" maxlength="40" autocomplete="nickname" required placeholder="Your display name"></label>
-<div class="mmh-profile-photo-v1"><div class="st-profile-avatar-v269" id="mmhProfileAvatarV269" aria-hidden="true">—</div><span>Profile photo</span><button class="mmh-photo-trigger-v1" id="mmhProfilePickV1" type="button"><span aria-hidden="true">＋</span> Change photo</button><input id="mmhProfilePhotoV1" type="file" accept="image/jpeg,image/png,image/webp" hidden><small id="mmhProfileFileNameV1">JPG, PNG or WEBP · up to 2 MB</small></div>
+<div class="mmh-profile-photo-v1"><div class="st-profile-avatar-v269" id="mmhProfileAvatarV269" aria-hidden="true">—</div><span>Profile photo</span><button class="mmh-photo-trigger-v1" id="mmhProfilePickV1" type="button"><svg aria-hidden="true" viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M4 7h4l2-3h4l2 3h4a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V9a2 2 0 0 1 2-2Z"/><circle cx="12" cy="14" r="4"/></svg><span class="mmh-birth-sr-v271">Change photo</span></button><input id="mmhProfilePhotoV1" type="file" accept="image/jpeg,image/png,image/webp" hidden><small id="mmhProfileFileNameV1">JPG, PNG or WEBP · up to 2 MB</small></div>
 <button class="btn primary" id="mmhProfileSaveV1" type="submit">Save changes</button>
 <p id="mmhProfileResultV1" role="status" aria-live="polite"></p>
 </form></details>
@@ -12882,11 +12923,18 @@ window.MMHPersonalDisplayCurrenciesV265=Object.freeze(["USD","THB","MMK","CNY","
 </div>
 </div>
 <div class="panel mmh-birthday-settings-v34216" id="mmhBirthdaySettingsV34215">
-<div class="toolbar"><div><h2 data-i18n-en="Birthday" data-i18n-zh="生日" data-i18n-my="မွေးနေ့" class="mmh-hint-anchor-v195 mmh-context-title-v199" data-mmh-hint-source="next" tabindex="0">Birthday</h2><div class="small mmh-context-desc-v199" data-i18n-en="Set your birth date to calculate your age and next birthday in real time." data-i18n-zh="设置出生日期，系统会实时计算您的年龄和下次生日。" data-i18n-my="အသက်နှင့် နောက်လာမည့် မွေးနေ့ကို အချိန်နှင့်တစ်ပြေးညီ တွက်ချက်ရန် မွေးသက္ကရာဇ် သတ်မှတ်ပါ။">Set your birth date to calculate your age and next birthday in real time.</div></div><span class="pill" data-i18n-en="Live calculation" data-i18n-zh="实时计算" data-i18n-my="တိုက်ရိုက်တွက်ချက်မှု">Live calculation</span></div>
-<div class="mmh-birthday-grid-v34216">
-<label class="mmh-birthday-field-v34216"><span data-i18n-en="Birth Date" data-i18n-zh="出生日期" data-i18n-my="မွေးသက္ကရာဇ်">Birth Date</span><input id="mmhBirthDateInputV34215" type="date" value="" aria-describedby="mmhBirthdayLocalNoteV265"/><span id="mmhBirthdayLocalNoteV265" data-i18n-en="Optional. Saved on this device for your account only." data-i18n-zh="选填。仅保存在此设备上当前账户的设置中。" data-i18n-my="မဖြည့်လည်းရပါသည်။ ဤစက်ရှိ သင့်အကောင့်အတွက်သာ သိမ်းဆည်းပါသည်။">Optional. Saved on this device for your account only.</span></label>
-<div class="mmh-birthday-preview-v34216"><div><span class="k" data-i18n-en="Current Age" data-i18n-zh="当前年龄" data-i18n-my="လက်ရှိအသက်">Current Age</span><b id="mmhSettingsAgeValueV34215">—</b></div><div><span class="k" data-i18n-en="Next Birthday" data-i18n-zh="下次生日" data-i18n-my="လာမည့်မွေးနေ့">Next Birthday</span><b id="mmhSettingsBirthdayValueV34215">—</b></div><div class="mmh-birthday-countdown-v34216"><span class="k" data-i18n-en="Countdown" data-i18n-zh="倒计时" data-i18n-my="ကျန်ရှိချိန်">Countdown</span><b id="mmhSettingsBirthdayCountdownV34215">—</b></div></div>
-</div>
+<label class="mmh-birthday-field-v34216"><span data-i18n-en="Birthday" data-i18n-zh="生日" data-i18n-my="မွေးနေ့">Birthday</span></label>
+<div class="mmh-birth-row-v271"><button type="button" id="mmhBirthOpenV271" aria-haspopup="dialog"><span aria-hidden="true">▦</span><span id="mmhBirthDisplayV271">—</span></button><button type="button" id="mmhBirthInfoV271" aria-haspopup="dialog"><img src="images/mmhvault-v2-auth-mark.webp" alt=""><span class="mmh-birth-sr-v271" data-i18n-en="Birthday details" data-i18n-zh="生日计算详情" data-i18n-my="မွေးနေ့ အချက်အလက်">Birthday details</span></button></div>
+<input id="mmhBirthDateInputV34215" type="date" value="" hidden aria-hidden="true" tabindex="-1" style="display:none!important">
+<dialog id="mmhBirthPickerV271" class="mmh-birth-dialog-v271" aria-labelledby="mmhBirthPickerTitleV271">
+<h3 id="mmhBirthPickerTitleV271" data-i18n-en="Choose date and time" data-i18n-zh="选择日期与时间" data-i18n-my="ရက်စွဲနှင့် အချိန် ရွေးပါ">Choose date and time</h3>
+<div class="mmh-birth-calendar-controls-v271"><button type="button" id="mmhBirthPrevV271" ><span data-i18n-en="‹" data-i18n-zh="‹" data-i18n-my="‹">‹</span></button><label><span data-i18n-en="Year" data-i18n-zh="年" data-i18n-my="နှစ်">Year</span><select id="mmhBirthYearV271"></select></label><label><span data-i18n-en="Month" data-i18n-zh="月" data-i18n-my="လ">Month</span><select id="mmhBirthMonthV271"></select></label><button type="button" id="mmhBirthNextV271" ><span data-i18n-en="›" data-i18n-zh="›" data-i18n-my="›">›</span></button></div>
+<div class="mmh-birth-days-v271" id="mmhBirthDaysV271"></div>
+<label class="mmh-birth-time-v271"><span data-i18n-en="Birth time (optional)" data-i18n-zh="出生时间（选填）" data-i18n-my="မွေးချိန် (မဖြည့်လည်းရ)">Birth time (optional)</span><input id="mmhBirthTimeV271" type="time" step="60"></label><button type="button" id="mmhBirthClearTimeV271"><span data-i18n-en="Clear time" data-i18n-zh="清除时间" data-i18n-my="အချိန် ရှင်းရန်">Clear time</span></button>
+<p id="mmhBirthdayLocalNoteV265" data-i18n-en="Optional. Saved on this device for your account only." data-i18n-zh="选填。仅保存在此设备上当前账户的设置中。" data-i18n-my="မဖြည့်လည်းရပါသည်။ ဤစက်ရှိ သင့်အကောင့်အတွက်သာ သိမ်းဆည်းပါသည်။">Optional. Saved on this device for your account only.</p>
+<p id="mmhBirthErrorV271" role="alert" hidden data-i18n-en="Could not save. Try again." data-i18n-zh="无法保存，请重试。" data-i18n-my="သိမ်းဆည်း၍ မရပါ။ ထပ်စမ်းပါ။">Could not save. Try again.</p>
+<div class="mmh-birth-actions-v271"><button type="button" id="mmhBirthClearV271" ><span data-i18n-en="Clear" data-i18n-zh="清除" data-i18n-my="ရှင်းလင်းရန်">Clear</span></button><button type="button" id="mmhBirthCancelV271" data-birth-close><span data-i18n-en="Cancel" data-i18n-zh="取消" data-i18n-my="မလုပ်တော့ပါ">Cancel</span></button><button type="button" id="mmhBirthConfirmV271" class="btn primary"><span data-i18n-en="Confirm" data-i18n-zh="确定" data-i18n-my="အတည်ပြုရန်">Confirm</span></button></div></dialog>
+<dialog id="mmhBirthDetailsV271" class="mmh-birth-dialog-v271" aria-labelledby="mmhBirthDetailsTitleV271"><h3 id="mmhBirthDetailsTitleV271" data-i18n-en="Birthday details" data-i18n-zh="生日计算详情" data-i18n-my="မွေးနေ့ အချက်အလက်">Birthday details</h3><div class="mmh-birthday-preview-v34216"><div><span class="k" data-i18n-en="Current Age" data-i18n-zh="当前年龄" data-i18n-my="လက်ရှိအသက်">Current Age</span><b id="mmhSettingsAgeValueV34215">—</b></div><div><span class="k" data-i18n-en="Next Birthday" data-i18n-zh="下次生日" data-i18n-my="လာမည့်မွေးနေ့">Next Birthday</span><b id="mmhSettingsBirthdayValueV34215">—</b></div><div class="mmh-birthday-countdown-v34216"><span class="k" data-i18n-en="Countdown" data-i18n-zh="倒计时" data-i18n-my="ကျန်ရှိချိန်">Countdown</span><b id="mmhSettingsBirthdayCountdownV34215">—</b></div></div><div class="mmh-birth-actions-v271"><button type="button" id="mmhBirthDetailsCloseV271" data-birth-close><span data-i18n-en="Close" data-i18n-zh="关闭" data-i18n-my="ပိတ်ရန်">Close</span></button></div></dialog>
 </div>
 </div>
 
@@ -20223,7 +20271,7 @@ function translateAttributes(root){
       if(txUiSurfaceV2(el)&&(txUiOwnedV2(el)||txUiDataV2(el)))return;
       const key='i18n'+a.replace(/-([a-z])/g,(_,c)=>c.toUpperCase());
       if(!el.dataset[key]) el.dataset[key]=v;
-      const base=el.dataset[key]; const desired=recurringCopySurfaceV264(el)?(recurringCopyProtectedV264(el)?base:recurringCopyTextV264(base,lang)):goalCopySurfaceV263(el)?goalCopyTextV263(base,el):el.closest('#budget')?budgetCopyTextV262(base,el):txUiSurfaceV2(el)?txUiTextV2(base):lang==='zh'?(myWorkspaceUiV2(el)&&zhWorkspaceV2[base]||zh[base]||base):lang==='my'?myWorkspaceTextV2(base,el):base;if(v!==desired)el.setAttribute(a,desired);
+      const base=el.dataset[key]; const desired=(el.id==='mmhProfileNameV1'&&a==='placeholder'?personalSettingsCopyV268(base,el,lang):null)??(recurringCopySurfaceV264(el)?(recurringCopyProtectedV264(el)?base:recurringCopyTextV264(base,lang)):goalCopySurfaceV263(el)?goalCopyTextV263(base,el):el.closest('#budget')?budgetCopyTextV262(base,el):txUiSurfaceV2(el)?txUiTextV2(base):lang==='zh'?(myWorkspaceUiV2(el)&&zhWorkspaceV2[base]||zh[base]||base):lang==='my'?myWorkspaceTextV2(base,el):base);if(v!==desired)el.setAttribute(a,desired);
     });
   };
   if(root?.nodeType===Node.ELEMENT_NODE&&(root.matches?.('[placeholder],[title],[aria-label]')||(investCopySurfaceV236(root)&&root.hasAttribute('data-mmh-hint'))))applyAttrs(root);
@@ -20705,6 +20753,24 @@ function personalSettingsCopyV268(base,el,locale){
  // Fixed, original Settings labels only, including English for legacy bilingual copy.
  const j=['en','zh','my'].indexOf(locale);
  if(j<0)return null;
+ // Profile copy is scoped to fixed labels and known app-generated statuses.
+ const profileRows=[
+  ['#settings .mmh-profile-name-v1>span','Display name','昵称','ပြသမည့် အမည်'],
+  ['#settings #mmhProfileNameV1','Your display name','您的昵称','သင့်ပြသမည့် အမည်'],
+  ['#settings #mmhProfilePickV1 span','Change photo','更换头像','ပရိုဖိုင်ပုံ ပြောင်းရန်'],
+  ['#settings #mmhProfileFileNameV1','JPG, PNG or WEBP · up to 2 MB','JPG、PNG 或 WEBP · 最大 2 MB','JPG၊ PNG သို့မဟုတ် WEBP · 2 MB အထိ'],
+  ['#settings #mmhProfileSaveV1','Save changes','保存更改','ပြောင်းလဲမှုများ သိမ်းရန်'],
+  ['#settings #mmhProfileCancelV271','Cancel','取消','မလုပ်တော့ပါ'],
+  ['#settings #mmhProfileResultV1','Enter a display name of 1–40 characters.','请输入 1–40 个字符的昵称。','စာလုံး 1–40 ပါသော အမည် ထည့်ပါ။'],
+  ['#settings #mmhProfileResultV1','Choose a JPG, PNG or WEBP image under 2 MB.','请选择不超过 2 MB 的 JPG、PNG 或 WEBP 图片。','2 MB ထက် မကျော်သော JPG၊ PNG သို့မဟုတ် WEBP ပုံ ရွေးပါ။'],
+  ['#settings #mmhProfileResultV1','Please sign in again.','请重新登录。','ထပ်မံ ဝင်ရောက်ပါ။'],
+  ['#settings #mmhProfileResultV1','Saving profile…','正在保存个人资料…','ပရိုဖိုင် သိမ်းဆည်းနေသည်…'],
+  ['#settings #mmhProfileResultV1','Profile saved. Your name and photo sync with this account.','个人资料已保存。昵称和头像已同步至此账户。','ပရိုဖိုင် သိမ်းပြီးပါပြီ။ အမည်နှင့်ပုံကို ဤအကောင့်နှင့် စင့်ခ်လုပ်ထားသည်။'],
+  ['#settings #mmhProfileResultV1','Account changed. Reopen profile settings.','账户已切换，请重新打开个人资料设置。','အကောင့် ပြောင်းသွားပါပြီ။ ပရိုဖိုင်ဆက်တင်ကို ပြန်ဖွင့်ပါ။'],
+  ['#settings #mmhProfileResultV1','Profile update failed.','个人资料更新失败。','ပရိုဖိုင် အပ်ဒိတ် မအောင်မြင်ပါ။'],
+  ['#settings #mmhProfileResultV1','Could not save profile.','无法保存个人资料。','ပရိုဖိုင်ကို မသိမ်းနိုင်ပါ။']
+ ];
+ for(const [selector,en,zh,my] of profileRows)if(base===en&&el.matches(selector))return [en,zh,my][j];
  if(el.matches('#settings #mmhDataHealthV191 h2')&&base==='Data Health / 数据健康检查')return ['Data Health','数据健康检查','ဒေတာအခြေအနေ စစ်ဆေးခြင်း'][j];
  if(el.matches('#settings #mmhDataHealthV191 .small')&&base==='Read only · 仅检查，不自动修改数据')return ['Read only · No automatic data changes','只读 · 仅检查，不自动修改数据','ဖတ်ရှုရန်သာ · ဒေတာကို အလိုအလျောက် မပြောင်းလဲပါ'][j];
  if(el.matches('#settings #mmhDataHealthRunV191')&&base==='Check / 检查')return ['Check','检查','စစ်ဆေးရန်'][j];
@@ -20735,6 +20801,7 @@ function translateTextNode(n){
   if(investCopySurfaceV236(parent)){if(investCopyProtectedV236(parent)||investCopyOwnedV236(parent))return;const translated=investCopyStableV236(investCopyNodeStateV236,n,current);if(translated!=null){if(current!==translated){const raw=n.nodeValue;n.nodeValue=(raw.match(/^\s*/)?.[0]||'')+translated+(raw.match(/\s*$/)?.[0]||'');}return;}}
   if(txUiSurfaceV2(parent)&&(txUiOwnedV2(parent)||txUiDataV2(parent)))return;
   if(parent.id==='txReceiptHint'&&document.getElementById('txReceipt')?.files?.length)return;
+  if(parent.id==='mmhProfileFileNameV1'&&document.getElementById('mmhProfilePhotoV1')?.files?.length){mmhI18nTextStateV135.delete(n);return;}
   if(parent.closest('.fc-planning-nav-v263,#apCurrencyPickerV2,#apRowCurrencyPickerV2,#accounts-page .am-row[data-account-id] .am-row-copy b,#mmhNotifyPopoverV560,.wv-choice-menu-v2,.mmh-notification-dialog-v149,#dataLoadOverlayV384,#mmhBootWorkspaceTextV2,#welcomeScreen .welcome-title,#welcomeScreen .welcome-sub,#welcomeScreen .welcome-ready,#mmhP947AccountGuard'))return; // These surfaces own their translations and user content.
   // Never translate member-entered account/category names or machine-readable finance types in the new dashboard.
   if(parent.closest('#mmhPremiumDashboardV500 .pf-tx-copy-v500,#mmhPremiumDashboardV500 .pf-tag-v500,#mmhPremiumDashboardV500 .pf-name-v500,#mmhPremiumDashboardV500 .pf-asset-v500,#mmhPremiumDashboardV500 .pf-signal-card-v150[data-signal-action-v150="category"] b,#header .wvLiveClockV2'))return;
@@ -29315,9 +29382,12 @@ function register(id,title,icon,content,host=menu){const page=document.createEle
 const button=document.createElement('button');button.type='button';button.className='st-nav';button.setAttribute('aria-controls',page.id);const glyph=document.createElement('span');glyph.className='st-icon';glyph.textContent=icon;glyph.setAttribute('aria-hidden','true');const label=document.createElement('span');label.className='st-nav-name';label.textContent=title;const arrow=document.createElement('span');arrow.className='st-chevron';arrow.textContent='›';arrow.setAttribute('aria-hidden','true');button.append(glyph,label,arrow);button.addEventListener('click',()=>go(id,button));host.append(button);return button;}
 for(const [i,g] of [...main.querySelectorAll('.st-group')].entries()){const title=g.querySelector('h2').textContent,id=['appearance','general','transactions'][i];const button=register(id,title,['◐','⚙','⇄'][i],g);if(id!=='general')button.remove();}main.remove();
 const editor=top.querySelector('.settings-profile-editor');const form=$('mmhProfileFormV1');const profileButton=register('profile','Edit profile','◉',form,top.querySelector('.account-center-card-v375'));profileButton.classList.add('st-profile-link');if(birthday)form.after(birthday);const actions=document.createElement('div');actions.className='st-profile-actions-v269';const submit=$('mmhProfileSaveV1'),result=$('mmhProfileResultV1');submit.setAttribute('form',form.id);actions.append(result,submit);(birthday||form).after(actions);editor.remove();
+const profileCard=document.createElement('div');profileCard.id='mmhProfileCardV271';form.before(profileCard);profileCard.append(form);if(birthday)form.append(birthday);profileCard.append(actions);
+const profileCancel=document.createElement('button');profileCancel.type='button';profileCancel.id='mmhProfileCancelV271';profileCancel.className='btn';profileCancel.textContent='Cancel';actions.insertBefore(profileCancel,submit);
+profileCancel.addEventListener('click',()=>{if(submit.disabled)return;const name=$('mmhProfileNameV1'),file=$('mmhProfilePhotoV1'),filename=$('mmhProfileFileNameV1');if(name&&currentSessionUser)name.value=getUserDisplayProfile(currentSessionUser).name;if(file)file.value='';if(filename)filename.textContent='JPG, PNG or WEBP · up to 2 MB';if(result)result.textContent='';});
 for(const [i,d] of [...root.querySelectorAll('.st-detail')].sort((a,b)=>['Password & devices','App icon','Data & backup'].indexOf(a.querySelector('summary').firstChild.textContent)-['Password & devices','App icon','Data & backup'].indexOf(b.querySelector('summary').firstChild.textContent)).entries()){const title=d.querySelector('summary').firstChild.textContent;const content=document.createElement('div');for(const node of [...d.childNodes])if(node.nodeName!=='SUMMARY')content.append(node);const kind={'Password & devices':['security','⌑'],'App icon':['icon','▣'],'Data & backup':['data','⇩']}[title];register(kind[0],title,kind[1],content);d.remove();}
 window.mmhOpenSettingsSectionV3=go;
-root.addEventListener('keydown',e=>{if(e.key==='Escape'&&root.classList.contains('st-in-subpage')){e.preventDefault();back()}});
+root.addEventListener('keydown',e=>{if(e.key==='Escape'&&!root.querySelector('dialog[open]')&&root.classList.contains('st-in-subpage')){e.preventDefault();back()}});
 
 window.mmhSettingsRefreshDefaultsV4=refreshDefaults;apply();stats();refreshDefaults();window.mmhRestoreAnalyzeCurrencyV918?.();
 window.addEventListener('mmhvault:personal-display-preferences-restored',()=>{prefs=readPrefs();syncPrefControls();apply();window.mmhRestoreAnalyzeCurrencyV918?.();window.dispatchEvent(new Event('mmhvault:personal-display-currency-changed'));window.mmhvaultForceRenderAllV34421?.('settings-preferences-restored')});
@@ -30222,39 +30292,68 @@ html body.st-overview-compact #dashboard :is(.panel,#dashboardCommandCenterV3421
    return sv;
   }
   function androidCustomTab(){try{return /Android/i.test(navigator.userAgent)&&/^android-app:\/\//i.test(document.referrer||'')}catch(_){return false}}
-  function detected(){const ua=navigator.userAgent;if(/iPhone|iPad|iPod/.test(ua)||(/Macintosh/.test(ua)&&navigator.maxTouchPoints>1))return /CriOS|FxiOS|EdgiOS/.test(ua)?'ios-other':'ios';if(/Android/.test(ua))return /Firefox/.test(ua)?'android-firefox':/Chrome/.test(ua)&&!/SamsungBrowser|EdgA/.test(ua)?'android-chrome':'android-other';return 'desktop'}
+  function detected(){const ua=navigator.userAgent||'',appleTablet=/iPad/i.test(ua)||(/Macintosh/i.test(ua)&&navigator.maxTouchPoints>1),otherIOS=/CriOS|FxiOS|EdgiOS|OPiOS/i.test(ua)||!/Safari/i.test(ua);if(appleTablet)return otherIOS?'ipad-other':'ipad';if(/iPhone|iPod/i.test(ua))return otherIOS?'ios-other':'ios';if(/Android/i.test(ua)){const tablet=/Tablet|\bTab\b/i.test(ua)||!/Mobile|Mobi/i.test(ua),browser=/Firefox/i.test(ua)?'firefox':/Chrome/i.test(ua)&&!/SamsungBrowser|EdgA|OPR/i.test(ua)?'chrome':'other';return 'android-'+(tablet?'tablet-':'')+browser}if(/Tablet|PlayBook|Kindle|Silk\//i.test(ua))return 'tablet-other';if(/Macintosh/.test(ua)&&/Safari/.test(ua)&&!/Chrome|Chromium|Edg|OPR|Firefox/.test(ua))return 'desktop-safari';if(/Edg\//.test(ua))return 'desktop-edge';if(/Chrome\//.test(ua)&&!/OPR/.test(ua))return 'desktop-chrome';return 'desktop'}
   function drawGuide(device=detected()){
-   const restorePickerFocus=document.activeElement?.id==='stInstallDeviceV5',restoreCloseFocus=document.activeElement?.id==='stInstallCloseV265';selectedDevice=device;guide.replaceChildren();
+   const restorePickerFocus=document.activeElement?.id==='stInstallDeviceV5',restoreCloseFocus=document.activeElement?.id==='stInstallCloseV265';selectedDevice=device;const mode=device.replace(/^android-tablet-/,'android-');guide.replaceChildren();
    const header=document.createElement('div');header.className='st-install-modal-head-v265';const title=document.createElement('h3');title.id='stInstallTitleV265';title.textContent=T('Add MMHVAULT to your home screen','将 MMHVAULT 添加到主屏幕','MMHVAULT ကို ပင်မမျက်နှာပြင်တွင် ထည့်ပါ');const close=document.createElement('button');close.id='stInstallCloseV265';close.type='button';close.textContent='×';close.setAttribute('aria-label',T('Close','关闭','ပိတ်ရန်'));close.onclick=()=>guide.close();header.append(title,close);guide.append(header);if(restoreCloseFocus)close.focus({preventScroll:true});
    const label=document.createElement('label');label.textContent=T('Your device & browser','您的设备与浏览器','သင့်စက်နှင့် ဘရောက်ဇာ');const picker=document.createElement('select');picker.id='stInstallDeviceV5';
-   for(const [v,en,zh,my] of [['ios','iPhone / iPad · Safari','iPhone / iPad · Safari'],['ios-other','iPhone / iPad · Other browser','iPhone / iPad · 其他浏览器','iPhone / iPad · အခြားဘရောက်ဇာ'],['android-chrome','Android · Chrome','Android · Chrome'],['android-firefox','Android · Firefox','Android · Firefox'],['android-other','Android · Other browser','Android · 其他浏览器','Android · အခြားဘရောက်ဇာ'],['desktop','Computer','电脑','ကွန်ပျူတာ']]){const o=document.createElement('option');o.value=v;o.textContent=T(en,zh,my);picker.append(o)}picker.value=device;picker.onchange=()=>drawGuide(picker.value);label.append(picker);guide.append(label);if(restorePickerFocus)picker.focus({preventScroll:true});
+   for(const [v,en,zh,my] of [['ios','iPhone · Safari','iPhone · Safari'],['ios-other','iPhone · Other browser','iPhone · 其他浏览器','iPhone · အခြားဘရောက်ဇာ'],['ipad','iPad · Safari','iPad · Safari'],['ipad-other','iPad · Other browser','iPad · 其他浏览器','iPad · အခြားဘရောက်ဇာ'],['android-chrome','Android · Chrome','Android · Chrome'],['android-firefox','Android · Firefox','Android · Firefox'],['android-other','Android · Other browser','Android · 其他浏览器','Android · အခြားဘရောက်ဇာ'],['android-tablet-chrome','Android tablet · Chrome','Android 平板 · Chrome','Android တက်ဘလက် · Chrome'],['android-tablet-firefox','Android tablet · Firefox','Android 平板 · Firefox','Android တက်ဘလက် · Firefox'],['android-tablet-other','Android tablet · Other browser','Android 平板 · 其他浏览器','Android တက်ဘလက် · အခြားဘရောက်ဇာ'],['tablet-other','Tablet · Other browser','平板 · 其他浏览器','တက်ဘလက် · အခြားဘရောက်ဇာ'],['desktop','Computer · Other browser','电脑 · 其他浏览器','ကွန်ပျူတာ · အခြားဘရောက်ဇာ'],['desktop-chrome','Computer · Chrome','电脑 · Chrome','ကွန်ပျူတာ · Chrome'],['desktop-edge','Computer · Edge','电脑 · Edge','ကွန်ပျူတာ · Edge'],['desktop-safari','Mac · Safari','Mac · Safari']]){const o=document.createElement('option');o.value=v;o.textContent=T(en,zh,my);picker.append(o)}picker.value=device;picker.onchange=()=>drawGuide(picker.value);label.append(picker);guide.append(label);if(restorePickerFocus)picker.focus({preventScroll:true});
    if(matchMedia('(display-mode: standalone)').matches||navigator.standalone){const done=document.createElement('p');done.textContent=T('You are already using MMHVAULT from the installed app.','您当前已通过已安装的 MMHVAULT 应用打开。','ထည့်သွင်းထားသော MMHVAULT အက်ပ်ကို သင် အသုံးပြုနေပါသည်။');guide.append(done);return}
    const steps=[];const step=(kind,en,zh,my)=>steps.push([kind,T(en,zh,my)]);
-   if(device==='ios'||device==='ios-other'){
-    if(device==='ios-other')step('browser','For these steps, open the same address in Safari.','按以下步骤操作前，请在 Safari 打开相同网址。','အောက်ပါအဆင့်များအတွက် တူညီသောလိပ်စာကို Safari တွင် ဖွင့်ပါ။');
+   if(['ios','ios-other','ipad','ipad-other'].includes(device)){
+    if(device.endsWith('-other'))step('browser','For these steps, open the same address in Safari.','按以下步骤操作前，请在 Safari 打开相同网址。','အောက်ပါအဆင့်များအတွက် တူညီသောလိပ်စာကို Safari တွင် ဖွင့်ပါ။');
     step('share','Tap the Share icon (square with an upward arrow).','点击分享图标（方框向上箭头）。','မျှဝေရန် အပေါ်မြားပါသော လေးထောင့်အိုင်ကွန်ကို နှိပ်ပါ။');
     step('add','Find Add to Home Screen in the share menu. Check More or Edit Actions if needed.','在分享菜单中找到添加到主屏幕；必要时查看更多或编辑操作。','မျှဝေမှုမီနူးတွင် ပင်မမျက်နှာပြင်သို့ ထည့်ရန် ရွေးပါ။ လိုအပ်ပါက More သို့မဟုတ် Edit Actions ကို ကြည့်ပါ။');
     step('confirm','Keep the MMHVAULT name. Enable Open as Web App if offered, then tap Add.','保留 MMHVAULT 名称；如有作为网页 App 打开选项，可开启后点击添加。','MMHVAULT အမည်ကို ထားပါ။ Open as Web App ရှိပါက ဖွင့်ပြီး Add ကို နှိပ်ပါ။');
     step('home','Open MMHVAULT from the home screen.','返回主屏幕并打开 MMHVAULT。','ပင်မမျက်နှာပြင်မှ MMHVAULT ကို ဖွင့်ပါ။');
    }else if(device.startsWith('android')){
-    if(androidCustomTab()&&device==='android-firefox')step('browser','Open the same address in the full Firefox app, not an in-app tab.','请在完整 Firefox 应用中打开相同网址，而非应用内标签页。','တူညီသောလိပ်စာကို အက်ပ်တွင်းတက်ဘ်မဟုတ်ဘဲ Firefox အက်ပ်တွင် ဖွင့်ပါ။');
-    else if(androidCustomTab()||device==='android-other')step('browser','For Chrome instructions, open the same address in the full Chrome app, not an in-app tab.','按 Chrome 步骤操作时，请在完整 Chrome App 打开相同网址，而非应用内标签页。','Chrome အဆင့်များအတွက် တူညီသောလိပ်စာကို အက်ပ်တွင်းတက်ဘ်မဟုတ်ဘဲ Chrome အက်ပ်တွင် ဖွင့်ပါ။');
+    if(androidCustomTab()&&mode==='android-firefox')step('browser','Open the same address in the full Firefox app, not an in-app tab.','请在完整 Firefox 应用中打开相同网址，而非应用内标签页。','တူညီသောလိပ်စာကို အက်ပ်တွင်းတက်ဘ်မဟုတ်ဘဲ Firefox အက်ပ်တွင် ဖွင့်ပါ။');
+    else if(androidCustomTab()||mode==='android-other')step('browser','For Chrome instructions, open the same address in the full Chrome app, not an in-app tab.','按 Chrome 步骤操作时，请在完整 Chrome App 打开相同网址，而非应用内标签页。','Chrome အဆင့်များအတွက် တူညီသောလိပ်စာကို အက်ပ်တွင်းတက်ဘ်မဟုတ်ဘဲ Chrome အက်ပ်တွင် ဖွင့်ပါ။');
     step('menu','Open the browser menu, usually the three-dot button.','打开浏览器菜单，通常是三点按钮。','ဘရောက်ဇာမီနူး (အများအားဖြင့် အစက်သုံးစက်) ကို ဖွင့်ပါ။');
-    if(device==='android-firefox')step('add','Choose Install or Add to Home screen, if available.','选择安装或添加到主屏幕（如有）。','Install သို့မဟုတ် Add to Home screen ရှိပါက ရွေးပါ။');
+    if(mode==='android-firefox')step('add','Choose Install or Add to Home screen, if available.','选择安装或添加到主屏幕（如有）。','Install သို့မဟုတ် Add to Home screen ရှိပါက ရွေးပါ။');
     else step('add','Choose Add to home screen, then Install if offered.','选择添加到主屏幕；如提供安装选项，再选择安装。','Add to home screen ကို ရွေးပြီး Install ရှိပါက နှိပ်ပါ။');
     step('confirm','Confirm the installation or shortcut.','确认安装或添加快捷方式。','ထည့်သွင်းခြင်း သို့မဟုတ် ဖြတ်လမ်းအိုင်ကွန် ထည့်ခြင်းကို အတည်ပြုပါ။');
     step('home','Open MMHVAULT using the new icon.','点击新图标打开 MMHVAULT。','အိုင်ကွန်အသစ်ဖြင့် MMHVAULT ကို ဖွင့်ပါ။');
+   }else if(device==='tablet-other'){
+    step('menu','Open the browser menu or share menu.','打开浏览器菜单或分享菜单。','ဘရောက်ဇာမီနူး သို့မဟုတ် မျှဝေမှုမီနူးကို ဖွင့်ပါ။');
+    step('add','Choose Install or Add to Home Screen if available; otherwise bookmark the website.','如有安装或添加到主屏幕选项，请选择；否则可收藏网站。','Install သို့မဟုတ် Add to Home Screen ရှိပါက ရွေးပါ။ မရှိပါက ဝဘ်ဆိုက်ကို မှတ်သားပါ။');
+    step('home','Confirm and open MMHVAULT using the new icon.','确认后通过新图标打开 MMHVAULT。','အတည်ပြုပြီး အိုင်ကွန်အသစ်ဖြင့် MMHVAULT ကို ဖွင့်ပါ။');
+   }else if(device==='desktop-safari'){
+    step('menu','In Safari, open the File menu and look for Add to Dock, if available.','在 Safari 中打开文件菜单，查看是否有添加到程序坞选项。','Safari တွင် File မီနူးဖွင့်ပြီး Add to Dock ရှိမရှိ ကြည့်ပါ။');
+    step('confirm','Keep the MMHVAULT name and confirm Add. If unavailable, bookmark this website.','保留 MMHVAULT 名称并确认添加；如不支持，可收藏本网站。','MMHVAULT အမည်ကို ထားပြီး Add ကို အတည်ပြုပါ။ မရပါက ဝဘ်ဆိုက်ကို မှတ်သားပါ။');
+    step('home','Open MMHVAULT from the Dock or Applications.','从程序坞或应用程序打开 MMHVAULT。','Dock သို့မဟုတ် Applications မှ MMHVAULT ကို ဖွင့်ပါ။');
    }else{
     step('browser','Open MMHVAULT in Chrome or Edge.','在 Chrome 或 Edge 中打开 MMHVAULT。','MMHVAULT ကို Chrome သို့မဟုတ် Edge တွင် ဖွင့်ပါ။');
     step('menu','Look for an install icon near the address bar or an install option in the browser menu.','查看地址栏附近的安装图标或浏览器菜单中的安装选项。','လိပ်စာဘားအနီးရှိ တပ်ဆင်ရန်အိုင်ကွန် သို့မဟုတ် မီနူးရှိ Install ကို ရှာပါ။');
     step('confirm','Confirm if offered. Otherwise bookmark the page.','如有安装选项，请确认；否则可收藏此网页。','တပ်ဆင်နိုင်ပါက အတည်ပြုပါ။ မရပါက စာမျက်နှာကို မှတ်သားထားပါ။');
    }
-   const list=document.createElement('ol');for(const [kind,copy] of steps){const item=document.createElement('li');const content=document.createElement('div');content.className='st-install-step-copy-v265';const words=document.createElement('span');words.textContent=copy;content.append(illustration(kind,device==='desktop'),words);item.append(content);list.append(item)}guide.append(list);
+   const artKey=device.startsWith('ipad')||device.startsWith('android-tablet-')||device==='tablet-other'?'ipad':device.startsWith('ios')?'ios':device.startsWith('android')?'android-chrome':'desktop';
+   if(artKey){
+    const figure=document.createElement('figure');figure.className='st-install-art-v271';
+    const caption=document.createElement('figcaption');caption.textContent=T('Illustrated guide · browser menus may vary.','安装示意图 · 浏览器菜单可能因版本而异。','တပ်ဆင်နည်း သရုပ်ပြပုံ · ဘရောက်ဇာမီနူး ကွာခြားနိုင်ပါသည်။');
+    if(device==='ios-other'||device==='ipad-other')caption.textContent+=' '+T('Open in Safari first.','请先用 Safari 打开。','Safari တွင် အရင်ဖွင့်ပါ။');
+    else if(device.startsWith('android-tablet-')||device==='tablet-other'||mode==='android-firefox'||device==='desktop-safari'||device==='desktop')caption.textContent+=' '+T('This image is a reference; follow the browser-specific steps below.','图片仅供参考，请按下方对应浏览器的步骤操作。','ပုံကို ကိုးကားပြီး အောက်ပါ ဘရောက်ဇာအလိုက် အဆင့်များကို လိုက်နာပါ။');
+    else if(mode==='android-other'||androidCustomTab())caption.textContent+=' '+T('Open in Chrome first.','请先用 Chrome 打开。','Chrome တွင် အရင်ဖွင့်ပါ။');
+    const view=document.createElement('div');view.id='stInstallArtViewV271';view.className='st-install-art-view-v271';view.tabIndex=0;view.setAttribute('aria-label',T('Installation illustration','安装教程图片','တပ်ဆင်နည်းပုံ'));
+    const img=document.createElement('img');img.className='st-install-art-image-v271';img.width=1672;img.height=941;img.decoding='async';img.alt=T('MMHVAULT installation steps for ','MMHVAULT 安装步骤：','MMHVAULT တပ်ဆင်နည်း - ')+artKey;img.onerror=()=>{figure.hidden=true};
+    const zoom=document.createElement('button');zoom.type='button';zoom.className='st-install-art-zoom-v271';zoom.setAttribute('aria-controls',view.id);zoom.setAttribute('aria-expanded','false');let enlarged=false;
+    const zoomLabel=()=>{zoom.textContent=enlarged?T('Fit image','适应屏幕','မျက်နှာပြင်နှင့်ကိုက်ညီရန်'):T('Enlarge image','放大图片','ပုံချဲ့ရန်');zoom.setAttribute('aria-expanded',String(enlarged))};
+    zoom.onclick=()=>{enlarged=!enlarged;view.className='st-install-art-view-v271'+(enlarged?' is-enlarged':'');if(!enlarged)view.scrollLeft=0;zoomLabel()};zoomLabel();view.append(img);figure.append(view,caption,zoom);guide.append(figure);img.src='./images/mmhvault-install-'+artKey+'-v271.webp';
+   }
+   const list=document.createElement('ol');if(artKey)list.className='st-install-art-steps-v271';for(const [kind,copy] of steps){const item=document.createElement('li');const content=document.createElement('div');content.className='st-install-step-copy-v265';const words=document.createElement('span');words.textContent=copy;if(!artKey)content.append(illustration(kind,device.startsWith('desktop')));content.append(words);item.append(content);list.append(item)}guide.append(list);
    const note=document.createElement('p');note.className='st-install-note';note.textContent=captions();guide.append(note);
    if(installPrompt&&!androidCustomTab()){const native=document.createElement('button');native.type='button';native.className='btn primary';native.textContent=T('Install app','安装应用','အက်ပ် ထည့်သွင်းရန်');native.onclick=()=>button.onclick();guide.append(native)}
   }
   let activeGuideTrigger=button;
-  function openGuide(trigger=activeGuideTrigger){if(!guide.open){if(trigger!==button){const general=trigger.closest('#stPage_general');if(!general||general.hidden)return;general.append(guide)}else if(guide.parentElement&&guide.parentElement!==host)host.append(guide);activeGuideTrigger=trigger}drawGuide(selectedDevice||detected());if(!guide.open){guide.hidden=false;guide.showModal();activeGuideTrigger.setAttribute('aria-expanded','true');document.getElementById('stInstallCloseV265')?.focus({preventScroll:true})}}
+  function drawActiveGuide(device){
+   drawGuide(device);
+   if(activeGuideTrigger===button)return;
+   const picker=guide.querySelector('#stInstallDeviceV5'),label=picker?.parentElement;
+   if(label){const summary=document.createElement('p');summary.className='st-detected-device-v271';summary.textContent=T('Your device: ','您的设备：','သင့်စက်: ')+(picker.selectedOptions[0]?.textContent||'');label.before(summary);label.hidden=true}
+   const header=guide.querySelector('.st-install-modal-head-v265'),title=guide.querySelector('#stInstallTitleV265');
+   if(header&&title){const mark=document.createElement('img');mark.className='st-install-brand-v271';mark.src='./images/mmhvault-v2-auth-mark.webp';mark.alt='';header.prepend(mark);if(device.startsWith('desktop'))title.textContent=T('Install MMHVAULT on your computer','在电脑上安装 MMHVAULT','MMHVAULT ကို ကွန်ပျူတာတွင် ထည့်သွင်းပါ')}
+  }
+  function openGuide(trigger=activeGuideTrigger){if(!guide.open){if(trigger!==button){const general=trigger.closest('#stPage_general');if(!general||general.hidden)return;general.append(guide)}else if(guide.parentElement&&guide.parentElement!==host)host.append(guide);activeGuideTrigger=trigger}drawActiveGuide(activeGuideTrigger===button?(selectedDevice||detected()):detected());if(!guide.open){guide.hidden=false;guide.showModal();activeGuideTrigger.setAttribute('aria-expanded','true');document.getElementById('stInstallCloseV265')?.focus({preventScroll:true})}}
   window.mmhOpenInstallGuideV270=trigger=>{if(trigger?.id==='stAppIconGuideV270')openGuide(trigger)};
   guide.addEventListener('close',()=>{if(guide.open)return;guide.hidden=true;const trigger=activeGuideTrigger;trigger.setAttribute('aria-expanded','false');activeGuideTrigger=button;if(trigger.isConnected&&trigger.getClientRects().length)trigger.focus({preventScroll:true})});
   let backdropDown=false;
@@ -30271,7 +30370,7 @@ html body.st-overview-compact #dashboard :is(.panel,#dashboardCommandCenterV3421
     finally{prompting=false}
    }else openGuide()
   };
-  ['mmhvault-language-change','languagechange'].forEach(name=>window.addEventListener(name,()=>{refreshInstallCopy();if(guide.open)drawGuide(selectedDevice||detected())}));
+  ['mmhvault-language-change','languagechange'].forEach(name=>window.addEventListener(name,()=>{refreshInstallCopy();if(guide.open)drawActiveGuide(selectedDevice||detected())}));
   window.addEventListener('appinstalled',()=>{installPrompt=null;setInstallStatus('installed');if(guide.open)guide.close()});
   host.append(button,status,guide);
   window.addEventListener('mmhvault:config-owner-changed',()=>{if(guide.open)guide.close();for(const id of ['securityCurrentPasswordV379','securityNewPasswordV379','securityConfirmPasswordV379','mmhProfilePhotoV1']){const input=document.getElementById(id);if(input)input.value=''}for(const id of ['securityPasswordResultV379','mmhProfileResultV1']){const el=document.getElementById(id);if(el)el.textContent=''}window.mmhSettingsRefreshDefaultsV4?.()});
@@ -30287,6 +30386,18 @@ html body.st-overview-compact #dashboard :is(.panel,#dashboardCommandCenterV3421
 html body.light #settings :is(#stPage_icon,#stPage_general) #stInstallGuideV5 .st-install-illustration-v265{background:#edf3f7;border-color:#ccd8e1;color:#42576b}
 html body.light #settings :is(#stPage_icon,#stPage_general) #stInstallGuideV5 .st-install-illustration-v265 .accent{stroke:#147b62}
 html body.light #settings #stPage_icon #stInstallStatusV4{color:#42576b}
+/* V2.0.71: owner-approved, device-specific installation artwork. */
+html body #settings :is(#stPage_icon,#stPage_general) #stInstallGuideV5:has(.st-install-art-v271:not([hidden])){width:min(920px,calc(100% - 32px))!important}
+#settings :is(#stPage_icon,#stPage_general) #stInstallGuideV5 .st-install-art-v271{margin:12px 0;min-width:0;display:grid;gap:8px}
+#settings :is(#stPage_icon,#stPage_general) #stInstallGuideV5 .st-install-art-v271[hidden]{display:none!important}
+#settings :is(#stPage_icon,#stPage_general) #stInstallGuideV5 .st-install-art-view-v271{width:100%;min-width:0;overflow:auto;border-radius:10px;border:1px solid #42576b;touch-action:pan-x pan-y pinch-zoom;box-sizing:border-box}
+#settings :is(#stPage_icon,#stPage_general) #stInstallGuideV5 .st-install-art-image-v271{display:block;width:100%;height:auto;max-width:none;border-radius:0}
+#settings :is(#stPage_icon,#stPage_general) #stInstallGuideV5 .st-install-art-view-v271.is-enlarged .st-install-art-image-v271{width:max(100%,1200px)}
+#settings :is(#stPage_icon,#stPage_general) #stInstallGuideV5 .st-install-art-v271 figcaption{font-size:12px;line-height:1.5;overflow-wrap:anywhere}
+#settings :is(#stPage_icon,#stPage_general) #stInstallGuideV5 .st-install-art-zoom-v271{justify-self:end;min-height:44px;padding:8px 12px;border:1px solid #42576b;border-radius:9px;background:#203447;color:#e3edf5;cursor:pointer;font:inherit;font-size:12px}
+html body.light #settings :is(#stPage_icon,#stPage_general) #stInstallGuideV5 .st-install-art-zoom-v271{background:#f8fbfd;color:#243e55;border-color:#cbd9e5}
+#settings :is(#stPage_icon,#stPage_general) #stInstallGuideV5 .st-install-art-steps-v271 .st-install-step-copy-v265{grid-template-columns:minmax(0,1fr)}
+
 @media(max-width:420px){#settings :is(#stPage_icon,#stPage_general) #stInstallGuideV5 .st-install-step-copy-v265{grid-template-columns:minmax(0,1fr);gap:7px}#settings :is(#stPage_icon,#stPage_general) #stInstallGuideV5 .st-install-illustration-v265{max-width:104px}}
 </style>
 
@@ -30806,7 +30917,7 @@ html body #exchange .ex-rate-pair-logos .ex-flag-img{width:24px!important;height
 const groups=[['Preferences','偏好设置',['general']],['Personal & security','个人与安全',['security','data']],['App & data','应用与数据',[]]];
 const copy={appearance:['Theme, overview and budget layout','主题、概览与预算布局'],general:['Currency and font style','币种与字体样式'],transactions:['Default categories and source account','默认分类与来源账户'],security:['Password and signed-in devices','密码与已登录设备'],icon:['App icon and home screen installation','应用图标与添加主屏幕'],data:['Export, import and backup tools','导出、导入与备份工具']};
 for(const [en,zh,ids] of groups){const group=document.createElement('section');group.className='st-template-group';if(!ids.length){group.hidden=true;group.classList.add('st-template-legacy-support-v268')}const h=document.createElement('h3');h.dataset.en=en;h.dataset.zh=zh;h.textContent=(localStorage.getItem('mmhvault_language_v3363')||'en')==='zh'?zh:en;group.append(h);for(const id of ids){const button=menu.querySelector('[aria-controls="stPage_'+id+'"]');if(!button)continue;const title=button.querySelector('.st-nav-name'),body=document.createElement('span');body.className='st-template-nav-copy';title.before(body);body.append(title);const small=document.createElement('small');small.dataset.en=copy[id][0];small.dataset.zh=copy[id][1];small.textContent=(localStorage.getItem('mmhvault_language_v3363')||'en')==='zh'?copy[id][1]:copy[id][0];body.append(small);group.append(button)}menu.append(group)}
-const iconButton=menu.querySelector('[aria-controls="stPage_icon"]'),general=document.getElementById('stPage_general');if(iconButton&&general){const rows=general.querySelector('.st-rows');if(rows){const iconRow=document.createElement('div');iconRow.className='st-row st-app-icon-row-v270';const glyph=iconButton.querySelector('.st-icon'),title=iconButton.querySelector('.st-nav-name');title.dataset.en='App icon';title.dataset.zh='应用图标';const logo=document.createElement('button');logo.type='button';logo.id='stAppIconGuideV270';logo.className='st-app-logo-v270';logo.setAttribute('aria-haspopup','dialog');logo.setAttribute('aria-controls','stInstallGuideV5');logo.setAttribute('aria-expanded','false');const img=document.createElement('img');img.src='./images/icon-192.png?v=pwa26-20261029';img.alt='';logo.append(img);logo.onclick=()=>window.mmhOpenInstallGuideV270?.(logo);iconRow.append(glyph,title,logo);const preview=general.querySelector('#stFontPreviewV265');if(preview)preview.hidden=true;const note=general.querySelector('#stFontNoteV265'),status=general.querySelector('#stFontStatusV265');if(note)rows.after(note);if(status)(note||rows).after(status);rows.append(iconRow);iconButton.remove()}}
+const iconButton=menu.querySelector('[aria-controls="stPage_icon"]'),general=document.getElementById('stPage_general');if(iconButton&&general){const rows=general.querySelector('.st-rows');if(rows){const iconRow=document.createElement('div');iconRow.className='st-row st-app-icon-row-v270';const glyph=iconButton.querySelector('.st-icon'),title=iconButton.querySelector('.st-nav-name');title.dataset.en='App icon';title.dataset.zh='应用图标';const logo=document.createElement('button');logo.type='button';logo.id='stAppIconGuideV270';logo.className='st-app-logo-v270';logo.setAttribute('aria-haspopup','dialog');logo.setAttribute('aria-controls','stInstallGuideV5');logo.setAttribute('aria-expanded','false');const img=document.createElement('img');img.src='./images/mmhvault-v2-auth-mark.webp';img.alt='';logo.append(img);logo.onclick=()=>window.mmhOpenInstallGuideV270?.(logo);iconRow.append(glyph,title,logo);const preview=general.querySelector('#stFontPreviewV265');if(preview)preview.hidden=true;const note=general.querySelector('#stFontNoteV265'),status=general.querySelector('#stFontStatusV265');if(note)rows.after(note);if(status)(note||rows).after(status);rows.append(iconRow);iconButton.remove()}}
 const myCopy={'Preferences':'စိတ်ကြိုက်ဆက်တင်များ','Personal & security':'ကိုယ်ရေးနှင့် လုံခြုံရေး','App & data':'အက်ပ်နှင့် ဒေတာ','Currency and font style':'ငွေကြေးနှင့် ဖောင့်ပုံစံ','Password and signed-in devices':'စကားဝှက်နှင့် ဝင်ရောက်ထားသော စက်များ','App icon':'အက်ပ်အိုင်ကွန်','Export, import and backup tools':'ဒေတာထုတ်ယူခြင်း၊ ထည့်သွင်းခြင်းနှင့် အရန်ကူးခြင်း'};
 function translate(){const lang=localStorage.getItem('mmhvault_language_v3363')||'en';[...menu.querySelectorAll('[data-en][data-zh]'),...(general?.querySelectorAll('.st-app-icon-row-v270 [data-en][data-zh]')||[])].forEach(e=>{const value=lang==='zh'?e.dataset.zh:lang==='my'?(myCopy[e.dataset.en]||e.dataset.en):e.dataset.en;if(e.textContent!==value)e.textContent=value});const logo=general?.querySelector('#stAppIconGuideV270');if(logo)logo.setAttribute('aria-label',lang==='zh'?'查看安装教程':lang==='my'?'ထည့်သွင်းရန် လမ်းညွှန်ကို ကြည့်ပါ':'Open installation guide')}
 ['mmhvault-language-change','languagechange'].forEach(name=>window.addEventListener(name,translate));translate();
@@ -31000,7 +31111,7 @@ for(const img of document.querySelectorAll('img[data-mmh-brand-v11]')){
   img.before(wrap);wrap.append(img);img.src=art;observer?.observe(wrap);
 }
 for(const link of document.querySelectorAll('link[rel="icon"],link[rel="apple-touch-icon"]')){
-  const touch=link.relList?.contains('apple-touch-icon');link.href=touch?'/apple-touch-icon.png?v=pwa25-20261029':'./images/mmhvault-v2-auth-mark.webp';
+  const touch=link.relList?.contains('apple-touch-icon');link.href=touch?'/images/mmhvault-personal-v2-icon-180.png':'./images/mmhvault-v2-auth-mark.webp';
   link.type=touch?'image/png':'image/webp';
 }
 const visibility=()=>document.documentElement.classList.toggle('mmh-brand-hidden-v11',document.hidden);
@@ -40876,6 +40987,59 @@ html body.mmh-workspace-active:not(.auth-page-active) #mmhResetConfirmV49#mmhRes
 html body.mmh-workspace-active:not(.auth-page-active) #mmhResetConfirmV49#mmhResetConfirmV49 .mmh-reset-danger:disabled{opacity:.42!important;cursor:not-allowed!important}
 html body.mmh-workspace-active:not(.auth-page-active) #mmhResetConfirmV49#mmhResetConfirmV49 .mmh-reset-actions{padding:16px 20px 20px!important}
 @media(max-width:420px){html body.mmh-workspace-active:not(.auth-page-active) #settings#settings#settings.page.active>.st-page:not([hidden])#stPage_general .st-rows>.st-row{gap:8px!important;padding:8px!important}html body.mmh-workspace-active:not(.auth-page-active) #mmhResetConfirmV49#mmhResetConfirmV49 .mmh-reset-copy,html body.mmh-workspace-active:not(.auth-page-active) #mmhResetConfirmV49#mmhResetConfirmV49 .mmh-reset-form{padding-inline:16px!important}html body.mmh-workspace-active:not(.auth-page-active) #mmhResetConfirmV49#mmhResetConfirmV49 .mmh-reset-head,html body.mmh-workspace-active:not(.auth-page-active) #mmhResetConfirmV49#mmhResetConfirmV49 .mmh-reset-actions{padding-inline:16px!important}}
+</style>
+
+<style id="mmhvault-personal-settings-device-guide-v271">
+#settings #stPage_general #stInstallGuideV5 .st-install-modal-head-v265{display:flex!important;align-items:center!important;gap:10px!important;background:var(--uv-card,#1c2531)!important;background-image:none!important}
+#settings #stPage_general #stInstallGuideV5 .st-install-modal-head-v265 h3{flex:1;min-width:0;margin:0!important;text-align:start!important;overflow-wrap:anywhere}
+#settings #stPage_general #stInstallGuideV5 .st-install-brand-v271{width:36px;height:36px;flex:0 0 36px;object-fit:contain}
+#settings #stPage_general #stInstallGuideV5 .st-detected-device-v271{padding:10px 12px;margin:8px 0 12px;background:var(--uv-raised,#273242);color:var(--uv-text,#e8edf4);border:1px solid var(--st-border,#344052);border-radius:9px;overflow-wrap:anywhere}
+#settings #stPage_general #stInstallGuideV5 label[hidden]{display:none!important}
+</style>
+<style id="mmhvault-personal-settings-select-v271">
+/* Personal Settings only: retain native selects, existing values, events and accessibility. */
+html body.mmh-workspace-active:not(.auth-page-active) #settings#settings#settings#settings.page.active>.st-page:not([hidden]) select:not([hidden]){
+ box-sizing:border-box!important;min-height:44px!important;min-width:0!important;max-width:100%!important;padding:7px 10px!important;border:1px solid var(--st-border)!important;border-radius:8px!important;background:var(--uv-card,#1c2531)!important;background-image:none!important;color:var(--uv-text,#e8edf4)!important;box-shadow:none!important;appearance:auto!important;-webkit-appearance:auto!important;color-scheme:dark;line-height:1.4!important;text-align:start!important;text-overflow:ellipsis;cursor:pointer
+}
+html body.light.mmh-workspace-active:not(.auth-page-active) #settings#settings#settings#settings.page.active>.st-page:not([hidden]) select:not([hidden]){color-scheme:light}
+html body.mmh-workspace-active:not(.auth-page-active) #settings#settings#settings#settings.page.active>.st-page:not([hidden]) select:not([hidden]) option{background:var(--uv-card,Canvas);color:var(--uv-text,CanvasText)}
+html body.mmh-workspace-active:not(.auth-page-active) #settings#settings#settings#settings.page.active>.st-page:not([hidden]) select:not([hidden]):disabled{opacity:.55!important;cursor:not-allowed!important}
+html body.mmh-workspace-active:not(.auth-page-active) #settings#settings#settings#settings.page.active>.st-page:not([hidden]) select:not([hidden]):focus-visible{outline:2px solid var(--st-gold)!important;outline-offset:2px!important}
+html body.mmh-workspace-active:not(.auth-page-active) #settings#settings#settings#settings.page.active>.st-page:not([hidden])#stPage_general .st-rows>.st-row>select:not([hidden]){flex:0 0 min(180px,48%)!important;width:min(180px,48%)!important;max-width:48%!important;min-width:0!important;margin:0 0 0 auto!important}
+@media(max-width:600px){html body.mmh-workspace-active:not(.auth-page-active) #settings#settings#settings#settings.page.active>.st-page:not([hidden]) select:not([hidden]){font-size:16px!important}}
+</style>
+<style id="mmhvault-personal-profile-v271">
+html body.mmh-workspace-active:not(.auth-page-active) #settings#settings#settings.page.active>.st-page:not([hidden])#stPage_profile #mmhProfileCardV271{width:100%;min-width:0;padding:20px;box-sizing:border-box;background:var(--st-bg);border:1px solid var(--st-border);border-radius:16px}
+html body.mmh-workspace-active:not(.auth-page-active) #settings#settings#settings.page.active>.st-page:not([hidden])#stPage_profile #mmhProfileCardV271>#mmhProfileFormV1{display:grid!important;grid-template-columns:minmax(0,1fr) minmax(0,1.6fr)!important;gap:0 20px!important;align-items:start!important}
+html body.mmh-workspace-active:not(.auth-page-active) #settings#settings#settings.page.active>.st-page:not([hidden])#stPage_profile #mmhProfileCardV271>.st-profile-actions-v269{display:flex!important;align-items:center;justify-content:flex-end;flex-wrap:wrap;gap:10px;padding:14px 0 0;border-top:1px solid var(--st-border)}
+html body.mmh-workspace-active:not(.auth-page-active) #settings#settings#settings.page.active>.st-page:not([hidden])#stPage_profile #mmhProfileCancelV271{min-height:44px;padding:8px 18px}
+html body.mmh-workspace-active:not(.auth-page-active) #settings#settings#settings.page.active>.st-page:not([hidden])#stPage_profile #mmhProfileFormV1>.mmh-profile-photo-v1{position:relative!important;grid-column:1!important;grid-row:1/3!important;display:flex!important;flex-direction:column!important;align-items:center!important;justify-content:center!important;gap:10px!important;padding:18px 8px!important;background:transparent!important;border:0!important}
+html body.mmh-workspace-active:not(.auth-page-active) #settings#settings#settings.page.active>.st-page:not([hidden])#stPage_profile .st-profile-avatar-v269{width:clamp(104px,15vw,156px)!important;height:clamp(104px,15vw,156px)!important;flex:none!important}
+html body.mmh-workspace-active:not(.auth-page-active) #settings#settings#settings.page.active>.st-page:not([hidden])#stPage_profile .mmh-profile-photo-v1>span{display:none!important}
+html body.mmh-workspace-active:not(.auth-page-active) #settings#settings#settings.page.active>.st-page:not([hidden])#stPage_profile #mmhProfilePickV1{position:relative!important;margin:-48px 0 0 clamp(75px,12vw,125px)!important;display:grid!important;place-items:center!important;width:44px!important;height:44px!important;min-height:44px!important;padding:0!important;border-radius:50%!important;justify-content:center!important;color:var(--uv-text)!important}
+html body.mmh-workspace-active:not(.auth-page-active) #settings#settings#settings.page.active>.st-page:not([hidden])#stPage_profile #mmhProfileFileNameV1{text-align:center!important;overflow-wrap:anywhere!important}
+html body.mmh-workspace-active:not(.auth-page-active) #settings#settings#settings.page.active>.st-page:not([hidden])#stPage_profile #mmhProfileFormV1>.mmh-profile-name-v1{grid-column:2!important;grid-row:1!important;padding:12px 0!important;background:transparent!important;border:0!important}
+html body.mmh-workspace-active:not(.auth-page-active) #settings#settings#settings.page.active>.st-page:not([hidden])#stPage_profile #mmhProfileFormV1>#mmhBirthdaySettingsV34215{grid-column:2!important;grid-row:2!important;display:grid!important;gap:8px!important;margin:0!important;padding:12px 0!important;border:0!important;border-top:1px solid var(--st-border)!important;border-radius:0!important;box-shadow:none!important;background:transparent!important;transform:none!important}
+html body.mmh-workspace-active:not(.auth-page-active) #settings#settings#settings.page.active>.st-page:not([hidden])#stPage_profile .mmh-birth-row-v271{display:flex;gap:8px;min-width:0}
+html body.mmh-workspace-active:not(.auth-page-active) #settings#settings#settings.page.active>.st-page:not([hidden])#stPage_profile .mmh-birth-row-v271 button,html body.mmh-workspace-active:not(.auth-page-active) #settings#settings#settings.page.active>.st-page:not([hidden])#stPage_profile .mmh-birth-dialog-v271 :is(button,select,input){font:inherit;color:var(--uv-text,CanvasText);background:var(--uv-raised,Canvas);border:1px solid var(--st-border);border-radius:10px;min-height:44px;padding:8px;box-sizing:border-box}
+html body.mmh-workspace-active:not(.auth-page-active) #settings#settings#settings.page.active>.st-page:not([hidden])#stPage_profile #mmhBirthOpenV271{flex:1;display:flex;gap:10px;align-items:center;text-align:start;min-width:0}
+html body.mmh-workspace-active:not(.auth-page-active) #settings#settings#settings.page.active>.st-page:not([hidden])#stPage_profile #mmhBirthInfoV271{width:44px;flex:none;display:grid;place-items:center;padding:6px}
+html body.mmh-workspace-active:not(.auth-page-active) #settings#settings#settings.page.active>.st-page:not([hidden])#stPage_profile #mmhBirthInfoV271 img{width:28px;height:28px;object-fit:contain}
+html body.mmh-workspace-active:not(.auth-page-active) #settings#settings#settings.page.active>.st-page:not([hidden])#stPage_profile .mmh-birth-sr-v271{position:absolute!important;width:1px!important;height:1px!important;padding:0!important;overflow:hidden!important;clip-path:inset(50%)!important;white-space:nowrap!important}
+html body.mmh-workspace-active:not(.auth-page-active) #settings#settings#settings.page.active>.st-page:not([hidden])#stPage_profile #mmhBirthDateInputV34215[hidden],html body.mmh-workspace-active:not(.auth-page-active) #settings#settings#settings.page.active>.st-page:not([hidden])#stPage_profile .mmh-birth-dialog-v271:not([open]){display:none!important}
+html body.mmh-workspace-active:not(.auth-page-active) #settings#settings#settings.page.active>.st-page:not([hidden])#stPage_profile .mmh-birth-dialog-v271{position:fixed;inset:0;margin:auto;width:min(480px,calc(100% - 24px));max-width:calc(100% - 24px);max-height:calc(100dvh - 24px);overflow:auto;overscroll-behavior:contain;box-sizing:border-box;background:var(--st-bg,Canvas);color:var(--uv-text,CanvasText);border:1px solid var(--st-border);border-radius:16px;padding:16px}
+html body.mmh-workspace-active:not(.auth-page-active) #settings#settings#settings.page.active>.st-page:not([hidden])#stPage_profile .mmh-birth-dialog-v271::backdrop{background:rgba(0,0,0,.55)}
+html body.mmh-workspace-active:not(.auth-page-active) #settings#settings#settings.page.active>.st-page:not([hidden])#stPage_profile .mmh-birth-dialog-v271 h3{margin:0 0 12px}
+html body.mmh-workspace-active:not(.auth-page-active) #settings#settings#settings.page.active>.st-page:not([hidden])#stPage_profile .mmh-birth-calendar-controls-v271{display:grid;grid-template-columns:44px minmax(0,1fr) minmax(0,1fr) 44px;gap:6px;align-items:end}
+html body.mmh-workspace-active:not(.auth-page-active) #settings#settings#settings.page.active>.st-page:not([hidden])#stPage_profile .mmh-birth-calendar-controls-v271 label,html body.mmh-workspace-active:not(.auth-page-active) #settings#settings#settings.page.active>.st-page:not([hidden])#stPage_profile .mmh-birth-time-v271{display:grid;gap:6px;min-width:0}
+html body.mmh-workspace-active:not(.auth-page-active) #settings#settings#settings.page.active>.st-page:not([hidden])#stPage_profile .mmh-birth-calendar-controls-v271 select{width:100%;min-width:0}
+html body.mmh-workspace-active:not(.auth-page-active) #settings#settings#settings.page.active>.st-page:not([hidden])#stPage_profile .mmh-birth-days-v271{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:3px;margin:12px 0;text-align:center;align-items:center}
+html body.mmh-workspace-active:not(.auth-page-active) #settings#settings#settings.page.active>.st-page:not([hidden])#stPage_profile .mmh-birth-days-v271 button{min-width:0;padding:2px;min-height:38px}
+html body.mmh-workspace-active:not(.auth-page-active) #settings#settings#settings.page.active>.st-page:not([hidden])#stPage_profile .mmh-birth-days-v271 button[aria-pressed="true"]{background:#226bd2;color:white;border-color:#79b6ff}
+html body.mmh-workspace-active:not(.auth-page-active) #settings#settings#settings.page.active>.st-page:not([hidden])#stPage_profile .mmh-birth-days-v271 button:disabled{opacity:.35}
+html body.mmh-workspace-active:not(.auth-page-active) #settings#settings#settings.page.active>.st-page:not([hidden])#stPage_profile .mmh-birth-actions-v271{display:flex;justify-content:flex-end;flex-wrap:wrap;gap:8px;margin-top:12px}
+html body.mmh-workspace-active:not(.auth-page-active) #settings#settings#settings.page.active>.st-page:not([hidden])#stPage_profile .mmh-birth-dialog-v271 .mmh-birthday-preview-v34216{grid-template-columns:1fr!important;gap:8px!important}
+@media(max-width:700px){html body.mmh-workspace-active:not(.auth-page-active) #settings#settings#settings.page.active>.st-page:not([hidden])#stPage_profile #mmhProfileCardV271{padding:12px}html body.mmh-workspace-active:not(.auth-page-active) #settings#settings#settings.page.active>.st-page:not([hidden])#stPage_profile #mmhProfileCardV271>#mmhProfileFormV1{grid-template-columns:minmax(0,1fr)!important}html body.mmh-workspace-active:not(.auth-page-active) #settings#settings#settings.page.active>.st-page:not([hidden])#stPage_profile #mmhProfileFormV1>.mmh-profile-photo-v1{grid-column:1!important;grid-row:1!important}html body.mmh-workspace-active:not(.auth-page-active) #settings#settings#settings.page.active>.st-page:not([hidden])#stPage_profile #mmhProfileFormV1>.mmh-profile-name-v1{grid-column:1!important;grid-row:2!important}html body.mmh-workspace-active:not(.auth-page-active) #settings#settings#settings.page.active>.st-page:not([hidden])#stPage_profile #mmhProfileFormV1>#mmhBirthdaySettingsV34215{grid-column:1!important;grid-row:3!important}html body.mmh-workspace-active:not(.auth-page-active) #settings#settings#settings.page.active>.st-page:not([hidden])#stPage_profile #mmhProfileCardV271>.st-profile-actions-v269 #mmhProfileSaveV1{width:auto!important;flex:1 1 140px!important}}
 </style>
 </body>
 </html>

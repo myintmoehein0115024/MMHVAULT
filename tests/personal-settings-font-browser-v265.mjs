@@ -145,56 +145,62 @@ try{
    console.log('PASS: all eight checked-in font packs render in one same-origin Settings fixture with selected-only requests, custom glyphs, reuse and guest isolation (not deployed)');
   }finally{await allCtx.close()}
  }
- // Birthday profile: exact markup, original module and scoped theme CSS, no production requests.
- const bdContext=await browser.newContext({viewport:{width:390,height:844}});
+ // Birthday profile: actual V2 calendar, original module and scoped theme CSS, no production requests.
+ const bdContext=await browser.newContext({viewport:{width:390,height:844},timezoneId:'UTC'});
  try{
   const bdStart='<div class="panel mmh-birthday-settings-v34216"';
   const birthday=extract(bdStart,'\n</div>\n\n<div class="mmh-manager-overlay-v1"');
-  const form=extract('<form class="mmh-profile-edit-v1" id="mmhProfileFormV1">','</form>')+'</form>';
-  const originalCss=extract('<style id="mmhvault-v34216-birthday-settings-css">','</style>').split('>').slice(1).join('>');
+  const form=extract('<form class="mmh-profile-edit-v1" id="mmhProfileFormV1">','</form>');
+  const cssTag=id=>{const tag='<style id="'+id+'">';return extract(tag,'</style>').slice(tag.length)};
+  const originalCss=cssTag('mmhvault-v34216-birthday-settings-css');
+  const profileCss=cssTag('mmhvault-personal-profile-v271');
+  const selectCss=cssTag('mmhvault-personal-settings-select-v271');
   const themeCss=readFileSync(new URL('../css/mmhvault-settings-life-p928.css',import.meta.url),'utf8');
   const ageCode=extract('<script id="mmhvault-v34216-age-js">','</script>').replace('<script id="mmhvault-v34216-age-js">','');
   const origin='https://birthday-fixture.invalid/';
-  await bdContext.route('**/*',route=>route.request().url()===origin?route.fulfill({contentType:'text/html; charset=utf-8',body:'<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head><body class="mmh-workspace-active"><main id="settings" class="page active"><section id="stPage_profile" class="st-page">'+form+birthday+'</section></main></body></html>'}):route.abort());
-  const p=await bdContext.newPage();const errors=[];p.on('pageerror',e=>errors.push(e.message));await p.goto(origin);assert.equal(await p.evaluate(()=>document.characterSet),'UTF-8');
-  await p.addStyleTag({content:'*{box-sizing:border-box}body{margin:0;padding:12px;font:14px system-ui,sans-serif;--text:#eef1ff;--muted:#9da6d2}body.light{--text:#17213a;--muted:#5f6f8e}.panel{width:100%;padding:15px}.toolbar h2{margin:0}.mmh-profile-edit-v1{display:grid;grid-template-columns:1fr;gap:8px}.mmh-profile-edit-v1 input{max-width:100%}'+originalCss+'\n'+themeCss});
+  const html='<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head><body class="mmh-workspace-active"><main id="settings" class="page active"><section id="stPage_profile" class="st-page"><div id="mmhProfileCardV271">'+form+birthday+'</form></div></section></main></body></html>';
+  await bdContext.route('**/*',route=>route.request().url()===origin?route.fulfill({contentType:'text/html; charset=utf-8',body:html}):route.request().url()===origin+'images/mmhvault-v2-auth-mark.webp'?route.fulfill({contentType:'image/webp',body:readFileSync(new URL('../images/mmhvault-v2-auth-mark.webp',import.meta.url))}):route.abort());
+  const p=await bdContext.newPage();const errors=[];p.on('pageerror',e=>errors.push(e.message));await p.clock.setFixedTime(new Date('2026-11-28T12:00:00Z'));await p.goto(origin);assert.equal(await p.evaluate(()=>document.characterSet),'UTF-8');
+  await p.addStyleTag({content:'*{box-sizing:border-box}body{margin:0;padding:12px;font:14px system-ui,sans-serif;--text:#eef1ff;--muted:#9da6d2}body.light{--text:#17213a;--muted:#5f6f8e}.panel{width:100%;padding:15px}.mmh-profile-edit-v1 input{max-width:100%}'+originalCss+'\n'+themeCss+'\n'+selectCss+'\n'+profileCss});
   await p.addScriptTag({content:'let currentSessionUser={id:"synthetic-a"};window.birthdayFixture={owner:id=>{currentSessionUser={id};dispatchEvent(new Event("mmhvault:config-owner-changed"))},lang:l=>{document.documentElement.lang=l;dispatchEvent(new Event("mmhvault-language-change"))}};'+ageCode});
-  const input=p.locator('#mmhBirthDateInputV34215'),panel=p.locator('#mmhBirthdaySettingsV34215');
-  assert.equal(await panel.count(),1);assert.equal(await input.inputValue(),'');assert.equal(await input.getAttribute('min'),'1900-01-01');assert.match(await input.getAttribute('max'),/^\d{4}-\d{2}-\d{2}$/);
-  assert(await panel.evaluate(el=>el.previousElementSibling?.id==='mmhProfileFormV1'&&!el.closest('form')));
-  await input.fill('2000-02-20');await input.blur();
-  assert.equal(await p.evaluate(()=>localStorage.getItem('mmhvault_birth_date_v34216_synthetic-a')),'2000-02-20');
-  assert.match(await p.locator('#mmhSettingsAgeValueV34215').textContent(),/years/);
-  assert(await input.evaluate(el=>{const old=el.value;el.value='2999-01-01';const bad=el.validity.rangeOverflow;el.value=old;return bad}));
-  await p.evaluate(()=>birthdayFixture.owner('synthetic-b'));assert.equal(await input.inputValue(),'');assert.equal(await p.locator('#mmhSettingsAgeValueV34215').textContent(),'—');
-  await input.fill('2001-03-04');await input.blur();
-  await p.evaluate(()=>birthdayFixture.owner('guest'));assert(await input.isDisabled());assert.equal(await input.inputValue(),'');
+  const input=p.locator('#mmhBirthDateInputV34215'),panel=p.locator('#mmhBirthdaySettingsV34215'),open=p.locator('#mmhBirthOpenV271'),picker=p.locator('#mmhBirthPickerV271'),details=p.locator('#mmhBirthDetailsV271');
+  const age=p.locator('#mmhSettingsAgeValueV34215'),stored=id=>p.evaluate(id=>localStorage.getItem('mmhvault_birth_date_v34216_'+id),id);
+  const choose=async(y,m,d)=>{await open.click();await p.locator('#mmhBirthYearV271').selectOption(String(y));await p.locator('#mmhBirthMonthV271').selectOption(String(m-1));await p.locator('#mmhBirthDaysV271 button').filter({hasText:new RegExp('^'+d+'$')}).click();await p.locator('#mmhBirthConfirmV271').click();};
+  assert.equal(await panel.count(),1);assert.equal(await input.inputValue(),'');assert(await input.isHidden());assert.equal(await input.getAttribute('min'),'1900-01-01');assert.match(await input.getAttribute('max'),/^\d{4}-\d{2}-\d{2}$/);
+  assert(await panel.evaluate(el=>el.closest('form')?.id==='mmhProfileFormV1'));assert.equal(await age.textContent(),'0');
+  await choose(2000,2,20);assert.equal(await stored('synthetic-a'),'2000-02-20');assert.match(await age.textContent(),/years/);
+  await open.click();await p.locator('#mmhBirthYearV271').selectOption('2026');await p.locator('#mmhBirthMonthV271').selectOption('11');assert(await p.locator('#mmhBirthDaysV271 button').filter({hasText:/^31$/}).isDisabled());await p.locator('#mmhBirthCancelV271').click();
+  await p.evaluate(()=>birthdayFixture.owner('synthetic-b'));assert.equal(await input.inputValue(),'');assert.equal(await age.textContent(),'0');
+  await choose(2001,3,4);assert.equal(await stored('synthetic-b'),'2001-03-04');
+  await p.evaluate(()=>birthdayFixture.owner('guest'));assert(await open.isDisabled());assert.equal(await input.inputValue(),'');
   await p.evaluate(()=>birthdayFixture.owner('synthetic-a'));assert.equal(await input.inputValue(),'2000-02-20');
   for(const width of [320,390,768,1280]){
    await p.setViewportSize({width,height:844});
-   for(const [lang,title,age] of [['en','Birthday','years'],['zh-CN','生日','岁'],['my','မွေးနေ့','နှစ်']]){
+   for(const [lang,title,unit] of [['en','Birthday','years'],['zh-CN','生日','岁'],['my','မွေးနေ့','နှစ်']]){
     await p.evaluate(l=>birthdayFixture.lang(l),lang);
-    assert.equal(await panel.locator('h2').textContent(),title);assert((await p.locator('#mmhSettingsAgeValueV34215').textContent()).includes(age));
+    assert.equal(await panel.locator('.mmh-birthday-field-v34216 span').textContent(),title);assert((await age.textContent()).includes(unit));
     for(const light of [false,true]){
      await p.evaluate(v=>document.body.classList.toggle('light',v),light);
-     const result=await panel.evaluate(el=>{
-      const input=el.querySelector('input'),r=el.getBoundingClientRect(),ir=input.getBoundingClientRect(),styles=getComputedStyle(el);
-      return {bg:styles.backgroundColor,scheme:styles.colorScheme,overflow:el.scrollWidth>el.clientWidth+1,inputFits:ir.left>=r.left&&ir.right<=r.right&&ir.height>=44,gridFits:[...el.querySelectorAll('.mmh-birthday-preview-v34216>div')].every(x=>x.scrollWidth<=x.clientWidth+1),text:getComputedStyle(el.querySelector('.mmh-birthday-preview-v34216 b')).color,inputColor:getComputedStyle(input).color};
-     });
-     assert.equal(result.bg,light?'rgb(255, 255, 255)':'rgb(28, 37, 49)');assert.equal(result.scheme,light?'light':'dark');assert.equal(result.text,light?'rgb(36, 51, 71)':'rgb(232, 237, 244)');assert.equal(result.inputColor,result.text);assert(!result.overflow&&result.inputFits&&result.gridFits,JSON.stringify({width,lang,light,result}));
+     const result=await open.evaluate(el=>{const r=el.getBoundingClientRect(),pr=el.closest('.mmh-birth-row-v271').getBoundingClientRect();return {fits:r.left>=pr.left-1&&r.right<=pr.right+1&&r.height>=44,overflow:el.scrollWidth-el.clientWidth}});
+     assert(result.fits&&result.overflow<=2,JSON.stringify({width,lang,light,result}));
+     await open.click();
+     const g=await picker.evaluate(el=>{const r=el.getBoundingClientRect();return {fits:r.left>=-1&&r.right<=innerWidth+1&&r.top>=-1&&r.bottom<=innerHeight+1,overflow:el.scrollWidth-el.clientWidth}});
+     assert(g.fits&&g.overflow<=2,JSON.stringify({width,lang,light,g}));await p.locator('#mmhBirthCancelV271').click();
+     await p.locator('#mmhBirthInfoV271').click();assert(await details.isVisible());
+     assert(await details.evaluate(el=>{const r=el.getBoundingClientRect();return r.left>=-1&&r.right<=innerWidth+1&&r.top>=-1&&r.bottom<=innerHeight+1&&el.scrollWidth<=el.clientWidth+2}));await p.locator('#mmhBirthDetailsCloseV271').click();
     }
    }
   }
-  await input.fill('');await input.blur();assert.equal(await p.evaluate(()=>localStorage.getItem('mmhvault_birth_date_v34216_synthetic-a')),'');
+  await open.click();await p.locator('#mmhBirthClearV271').click();await p.locator('#mmhBirthConfirmV271').click();assert.equal(await stored('synthetic-a'),'');assert.equal(await age.textContent(),'0');
   assert.deepEqual(errors,[]);
-  console.log('PASS: birthday profile isolated Chromium native date field, owner separation, 24 responsive locale/theme combinations, local storage and clear');
+  console.log('PASS: birthday profile isolated Chromium V2 calendar, owner separation, 24 responsive locale/theme combinations, local storage and clear');
  }finally{await bdContext.close()}
 
- // Installation guide: actual DOM/SVG and three scoped styles, simulated browser identity only.
+ // Installation guide: actual approved WebP artwork or fallback SVG, simulated browser identity only.
  const installContext=await browser.newContext({viewport:{width:390,height:844},userAgent:'Mozilla/5.0 (Android 14; Mobile; rv:125.0) Gecko/125.0 Firefox/125.0'});
  try{
   const origin='https://install-fixture.invalid/';
-  await installContext.route('**/*',route=>route.request().url()===origin?route.fulfill({contentType:'text/html; charset=utf-8',body:'<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head><body><main id="settings"><section id="stPage_icon"></section></main></body></html>'}):route.abort());
+  await installContext.route('**/*',route=>{const url=new URL(route.request().url());if(url.href===origin)return route.fulfill({contentType:'text/html; charset=utf-8',body:'<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head><body><main id="settings"><section id="stPage_icon"></section></main></body></html>'});if(url.origin===new URL(origin).origin&&/^\/images\/mmhvault-install-(ios|ipad|android-chrome|desktop)-v271\.webp$/.test(url.pathname))return route.fulfill({contentType:'image/webp',body:readFileSync(new URL('..'+url.pathname,import.meta.url))});return route.abort()});
   await installContext.addInitScript(()=>{Object.defineProperty(document,'referrer',{get:()=> 'android-app://synthetic.fixture'});const original=window.matchMedia.bind(window);window.matchMedia=q=>q==='(display-mode: standalone)'?{matches:!!window.syntheticStandalone}:original(q)});
   const p=await installContext.newPage(),errors=[];p.on('pageerror',e=>errors.push(e.message));await p.goto(origin);
   assert.equal(await p.evaluate(()=>document.characterSet),'UTF-8');
@@ -214,7 +220,8 @@ try{
   assert.match(await guide.locator('li').first().textContent(),/full Chrome/);
   const lang=async l=>p.evaluate(v=>{localStorage.setItem('mmhvault_language_v3363',v);document.documentElement.lang=v;dispatchEvent(new Event('mmhvault-language-change'))},l);
   await lang('zh');assert.equal(await picker.inputValue(),'android-chrome');assert(await picker.evaluate(el=>document.activeElement===el));
-  const devices=['ios','ios-other','android-chrome','android-firefox','android-other','desktop'];
+  const artwork={"ios":"ios","ios-other":"ios","ipad":"ipad","ipad-other":"ipad","android-chrome":"android-chrome","android-firefox":"android-chrome","android-other":"android-chrome","android-tablet-chrome":"ipad","android-tablet-firefox":"ipad","android-tablet-other":"ipad","tablet-other":"ipad","desktop":"desktop","desktop-chrome":"desktop","desktop-edge":"desktop","desktop-safari":"desktop"};
+  const devices=["ios","ios-other","ipad","ipad-other","android-chrome","android-firefox","android-other","android-tablet-chrome","android-tablet-firefox","android-tablet-other","tablet-other","desktop","desktop-chrome","desktop-edge","desktop-safari"];
   const locales=[['en','Your device & browser'],['zh','您的设备与浏览器'],['my','သင့်စက်နှင့် ဘရောက်ဇာ']];
   for(const [l,label] of locales){
    await lang(l);assert((await guide.locator('label').textContent()).includes(label));
@@ -224,9 +231,12 @@ try{
      const svg=li.querySelector('svg'),span=li.querySelector('.st-install-step-copy-v265>span:last-child'),r=svg?.getBoundingClientRect();
      return {text:span?.textContent,svg:svg?.namespaceURI==='http://www.w3.org/2000/svg'&&svg.getAttribute('viewBox')&&svg.querySelector('rect')&&r.width>0&&r.height>0,hidden:svg?.parentElement.getAttribute('aria-hidden')};
     }));
-    assert(result.length>=3&&result.every(x=>x.text&&x.svg&&x.hidden==='true'),JSON.stringify({l,device,result}));
+    const art=artwork[device],picture=guide.locator('.st-install-art-image-v271');
+    assert(result.length>=3&&result.every(x=>x.text&&(art?!x.svg:x.svg&&x.hidden==='true')),JSON.stringify({l,device,result}));
+    assert.equal(await picture.count(),art?1:0);
+    if(art){assert.equal(await picture.getAttribute('src'),'./images/mmhvault-install-'+art+'-v271.webp');assert.deepEqual(await picture.evaluate(async im=>{await im.decode();return [im.naturalWidth,im.naturalHeight]}),[1672,941]);}
     if(l==='my')assert(result.every(x=>/[\u1000-\u109f]/.test(x.text)));
-    assert.equal(await guide.locator('button:not(#stInstallCloseV265)').count(),0,'Custom Tab cannot show native install action');
+    assert.equal(await guide.locator('button:not(#stInstallCloseV265):not(.st-install-art-zoom-v271)').count(),0,'Custom Tab cannot show native install action');
    }
   }
   let cases=0;
@@ -238,13 +248,15 @@ try{
      await p.evaluate(v=>document.body.classList.toggle('light',v),light);
      await picker.selectOption(devices[cases%devices.length]);
      const result=await guide.evaluate(el=>{
-      const r=el.getBoundingClientRect(),select=el.querySelector('select'),sr=select.getBoundingClientRect(),art=el.querySelector('.st-install-illustration-v265'),accent=art.querySelector('.accent')||el.querySelector('.accent');
+      const r=el.getBoundingClientRect(),select=el.querySelector('select'),sr=select.getBoundingClientRect(),art=el.querySelector('.st-install-illustration-v265'),accent=art?.querySelector('.accent')||el.querySelector('.accent'),picture=el.querySelector('.st-install-art-image-v271');
       const inside=x=>{const b=x.getBoundingClientRect();return b.left>=r.left-1&&b.right<=r.right+1&&b.width>0&&b.height>0};
-      return {overflow:el.scrollWidth>el.clientWidth+1,selectFits:inside(select)&&sr.height>=44,artFits:[...el.querySelectorAll('svg')].every(inside),bg:getComputedStyle(art).backgroundColor,stroke:getComputedStyle(accent).stroke,status:getComputedStyle(document.getElementById('stInstallStatusV4')).color};
+      return {overflow:el.scrollWidth>el.clientWidth+1,selectFits:inside(select)&&sr.height>=44,artFits:[...el.querySelectorAll('svg')].every(inside)&&(!picture||inside(picture)),bg:art?getComputedStyle(art).backgroundColor:null,stroke:accent?getComputedStyle(accent).stroke:null,status:getComputedStyle(document.getElementById('stInstallStatusV4')).color};
      });
      assert(!result.overflow&&result.selectFits&&result.artFits,JSON.stringify({width,l,light,result}));
-     assert.equal(result.bg,light?'rgb(237, 243, 247)':'rgb(19, 35, 49)');
-     assert.equal(result.stroke,light?'rgb(20, 123, 98)':'rgb(112, 212, 176)');
+     if(artwork[devices[cases%devices.length]]){assert.equal(result.bg,null);assert.equal(result.stroke,null);}else{
+      assert.equal(result.bg,light?'rgb(237, 243, 247)':'rgb(19, 35, 49)');
+      assert.equal(result.stroke,light?'rgb(20, 123, 98)':'rgb(112, 212, 176)');
+     }
      assert.equal(result.status,light?'rgb(66, 87, 107)':'rgb(150, 174, 197)');cases++;
     }
    }
@@ -252,7 +264,7 @@ try{
   await p.evaluate(()=>{window.syntheticStandalone=true;dispatchEvent(new Event('mmhvault-language-change'))});
   assert.equal(await guide.locator('li').count(),0);assert(await guide.locator('p').isVisible());
   assert.deepEqual(errors,[]);
-  console.log('PASS: installation guide isolated Chromium SVG, 18 device/locale and '+cases+' responsive theme/locale cases, focus, Custom Tab and simulated standalone');
+  console.log('PASS: installation guide isolated Chromium WebP, 45 device/locale and '+cases+' responsive theme/locale cases, focus, Custom Tab and simulated standalone');
  }finally{await installContext.close()}
  // Candidate-only test: pinned upstream assets, hash checked before isolated rendering.
  // No font files are committed, no application runtime requests are introduced.

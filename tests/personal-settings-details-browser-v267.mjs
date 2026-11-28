@@ -63,8 +63,17 @@ for(const [selector,key,english] of [
  assert.equal(copy(key,unrelated,'en'),null);
 }
 assert.ok(app.includes("if(lang==='en'&&personalSettingsCopyV268(current,parent,lang)==null)return;"),'initial English fixed copy');
+// Use actual profile and birthday markup, moving the existing save/result into the shared card as register() does.
+const profileForm=app.match(/<form class="mmh-profile-edit-v1" id="mmhProfileFormV1">[\s\S]*?<\/form>/)?.[0];
+const birthStart=app.indexOf('<div class="panel mmh-birthday-settings-v34216" id="mmhBirthdaySettingsV34215">');
+const birthEnd=app.indexOf('\n</div>\n</div>\n\n<div class="mmh-manager-overlay-v1"',birthStart);
+assert.ok(profileForm&&birthStart>=0&&birthEnd>birthStart,'actual profile and birthday markup');
+const birthday=app.slice(birthStart,birthEnd+7);
+const save=profileForm.match(/<button[^>]*id="mmhProfileSaveV1"[^>]*>[\s\S]*?<\/button>/)[0];
+const result=profileForm.match(/<p id="mmhProfileResultV1"[^>]*>[\s\S]*?<\/p>/)[0];
+const actualProfile='<div id="mmhProfileCardV271">'+profileForm.replace(save,'').replace(result,'').replace('</form>',birthday+'</form>').replace('autocomplete="nickname"','autocomplete="nickname" value="Sample user"')+'<div class="st-profile-actions-v269">'+result+'<button type="button" class="btn" id="mmhProfileCancelV271">Cancel</button>'+save.replace('type="submit"','type="submit" form="mmhProfileFormV1"')+'</div></div>';
 const content={
- profile:'<form id="mmhProfileFormV1" class="mmh-profile-edit-v1"><label class="mmh-profile-name-v1"><span>Display name</span><input id="mmhProfileNameV1" value="Sample user" required></label><div class="mmh-profile-photo-v1"><div class="st-profile-avatar-v269" id="mmhProfileAvatarV269" aria-hidden="true">MF</div><span>Profile photo</span><button id="mmhProfilePickV1" type="button" class="mmh-photo-trigger-v1"><span aria-hidden="true">＋</span> Change photo</button><input type="file" hidden><small id="mmhProfileFileNameV1">JPG, PNG or WEBP · up to 2 MB</small></div></form><div class="panel" id="mmhBirthdaySettingsV34215"><div class="toolbar"><h2>Birthday</h2></div><div class="mmh-birthday-grid-v34216"><input id="mmhBirthDateInputV34215" type="date"><div class="mmh-birthday-preview-v34216"><div><b>—</b></div></div></div></div><div class="st-profile-actions-v269"><p id="mmhProfileResultV1" role="status" aria-live="polite"></p><button type="submit" form="mmhProfileFormV1" id="mmhProfileSaveV1" class="btn primary">Save changes</button></div>',
+ profile:actualProfile,
  general:'<div class="st-group"><div class="st-rows"><label class="st-row"><span class="st-icon">＄</span><span>Display currency / 默认显示货币 / ငွေကြေး</span><select><option>USD</option><option>THB</option></select></label><label class="st-row"><span class="st-icon">Aa</span><span>Font style</span><select><option>System</option></select></label></div></div>',
  security:'<div><div class="panel account-security-v379"><div class="account-security-grid-v379"><div class="account-security-card-v379" id="mmhA783SecurityCenter"><h3>Account settings</h3><div class="mmh-a783-section"><div class="mmh-a783-title">Account</div></div><button class="btn" disabled>Unavailable</button><div hidden>Hidden fixture</div></div><div class="account-security-card-v379"><div class="security-password-form-v379"><label>Password<input type="password"></label></div></div><div class="account-security-card-v379" id="mmhEmailResetCardV952"><div class="mmh-email-reset-destination-v952">Sample email</div></div></div></div></div>',
  icon:'<div>'+actualIcon+'</div><button type="button" id="stInstallAppV4" class="btn primary">Add to home screen</button>',
@@ -79,6 +88,75 @@ try{
  await context.route('**/*',route=>route.request().url()==='https://mmh-settings-details.invalid/'?route.fulfill({status:200,contentType:'text/html',body:html}):route.abort());
  const page=await context.newPage();await page.goto('https://mmh-settings-details.invalid/');
  const titles={en:['Edit profile','General','Password & devices','App icon','Data & backup'],zh:['编辑资料','通用设置','密码与设备','应用图标','数据与备份'],my:['ကိုယ်ရေးအချက်အလက် ပြင်ဆင်ရန်','အထွေထွေ','စကားဝှက်နှင့် စက်များ','အက်ပ်အိုင်ကွန်','ဒေတာနှင့် အရန်သိမ်းဆည်းမှု']};
+ // Isolated real runtime calendar and local storage (no account APIs or live data).
+ await page.evaluate(()=>{document.getElementById('stPage_profile').hidden=false;document.getElementById('stSettingsHomeV3').hidden=true;window.currentSessionUser={id:'synthetic-profile-test'};});
+ // Execute the actual translation text/attribute paths on the real profile DOM.
+ // Unrelated workspace translators are stubs; no profile upload or save handler is loaded.
+ const attrStart=app.indexOf('function translateAttributes(root){'),attrEnd=app.indexOf('function translateDynamicText(base){',attrStart);
+ const textStart=app.indexOf('function personalSettingsCopyV268(base,el,locale){'),textEnd=app.indexOf('function syncLanguageChoices(){',textStart);
+ assert.ok(attrStart>=0&&attrEnd>attrStart&&textStart>=0&&textEnd>textStart,'actual translator boundaries');
+ await page.addScriptTag({content:`(()=>{
+  let lang='en';
+  const no=()=>false,investCopySurfaceV236=no,txUiSurfaceV2=no,recurringCopySurfaceV264=no,goalCopySurfaceV263=no,myWorkspaceUiV2=no;
+  const zh={},zhWorkspaceV2={};
+  const fallback=base=>base==='Sample user.png'?'UNEXPECTED FILE TRANSLATION':base;
+  const translateDynamicText=fallback,myWorkspaceTextV2=fallback;
+  `+app.slice(attrStart,attrEnd)+app.slice(textStart,textEnd)+`
+  window.translateProfileFixtureV271=locale=>{lang=locale;document.documentElement.lang=locale==='zh'?'zh-CN':locale;translateRoot(document.getElementById('stPage_profile'));};
+ })();`});
+ const profileName=page.locator('#mmhProfileNameV1'),profileFile=page.locator('#mmhProfilePhotoV1'),profileHint=page.locator('#mmhProfileFileNameV1'),profileResult=page.locator('#mmhProfileResultV1');
+ const setProfileLocale=lang=>page.evaluate(lang=>window.translateProfileFixtureV271(lang),lang);
+ const labels=[
+  ['zh','昵称','您的昵称','更换头像','保存更改','取消','正在保存个人资料…','JPG、PNG 或 WEBP · 最大 2 MB'],
+  ['my','ပြသမည့် အမည်','သင့်ပြသမည့် အမည်','ပရိုဖိုင်ပုံ ပြောင်းရန်','ပြောင်းလဲမှုများ သိမ်းရန်','မလုပ်တော့ပါ','ပရိုဖိုင် သိမ်းဆည်းနေသည်…','JPG၊ PNG သို့မဟုတ် WEBP · 2 MB အထိ'],
+  ['en','Display name','Your display name','Change photo','Save changes','Cancel','Saving profile…','JPG, PNG or WEBP · up to 2 MB']
+ ];
+ await profileName.fill('Sample user');
+ await profileFile.setInputFiles({name:'Sample user.png',mimeType:'image/png',buffer:Buffer.from([137,80,78,71,13,10,26,10])});
+ await profileHint.evaluate(e=>e.textContent='Sample user.png');
+ await profileResult.evaluate(e=>e.textContent='Saving profile…');
+ for(const [locale,name,placeholder,photo,save,cancel,status] of labels){
+  await setProfileLocale(locale);
+  assert.equal(await page.locator('.mmh-profile-name-v1>span').textContent(),name);
+  assert.equal(await profileName.getAttribute('placeholder'),placeholder);
+  assert.equal(await page.locator('#mmhProfilePickV1 span').textContent(),photo);
+  assert.equal(await page.locator('#mmhProfileSaveV1').textContent(),save);
+  assert.equal(await page.locator('#mmhProfileCancelV271').textContent(),cancel);
+  assert.equal(await profileResult.textContent(),status);
+  assert.equal(await profileName.inputValue(),'Sample user');
+  assert.equal(await profileHint.textContent(),'Sample user.png');
+ }
+ await profileFile.setInputFiles([]);
+ await profileHint.evaluate(e=>e.textContent='JPG, PNG or WEBP · up to 2 MB');
+ for(const [locale,,,,,,,hint] of labels){await setProfileLocale(locale);assert.equal(await profileHint.textContent(),hint);}
+ await profileResult.evaluate(e=>e.textContent='');
+ console.log('PASS: actual profile translation paths EN/ZH/MY roundtrip, nickname and selected filename isolation in '+engine);
+ const ageScript=app.match(/<script id="mmhvault-v34216-age-js">([\s\S]*?)<\/script>/)[1];
+ await page.addScriptTag({content:ageScript});
+ await page.locator('#mmhBirthInfoV271').click();
+ assert.equal(await page.locator('#mmhSettingsAgeValueV34215').textContent(),'0');
+ await page.locator('#mmhBirthDetailsCloseV271').click();
+ await page.locator('#mmhBirthOpenV271').click();
+ await page.locator('#mmhBirthYearV271').selectOption('2000');
+ await page.locator('#mmhBirthMonthV271').selectOption('1');
+ await page.locator('#mmhBirthDaysV271 button').filter({hasText:/^29$/}).click();
+ await page.locator('#mmhBirthTimeV271').fill('14:35');
+ await page.locator('#mmhBirthConfirmV271').click();
+ assert.equal(await page.evaluate(()=>localStorage.getItem('mmhvault_birth_date_v34216_synthetic-profile-test')),'2000-02-29T14:35');
+ await page.locator('#mmhBirthOpenV271').click();
+ await page.locator('#mmhBirthClearTimeV271').click();
+ await page.locator('#mmhBirthConfirmV271').click();
+ assert.equal(await page.evaluate(()=>localStorage.getItem('mmhvault_birth_date_v34216_synthetic-profile-test')),'2000-02-29');
+ await page.locator('#mmhBirthOpenV271').click();
+ await page.locator('#mmhBirthClearV271').click();
+ await page.locator('#mmhBirthCancelV271').click();
+ assert.equal(await page.evaluate(()=>localStorage.getItem('mmhvault_birth_date_v34216_synthetic-profile-test')),'2000-02-29');
+ await page.locator('#mmhBirthOpenV271').click();
+ await page.locator('#mmhBirthClearV271').click();
+ await page.locator('#mmhBirthConfirmV271').click();
+ await page.locator('#mmhBirthInfoV271').click();
+ for(const id of ['mmhSettingsAgeValueV34215','mmhSettingsBirthdayValueV34215','mmhSettingsBirthdayCountdownV34215'])assert.equal(await page.locator('#'+id).textContent(),'0');
+ await page.locator('#mmhBirthDetailsCloseV271').click();
  let cases=0;
  for(const width of [360,760,1100,1500]){
   await page.setViewportSize({width,height:900});
@@ -93,7 +171,7 @@ try{
       for(const p of root.querySelectorAll('.st-page'))p.hidden=p.id!=='stPage_'+id;
       const p=document.getElementById('stPage_'+id),h=p.querySelector('.st-page-head');h.querySelector('h2').textContent=title;
       const panel=p.querySelector('.panel,.st-rows,.mmh-profile-edit-v1');
-      const controls=[...p.querySelectorAll("input:not([type=file]):not([type=hidden]),select,.mmh-photo-trigger-v1,.st-group,.mmh-email-reset-destination-v952")];
+      const controls=[...p.querySelectorAll("input:not([type=file]):not([type=hidden]),select,.mmh-photo-trigger-v1,.st-group,.mmh-email-reset-destination-v952")].filter(c=>c.getBoundingClientRect().width>0);
       const restore=p.querySelector('#restorePreviewV383'),restoreStat=p.querySelector('.restore-stat-v383');
       const restoreBg=restore?getComputedStyle(restore).backgroundColor:null;
       const restoreStatBg=restoreStat?getComputedStyle(restoreStat).backgroundColor:null;
@@ -117,11 +195,11 @@ try{
        const form=document.getElementById('mmhProfileFormV1'),save=document.getElementById('mmhProfileSaveV1'),avatar=document.getElementById('mmhProfileAvatarV269'),photo=document.querySelector('.mmh-profile-photo-v1'),name=document.querySelector('.mmh-profile-name-v1'),birthday=document.getElementById('mmhBirthdaySettingsV34215');
        const rect=e=>e.getBoundingClientRect();
        let submits=0;const onSubmit=e=>{e.preventDefault();submits++};form.addEventListener('submit',onSubmit);save.click();form.removeEventListener('submit',onSubmit);
-       return {associated:save.form===form,submits,avatarSize:rect(avatar).width,avatarHeight:rect(avatar).height,photoAbove:rect(photo).bottom<=rect(name).top+1,saveAfter:rect(save).top>=rect(birthday).bottom-1,buttonHeight:rect(save).height,buttonFits:save.scrollWidth-save.clientWidth<=2};
+       return {associated:save.form===form,submits,avatarSize:rect(avatar).width,avatarHeight:rect(avatar).height,photoPlaced:rect(photo).bottom<=rect(name).top+1||rect(photo).right<=rect(name).left+1,hiddenDetails:!document.getElementById('mmhBirthDetailsV271').open&&document.querySelector('.mmh-birthday-preview-v34216').getBoundingClientRect().width===0,saveAfter:rect(save).top>=rect(birthday).bottom-1,buttonHeight:rect(save).height,buttonFits:save.scrollWidth-save.clientWidth<=2};
       });
       assert.ok(info.associated&&info.submits===1,label+' external save retains form submit');
       assert.ok(info.avatarSize>=56&&Math.abs(info.avatarSize-info.avatarHeight)<=1,label+' square profile preview');
-      assert.ok(info.photoAbove&&info.saveAfter&&info.buttonHeight>=44&&info.buttonFits,label+' photo, name, birthday and action ordering');
+      assert.ok(info.photoPlaced&&info.hiddenDetails&&info.saveAfter&&info.buttonHeight>=44&&info.buttonFits,label+' photo, name, birthday and action ordering');
      }
      if(id==='security')assert.ok(r.securityWidth>=r.securityPanelWidth-44,label+' security grid fills panel');
      if(id==='data'){

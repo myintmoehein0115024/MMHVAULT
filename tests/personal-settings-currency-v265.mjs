@@ -775,16 +775,16 @@ console.log('PASS: 53-code shared display registry, additional FX, missing rates
  const win={addEventListener:(n,fn)=>windowEvents[n]=fn,dispatchEvent:e=>windowEvents[e.type]?.(e)};
  const storage={getItem:k=>{if(blocked)throw Error('blocked');return data.has(k)?data.get(k):null},setItem:(k,v)=>{if(blocked)throw Error('blocked');data.set(k,String(v))}};
  new Function('localStorage','document','window','CustomEvent','setTimeout','clearTimeout','currentSessionUser',code)(storage,doc,win,function(t){this.type=t},()=>0,()=>{},owner);
- const key='mmhvault_birth_date_v34216',change=v=>{input.value=v;input.handlers.change()},switchOwner=id=>{owner.id=id;windowEvents['mmhvault:config-owner-changed']()},blank=()=>input.value===''&&outputs.every(id=>nodes[id].textContent==='—');
+ const key='mmhvault_birth_date_v34216',change=v=>{input.value=v;input.handlers.change()},switchOwner=id=>{owner.id=id;windowEvents['mmhvault:config-owner-changed']()},blank=()=>input.value===''&&outputs.every(id=>nodes[id].textContent==='0');
  domEvents.DOMContentLoaded();
- assert(blank(),'unset birthday must remain unavailable');
+ assert(blank(),'unset birthday displays zero without inventing a date');
  data.set(key,'1990-02-12');switchOwner('a');assert(blank()&&!data.has(key+'_a'),'unclaimed legacy not migrated');
  data.set(key+'_legacy_owner','a');switchOwner('a');assert(input.value==='1990-02-12'&&!data.has(key+'_a'),'claimed legacy read only');
  change('1992-02-30');assert(!data.has(key+'_a'),'invalid calendar date rejected');
  change('2999-01-01');assert(!data.has(key+'_a'),'future date rejected');
  change('1992-02-29');assert(data.get(key+'_a')==='1992-02-29','valid leap date saved to current owner');
  assert.equal(input.min,'1900-01-01');assert.match(input.max,/^\d{4}-\d{2}-\d{2}$/);
- for(const [lang,title,age,countdown] of [['my','မွေးနေ့','နှစ်','စက္ကန့်'],['zh-CN','生日','岁','秒'],['en','Birthday','years','s']]){
+ for(const [lang,title,age,countdown] of [['my','မွေးနေ့','နှစ်','ရက်'],['zh-CN','生日','岁','天'],['en','Birthday','years','days']]){
   doc.documentElement.lang=lang;windowEvents['mmhvault-language-change']();assert.equal(labels[0].textContent,title);assert(nodes[outputs[0]].textContent.includes(age));assert(nodes[outputs[2]].textContent.includes(countdown));
  }
  doc.documentElement.lang='my';change('2999-01-01');assert(input.validity.includes('မွေးသက္ကရာဇ်'));assert.equal(data.get(key+'_a'),'1992-02-29');
@@ -875,22 +875,25 @@ console.log('PASS: 53-code shared display registry, additional FX, missing rates
  const draw=guide.slice(guide.indexOf('  function drawGuide'),guide.indexOf('  let activeGuideTrigger=button;'));
  const build=new Function('document','T','matchMedia','navigator','guide','androidCustomTab','illustration','captions','let selectedDevice=null,installPrompt=null;'+draw+'return drawGuide');
  function elem(tag){return {tag,children:[],append(...items){this.children.push(...items)},replaceChildren(){this.children=[]},setAttribute(){},textContent:'',className:'',hidden:false,value:''}}
- for(const lang of [0,1,2])for(const device of ['ios','ios-other','android-chrome','android-firefox','android-other','desktop']){
+ for(const lang of [0,1,2])for(const device of ["ios","ios-other","ipad","ipad-other","android-chrome","android-firefox","android-other","android-tablet-chrome","android-tablet-firefox","android-tablet-other","tablet-other","desktop","desktop-chrome","desktop-edge","desktop-safari"]){
   const host=elem('section');
   const fn=build({createElement:elem},(...args)=>args[lang]||args[0],()=>({matches:false}),{},host,()=>false,(kind,desktop)=>({kind,desktop}),()=>'caption');
   fn(device);
   const list=host.children.find(x=>x.tag==='ol');
   assert(list.children.length>=3);
-  assert(list.children.every(li=>li.children[0].children.length===2&&li.children[0].children[0].kind&&li.children[0].children[1].textContent));
-  assert(lang!==2||list.children.every(li=>/[\u1000-\u109f]/.test(li.children[0].children[1].textContent)));
+  const art=({"ios":"ios","ios-other":"ios","ipad":"ipad","ipad-other":"ipad","android-chrome":"android-chrome","android-firefox":"android-chrome","android-other":"android-chrome","android-tablet-chrome":"ipad","android-tablet-firefox":"ipad","android-tablet-other":"ipad","tablet-other":"ipad","desktop":"desktop","desktop-chrome":"desktop","desktop-edge":"desktop","desktop-safari":"desktop"})[device];
+  assert(list.children.every(li=>li.children[0].children.length===(art?1:2)&&li.children[0].children.at(-1).textContent));
+  assert(lang!==2||list.children.every(li=>/[\u1000-\u109f]/.test(li.children[0].children.at(-1).textContent)));
+  const figure=host.children.find(x=>x.tag==='figure');assert.equal(!!figure,!!art);
+  if(art)assert.equal(figure.children[0].children[0].src,'./images/mmhvault-install-'+art+'-v271.webp');
   assert.equal(host.children[1].children[0].value,device);
  }
- console.log('PASS: Settings Myanmar subtitles and illustrated installation steps, 18 device/locale combinations (mock DOM)');
+ console.log('PASS: Settings Myanmar subtitles and illustrated installation steps, 45 device/locale combinations (mock DOM)');
 }
 
 {
  const code=app.match(/<script id="mmhvault-settings-control-feedback-v4">([\s\S]*?)<\/script>/)[1];
- function fixture(ua='Android Chrome',referrer='',initial='my'){
+ function fixture(ua='Android Mobile Chrome',referrer='',initial='my'){
   let lang=initial;const events={};
   function elem(tag){return {tag,children:[],append(...n){this.children.push(...n)},replaceChildren(){this.children=[]},setAttribute(){},addEventListener(){},showModal(){this.open=true},close(){this.open=false;this.hidden=true},hidden:false,open:false,textContent:''}}
   const host=elem('section');
@@ -901,7 +904,7 @@ console.log('PASS: 53-code shared display registry, additional FX, missing rates
   return {events,button,status,guide,locale(v){lang=v;events['mmhvault-language-change']()},async prompt(p){events.beforeinstallprompt({preventDefault(){},...p});await button.onclick()}};
  }
  for(const [initial,label] of [['en','Add to Home Screen'],['zh','添加到主屏幕'],['my','ပင်မမျက်နှာပြင်သို့ ထည့်ပါ']]){
-  const q=fixture('Android Chrome','',initial);assert.equal(q.button.textContent,label);
+  const q=fixture('Android Mobile Chrome','',initial);assert.equal(q.button.textContent,label);
   const first=q.status.textContent;q.locale('en');q.locale(initial);assert.equal(q.status.textContent,first);
  }
  for(const [outcome,english] of [['accepted','Installation accepted.'],['dismissed','Installation cancelled. You can still follow the manual guide.'],['error','Follow the manual guide to add the app.'],['race','MMHVAULT has been installed.']]){
@@ -912,9 +915,49 @@ console.log('PASS: 53-code shared display registry, additional FX, missing rates
   q.locale('en');assert.equal(q.status.textContent,english);
   q.locale('zh');assert.match(q.status.textContent,/[\u4e00-\u9fff]/);
  }
- const custom=fixture('Android Chrome','android-app://example');
+ const custom=fixture('Android Mobile Chrome','android-app://example');
  assert.match(custom.status.textContent,/[\u1000-\u109f]/);
  custom.locale('en');assert.match(custom.status.textContent,/^Android in-app/);
  let customCalls=0;await custom.prompt({prompt:async()=>{customCalls++},userChoice:Promise.resolve({outcome:'accepted'})});assert.equal(customCalls,0);assert.equal(custom.guide.open,true);
  console.log('PASS: installation status and buttons EN/ZH/MY, language refresh, prompt outcomes, appinstalled race and Custom Tab (mock DOM)');
+}
+
+// V2.0.71 Personal candidate-only public/security preservation guard.
+// Pin the exact released main baseline. Any shared change requires re-review;
+// this supplements, never disables or replaces, the shared Landing release gate.
+{
+ const {createHash}=await import('node:crypto');
+ const pinned={
+  'business.html':'eb1ff3646f3bc67beba9495db9934866be8c27a6',
+  'business/index.html':'61cc407a88dad7c694951d07e86b93afa6a7c9a3',
+  'robots.txt':'39efeb5eb71cbfbd5477a0ff3fa10a1b83e30731',
+  'sitemap.xml':'d48dc9e79d6a45a4f6251ffbc0e5c71d16705787',
+  'register/index.html':'c500207084e3dad6a880866a56f5f1f61a48423f',
+  'features/index.html':'5cbcbda5f7c67086dc0e4a71684eab463ed5966a',
+  'about/index.html':'e2c2a3e54e2761a35a2613fcc3e034a28aa27914',
+  'privacy.html':'8098d5471abbedd9db4639584c4abd6279b635ca',
+  'terms.html':'2f935927de5238129976cee82d5631abd88c3db0',
+  'security.html':'40d185fdfa2fe760e19512eebb99d79a877831fe',
+  'landing-assets/landing-browser-check.cjs':'12a1200c4891bb060f2fee6337c76c415884aa86',
+  'landing-assets/landing-webkit-check.cjs':'1af0ce4402e673bb7edb605d41552af098fe9d19',
+  'landing-assets/landing-release-check.cjs':'f8b6af9a4adfb882a126a1f5599f07ede9dfd856',
+  '.github/workflows/landing-release-check.yml':'75b3a4613ec3b894b79d1bbc961d5ab34399b3a8',
+  'landing-assets/personal-v271-release-scope.cjs':'554baaa11e0a429a4a6c6f1d2bf3e4c88731de19',
+  'landing-assets/personal-v271-public-browser.cjs':'b57f9b1e5f0afcb6d0f78f9bf2bd3e23820d63fa'
+ };
+ const bytes=path=>readFileSync(new URL('../'+path,import.meta.url));
+ const gitHash=buf=>createHash('sha1').update('blob '+buf.length+'\0').update(buf).digest('hex');
+ for(const [path,expected] of Object.entries(pinned)){
+  assert.equal(gitHash(bytes(path)),expected,'Personal V2.0.71 protected released path changed: '+path);
+ }
+ const head=html=>{const end=html.toLowerCase().indexOf('</head>');assert(end>=0,'HTML head required');return html.slice(0,end)};
+ const noindex=html=>/<meta\b(?=[^>]*\bname\s*=\s*["']robots["'])(?=[^>]*\bcontent\s*=\s*["'][^"']*\bnoindex\b)[^>]*>/i.test(head(html));
+ for(const [path,html] of [['app.html',app],['login.html',bytes('login.html').toString('utf8')],['business.html',bytes('business.html').toString('utf8')]]){
+  assert(noindex(html),path+' private page noindex');
+ }
+ const landing=bytes('index.html').toString('utf8');
+ assert(!noindex(landing),'public home indexable');
+ assert.equal((head(landing).match(/<link\b[^>]*\brel\s*=\s*["']canonical["'][^>]*>/gi)||[]).length,1,'unique public canonical');
+ assert.match(head(landing),/<link\b[^>]*\brel\s*=\s*["']canonical["'][^>]*\bhref\s*=\s*["']https:\/\/mmhvault\.com\/["'][^>]*>/i);
+ console.log('PASS: V2.0.71 Personal scope guard: 16 protected public/Business/gate blobs, private noindex and public canonical');
 }
