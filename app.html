@@ -20702,6 +20702,16 @@ function goalCopyTextV263(base,el,locale=lang){
 
 // V2.0.68: Personal Settings fixed copy only; never translate account or member data.
 function personalSettingsCopyV268(base,el,locale){
+ // Fixed, original Settings labels only, including English for legacy bilingual copy.
+ const j=['en','zh','my'].indexOf(locale);
+ if(j<0)return null;
+ if(el.matches('#settings #mmhDataHealthV191 h2')&&base==='Data Health / 数据健康检查')return ['Data Health','数据健康检查','ဒေတာအခြေအနေ စစ်ဆေးခြင်း'][j];
+ if(el.matches('#settings #mmhDataHealthV191 .small')&&base==='Read only · 仅检查，不自动修改数据')return ['Read only · No automatic data changes','只读 · 仅检查，不自动修改数据','ဖတ်ရှုရန်သာ · ဒေတာကို အလိုအလျောက် မပြောင်းလဲပါ'][j];
+ if(el.matches('#settings #mmhDataHealthRunV191')&&base==='Check / 检查')return ['Check','检查','စစ်ဆေးရန်'][j];
+ if(el.matches('#settings #mmhDataHealthStatusV191')&&base==='Not checked / 尚未检查')return ['Not checked','尚未检查','မစစ်ဆေးရသေးပါ'][j];
+ if(el.matches('#settings #selectBackupBtnV433')&&base==='📥 Select Backup / Import JSON')return ['📥 Select Backup / Import JSON','📥 选择备份 / 导入 JSON','📥 အရန်ဖိုင်ရွေးရန် / JSON တင်သွင်းရန်'][j];
+ if(el.matches('#settings #stPage_icon .pwa-row .small')&&base==='PWA icon · 192×192 / 512×512')return ['PWA icon · 192×192 / 512×512','PWA 图标 · 192×192 / 512×512','PWA အိုင်ကွန် · 192×192 / 512×512'][j];
+ if(el.matches('#settings #stPage_icon .mmh-context-desc-v199')&&base==='Used when you add MMHVAULT to your phone home screen.')return ['Used when you add MMHVAULT to your phone home screen.','当您将 MMHVAULT 添加到手机主屏幕时使用。','MMHVAULT ကို ဖုန်းပင်မမျက်နှာပြင်တွင် ထည့်သွင်းသောအခါ အသုံးပြုသည်။'][j];
  if(!['zh','my'].includes(locale))return null;
  const i=locale==='zh'?0:1;
  if(el.matches('#settings .st-row > span:nth-child(2)')&&base==='Default display currency')return ['默认显示货币','မူလပြသမည့် ငွေကြေး'][i];
@@ -20730,7 +20740,7 @@ function translateTextNode(n){
   if(parent.closest('#mmhPremiumDashboardV500 .pf-tx-copy-v500,#mmhPremiumDashboardV500 .pf-tag-v500,#mmhPremiumDashboardV500 .pf-name-v500,#mmhPremiumDashboardV500 .pf-asset-v500,#mmhPremiumDashboardV500 .pf-signal-card-v150[data-signal-action-v150="category"] b,#header .wvLiveClockV2'))return;
   let rec=mmhI18nTextStateV135.get(n);
   if(!rec){
-    if(lang==='en')return;
+    if(lang==='en'&&personalSettingsCopyV268(current,parent,lang)==null)return;
     rec={base:current,last:current};
   }else if(current!==rec.last && current!==rec.base){
     // The app itself changed this dynamic text (amount, count, live status, etc.).
@@ -40766,6 +40776,13 @@ html body.mmh-workspace-active:not(.auth-page-active) #settings#settings#setting
  html body.mmh-workspace-active:not(.auth-page-active) #settings#settings#settings.page.active.st-in-subpage>.st-page:not([hidden])>.st-page-head{min-height:48px!important;grid-template-columns:minmax(44px,1fr) minmax(0,3fr) minmax(44px,1fr)!important;gap:6px!important}
  html body.mmh-workspace-active:not(.auth-page-active) #settings#settings#settings.page.active.st-in-subpage>.st-page:not([hidden]) .account-security-grid-v379,html body.mmh-workspace-active:not(.auth-page-active) #settings#settings#settings.page.active.st-in-subpage>.st-page:not([hidden]) .account-security-grid-v379>#mmhA783SecurityCenter{grid-template-columns:minmax(0,1fr)!important}
 }
+</style>
+
+<style id="mmhvault-personal-settings-data-surface-v268">
+/* Preserve visibility/handlers; only normalize the legacy preview surface. */
+html body.mmh-workspace-active:not(.auth-page-active) #settings#settings#settings.page.active.st-in-subpage>#stPage_data.st-page:not([hidden]) :is(.restore-preview-v383,.restore-stat-v383,.data-center-safety-card-v380,.system-status-card-v313){background:var(--uv-raised,#273242)!important;background-image:none!important;border-color:var(--st-border)!important;box-shadow:none!important;min-width:0!important;overflow-wrap:anywhere}
+html body.mmh-workspace-active:not(.auth-page-active) #settings#settings#settings.page.active.st-in-subpage>#stPage_data.st-page:not([hidden]) :is(.restore-actions-v383,.data-center-actions-v380,.system-status-actions-v313){flex-wrap:wrap!important}
+html body.mmh-workspace-active:not(.auth-page-active) #settings#settings#settings.page.active.st-in-subpage>#stPage_data.st-page:not([hidden]) :is(.restore-actions-v383,.data-center-actions-v380,.system-status-actions-v313)>.btn{max-width:100%!important;white-space:normal!important;overflow-wrap:anywhere}
 </style>
 
 </body>
