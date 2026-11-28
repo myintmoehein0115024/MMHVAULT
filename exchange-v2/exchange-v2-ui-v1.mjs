@@ -147,6 +147,24 @@ html body #exchange.page.active:has(> #mmhExchangeV2StagingRoot[data-unified-acc
 @media(max-width:760px){.fxv2-grid{grid-template-columns:minmax(0,1fr)}}
 @media(max-width:480px){.fxv2 .fxv2-panel{padding:12px}.fxv2 .fxv2-dialog{width:calc(100% - 24px);max-height:min(80vh,680px);max-height:min(80dvh,680px)}}
 @container (max-width:280px){.fxv2 .fxv2-fields,.fxv2 .fxv2-fields.saved{grid-template-columns:minmax(0,1fr)}.fxv2 .fxv2-swap{justify-self:center}}
+
+html body #exchange#exchange[data-market-v2-mounted] .fxv2 {--fx-bg:var(--mv74-card);--fx-raised:var(--mv74-raised);--fx-text:var(--mv74-text);--fx-muted:var(--mv74-muted);--fx-line:var(--mv74-line);--fx-accent:var(--mv74-gold)}
+html body #exchange#exchange[data-market-v2-mounted] .fxv2 :is(.fxv2-panel,.fxv2-dialog,.fxv2-result){background:var(--fx-bg)!important;background-image:none!important;border:1px solid var(--fx-line)!important;border-radius:12px!important;color:var(--fx-text)!important;box-shadow:none!important}
+html body #exchange#exchange[data-market-v2-mounted] .fxv2 .fxv2-panel{padding:12px!important}
+html body #exchange#exchange[data-market-v2-mounted] .fxv2 .fxv2-result{background:var(--fx-raised)!important}
+html body #exchange#exchange[data-market-v2-mounted] .fxv2 :is(.fxv2-picker,.fxv2-input,.fxv2-small,.fxv2-swap,.fxv2-primary){background:var(--fx-raised)!important;background-image:none!important;color:var(--fx-text)!important;border:1px solid var(--fx-line)!important;box-shadow:none!important;border-radius:8px!important;font-size:12px!important;min-height:38px!important;padding:7px 9px!important;line-height:1.35!important}
+html body #exchange#exchange[data-market-v2-mounted] .fxv2 .fxv2-picker{display:block!important;text-align:start!important;white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis!important}
+html body #exchange#exchange[data-market-v2-mounted] .fxv2 :is(.fxv2-swap,.fxv2-primary){color:var(--fx-accent)!important}
+html body #exchange#exchange[data-market-v2-mounted] .fxv2 :is(.fxv2-dialog-head,.fxv2-dialog-foot){position:static!important;background:var(--fx-bg)!important;background-image:none!important;box-shadow:none!important;padding:10px 12px!important}
+html body #exchange#exchange[data-market-v2-mounted] .fxv2 .fxv2-dialog-head button{width:34px!important;min-width:34px!important;height:34px!important;min-height:34px!important;padding:0!important;display:grid!important;place-items:center!important;color:var(--fx-accent)!important;font-size:18px!important}
+html body #exchange#exchange[data-market-v2-mounted] .fxv2 .fxv2-inline-picker{position:fixed!important;inset:auto!important;left:var(--fx278-x,12px)!important;top:var(--fx278-y,120px)!important;width:var(--fx278-w,290px)!important;max-height:var(--fx278-h,330px)!important;z-index:1100!important;margin:0!important;background:var(--fx-bg)!important;color:var(--fx-text)!important;border:1px solid var(--fx-line)!important;border-radius:12px!important;padding:8px!important;box-shadow:0 8px 28px #0003!important;overflow:hidden}
+html body #exchange#exchange[data-market-v2-mounted] .fxv2 .fxv2-inline-picker:not([hidden]){display:grid!important;grid-template-rows:auto minmax(0,1fr);gap:6px}
+html body #exchange#exchange[data-market-v2-mounted] .fxv2 .fxv2-inline-picker.fx278-up{transform:translateY(-100%)}
+html body #exchange#exchange[data-market-v2-mounted] .fxv2 .fxv2-inline-picker[hidden]{display:none!important}
+html body #exchange#exchange[data-market-v2-mounted] .fxv2 .fxv2-inline-picker select[hidden]{display:none!important}
+html body #exchange#exchange[data-market-v2-mounted] .fxv2 .fxv2-options{overflow:auto;min-height:0;max-height:250px}
+html body #exchange#exchange[data-market-v2-mounted] .fxv2 .fxv2-options button{display:flex!important;width:100%!important;justify-content:space-between!important;align-items:center!important;background:transparent!important;color:var(--fx-text)!important;border:0!important;box-shadow:none!important;min-height:36px!important;height:auto!important;padding:6px 8px!important;text-align:start!important;font-size:12px!important}
+html body #exchange#exchange[data-market-v2-mounted] .fxv2 .fxv2-options button:is([aria-pressed=true],[aria-selected=true]){background:var(--fx-raised)!important;color:var(--fx-accent)!important}
 `;
 export function mountExchangeV2V1({root,db,getLegacyRates=()=>null,getPreviousRates=()=>null,getMarketRates=()=>({}),onPairsChanged=()=>{},integrated=false}={}){
  if(!root||typeof root.querySelector!=='function')throw Error('A dedicated Exchange V2 root is required');
@@ -166,8 +184,8 @@ export function mountExchangeV2V1({root,db,getLegacyRates=()=>null,getPreviousRa
  root.append(shell);
  const editor=document.createElement('dialog');editor.className='fxv2-dialog';editor.setAttribute('aria-labelledby','fxv203-editor-title');
  editor.innerHTML=`<div class="fxv2-dialog-head"><h2 id="fxv203-editor-title" data-v2-editor-title></h2><button type="button" class="fxv2-small" data-v2-action="cancel">×</button></div><div class="fxv2-dialog-body"><div data-v2-edit-fields><div class="fxv2-fields saved"><label><span class="fxv2-label" data-v2-t="base"></span><button type="button" class="fxv2-picker" data-v2-pick="base"></button></label><label><span class="fxv2-label" data-v2-t="quote"></span><button type="button" class="fxv2-picker" data-v2-pick="quote"></button></label></div><label class="fxv2-amount"><span class="fxv2-label" data-v2-t="price"></span><input type="number" inputmode="decimal" min="0" step="any" class="fxv2-input" data-v2-rate></label></div><div data-v2-delete-fields hidden><strong data-v2-delete-pair></strong><p class="fxv2-note" data-v2-t="deleteNote"></p></div><div class="fxv2-status" data-v2-editor-status role="status" aria-live="polite"></div></div><div class="fxv2-dialog-foot"><button type="button" class="fxv2-small" data-v2-action="cancel" data-v2-t="cancel"></button><button type="button" class="fxv2-primary" data-v2-action="save"></button></div>`;
- const picker=document.createElement('dialog');picker.className='fxv2-dialog';picker.setAttribute('aria-labelledby','fxv203-picker-title');
- picker.innerHTML=`<div class="fxv2-dialog-head"><h2 id="fxv203-picker-title" data-v2-t="search"></h2><button type="button" class="fxv2-small" data-v2-action="close">×</button></div><div class="fxv2-dialog-body"><input type="search" class="fxv2-input" data-v2-search autocomplete="off"><div class="fxv2-options" data-v2-options role="listbox"></div></div>`;
+ const picker=document.createElement('div');picker.className='fxv2-inline-picker mmh-shared-currency-v3';picker.hidden=true;picker.setAttribute('role','group');
+ picker.innerHTML='<input type="search" class="fxv2-input" data-v2-search autocomplete="off"><div class="fxv2-options ap-currency-list-v2" data-v2-options></div><select hidden aria-hidden="true" tabindex="-1"></select>';
  root.append(editor,picker);
  const find=s=>root.querySelector(s), tr=k=>COPY206[locale()]?.[k]||COPY203[locale()]?.[k]||TEXT[locale()]?.[k]||k;
  const btnText=code=>{const c=currencies.get(code);return c?c.flag+' '+code+' · '+currencyName(c,locale()):code};
@@ -183,10 +201,10 @@ export function mountExchangeV2V1({root,db,getLegacyRates=()=>null,getPreviousRa
  }
  function updateLabels(){
    for(const e of root.querySelectorAll('[data-v2-t]'))e.textContent=tr(e.dataset.v2T);
-   for(const e of root.querySelectorAll('[data-v2-pick]')){e.textContent=btnText(state[e.dataset.v2Pick]);e.disabled=state.loading||(!!state.edit&&['base','quote'].includes(e.dataset.v2Pick))}
+   for(const e of root.querySelectorAll('[data-v2-pick]')){e.textContent=btnText(state[e.dataset.v2Pick])+' ⌄';e.setAttribute('aria-expanded',String(!picker.hidden&&state.selected===e.dataset.v2Pick));e.disabled=state.loading||(!!state.edit&&['base','quote'].includes(e.dataset.v2Pick))}
    find('[data-v2-action="refresh"]').textContent=tr('refresh');
    find('[data-v2-action="swap"]').setAttribute('aria-label',tr('swap'));
-   find('[data-v2-action="close"]').setAttribute('aria-label',tr('close'));
+   picker.setAttribute('aria-label',tr('search'));
    for(const b of editor.querySelectorAll('[data-v2-action="cancel"]'))b.setAttribute('aria-label',tr('cancel'));
    find('[data-v2-saved-search]').placeholder=tr('searchSaved');find('[data-v2-saved-search]').setAttribute('aria-label',tr('searchSaved'));
    find('[data-v2-search]').placeholder=tr('search');find('[data-v2-search]').setAttribute('aria-label',tr('search'));
@@ -194,7 +212,7 @@ export function mountExchangeV2V1({root,db,getLegacyRates=()=>null,getPreviousRa
    find('[data-v2-action="save"]').textContent=tr(state.loading?'busy':state.confirm?'confirm':'save');
    find('[data-v2-edit-fields]').hidden=!!state.confirm;find('[data-v2-delete-fields]').hidden=!state.confirm;
    if(state.confirm)find('[data-v2-delete-pair]').textContent=pairText(state.confirm.base_code,state.confirm.quote_code);
-   if(picker.open)drawOptions();updateConversion();
+   if(!picker.hidden)drawOptions();updateConversion();
  }
  function updatePrevious(){
    const el=find('[data-v2-previous]'),current=session.state(),raw=getPreviousRates();
@@ -226,7 +244,7 @@ export function mountExchangeV2V1({root,db,getLegacyRates=()=>null,getPreviousRa
      item.append(detail,actions);list.append(item);
    }list.scrollTop=scroll;
  }
- function closePicker(){if(picker.open)picker.close();state.selected=null}
+ function closePicker(restore=false){const trigger=state.selected?find('[data-v2-pick="'+state.selected+'"]'):null;if(picker.hasAttribute('popover')){try{picker.hidePopover()}catch(_){}picker.removeAttribute('popover')}picker.hidden=true;state.selected=null;trigger?.setAttribute('aria-expanded','false');if(picker.parentNode!==root)root.append(picker);if(restore===true&&!trigger?.disabled)trigger?.focus({preventScroll:true})}
  function closeEditor(force=false){
    if(state.loading&&!force)return;closePicker();if(editor.open)editor.close();
    state.edit=null;state.confirm=null;state.editorOwner='';find('[data-v2-rate]').value='';status('',true);
@@ -244,15 +262,18 @@ export function mountExchangeV2V1({root,db,getLegacyRates=()=>null,getPreviousRa
    if(mode!=='delete')find('[data-v2-rate]').focus();
  }
  function drawOptions(){
-   const box=find('[data-v2-options]');box.replaceChildren();
-   const rows=marketCurrencyOptionsV203(find('[data-v2-search]').value,locale());
-   for(const c of rows){const b=document.createElement('button');b.type='button';b.textContent=btnText(c.code);b.setAttribute('role','option');b.setAttribute('aria-selected',String(state[state.selected]===c.code));b.addEventListener('click',()=>{if(state.selected)state[state.selected]=c.code;closePicker();updateLabels()});box.append(b)}
-   if(!rows.length){const p=document.createElement('p');p.className='fxv2-muted';p.textContent=tr('noResults');box.append(p)}
+ const box=find('[data-v2-options]'),search=find('[data-v2-search]'),select=picker.querySelector('select');box.replaceChildren();select.replaceChildren();
+ for(const c of marketCurrencyOptionsV203('',locale())){const o=document.createElement('option');o.value=c.code;o.textContent=c.code;select.append(o)}select.value=state[state.selected];
+ function fallback(){box.replaceChildren();for(const c of marketCurrencyOptionsV203(search.value,locale())){const b=document.createElement('button');b.type='button';b.textContent=btnText(c.code);b.dataset.apCurrency=c.code;b.setAttribute('aria-pressed',String(state[state.selected]===c.code));box.append(b)}if(!box.children.length){const p=document.createElement('p');p.textContent=tr('noResults');box.append(p)}}
+ if(window.MMHCurrencyPickerV3?.render){try{window.MMHCurrencyPickerV3.render({select,search,list:box,group:picker,label:tr('search')});return}catch(_){}}
+ search.oninput=fallback;fallback();
  }
- function openPicker(field){
-   if(state.loading||(state.edit&&['base','quote'].includes(field)))return;
-   state.selected=field;find('[data-v2-search]').value='';drawOptions();if(!picker.open)picker.showModal();find('[data-v2-search]').focus();
- }
+ function positionPicker(){if(picker.hidden||!state.selected)return;const b=find('[data-v2-pick="'+state.selected+'"]').getBoundingClientRect(),vv=window.visualViewport,x=vv?.offsetLeft||0,y=vv?.offsetTop||0,w=vv?.width||innerWidth,h=vv?.height||innerHeight,width=Math.min(310,w-24),below=y+h-b.bottom-17,above=b.top-y-17,up=below<180&&above>below;picker.style.setProperty('--fx278-w',width+'px');picker.style.setProperty('--fx278-x',Math.max(x+12,Math.min(x+w-width-12,b.right-width))+'px');picker.style.setProperty('--fx278-y',Math.max(y+12,up?b.top-5:b.bottom+5)+'px');picker.style.setProperty('--fx278-h',Math.max(90,Math.min(330,up?above:below))+'px');picker.classList.toggle('fx278-up',up)}
+ function openPicker(field){if(state.loading||(state.edit&&['base','quote'].includes(field)))return;if(state.selected===field&&!picker.hidden){closePicker(true);return}closePicker();state.selected=field;const trigger=find('[data-v2-pick="'+field+'"]');(trigger.closest('dialog')||root).append(picker);find('[data-v2-search]').value='';drawOptions();picker.hidden=false;trigger.setAttribute('aria-expanded','true');positionPicker();if(typeof picker.showPopover==='function'){picker.setAttribute('popover','manual');try{picker.showPopover()}catch(_){picker.removeAttribute('popover')}}find('[data-v2-search]').focus({preventScroll:true})}
+ picker.addEventListener('click',e=>{const code=e.target.closest('[data-ap-currency]')?.dataset.apCurrency;if(!code||!currencies.has(code)||!state.selected||state.loading)return;if(state.edit&&['base','quote'].includes(state.selected))return;if(['base','quote'].includes(state.selected)&&state.editorOwner!==session.state().user_id){closeEditor(true);return}state[state.selected]=code;closePicker(true);updateLabels()});
+ const outsidePicker=e=>{if(!picker.hidden&&!picker.contains(e.target)&&!e.target.closest?.('[data-v2-pick]'))closePicker()};
+ const pickerEscape=e=>{if(e.key==='Escape'&&!picker.hidden){e.preventDefault();e.stopPropagation();closePicker(true)}};
+ document.addEventListener('pointerdown',outsidePicker,{passive:true});document.addEventListener('keydown',pickerEscape,true);window.addEventListener('resize',positionPicker);window.visualViewport?.addEventListener('resize',positionPicker);
  async function withBusy(task){
    if(state.loading||state.destroyed)return false;
    state.loading=true;const stamp=state.generation;setBusy();
@@ -296,10 +317,10 @@ export function mountExchangeV2V1({root,db,getLegacyRates=()=>null,getPreviousRa
  for(const b of root.querySelectorAll('[data-v2-action]'))b.addEventListener('click',()=>{
    switch(b.dataset.v2Action){case 'refresh':void reload();break;case 'swap':[state.from,state.to]=[state.to,state.from];updateLabels();break;case 'add':openEditor('add');break;case 'save':void save();break;case 'close':closePicker();break;case 'cancel':closeEditor();break}
  });
- find('[data-v2-search]').addEventListener('input',drawOptions);
+ 
  find('[data-v2-saved-search]').addEventListener('input',()=>{find('[data-v2-list]').scrollTop=0;updateSaved()});
  find('[data-v2-amount]').addEventListener('input',updateConversion);
- for(const [dialog,close] of [[picker,closePicker],[editor,()=>closeEditor()]]){
+ for(const [dialog,close] of [[editor,()=>closeEditor()]]){
    dialog.addEventListener('cancel',e=>{e.preventDefault();close()});
    dialog.addEventListener('click',e=>{if(e.target!==dialog)return;const b=dialog.getBoundingClientRect();if(e.clientX<b.left||e.clientX>b.right||e.clientY<b.top||e.clientY>b.bottom)close()});
  }
@@ -312,5 +333,5 @@ export function mountExchangeV2V1({root,db,getLegacyRates=()=>null,getPreviousRa
  const listeners=[['mmhvault:config-owner-changed',ownerChanged],['mmhvault-language-change',langChanged],['mmhvault:data-loaded',dataLoaded],['mmhvault:exchange-reference-updated',marketChanged],['mmhvault:page-visible',pageChanged],['mmhvault:market-view-changed',viewChanged]];
  for(const [event,fn] of listeners)window.addEventListener(event,fn);
  updateLabels();void reload();
- return Object.freeze({refresh:reload,destroy(){state.destroyed=true;state.generation++;closeEditor(true);for(const [event,fn] of listeners)window.removeEventListener(event,fn);session.clear();root.replaceChildren();root.classList.remove('fxv2');delete root.dataset.exchangeV2Mounted;delete root.dataset.unifiedAccounting;delete root.dataset.accountingReady}});
+ return Object.freeze({refresh:reload,destroy(){state.destroyed=true;state.generation++;closeEditor(true);document.removeEventListener('pointerdown',outsidePicker);document.removeEventListener('keydown',pickerEscape,true);window.removeEventListener('resize',positionPicker);window.visualViewport?.removeEventListener('resize',positionPicker);for(const [event,fn] of listeners)window.removeEventListener(event,fn);session.clear();root.replaceChildren();root.classList.remove('fxv2');delete root.dataset.exchangeV2Mounted;delete root.dataset.unifiedAccounting;delete root.dataset.accountingReady}});
 }
