@@ -1,4 +1,4 @@
-import {readFileSync,mkdtempSync,writeFileSync,rmSync} from 'node:fs';
+import {readFileSync,mkdtempSync,mkdirSync,writeFileSync,rmSync} from 'node:fs';
 import {tmpdir} from 'node:os';
 import {join} from 'node:path';
 import {fileURLToPath} from 'node:url';
@@ -204,6 +204,7 @@ try{
  const lazyCandidates=new Map();
  const chinesePackInputs=new Map();
  const fullPacks=new Map();
+ const bundleInputs=new Map();
  const renderOnlyCandidates=new Map();
  const python=process.env.MMH_FONTQA_PYTHON;
  if(process.env.CI)assert(python,'CI must provide isolated font compression interpreter');
@@ -350,6 +351,7 @@ sys.stdout.buffer.write(data)
   assert(bytes.length>0&&bytes.length<=40*1024*1024,folder+' asset size bounds');
   const actual=createHash('sha1').update('blob '+bytes.length+'\0').update(bytes).digest('hex');
   assert.equal(actual,expected,folder+' exact Git blob hash');
+  bundleInputs.set(folder,{bytes,license,file});
   if(locale==='zh-CN')chinesePackInputs.set(folder,{bytes,license,expected,licenseHash:licenseHashes[folder]});
   }
   let compressed=null,packManifest=null;
@@ -604,17 +606,38 @@ with tempfile.TemporaryDirectory() as temp:
   // Partition full Chinese source cmap into common UI glyphs and bounded rare-glyph shards.
   // Prototype only: no generated fonts are distributed or deployed.
   assert.equal(chinesePackInputs.size,4,'all four pinned Chinese candidates required');
+  assert.equal(bundleInputs.size,8,'all eight pinned bundle inputs required');
+  const assemblyTemp=mkdtempSync(join(tmpdir(),'mmh-full-assembly-'));
+  try{
+  const sourceRoot=join(assemblyTemp,'sources'),assemblyUI=join(assemblyTemp,'ui.html'),assemblyOutput=join(assemblyTemp,'bundle');
+  mkdirSync(sourceRoot);writeFileSync(assemblyUI,app);
+  for(const [name,input] of bundleInputs){const dest=join(sourceRoot,name);mkdirSync(dest);writeFileSync(join(dest,input.file),input.bytes);writeFileSync(join(dest,'OFL.txt'),input.license)}
+  const assembled=spawnSync(python,[bundleTool,'--source-root',sourceRoot,'--ui-source',assemblyUI,'--output',assemblyOutput],{maxBuffer:8*1024*1024,timeout:300000});
+  assert.ifError(assembled.error);assert.equal(assembled.status,0,assembled.stderr?.toString().slice(-2000));
+  const actualManifest=JSON.parse(readFileSync(join(assemblyOutput,'bundle.json'),'utf8'));
+  assert.deepEqual(actualManifest,JSON.parse(assembled.stdout.toString('utf8')));
+  assert.equal(actualManifest.candidates.length,8);
+  assert.equal(actualManifest.static_ui_sha256,createHash('sha256').update(app).digest('hex'));
+  for(const rec of actualManifest.candidates){
+   const input=bundleInputs.get(rec.candidate);assert(input);
+   assert.deepEqual(readFileSync(join(assemblyOutput,rec.license)),input.license);
+   const manifestBytes=readFileSync(join(assemblyOutput,rec.manifest));assert.equal(createHash('sha256').update(manifestBytes).digest('hex'),rec.manifest_sha256);
+   const files=new Map();for(const item of rec.files){const bytes=readFileSync(join(assemblyOutput,rec.candidate,item.file));assert.equal(bytes.length,item.bytes);assert.equal(createHash('sha256').update(bytes).digest('hex'),item.sha256);assert.equal(bytes.subarray(0,4).toString(),'wOF2');files.set(item.file,bytes)}
+   const previous=fullPacks.get(rec.candidate);if(previous)assert.deepEqual(files.get('font.woff2'),previous.files.get('font.woff2'),'Myanmar assembly matches individual output');
+   fullPacks.set(rec.candidate,{files,css:readFileSync(join(assemblyOutput,rec.candidate,'font.css'),'utf8')});
+  }
+  const assembledCSS=readFileSync(join(assemblyOutput,actualManifest.stylesheet),'utf8');
+  assert.equal(createHash('sha256').update(assembledCSS).digest('hex'),actualManifest.stylesheet_sha256);
+  console.log('PASS: actual eight pinned fonts assembled through Python bundle tool with intact notices, font hashes, manifest hashes and deterministic Myanmar output');
   for(const [folder,input] of chinesePackInputs){
   const chinesePartitionSource=input.bytes,chinesePartitionLicense=input.license;
   const partitionTemp=mkdtempSync(join(tmpdir(),'mmh-chinese-pack-'));
   let bundle,partitionCss;
   try{
-   const sourcePath=join(partitionTemp,'source.ttf'),licensePath=join(partitionTemp,'OFL-source.txt'),uiPath=join(partitionTemp,'ui.html'),output=join(partitionTemp,'candidate');
+   const sourcePath=join(partitionTemp,'source.ttf'),licensePath=join(partitionTemp,'OFL-source.txt'),uiPath=join(partitionTemp,'ui.html'),output=join(assemblyOutput,folder);
    writeFileSync(sourcePath,chinesePartitionSource);writeFileSync(licensePath,chinesePartitionLicense);writeFileSync(uiPath,app);
    const script=fileURLToPath(new URL('../tools/personal-font-pack-v265.py',import.meta.url));
    const build=(source,lic,dest)=>spawnSync(python,[script,folder,'--source',source,'--license',lic,'--ui-source',uiPath,'--output',dest],{maxBuffer:8*1024*1024,timeout:180000});
-   const generated=build(sourcePath,licensePath,output);
-   assert.ifError(generated.error);assert.equal(generated.status,0,generated.stderr?.toString().slice(-2000));
    bundle=JSON.parse(readFileSync(join(output,'manifest.json'),'utf8'));
    assert.equal(bundle.source_git_blob,input.expected);
    assert.equal(bundle.license_git_blob,input.licenseHash);
@@ -640,7 +663,7 @@ with tempfile.TemporaryDirectory() as temp:
     assert.equal(createHash('sha256').update(bytes).digest('hex'),g.sha256);
     assert(partitionCss.includes('src:url("./'+g.file+'")'));g.data=bytes.toString('base64');
    }
-   fullPacks.set(folder,{css:partitionCss,files:new Map(bundle.groups.map(g=>[g.file,Buffer.from(g.data,'base64')]))});
+   for(const g of bundle.groups)assert.deepEqual(fullPacks.get(folder).files.get(g.file),Buffer.from(g.data,'base64'));
    const badLicense=join(partitionTemp,'bad-license.txt');writeFileSync(badLicense,Buffer.concat([chinesePartitionLicense,Buffer.from([0])]));
    assert.notEqual(build(sourcePath,badLicense,join(partitionTemp,'reject-license')).status,0,'Chinese tampered license rejected');
    assert.notEqual(build(sourcePath,licensePath,output).status,0,'Chinese existing output protected');
@@ -698,7 +721,7 @@ with tempfile.TemporaryDirectory() as temp:
   // Use all eight actual generated packs together in one isolated workspace,
   // without generating them a second time or distributing any font assets.
   assert.equal(fullPacks.size,8);
-  const combinedCSS=[...fullPacks].map(([name,pack])=>pack.css.replaceAll('src:url("./','src:url("./'+name+'/')).join('\n');
+  const combinedCSS=assembledCSS;
   const combinedOrigin='https://mmh-font-bundle-fixture.invalid';
   const allCtx=await browser.newContext(),allRequests=[];
   try{
@@ -746,5 +769,6 @@ with tempfile.TemporaryDirectory() as temp:
    console.log('FONT-COMBINED '+JSON.stringify({families:fullPacks.size,requests:allRequests,cssBytes:Buffer.byteLength(combinedCSS)}));
    console.log('PASS: all eight actual full font packs coexist in one same-origin Settings fixture with selected-only requests, custom glyphs, reuse and guest isolation (not deployed)');
   }finally{await allCtx.close()}
+  }finally{rmSync(assemblyTemp,{recursive:true,force:true})}
  }
 }finally{await browser.close()}
