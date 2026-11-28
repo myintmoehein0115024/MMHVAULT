@@ -277,7 +277,8 @@ try{
  await page.addScriptTag({content:marketScript});
  await page.evaluate(()=>{if(typeof currentSessionUser==='undefined')window.currentSessionUser={id:'fixture-market-a'};else currentSessionUser={id:'fixture-market-a'};localStorage.setItem('mmhvault_settings_display_v2_fixture-market-a',JSON.stringify({currency:'MMK'}));localStorage.removeItem('mmhvault_market_base_v276_fixture-market-a')});
  await page.addScriptTag({content:'(()=>{const MMHVAULT_CONFIG={accounts:[]};'+renderer+'})();'});
- await page.addScriptTag({content:mountedMarket});
+ assert.ok(mountedMarket.includes('let marketDisplaySnapshot=null;'));
+ await page.addScriptTag({content:mountedMarket.replace('let marketDisplaySnapshot=null;','let marketDisplaySnapshot=null;window.__setFixtureMarketSnapshot=(snapshot)=>{marketDisplaySnapshot=snapshot;paint()};')});
  await page.addStyleTag({content:fxCss});
  await page.locator('#exchange[data-market-v2-mounted=yes]').waitFor();
  let mountedCases=0;
@@ -345,6 +346,28 @@ try{
   assert.ok(await panel.locator('.mv2-history').isVisible());
   mountedCases++;
  }
+ // V2.0.80: synthetic normalized quotes through actual Market table renderer.
+ await page.setViewportSize({width:390,height:800});
+ await page.evaluate(()=>{document.documentElement.lang='en';localStorage.setItem('mmhvault_language_v3363','en');localStorage.setItem('mmhvault_settings_display_v2_fixture-market-a',JSON.stringify({currency:'MMK'}));localStorage.removeItem('mmhvault_market_base_v276_fixture-market-a');dispatchEvent(new Event('mmhvault-language-change'));const t=new Date().toISOString();window.__setFixtureMarketSnapshot({version:1,base:'MMK',asOf:t,fetchedAt:t,quotes:{USD:{buy:100,sell:110,buyChange:2,sellChange:-3,recordedAt:t,stale:false},THB:{buy:20,sell:21,buyChange:null,sellChange:0,recordedAt:t,stale:true},EUR:{buy:999,sell:10,buyChange:null,sellChange:null,recordedAt:t,stale:false}}})});
+ await page.locator('#exchange [data-mv2-section=currency]').click();
+ const marketBoard=page.locator('#exchange .mv275-board');
+ assert.equal(await marketBoard.getAttribute('data-fx-base'),'MMK');
+ assert.deepEqual(await marketBoard.locator('tr[data-fx-code=USD] td').allTextContents(),['100','110','Buy +2Sell -3']);
+ assert.equal(await marketBoard.locator('tr[data-fx-code=USD] [data-direction=up]').count(),1);
+ assert.equal(await marketBoard.locator('tr[data-fx-code=USD] [data-direction=down]').count(),1);
+ assert.equal(await marketBoard.locator('tr[data-fx-code=THB]').getAttribute('data-fx-quote-state'),'stale');
+ assert.deepEqual(await marketBoard.locator('tr[data-fx-code=EUR] td').allTextContents(),['—','—','—']);
+ assert.deepEqual(await marketBoard.locator('tr[data-fx-code=JPY] td').allTextContents(),['—','—','—']);
+ for(const lang of ['zh','my']){
+  await page.evaluate(lang=>{document.documentElement.lang=lang;localStorage.setItem('mmhvault_language_v3363',lang);dispatchEvent(new Event('mmhvault-language-change'))},lang);
+  assert.equal(await marketBoard.locator('tr[data-fx-code=USD]').getAttribute('data-fx-quote-state'),'available');
+  assert.ok(await marketBoard.evaluate(e=>e.getBoundingClientRect().right<=innerWidth+1));
+ }
+ await page.evaluate(()=>{localStorage.setItem('mmhvault_settings_display_v2_fixture-market-a',JSON.stringify({currency:'USD'}));dispatchEvent(new Event('mmhvault:data-loaded'))});
+ assert.equal(await marketBoard.getAttribute('data-fx-base'),'USD');
+ assert.ok((await marketBoard.locator('tbody td').allTextContents()).every(x=>x==='—'));
+ await page.evaluate(()=>{window.__setFixtureMarketSnapshot(null);localStorage.setItem('mmhvault_settings_display_v2_fixture-market-a',JSON.stringify({currency:'MMK'}));dispatchEvent(new Event('mmhvault:data-loaded'))});
+ console.log('PASS: V2.0.80 synthetic Market quote display, deltas, missing and stale state, locale layout, base isolation; '+engine);
  // Mount the real converter UI with a synthetic session, never production data.
  const converterModule=readFileSync(new URL('../exchange-v2/exchange-v2-ui-v1.mjs',import.meta.url),'utf8').replace(/^import .*$/gm,'').replaceAll('export function ','function ');
  const mockConverter=`const ASIA_CURRENCIES_V1=[{code:'USD',en:'US Dollar',zh:'美元',flag:'🇺🇸'},{code:'MMK',en:'Myanmar Kyat',zh:'缅元',flag:'🇲🇲'},{code:'THB',en:'Thai Baht',zh:'泰铢',flag:'🇹🇭'},{code:'JPY',en:'Japanese Yen',zh:'日元',flag:'🇯🇵'}];const canonicalPairV1=x=>x;const createExchangeV2SessionV1=()=>({state:()=>({status:'ready',user_id:'fixture-converter',pairs:[]}),quote:()=>({available:false,reason:'missing'}),refresh:async()=>{},clear:()=>{}});`;
