@@ -203,6 +203,7 @@ try{
  const results={};
  const lazyCandidates=new Map();
  const chinesePackInputs=new Map();
+ const fullPacks=new Map();
  const renderOnlyCandidates=new Map();
  const python=process.env.MMH_FONTQA_PYTHON;
  if(process.env.CI)assert(python,'CI must provide isolated font compression interpreter');
@@ -367,7 +368,9 @@ sys.stdout.buffer.write(data)
      assert.equal(packManifest.output_sha256,createHash('sha256').update(compressed).digest('hex'));
      assert.equal(packManifest.source_git_blob,expected);assert.equal(packManifest.license_git_blob,licenseHashes[folder]);
      assert.deepEqual(readFileSync(join(output,'OFL.txt')),license);
-     assert(readFileSync(join(output,'font.css'),'utf8').includes(packManifest.family));
+     const generatedCSS=readFileSync(join(output,'font.css'),'utf8');
+     assert(generatedCSS.includes(packManifest.family));
+     fullPacks.set(folder,{css:generatedCSS,files:new Map([['font.woff2',compressed]])});
      if(folder==='padauk'){
       const repeat=join(temp,'repeat'),again=build(sourcePath,licensePath,repeat);
       assert.ifError(again.error);assert.equal(again.status,0,again.stderr?.toString());assert.deepEqual(readFileSync(join(repeat,'font.woff2')),compressed,'deterministic pack');
@@ -637,6 +640,7 @@ with tempfile.TemporaryDirectory() as temp:
     assert.equal(createHash('sha256').update(bytes).digest('hex'),g.sha256);
     assert(partitionCss.includes('src:url("./'+g.file+'")'));g.data=bytes.toString('base64');
    }
+   fullPacks.set(folder,{css:partitionCss,files:new Map(bundle.groups.map(g=>[g.file,Buffer.from(g.data,'base64')]))});
    const badLicense=join(partitionTemp,'bad-license.txt');writeFileSync(badLicense,Buffer.concat([chinesePartitionLicense,Buffer.from([0])]));
    assert.notEqual(build(sourcePath,badLicense,join(partitionTemp,'reject-license')).status,0,'Chinese tampered license rejected');
    assert.notEqual(build(sourcePath,licensePath,output).status,0,'Chinese existing output protected');
@@ -691,5 +695,56 @@ with tempfile.TemporaryDirectory() as temp:
    console.log('PASS: pinned Chinese offline pack, source cmap partition, original license, shard hashes, coverage diagnostics, tampered license/overwrite rejection, generated CSS and mixed sample rendering (isolated '+folder+' candidate)');
   }finally{await splitCtx.close()}
   }
+  // Use all eight actual generated packs together in one isolated workspace,
+  // without generating them a second time or distributing any font assets.
+  assert.equal(fullPacks.size,8);
+  const combinedCSS=[...fullPacks].map(([name,pack])=>pack.css.replaceAll('src:url("./','src:url("./'+name+'/')).join('\n');
+  const combinedOrigin='https://mmh-font-bundle-fixture.invalid';
+  const allCtx=await browser.newContext(),allRequests=[];
+  try{
+   await allCtx.route('**/*',route=>{
+    const url=new URL(route.request().url());
+    if(url.origin!==combinedOrigin)return route.abort();
+    if(url.pathname==='/')return route.fulfill({status:200,contentType:'text/html',body:'<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><link rel="stylesheet" href="/fonts/fonts.css"></head><body class="mmh-workspace-active"><main id="settings" class="page active"><div id="rows"></div><p id="sample"></p></main></body></html>'});
+    if(url.pathname==='/fonts/fonts.css')return route.fulfill({status:200,contentType:'text/css',body:combinedCSS});
+    const match=/^\/fonts\/([a-z]+)\/(font|part-\d+)\.woff2$/.exec(url.pathname);
+    const data=match&&fullPacks.get(match[1])?.files.get(match[2]+'.woff2');
+    if(!data)return route.fulfill({status:404,body:''});
+    allRequests.push({folder:match[1],file:match[2]+'.woff2'});
+    return route.fulfill({status:200,contentType:'font/woff2',body:data});
+   });
+   const page=await allCtx.newPage();
+   await page.goto(combinedOrigin+'/');
+   await page.addStyleTag({content:'body{font-family:system-ui,sans-serif}#sample{font-size:28px;font-weight:400}'+css});
+   await page.addScriptTag({content:`const $=id=>document.getElementById(id);let owner='a';const store=new Map();const prefOwner=()=>owner;const lsGet=k=>store.get(k)??null;const lsSet=(k,v)=>{store.set(k,v);return true};`+row+helpers+`addFontV265($('rows'));window.fontFixture={owner:id=>{owner=id;dispatchEvent(new Event('mmhvault:config-owner-changed'))},lang:id=>{document.documentElement.lang=id;dispatchEvent(new Event('mmhvault-language-change'))}};`});
+   const picker=page.locator('#stPref_fontV265');
+   const settle=()=>page.evaluate(async()=>{document.querySelector('#sample').getBoundingClientRect();await document.fonts.ready;await new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r)))});
+   const setText=async locale=>{await page.evaluate(l=>fontFixture.lang(l),locale);await page.locator('#sample').evaluate((el,s)=>{el.textContent=s},samples[locale]);await settle()};
+   await setText('zh-CN');assert.equal(await picker.inputValue(),'system');assert.deepEqual(allRequests,[]);
+   const styleCases=[['zh-CN','modern','notosanssc'],['zh-CN','elegant','notoserifsc'],['zh-CN','minimal','lxgwwenkai'],['zh-CN','digital','zcoolqingkehuangyou'],['my','modern','notosansmyanmar'],['my','elegant','notoserifmyanmar'],['my','minimal','padauk'],['my','bold','tharlon']];
+   const session=await allCtx.newCDPSession(page);
+   try{
+    await session.send('DOM.enable');await session.send('CSS.enable');
+    const {root}=await session.send('DOM.getDocument');
+    const {nodeId}=await session.send('DOM.querySelector',{nodeId:root.nodeId,selector:'#sample'});
+    for(const [locale,style,folder] of styleCases){
+     await picker.selectOption('system');await settle();
+     await setText(locale);assert.equal(await picker.inputValue(),'system');
+     const before=allRequests.length;
+     await picker.selectOption(style);await settle();
+     assert.deepEqual(allRequests.slice(before),[{folder,file:locale==='zh-CN'?'part-0.woff2':'font.woff2'}],folder+' only selected core/full font requested');
+     const {fonts}=await session.send('CSS.getPlatformFontsForNode',{nodeId});
+     assert(fonts.some(f=>f.glyphCount>0)&&fonts.filter(f=>f.glyphCount>0).every(f=>f.isCustomFont),folder+' custom sample rendered');
+    }
+    const before=allRequests.length;
+    await picker.selectOption('system');await settle();
+    await setText('zh-CN');await picker.selectOption('modern');await settle();
+    assert.equal(allRequests.length,before,'previously loaded family reused');
+    await page.evaluate(()=>fontFixture.owner('guest'));await settle();
+    assert(await picker.isDisabled());assert.equal(allRequests.length,before,'guest no font requests');
+   }finally{await session.detach()}
+   console.log('FONT-COMBINED '+JSON.stringify({families:fullPacks.size,requests:allRequests,cssBytes:Buffer.byteLength(combinedCSS)}));
+   console.log('PASS: all eight actual full font packs coexist in one same-origin Settings fixture with selected-only requests, custom glyphs, reuse and guest isolation (not deployed)');
+  }finally{await allCtx.close()}
  }
 }finally{await browser.close()}
