@@ -90,6 +90,47 @@ try{
  const titles={en:['Edit profile','General','Password & devices','App icon','Data & backup'],zh:['编辑资料','通用设置','密码与设备','应用图标','数据与备份'],my:['ကိုယ်ရေးအချက်အလက် ပြင်ဆင်ရန်','အထွေထွေ','စကားဝှက်နှင့် စက်များ','အက်ပ်အိုင်ကွန်','ဒေတာနှင့် အရန်သိမ်းဆည်းမှု']};
  // Isolated real runtime calendar and local storage (no account APIs or live data).
  await page.evaluate(()=>{document.getElementById('stPage_profile').hidden=false;document.getElementById('stSettingsHomeV3').hidden=true;window.currentSessionUser={id:'synthetic-profile-test'};});
+ // Execute the actual translation text/attribute paths on the real profile DOM.
+ // Unrelated workspace translators are stubs; no profile upload or save handler is loaded.
+ const attrStart=app.indexOf('function translateAttributes(root){'),attrEnd=app.indexOf('function translateDynamicText(base){',attrStart);
+ const textStart=app.indexOf('function personalSettingsCopyV268(base,el,locale){'),textEnd=app.indexOf('function syncLanguageChoices(){',textStart);
+ assert.ok(attrStart>=0&&attrEnd>attrStart&&textStart>=0&&textEnd>textStart,'actual translator boundaries');
+ await page.addScriptTag({content:`(()=>{
+  let lang='en';
+  const no=()=>false,investCopySurfaceV236=no,txUiSurfaceV2=no,recurringCopySurfaceV264=no,goalCopySurfaceV263=no,myWorkspaceUiV2=no;
+  const zh={},zhWorkspaceV2={};
+  const fallback=base=>base==='Sample user.png'?'UNEXPECTED FILE TRANSLATION':base;
+  const translateDynamicText=fallback,myWorkspaceTextV2=fallback;
+  `+app.slice(attrStart,attrEnd)+app.slice(textStart,textEnd)+`
+  window.translateProfileFixtureV271=locale=>{lang=locale;document.documentElement.lang=locale==='zh'?'zh-CN':locale;translateRoot(document.getElementById('stPage_profile'));};
+ })();`});
+ const profileName=page.locator('#mmhProfileNameV1'),profileFile=page.locator('#mmhProfilePhotoV1'),profileHint=page.locator('#mmhProfileFileNameV1'),profileResult=page.locator('#mmhProfileResultV1');
+ const setProfileLocale=lang=>page.evaluate(lang=>window.translateProfileFixtureV271(lang),lang);
+ const labels=[
+  ['zh','昵称','您的昵称','更换头像','保存更改','取消','正在保存个人资料…','JPG、PNG 或 WEBP · 最大 2 MB'],
+  ['my','ပြသမည့် အမည်','သင့်ပြသမည့် အမည်','ပရိုဖိုင်ပုံ ပြောင်းရန်','ပြောင်းလဲမှုများ သိမ်းရန်','မလုပ်တော့ပါ','ပရိုဖိုင် သိမ်းဆည်းနေသည်…','JPG၊ PNG သို့မဟုတ် WEBP · 2 MB အထိ'],
+  ['en','Display name','Your display name','Change photo','Save changes','Cancel','Saving profile…','JPG, PNG or WEBP · up to 2 MB']
+ ];
+ await profileName.fill('Sample user');
+ await profileFile.setInputFiles({name:'Sample user.png',mimeType:'image/png',buffer:Buffer.from([137,80,78,71,13,10,26,10])});
+ await profileHint.evaluate(e=>e.textContent='Sample user.png');
+ await profileResult.evaluate(e=>e.textContent='Saving profile…');
+ for(const [locale,name,placeholder,photo,save,cancel,status] of labels){
+  await setProfileLocale(locale);
+  assert.equal(await page.locator('.mmh-profile-name-v1>span').textContent(),name);
+  assert.equal(await profileName.getAttribute('placeholder'),placeholder);
+  assert.equal(await page.locator('#mmhProfilePickV1 span').textContent(),photo);
+  assert.equal(await page.locator('#mmhProfileSaveV1').textContent(),save);
+  assert.equal(await page.locator('#mmhProfileCancelV271').textContent(),cancel);
+  assert.equal(await profileResult.textContent(),status);
+  assert.equal(await profileName.inputValue(),'Sample user');
+  assert.equal(await profileHint.textContent(),'Sample user.png');
+ }
+ await profileFile.setInputFiles([]);
+ await profileHint.evaluate(e=>e.textContent='JPG, PNG or WEBP · up to 2 MB');
+ for(const [locale,,,,,,,hint] of labels){await setProfileLocale(locale);assert.equal(await profileHint.textContent(),hint);}
+ await profileResult.evaluate(e=>e.textContent='');
+ console.log('PASS: actual profile translation paths EN/ZH/MY roundtrip, nickname and selected filename isolation in '+engine);
  const ageScript=app.match(/<script id="mmhvault-v34216-age-js">([\s\S]*?)<\/script>/)[1];
  await page.addScriptTag({content:ageScript});
  await page.locator('#mmhBirthInfoV271').click();
