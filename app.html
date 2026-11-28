@@ -11218,7 +11218,7 @@ html.mmh-desktop-compact-v11110 body.mmh-workspace-active #moreNavMenu.more-nav-
 (function(){
   if(window.__mmhAgeV34215Installed)return; window.__mmhAgeV34215Installed=true;
   const KEY='mmhvault_birth_date_v34216';
-  let renderedKey=null, editingKey=null;
+  let renderedKey=null, editingKey=null, editInvalidated=false;
   function scopedKey(){const owner=typeof currentSessionUser!=='undefined'?currentSessionUser?.id:null;return typeof owner==='string'&&owner&&owner!=='guest'?KEY+'_'+owner:null;}
   function validBirth(raw,now=new Date()){
     const m=/^(\d{4})-(\d{2})-(\d{2})$/.exec(raw||'');if(!m)return null;
@@ -11253,7 +11253,7 @@ html.mmh-desktop-compact-v11110 body.mmh-workspace-active #moreNavMenu.more-nav-
     const v=document.getElementById('mmhSettingsAgeValueV34215'), n=document.getElementById('mmhSettingsBirthdayValueV34215'), c=document.getElementById('mmhSettingsBirthdayCountdownV34215');
     const input=document.getElementById('mmhBirthDateInputV34215');
     const key=scopedKey(),iso=getBirthISO(),changed=renderedKey!==key;renderedKey=key;
-    if(input){input.disabled=!key;if(changed){editingKey=null;input.setCustomValidity('');}if(changed||document.activeElement!==input){if(input.value!==iso)input.value=iso;}}
+    if(input){input.disabled=!key;if(changed){if(editingKey!==null||document.activeElement===input)editInvalidated=true;editingKey=null;input.setCustomValidity('');}if(changed||document.activeElement!==input){if(input.value!==iso)input.value=iso;}}
     const now=new Date(),a=parts(now),nb=nextBirthday(now);
     if(!a||!nb){for(const el of [v,n,c])if(el)el.textContent='—';return;}
     const diff=Math.max(0,nb-now),days=Math.floor(diff/86400000),hrs=Math.floor((diff%86400000)/3600000),mins=Math.floor((diff%3600000)/60000),secs=Math.floor((diff%60000)/1000);
@@ -11275,11 +11275,11 @@ html.mmh-desktop-compact-v11110 body.mmh-workspace-active #moreNavMenu.more-nav-
   const bind=()=>{
     const input=document.getElementById('mmhBirthDateInputV34215');
     if(input&&!input.__v34216){
-      input.__v34216=true;input.addEventListener('focus',()=>{editingKey=scopedKey();});
+      input.__v34216=true;input.addEventListener('focus',()=>{editingKey=scopedKey();editInvalidated=false;});
       input.addEventListener('blur',()=>{editingKey=null;render();});
       input.addEventListener('change',()=>{
         const key=scopedKey(),raw=input.value;
-        if(!key||key!==renderedKey||(editingKey!==null&&editingKey!==key)){input.value=getBirthISO();render();return;}
+        if(!key||editInvalidated||key!==renderedKey||(editingKey!==null&&editingKey!==key)){input.value=getBirthISO();render();return;}
         if(raw!==''&&!validBirth(raw)){input.setCustomValidity('Choose a valid past birth date, from 1900 onward.');input.reportValidity();input.value=getBirthISO();return;}
         input.setCustomValidity('');
         try{localStorage.setItem(key,raw);}catch(_){input.value=getBirthISO();render();return;}
