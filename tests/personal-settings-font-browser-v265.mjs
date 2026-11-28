@@ -539,7 +539,7 @@ sys.stdout.buffer.write(data)
    await splitCtx.route('**/*',route=>{
     const url=new URL(route.request().url());
     if(url.origin!==origin)return route.abort();
-    if(url.pathname==='/')return route.fulfill({status:200,contentType:'text/html',body:'<!doctype html><html lang="zh-CN"><body><p id="sample"></p></body></html>'});
+    if(url.pathname==='/')return route.fulfill({status:200,contentType:'text/html',body:'<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"></head><body class="mmh-workspace-active"><main class="page active" id="settings"><div id="rows"></div><p id="sample"></p></main></body></html>'});
     const m=/^\/part-(\d+)\.woff2$/.exec(url.pathname);
     const g=m&&bundle.groups[Number(m[1])];
     if(!g)return route.fulfill({status:404,body:''});
@@ -547,14 +547,32 @@ sys.stdout.buffer.write(data)
     return route.fulfill({status:200,contentType:'font/woff2',body:Buffer.from(g.data,'base64')});
    });
    const p=await splitCtx.newPage();await p.goto(origin+'/');
-   await p.addStyleTag({content:partitionCss+'#sample{font:400 28px "'+bundle.family+'",sans-serif}'});
+   // Exercise the real Settings cascade with the full generated partition CSS, not an inline family override.
+   await p.addStyleTag({content:'body{font-family:system-ui,sans-serif}#sample{font-size:28px;font-weight:400}'+css});
+   await p.addScriptTag({content:`const $=id=>document.getElementById(id);let owner='a';const store=new Map();const prefOwner=()=>owner;const lsGet=k=>store.get(k)??null;const lsSet=(k,v)=>{store.set(k,v);return true};`+row+helpers+`addFontV265($('rows'));window.fontFixture={owner:id=>{owner=id;dispatchEvent(new Event('mmhvault:config-owner-changed'))}};`});
+   const picker=p.locator('#stPref_fontV265');
+   assert.equal(await picker.inputValue(),'system');
+   const matches=[];
+   for(const style of ['modern','elegant','minimal','digital','soft','bold']){
+    await picker.selectOption(style);
+    const family=await p.locator('#sample').evaluate(el=>getComputedStyle(el).fontFamily);
+    if(family.includes(bundle.family))matches.push(style);
+   }
+   assert.equal(matches.length,1,folder+' maps to exactly one actual Settings choice');
+   await picker.selectOption('system');
+   await p.addStyleTag({content:partitionCss});
    const set=async s=>{await p.locator('#sample').evaluate((el,value)=>{el.textContent=value},s);await p.evaluate(async()=>{document.querySelector('#sample').getBoundingClientRect();await document.fonts.ready;await new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r)))})};
-   await set(samples['zh-CN']);assert.deepEqual([...new Set(splitRequests)],[0],'UI sample only loads core');
+   await set(samples['zh-CN']);assert.deepEqual(splitRequests,[],'System with full pack CSS makes no font requests');
+   await picker.selectOption(matches[0]);await set(samples['zh-CN']);assert.deepEqual([...new Set(splitRequests)],[0],'selected Settings style loads only core');
    const mixed=samples['zh-CN']+String.fromCodePoint(rare);
    await set(mixed);assert.deepEqual([...new Set(splitRequests)].sort((a,b)=>a-b),[0,lookup.get(rare)].sort((a,b)=>a-b),'rare character requests only matching shard');
    const session=await splitCtx.newCDPSession(p);
    try{await session.send('DOM.enable');await session.send('CSS.enable');const {root}=await session.send('DOM.getDocument');const {nodeId}=await session.send('DOM.querySelector',{nodeId:root.nodeId,selector:'#sample'});const {fonts}=await session.send('CSS.getPlatformFontsForNode',{nodeId});assert(fonts.some(x=>x.glyphCount>0)&&fonts.filter(x=>x.glyphCount>0).every(x=>x.isCustomFont),'mixed sample renders without platform fallback')}finally{await session.detach()}
-   console.log('FONT-PARTITION '+JSON.stringify({folder,missingUiHan:bundle.missing_ui_han_count,sourceUvs:bundle.source_uvs_count,preservedUvs:bundle.preserved_uvs_count,missingUvs:bundle.missing_uvs_count,sourceCount:bundle.sourceCount,shards:bundle.groups.length,coreBytes:bundle.groups[0].bytes,totalBytes:bundle.groups.reduce((n,g)=>n+g.bytes,0),largestBytes:Math.max(...bundle.groups.map(g=>g.bytes)),requests:splitRequests}));
+   const fetched=splitRequests.length;
+   await picker.selectOption('system');await set(samples['zh-CN']);assert.equal(splitRequests.length,fetched,'System reset does not fetch other shards');
+   await picker.selectOption(matches[0]);await set(mixed);assert.equal(splitRequests.length,fetched,'reselecting style reuses full pack shards');
+   await p.evaluate(()=>fontFixture.owner('guest'));await set(mixed);assert(await picker.isDisabled());assert.equal(splitRequests.length,fetched,'guest does not request other shards');
+   console.log('FONT-PARTITION '+JSON.stringify({folder,style:matches[0],missingUiHan:bundle.missing_ui_han_count,sourceUvs:bundle.source_uvs_count,preservedUvs:bundle.preserved_uvs_count,missingUvs:bundle.missing_uvs_count,sourceCount:bundle.sourceCount,shards:bundle.groups.length,coreBytes:bundle.groups[0].bytes,totalBytes:bundle.groups.reduce((n,g)=>n+g.bytes,0),largestBytes:Math.max(...bundle.groups.map(g=>g.bytes)),requests:splitRequests}));
    console.log('PASS: pinned Chinese offline pack, source cmap partition, original license, shard hashes, coverage diagnostics, tampered license/overwrite rejection, generated CSS and mixed sample rendering (isolated '+folder+' candidate)');
   }finally{await splitCtx.close()}
   }
