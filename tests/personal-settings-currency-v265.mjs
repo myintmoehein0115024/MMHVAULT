@@ -793,3 +793,19 @@ console.log('PASS: 53-code shared display registry, additional FX, missing rates
  assert(/id="mmhBirthDateInputV34215" type="date" value=""/.test(app),'no invented HTML default');
  console.log('PASS: Personal birthday unset/legacy owner isolation, calendar validation, explicit clear, stale edit rejection and blocked storage (mock DOM)');
 }
+
+{
+ const a=app.indexOf('function go(id,trigger)'),b=app.indexOf('function back(){',a);
+ assert(a>=0&&b>a);
+ const page=()=>({hidden:true,querySelector:()=>({focus(){}})}),profile=page(),security=page(),home={hidden:false};
+ const pages=new Map([['profile',profile],['security',security]]);
+ const root={classList:{contains:()=>false,add(){}}};
+ const go=new Function('pages','root','home','mmhWorkspaceScrollYV2','mmhWorkspaceScrollToV2','let homeScroll=0,lastTrigger=null;'+app.slice(a,b)+'return go;')(pages,root,home,()=>0,()=>{});
+ go('personal');assert.equal(profile.hidden,false);assert.equal(security.hidden,true);assert.equal(home.hidden,true);
+ go('security');assert.equal(profile.hidden,true);assert.equal(security.hidden,false);
+ assert.match(app,/if\(birthday\)form\.after\(birthday\);editor\.remove\(\);/);
+ assert(!app.includes("account.append(disclosure('Personal time'"));
+ assert(!app.includes("'Personal time':['personal'"));
+ assert.equal((app.match(/id="mmhBirthDateInputV34215"/g)||[]).length,1);
+ console.log('PASS: Personal birthday profile sibling placement, legacy route alias and separate navigation (source/mock DOM)');
+}
